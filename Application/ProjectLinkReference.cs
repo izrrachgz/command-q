@@ -1,6 +1,6 @@
 ﻿namespace Application
 {
-    public class EmptyReference
+    public class ProjectLinkReference
     {
     }
 }

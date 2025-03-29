@@ -12,7 +12,7 @@ namespace Application.Test
     {
         public static void ConfigureServices(IServiceCollection services)
         {
-            var applicationAssembly = typeof(EmptyReference).Assembly;
+            var applicationAssembly = typeof(ProjectLinkReference).Assembly;
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
