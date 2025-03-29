@@ -1,6 +1,7 @@
 ﻿using SqlKata.Execution;
 using Common.Extensions;
 using Application.Constants;
+using Persistence.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -54,7 +55,7 @@ namespace Persistence.Migrations.Extensions
                 .AddEnvironmentVariables()
                 .Build();
 
-            var repository = new Repository.Repository(configuration);
+            var repository = new WritableRepository(configuration);
 
             long lastMigrationId = 0;
 

@@ -7,11 +7,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository
 {
-    public class Repository : IRepository
+    public class WritableRepository : IRepository
     {
         public QueryFactory Db { get; }
 
-        public Repository(IConfiguration configuration)
+        public WritableRepository(IConfiguration configuration)
         {
             string connectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
             NpgsqlConnection connection = new(connectionString);
