@@ -67,4 +67,5 @@ ALTER TABLE IF EXISTS public."Migrations"
 ALTER SEQUENCE public.migrations_seq_id
     OWNED BY public."Migrations"."Id";
 
+-- Always insert a new record when what is consider a migration ends
 INSERT INTO public."Migrations" ("Deleted") VALUES (NULL);
