@@ -3,6 +3,6 @@
     internal sealed class ApplicationTest
     {
         public const string ConfigurationFileName = @"appsettings.json";
-        public const string UserSecrets = @"b2af6316-690a-44d5-93e8-f4e932ec8839";
+        public const string UserSecrets = @"ae43b7ef-537d-4999-b7cb-ff37f9e81ba2";
     }
 }
