@@ -33,7 +33,7 @@ namespace Application.Test
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
 
             //Repositories
-            services.AddFyiRepositories();
+            services.AddRepositories();
 
             //Add application services
             applicationAssembly.ExportedTypes

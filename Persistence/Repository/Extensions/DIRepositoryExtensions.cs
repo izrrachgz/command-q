@@ -6,7 +6,7 @@ namespace Persistence.Repository.Extensions
 {
     public static class DIRepositoryExtensions
     {
-        public static void AddFyiRepositories(this IServiceCollection services)
+        public static void AddRepositories(this IServiceCollection services)
         {
             services.AddScoped<ICommandRunner, NpgsqlCommandRunner>();
             services.AddScoped<IRepository, Repository>();
