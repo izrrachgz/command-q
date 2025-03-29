@@ -79,5 +79,10 @@ namespace Common.Extensions
 
             return default;
         }
+
+        public static string Remove(this string content, string needle)
+        {
+            return content.Replace(needle, string.Empty);
+        }
     }
 }

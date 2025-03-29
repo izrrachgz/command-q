@@ -1,5 +1,5 @@
 ﻿using Npgsql;
-using Application;
+using Common.Extensions;
 using Application.Constants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,18 +10,56 @@ namespace Persistence.Migrations.Extensions
     {
         private static readonly string FileNameSequence = @"migration-";
 
-        public static void RunMigrations(this IServiceCollection services)
+        private static readonly string MigrationCannotContinueMessage = @"cannot continue migration process.";
+
+        /// <summary>
+        /// Excplicitly add or call this method after repository creation
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static async Task RunMigrations(this IServiceCollection services)
         {
-            //TODO : go get last migration from db
-            int lastMigrationApplied = 0;
+            string migrationsPath = $@"{Directory.GetParent(Directory.GetCurrentDirectory())}\Persistence\Migrations\";
 
-            //TODO : get file counting from dir
-            int migrationCount = 1;
-
-            if (lastMigrationApplied == migrationCount)
+            if (!Directory.Exists(migrationsPath))
+            {
+                Console.WriteLine($"Migrations are not setup, {MigrationCannotContinueMessage}");
                 return;
+            }
 
-            var applicationAssembly = typeof(ProjectLinkReference).Assembly;
+            string[] filePaths = [.. Directory.GetFiles(migrationsPath).Order()];
+
+            if (filePaths == null || filePaths.Length == 0)
+            {
+                Console.WriteLine($"Migrations files are not found, {MigrationCannotContinueMessage}");
+                return;
+            }
+
+            string lastFilePath = filePaths[^1];
+
+            if (string.IsNullOrEmpty(lastFilePath))
+            {
+                Console.WriteLine($"Last migration file cannot be found, {MigrationCannotContinueMessage}");
+                return;
+            }
+
+            FileInfo lastFile = new(lastFilePath);
+
+            if (lastFile is null || !lastFile.Exists)
+            {
+                Console.WriteLine($"Last migration file cannot be found, {MigrationCannotContinueMessage}");
+                return;
+            }
+
+            string migrationCountIndex = lastFile.Name
+                .Remove(FileNameSequence)
+                .Remove(".sql");
+
+            if (!int.TryParse(migrationCountIndex, out int migrationCount))
+            {
+                Console.WriteLine($"Last migration index is not a valid value, {MigrationCannotContinueMessage}");
+                return;
+            }
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
@@ -34,7 +72,7 @@ namespace Persistence.Migrations.Extensions
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                Console.WriteLine($"Connection string cannot be empty in order to apply migrations");
+                Console.WriteLine($"Connection string cannot be empty in order to apply migrations.");
                 return;
             }
 
@@ -44,24 +82,44 @@ namespace Persistence.Migrations.Extensions
 
             var connection = dataSource.OpenConnection();
 
+            long lastMigrationApplied = 0;
+
+            using var lastAppliedMigrationCmd = connection.CreateCommand();
+
+            lastAppliedMigrationCmd.CommandText = $@"SELECT ""Id"" FROM public.""Migrations"" ORDER BY ""Id"" DESC LIMIT 1";
+
+            try
+            {
+                lastMigrationApplied = ((long?)await lastAppliedMigrationCmd.ExecuteScalarAsync()) ?? 0;
+            }
+            catch { }
+
+            if (lastMigrationApplied == migrationCount)
+                return;
+
             lastMigrationApplied++;
 
-            string migrationsPath = $@"{Directory.GetParent(Directory.GetCurrentDirectory())}\Persistence\Migrations\";
-
-            for (int x = lastMigrationApplied; x <= migrationCount; x++)
+            for (long x = lastMigrationApplied; x <= migrationCount; x++)
             {
                 string filePath = $@"{migrationsPath}{FileNameSequence}{x}.sql";
 
                 if (!File.Exists(filePath))
                     continue;
 
-                string content = File.ReadAllText(filePath);
+                string content = await File.ReadAllTextAsync(filePath);
 
                 using var cmd = connection.CreateCommand();
 
                 cmd.CommandText = content;
 
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    await cmd.ExecuteNonQueryAsync();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($@"An error ocurred while trying to apply migration {filePath}, {e.Message}");
+                }
             }
         }
     }

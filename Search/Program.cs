@@ -28,7 +28,7 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValida
 builder.Services.AddRepositories();
 
 //Migrations
-builder.Services.RunMigrations();
+await builder.Services.RunMigrations();
 
 //Add application services
 applicationAssembly.ExportedTypes
