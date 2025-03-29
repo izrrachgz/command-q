@@ -1,4 +1,4 @@
-﻿using Npgsql;
+﻿using SqlKata.Execution;
 using Common.Extensions;
 using Application.Constants;
 using Microsoft.Extensions.Configuration;
@@ -70,38 +70,33 @@ namespace Persistence.Migrations.Extensions
                 .AddEnvironmentVariables()
                 .Build();
 
-            string connectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
+            var repository = new Repository.Repository(configuration);
 
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                Console.WriteLine($"Connection string cannot be empty in order to apply migrations.");
-                return;
-            }
-
-            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-
-            var dataSource = dataSourceBuilder.Build();
-
-            var connection = dataSource.OpenConnection();
-
-            long lastMigrationApplied = 0;
-
-            using var lastAppliedMigrationCmd = connection.CreateCommand();
-
-            lastAppliedMigrationCmd.CommandText = $@"SELECT ""Id"" FROM public.""Migrations"" ORDER BY ""Id"" DESC LIMIT 1";
+            long lastMigrationId = 0;
 
             try
             {
-                lastMigrationApplied = ((long?)await lastAppliedMigrationCmd.ExecuteScalarAsync()) ?? 0;
+                var queryLastMigration = repository.Db.Query($"{nameof(Domain.Entities.Migrations)}")
+                .Select($"{nameof(Domain.Entities.Migrations.Id)}")
+                .WhereNull($@"{nameof(Domain.Entities.Migrations.Deleted)}")
+                .OrderByDesc($"{nameof(Domain.Entities.Migrations.Id)}")
+                .Take(1);
+
+                var records = await queryLastMigration.GetAsync<Domain.Entities.Migrations>();
+
+                if (records is not null)
+                {
+                    lastMigrationId = records.First().Id;
+                }
             }
             catch { }
 
-            if (lastMigrationApplied == migrationCount)
+            if (lastMigrationId >= migrationCount)
                 return;
 
-            lastMigrationApplied++;
+            lastMigrationId = lastMigrationId <= 0 ? 1 : lastMigrationId;
 
-            for (long x = lastMigrationApplied; x <= migrationCount; x++)
+            for (long x = lastMigrationId; x <= migrationCount; x++)
             {
                 string filePath = $@"{migrationsPath}{FileNameSequence}{x}{MigrationFileExtension}";
 
@@ -110,13 +105,18 @@ namespace Persistence.Migrations.Extensions
 
                 string content = await File.ReadAllTextAsync(filePath);
 
-                using var cmd = connection.CreateCommand();
-
-                cmd.CommandText = content;
-
                 try
                 {
-                    await cmd.ExecuteNonQueryAsync();
+                    using var cmd = repository.Db.Connection.CreateCommand();
+
+                    if (repository.Db.Connection.State != System.Data.ConnectionState.Open)
+                    {
+                        repository.Db.Connection.Open();
+                    }
+
+                    cmd.CommandText = content;
+
+                    cmd.ExecuteNonQuery();
                 }
                 catch (Exception e)
                 {
