@@ -29,7 +29,7 @@ namespace Persistence.Migrations.Extensions
                 return;
             }
 
-            string[] filePaths = [.. Directory.GetFiles(migrationsPath).Order()];
+            string[] filePaths = [.. Directory.GetFiles(migrationsPath).Where(f => f.Contains(FileNameSequence)).Order()];
 
             if (filePaths == null || filePaths.Length == 0)
             {
@@ -37,27 +37,11 @@ namespace Persistence.Migrations.Extensions
                 return;
             }
 
-            string lastFilePath = filePaths[^1];
-
-            if (string.IsNullOrEmpty(lastFilePath))
-            {
-                Console.WriteLine($"Last migration file cannot be found, {MigrationCannotContinueMessage}");
-                return;
-            }
-
-            FileInfo lastFile = new(lastFilePath);
-
-            if (lastFile is null || !lastFile.Exists)
-            {
-                Console.WriteLine($"Last migration file cannot be found, {MigrationCannotContinueMessage}");
-                return;
-            }
-
-            string migrationCountIndex = lastFile.Name
+            string migrationCountIndex = new FileInfo(filePaths[^1]).Name
                 .Remove(FileNameSequence)
                 .Remove(MigrationFileExtension);
 
-            if (!int.TryParse(migrationCountIndex, out int migrationCount))
+            if (!long.TryParse(migrationCountIndex, out long migrationCount))
             {
                 Console.WriteLine($"Last migration index is not a valid value, {MigrationCannotContinueMessage}");
                 return;
@@ -85,9 +69,7 @@ namespace Persistence.Migrations.Extensions
                 var records = await queryLastMigration.GetAsync<Domain.Entities.Migrations>();
 
                 if (records is not null)
-                {
                     lastMigrationId = records.First().Id;
-                }
             }
             catch { }
 
@@ -110,9 +92,7 @@ namespace Persistence.Migrations.Extensions
                     using var cmd = repository.Db.Connection.CreateCommand();
 
                     if (repository.Db.Connection.State != System.Data.ConnectionState.Open)
-                    {
                         repository.Db.Connection.Open();
-                    }
 
                     cmd.CommandText = content;
 
