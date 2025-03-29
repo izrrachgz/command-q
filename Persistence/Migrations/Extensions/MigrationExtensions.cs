@@ -10,6 +10,8 @@ namespace Persistence.Migrations.Extensions
     {
         private static readonly string FileNameSequence = @"migration-";
 
+        private static readonly string MigrationFileExtension = @".sql";
+
         private static readonly string MigrationCannotContinueMessage = @"cannot continue migration process.";
 
         /// <summary>
@@ -53,7 +55,7 @@ namespace Persistence.Migrations.Extensions
 
             string migrationCountIndex = lastFile.Name
                 .Remove(FileNameSequence)
-                .Remove(".sql");
+                .Remove(MigrationFileExtension);
 
             if (!int.TryParse(migrationCountIndex, out int migrationCount))
             {
@@ -101,7 +103,7 @@ namespace Persistence.Migrations.Extensions
 
             for (long x = lastMigrationApplied; x <= migrationCount; x++)
             {
-                string filePath = $@"{migrationsPath}{FileNameSequence}{x}.sql";
+                string filePath = $@"{migrationsPath}{FileNameSequence}{x}{MigrationFileExtension}";
 
                 if (!File.Exists(filePath))
                     continue;
