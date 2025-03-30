@@ -1,47 +1,58 @@
-# Fyi-search
-Stand Alone Search Service
-C#
-.NetCore 7
+# .NET 9 Solution
 
+## Prerequisites
+To run this solution, ensure you have the following installed:
 
-## Installation and Requirements
+- [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+- [.NET 9 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+- [.NET 9 Hosting Bundle](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
 
-fyi-search requires [Docker](https://www.docker.com/products/docker-desktop/) v4.23+ to run.
+## Database Support
+This solution supports the following databases:
+- **Microsoft SQL Server**
+- **PostgreSQL**
+- **MySQL**
 
-For windows environment :
+## Configuration
+Update the `appsettings.json` file with the appropriate connection string for your database. Example:
 
--Windows 10 64-bit: Home or Pro 21H2 (build 19044) or higher, or Enterprise or Education 21H2 (build 19044) or higher.
-
->Enable wsl (windows subsystem linux) v1.1.3.0+.
-
-command via powershell
-
-```sh
-wsl --install
+### **Microsoft SQL Server**
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+}
 ```
 
-visit for more information on how to enable [wsl](https://learn.microsoft.com/en-us/windows/wsl/install) 
-
-
-## Docker
-
-Fyi-search is very easy to install and deploy in a Docker container.
-
-> Note: if you are using visual studio, it links to docker desktop and this process can be automated for you to just click on docker run button.
-
-By default, the Docker will expose port 8080, so change this within the
-Dockerfile if necessary. When ready, simply use the Dockerfile to
-build the image.
-
-```sh
-cd Fyi-search
-docker build -t <youruser>/fyi-search:${version} .
+### **PostgreSQL**
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Host=YOUR_HOST;Port=5432;Database=YOUR_DATABASE;Username=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+}
 ```
 
-This will create the Fyi-search image and pull in the necessary dependencies.
-Be sure to swap out `${version}` with the actual
-version of Fyi-search.
+### **MySQL**
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+}
+```
 
-Once done, run the Docker image and map the port to whatever you wish on
-your host. In this example, we simply map port 8000 of the host to
-port 8080 of the Docker (or whatever port was exposed in the Dockerfile):
+## Running the Application
+1. Restore dependencies:
+   ```sh
+   dotnet restore
+   ```
+2. Build the project:
+   ```sh
+   dotnet build
+   ```
+3. Run the application:
+   ```sh
+   dotnet run
+   ```
+
+## Deployment
+For deployment instructions, ensure you install the **.NET 9 Hosting Bundle** on the target server and configure the environment variables accordingly.
+
+---
+For more details, refer to the [official .NET 9 documentation](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-9).
