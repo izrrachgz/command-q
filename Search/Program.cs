@@ -3,8 +3,8 @@ using Common.Cqrs;
 using FluentValidation;
 using Search.Middleware;
 using Persistence.Repository.Extensions;
-using Application.HealthChecks.Extensions;
 using Persistence.Migrations.Extensions;
+using Application.HealthChecks.Extensions;
 
 var applicationAssembly = typeof(Application.ProjectLinkReference).Assembly;
 var builder = WebApplication.CreateBuilder(args);

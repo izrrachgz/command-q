@@ -9,7 +9,7 @@ namespace Persistence.Repository.Extensions
         public static void AddRepositories(this IServiceCollection services)
         {
             services.AddScoped<ICommandRunner, NpgsqlCommandRunner>();
-            services.AddScoped<IRepository, WritableRepository>();
+            services.AddScoped<IWritableRepository, WritableRepository>();
             services.AddScoped<IReadOnlyRepository, ReadOnlyRepository>();
         }
     }

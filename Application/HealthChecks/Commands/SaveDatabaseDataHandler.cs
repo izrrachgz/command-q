@@ -8,9 +8,9 @@ namespace Application.HealthChecks.Commands
 {
     public class SaveDataCommandHandler : ICommandHandler<SaveDatabaseDataCommand, HealthCheckResult>, IHealthCheck
     {
-        private readonly IRepository _repository;
+        private readonly IWritableRepository _repository;
 
-        public SaveDataCommandHandler(IRepository repository)
+        public SaveDataCommandHandler(IWritableRepository repository)
         {
             _repository = repository;
         }

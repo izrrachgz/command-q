@@ -22,7 +22,16 @@ namespace Persistence.Migrations.Extensions
         /// <returns></returns>
         public static async Task RunMigrations(this IServiceCollection services)
         {
-            string migrationsPath = $@"{Directory.GetParent(Directory.GetCurrentDirectory())}\Persistence\Migrations\";
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile(ApplicationConfiguration.ConfigurationFileName, optional: false)
+                .AddUserSecrets(ApplicationConfiguration.UserSecrets)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var repository = new WritableRepository(configuration);
+
+            string migrationsPath = repository.MigrationsPath;
 
             if (!Directory.Exists(migrationsPath))
             {
@@ -47,15 +56,6 @@ namespace Persistence.Migrations.Extensions
                 Console.WriteLine($"Last migration index is not a valid value, {MigrationCannotContinueMessage}");
                 return;
             }
-
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile(ApplicationConfiguration.ConfigurationFileName, optional: false)
-                .AddUserSecrets(ApplicationConfiguration.UserSecrets)
-                .AddEnvironmentVariables()
-                .Build();
-
-            var repository = new WritableRepository(configuration);
 
             long lastMigrationId = 0;
 
