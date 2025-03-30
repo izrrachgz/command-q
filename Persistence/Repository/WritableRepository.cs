@@ -50,6 +50,8 @@ namespace Persistence.Repository
                     break;
             }
 
+            MigrationsPath += '/';
+
             Db = new QueryFactory(connection, compiler);
         }
     }
