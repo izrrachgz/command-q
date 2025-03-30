@@ -12,6 +12,11 @@ namespace Domain.Interfaces
         /// Should be the database entry point
         /// </summary>
         public QueryFactory Db { get; }
+
+        /// <summary>
+        /// Should be the asociated database engine
+        /// </summary>
+        public DatabaseEngine Engine { get; }
     }
 
     /// <summary>
