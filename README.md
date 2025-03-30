@@ -19,21 +19,24 @@ Update the `appsettings.json` file with the appropriate connection string for yo
 ### **Microsoft SQL Server**
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+  "Engine" : "MsSql",
+  "Db": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
 }
 ```
 
 ### **PostgreSQL**
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Host=YOUR_HOST;Port=5432;Database=YOUR_DATABASE;Username=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+  "Engine" : "PgSql",
+  "Db": "Host=YOUR_HOST;Port=5432;Database=YOUR_DATABASE;Username=YOUR_USERNAME;Password=YOUR_PASSWORD;"
 }
 ```
 
 ### **MySQL**
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+  "Engine" : "MySql",
+  "Db": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;"
 }
 ```
 
@@ -50,6 +53,18 @@ Update the `appsettings.json` file with the appropriate connection string for yo
    ```sh
    dotnet run
    ```
+## Migrations
+For migrations, inside the migrations folder in the Persitence project add a migration-X.sql script file 
+with the changes for each of the engines you are intended to use and just run the solution.
+
+## Cqrs
+Command Query Responsibility Segregation (CQRS) is a design pattern that segregates read and write operations
+for a data store into separate data models. This approach allows each model to be optimized independently
+and can improve the performance, scalability, and security of an application.
+
+---
+For more details, refer to [Cqrs on microsoft](https://learn.microsoft.com/es-mx/azure/architecture/patterns/cqrs)
+
 
 ## Deployment
 For deployment instructions, ensure you install the **.NET 9 Hosting Bundle** on the target server and configure the environment variables accordingly.
