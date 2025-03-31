@@ -5,6 +5,7 @@ using Search.Middleware;
 using Persistence.Repository.Extensions;
 using Persistence.Migrations.Extensions;
 using Application.HealthChecks.Extensions;
+using Persistence.Repository.Command.Extensions;
 
 var applicationAssembly = typeof(Application.ProjectLinkReference).Assembly;
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +27,9 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValida
 
 //Repositories
 builder.Services.AddRepositories();
+
+//Command Runners
+builder.Services.AddCommandRunners();
 
 //Migrations
 await builder.Services.RunMigrations();

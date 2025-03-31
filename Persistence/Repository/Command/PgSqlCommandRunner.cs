@@ -11,11 +11,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
 {
-    internal sealed class NpgsqlCommandRunner : ICommandRunner
+    internal sealed class PgSqlCommandRunner : ICommandRunner
     {
         private string ConnectionString { get; }
 
-        public NpgsqlCommandRunner(IConfiguration configuration)
+        public PgSqlCommandRunner(IConfiguration configuration)
         {
             ConnectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
         }
@@ -45,7 +45,7 @@ namespace Persistence.Repository.Command
 
         public async Task<List<object>> Execute(string query, Type type, Dictionary<string, object?>? parameters, CancellationToken cancellationToken = default)
         {
-            List<object> results = new(0);
+            List<object> results = [];
 
             var connection = GetConnection();
 
@@ -64,7 +64,7 @@ namespace Persistence.Repository.Command
 
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
             if (reader.HasRows)
-                results = reader.Parse(type).ToList();
+                results = [.. reader.Parse(type)];
 
             return results;
         }

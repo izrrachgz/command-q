@@ -36,7 +36,7 @@ namespace Domain.Interfaces
         /// Should copy in the most optimized way possible the rows into the table
         /// </summary>
         /// <param name="table">Target table</param>
-        /// <param name="columns">Columns to insert, not alias.</param>
+        /// <param name="columns">Columns to insert, not alias and in order.</param>
         /// <param name="rows">Row data, key is the asociated column name, value is used value</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
