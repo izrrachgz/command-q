@@ -67,9 +67,71 @@ namespace Persistence.Repository.Command
             return results;
         }
 
-        public Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
+        public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            using var connection = (SqlConnection)GetConnection();
+
+            var data = new DataTable();
+
+            try
+            {
+                using var cmd = connection.CreateCommand();
+
+                cmd.CommandText = $@"SELECT TOP 0 * FROM {table}";
+
+                using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                data.Load(reader);
+
+                foreach (var row in rows)
+                {
+                    var r = data.NewRow();
+                    foreach (var column in columns)
+                    {
+                        r[column] = row[column] ?? DBNull.Value;
+                    }
+
+                    data.Rows.Add(r);
+                }
+                await cmd.DisposeAsync();
+                await reader.DisposeAsync();
+            }
+            catch
+            {
+                await connection.DisposeAsync();
+
+                data.Dispose();
+
+                return new(false, "Could not read table schema");
+            }
+
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                using var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction);
+
+                bulkCopy.DestinationTableName = table;
+
+                await bulkCopy.WriteToServerAsync(data, cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return new(true, "Copy completed");
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+
+                return new(false, "Internal exception, copy has rolled back.");
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+
+                await connection.DisposeAsync();
+
+                data.Dispose();
+            }
         }
     }
 }

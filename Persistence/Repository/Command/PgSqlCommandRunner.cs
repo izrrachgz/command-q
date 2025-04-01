@@ -88,6 +88,8 @@ namespace Persistence.Repository.Command
             }
             catch
             {
+                await connection.DisposeAsync();
+
                 return new(false, "Could not read table schema");
             }
 

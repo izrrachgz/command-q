@@ -74,14 +74,14 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
+            string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
+
+            using var connection = (MySqlConnection)GetConnection();
+
+            using var transaction = connection.BeginTransaction();
+
             try
             {
-                string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
-
-                using var connection = (MySqlConnection)GetConnection();
-
-                using var transaction = connection.BeginTransaction();
-
                 int insertedRows = 0;
 
                 while (insertedRows < rows.Length)
@@ -123,15 +123,19 @@ namespace Persistence.Repository.Command
 
                 await transaction.CommitAsync(cancellationToken);
 
-                await transaction.DisposeAsync();
-
-                await connection.DisposeAsync();
-
                 return new(insertedRows == rows.Length, "Copy completed");
             }
             catch
             {
+                await transaction.RollbackAsync(cancellationToken);
+
                 return new(false, "Internal exception, copy has rolled back.");
+            }
+            finally
+            {
+                await transaction.DisposeAsync();
+
+                await connection.DisposeAsync();
             }
         }
 
