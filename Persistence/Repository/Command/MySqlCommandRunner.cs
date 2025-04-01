@@ -14,6 +14,8 @@ namespace Persistence.Repository.Command
     {
         private const char CharacterSeparator = '\x1F';
 
+        private const int InsertBatchSize = 1000;
+
         private string ConnectionString { get; }
 
         public MySqlCommandRunner(IConfiguration configuration)
@@ -71,6 +73,69 @@ namespace Persistence.Repository.Command
         }
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
+
+                using var connection = (MySqlConnection)GetConnection();
+
+                using var transaction = connection.BeginTransaction();
+
+                int insertedRows = 0;
+
+                while (insertedRows < rows.Length)
+                {
+                    using var cmd = transaction.Connection.CreateCommand();
+
+                    var batch = rows.Skip(insertedRows).Take(InsertBatchSize);
+
+                    var sb = new StringBuilder(insertSql);
+
+                    int i = 0;
+
+                    foreach (var row in batch)
+                    {
+                        sb.Append('(');
+
+                        foreach (var column in columns)
+                        {
+                            string paramName = $@"{column}{i}";
+                            sb.Append('@').Append(paramName);
+                            cmd.Parameters.AddWithValue(paramName, row[column]);
+                        }
+
+                        sb.Append(')').Append(',');
+
+                        i++;
+                    }
+
+                    sb.Length -= 1;
+
+                    cmd.CommandText = sb.ToString();
+
+                    insertedRows += await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                    await cmd.DisposeAsync();
+
+                    sb.Clear();
+                }
+
+                await transaction.CommitAsync(cancellationToken);
+
+                await transaction.DisposeAsync();
+
+                await connection.DisposeAsync();
+
+                return new(insertedRows == rows.Length, "Copy completed");
+            }
+            catch
+            {
+                return new(false, "Internal exception, copy has rolled back.");
+            }
+        }
+
+        public async Task<BasicResponse> BulkInsertLocalFile(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
             string tempPath = Path.GetTempFileName();
 
