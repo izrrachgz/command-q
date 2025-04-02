@@ -20,11 +20,9 @@ namespace Persistence.Repository
 
         private readonly QueryFactory _db;
 
-        public ReadOnlyRepository(IConfiguration configuration)
+        public ReadOnlyRepository(string connectionString, DatabaseEngine engine)
         {
-            string connectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
-
-            Engine = configuration.GetValue<DatabaseEngine>(ApplicationConfiguration.EngineKeyName);
+            Engine = engine;
 
             IDbConnection connection;
             Compiler compiler;
@@ -51,6 +49,19 @@ namespace Persistence.Repository
             }
 
             _db = new(connection, compiler);
+        }
+
+        public ReadOnlyRepository(IConfiguration configuration) : this(GetConnectionString(configuration), GetDatabaseEngine(configuration))
+        { }
+
+        private static string GetConnectionString(IConfiguration configuration)
+        {
+            return configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
+        }
+
+        private static DatabaseEngine GetDatabaseEngine(IConfiguration configuration)
+        {
+            return configuration.GetValue<DatabaseEngine>(ApplicationConfiguration.EngineKeyName);
         }
     }
 }

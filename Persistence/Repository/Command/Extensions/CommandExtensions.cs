@@ -10,6 +10,7 @@ namespace Persistence.Repository.Command.Extensions
             services.AddScoped<ICommandRunner, PgSqlCommandRunner>();
             services.AddScoped<ICommandRunner, MsSqlCommandRunner>();
             services.AddScoped<ICommandRunner, MySqlCommandRunner>();
+            services.AddScoped<ICommandRunner, SqLiteCommandRunner>();
         }
     }
 }

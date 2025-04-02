@@ -20,13 +20,11 @@ namespace Persistence.Repository
 
         public string MigrationsPath { get; }
 
-        public WritableRepository(IConfiguration configuration)
+        public WritableRepository(string connectionString, DatabaseEngine engine)
         {
-            string connectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
-
-            Engine = configuration.GetValue<DatabaseEngine>(ApplicationConfiguration.EngineKeyName);
-
             MigrationsPath = $@"{Directory.GetParent(Directory.GetCurrentDirectory())}\{nameof(Persistence)}\{nameof(Migrations)}\";
+
+            Engine = engine;
 
             IDbConnection connection;
             Compiler compiler;
@@ -59,6 +57,19 @@ namespace Persistence.Repository
             MigrationsPath += '/';
 
             Db = new QueryFactory(connection, compiler);
+        }
+
+        public WritableRepository(IConfiguration configuration) : this(GetConnectionString(configuration), GetDatabaseEngine(configuration))
+        { }
+
+        private static string GetConnectionString(IConfiguration configuration)
+        {
+            return configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
+        }
+
+        private static DatabaseEngine GetDatabaseEngine(IConfiguration configuration)
+        {
+            return configuration.GetValue<DatabaseEngine>(ApplicationConfiguration.EngineKeyName);
         }
     }
 }
