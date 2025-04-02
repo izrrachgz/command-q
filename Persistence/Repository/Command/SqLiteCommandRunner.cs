@@ -3,9 +3,9 @@ using System.Data;
 using Domain.Interfaces;
 using System.Data.SQLite;
 using Persistence.Constant;
-using Application.Constants;
 using Common.Models.Command;
 using Common.Models.Response;
+using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
@@ -14,10 +14,13 @@ namespace Persistence.Repository.Command
     {
         private string ConnectionString { get; }
 
-        public SqLiteCommandRunner(IConfiguration configuration)
+        public SqLiteCommandRunner(string connectionString)
         {
-            ConnectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
+            ConnectionString = connectionString;
         }
+
+        public SqLiteCommandRunner(IConfiguration configuration) : this(configuration.GetConnectionString())
+        { }
 
         public IDbConnection GetConnection()
         {

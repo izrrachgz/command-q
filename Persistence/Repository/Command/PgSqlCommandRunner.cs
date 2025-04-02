@@ -4,10 +4,10 @@ using System.Data;
 using Npgsql.Schema;
 using Domain.Interfaces;
 using Persistence.Constant;
-using Application.Constants;
 using Common.Models.Command;
 using Common.Models.Response;
 using System.Collections.ObjectModel;
+using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
@@ -16,10 +16,13 @@ namespace Persistence.Repository.Command
     {
         private string ConnectionString { get; }
 
-        public PgSqlCommandRunner(IConfiguration configuration)
+        public PgSqlCommandRunner(string connectionString)
         {
-            ConnectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
+            ConnectionString = connectionString;
         }
+
+        public PgSqlCommandRunner(IConfiguration configuration) : this(configuration.GetConnectionString())
+        { }
 
         public IDbConnection GetConnection()
         {

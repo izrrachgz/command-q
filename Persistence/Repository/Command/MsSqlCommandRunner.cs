@@ -2,10 +2,10 @@
 using System.Data;
 using Domain.Interfaces;
 using Persistence.Constant;
-using Application.Constants;
 using Common.Models.Command;
 using Common.Models.Response;
 using Microsoft.Data.SqlClient;
+using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
@@ -14,10 +14,13 @@ namespace Persistence.Repository.Command
     {
         private string ConnectionString { get; }
 
-        public MsSqlCommandRunner(IConfiguration configuration)
+        public MsSqlCommandRunner(string connectionString)
         {
-            ConnectionString = configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
+            ConnectionString = connectionString;
         }
+
+        public MsSqlCommandRunner(IConfiguration configuration) : this(configuration.GetConnectionString())
+        { }
 
         public IDbConnection GetConnection()
         {

@@ -5,9 +5,9 @@ using SqlKata.Execution;
 using Domain.Interfaces;
 using System.Data.SQLite;
 using Common.Enumerations;
-using Application.Constants;
 using MySql.Data.MySqlClient;
 using Microsoft.Data.SqlClient;
+using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository
@@ -59,17 +59,7 @@ namespace Persistence.Repository
             Db = new QueryFactory(connection, compiler);
         }
 
-        public WritableRepository(IConfiguration configuration) : this(GetConnectionString(configuration), GetDatabaseEngine(configuration))
+        public WritableRepository(IConfiguration configuration) : this(configuration.GetConnectionString(), configuration.GetDatabaseEngine())
         { }
-
-        private static string GetConnectionString(IConfiguration configuration)
-        {
-            return configuration.GetConnectionString(ApplicationConfiguration.ConnectionStringKeyName) ?? string.Empty;
-        }
-
-        private static DatabaseEngine GetDatabaseEngine(IConfiguration configuration)
-        {
-            return configuration.GetValue<DatabaseEngine>(ApplicationConfiguration.EngineKeyName);
-        }
     }
 }
