@@ -3,6 +3,7 @@ using Dapper;
 using System.Data;
 using Npgsql.Schema;
 using Domain.Interfaces;
+using Persistence.Constant;
 using Application.Constants;
 using Common.Models.Command;
 using Common.Models.Response;
@@ -90,7 +91,7 @@ namespace Persistence.Repository.Command
             {
                 await connection.DisposeAsync();
 
-                return new(false, "Could not read table schema");
+                return new(false, CommandConstants.CannotReadSchema);
             }
 
             using var writer = await connection.BeginBinaryImportAsync($@"COPY ""{table}"" ({joinedColumns}) FROM STDIN BINARY", cancellationToken);
@@ -122,11 +123,11 @@ namespace Persistence.Repository.Command
 
                 await connection.DisposeAsync();
 
-                return new(true, "Copy completed");
+                return new(true, CommandConstants.CopyCompleted);
             }
             catch
             {
-                return new(false, "Internal exception, copy has rolled back.");
+                return new(false, CommandConstants.ErrorDuringCopy);
             }
         }
     }

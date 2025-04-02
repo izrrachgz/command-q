@@ -4,7 +4,7 @@ using FluentValidation.Results;
 
 namespace Common.Cqrs
 {
-	public class RequestValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class RequestValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
@@ -14,7 +14,7 @@ namespace Common.Cqrs
             _validators = validators;
         }
 
-		public Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        public Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var context = new ValidationContext<TRequest>(request);
 
@@ -31,5 +31,5 @@ namespace Common.Cqrs
             }
             return next();
         }
-	}
+    }
 }

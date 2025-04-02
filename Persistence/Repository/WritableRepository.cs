@@ -3,6 +3,7 @@ using System.Data;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using Domain.Interfaces;
+using System.Data.SQLite;
 using Common.Enumerations;
 using Application.Constants;
 using MySql.Data.MySqlClient;
@@ -41,6 +42,11 @@ namespace Persistence.Repository
                     connection = new MySqlConnection(connectionString);
                     compiler = new MySqlCompiler();
                     MigrationsPath += nameof(DatabaseEngine.MySql);
+                    break;
+                case DatabaseEngine.SqLite:
+                    connection = new SQLiteConnection(connectionString);
+                    compiler = new SqliteCompiler();
+                    MigrationsPath += nameof(DatabaseEngine.SqLite);
                     break;
                 case DatabaseEngine.PgSql:
                 default:

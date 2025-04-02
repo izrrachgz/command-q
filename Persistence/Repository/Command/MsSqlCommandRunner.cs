@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using System.Data;
 using Domain.Interfaces;
+using Persistence.Constant;
 using Application.Constants;
 using Common.Models.Command;
 using Common.Models.Response;
@@ -102,7 +103,7 @@ namespace Persistence.Repository.Command
 
                 data.Dispose();
 
-                return new(false, "Could not read table schema");
+                return new(false, CommandConstants.CannotReadSchema);
             }
 
             using var transaction = connection.BeginTransaction();
@@ -116,13 +117,13 @@ namespace Persistence.Repository.Command
 
                 await transaction.CommitAsync(cancellationToken);
 
-                return new(true, "Copy completed");
+                return new(true, CommandConstants.CopyCompleted);
             }
             catch
             {
                 await transaction.RollbackAsync(cancellationToken);
 
-                return new(false, "Internal exception, copy has rolled back.");
+                return new(false, CommandConstants.ErrorDuringCopy);
             }
             finally
             {

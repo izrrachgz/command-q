@@ -2,6 +2,7 @@
 using System.Text;
 using System.Data;
 using Domain.Interfaces;
+using Persistence.Constant;
 using Common.Models.Command;
 using Application.Constants;
 using Common.Models.Response;
@@ -123,13 +124,13 @@ namespace Persistence.Repository.Command
 
                 await transaction.CommitAsync(cancellationToken);
 
-                return new(insertedRows == rows.Length, "Copy completed");
+                return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
             }
             catch
             {
                 await transaction.RollbackAsync(cancellationToken);
 
-                return new(false, "Internal exception, copy has rolled back.");
+                return new(false, CommandConstants.ErrorDuringCopy);
             }
             finally
             {
@@ -185,11 +186,11 @@ namespace Persistence.Repository.Command
 
                 await file.DisposeAsync();
 
-                return new(insertedRows == rows.Length, "Copy completed");
+                return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
             }
             catch
             {
-                return new(false, "Internal exception, copy has rolled back.");
+                return new(false, CommandConstants.ErrorDuringCopy);
             }
         }
     }
