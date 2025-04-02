@@ -120,6 +120,8 @@ namespace Persistence.Repository.Command
 
                 await transaction.CommitAsync(cancellationToken);
 
+                bulkCopy.Close();
+
                 return new(true, CommandConstants.CopyCompleted);
             }
             catch

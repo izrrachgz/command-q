@@ -97,6 +97,8 @@ namespace Persistence.Repository.Command
 
                 await transaction.CommitAsync(cancellationToken);
 
+                await cmd.DisposeAsync();
+
                 return new(true, CommandConstants.CopyCompleted);
             }
             catch
