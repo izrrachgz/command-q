@@ -24,19 +24,19 @@ namespace Persistence.Repository.Command
             ConnectionString = connectionString;
         }
 
-        public MySqlCommandRunner(IConfiguration configuration) : this(configuration.GetConnectionString())
+        public MySqlCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
         { }
 
-        public IDbConnection GetConnection()
+        public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
         {
             var connection = new MySqlConnection(ConnectionString);
 
-            connection.Open();
+            await connection.OpenAsync(cancellationToken);
 
             return connection;
         }
 
-        public async Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands)
+        public async Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
             var tasks = new List<Task<List<object>>>(commands.Count);
 
@@ -45,7 +45,7 @@ namespace Persistence.Repository.Command
                 tasks.Add(Execute(command.Query, command.ReturnType, command.Parameters, command.CancellationToken));
             }
 
-            await Parallel.ForEachAsync(tasks, async (t, token) => { await t.WaitAsync(token); });
+            await Parallel.ForEachAsync(tasks, cancellationToken, async (t, token) => { await t.WaitAsync(token); });
 
             return tasks;
         }
@@ -54,7 +54,7 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            var connection = GetConnection();
+            var connection = await GetConnection(cancellationToken);
 
             using var cmd = (MySqlCommand)connection.CreateCommand();
 
@@ -80,7 +80,7 @@ namespace Persistence.Repository.Command
         {
             string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
 
-            using var connection = (MySqlConnection)GetConnection();
+            using var connection = (MySqlConnection)await GetConnection(cancellationToken);
 
             using var transaction = connection.BeginTransaction();
 
@@ -162,7 +162,7 @@ namespace Persistence.Repository.Command
 
             sb.Clear();
 
-            using var connection = (MySqlConnection)GetConnection();
+            using var connection = (MySqlConnection)await GetConnection(cancellationToken);
 
             var bulkLoader = new MySqlBulkLoader(connection)
             {

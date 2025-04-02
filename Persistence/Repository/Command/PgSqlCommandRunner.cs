@@ -21,19 +21,19 @@ namespace Persistence.Repository.Command
             ConnectionString = connectionString;
         }
 
-        public PgSqlCommandRunner(IConfiguration configuration) : this(configuration.GetConnectionString())
+        public PgSqlCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
         { }
 
-        public IDbConnection GetConnection()
+        public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
         {
-            var dataSourceBuilder = new NpgsqlDataSourceBuilder(ConnectionString);
-            dataSourceBuilder.UseVector();
+            var connection = new NpgsqlConnection(ConnectionString);
 
-            var dataSource = dataSourceBuilder.Build();
-            return dataSource.OpenConnection();
+            await connection.OpenAsync(cancellationToken);
+
+            return connection;
         }
 
-        public async Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands)
+        public async Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
             var tasks = new List<Task<List<object>>>(commands.Count);
 
@@ -42,7 +42,7 @@ namespace Persistence.Repository.Command
                 tasks.Add(Execute(command.Query, command.ReturnType, command.Parameters, command.CancellationToken));
             }
 
-            await Parallel.ForEachAsync(tasks, async (t, token) => { await t.WaitAsync(token); });
+            await Parallel.ForEachAsync(tasks, cancellationToken, async (t, token) => { await t.WaitAsync(token); });
 
             return tasks;
         }
@@ -51,7 +51,7 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            var connection = GetConnection();
+            var connection = await GetConnection(cancellationToken);
 
             using var cmd = (NpgsqlCommand)connection.CreateCommand();
 
@@ -75,7 +75,7 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
-            var connection = (NpgsqlConnection)GetConnection();
+            var connection = (NpgsqlConnection)await GetConnection(cancellationToken);
 
             string joinedColumns = $@"""{string.Join(@""",""", columns)}""";
             ReadOnlyCollection<NpgsqlDbColumn> schema;

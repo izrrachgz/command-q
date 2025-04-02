@@ -59,7 +59,7 @@ namespace Persistence.Repository
             Db = new QueryFactory(connection, compiler);
         }
 
-        public WritableRepository(IConfiguration configuration) : this(configuration.GetConnectionString(), configuration.GetDatabaseEngine())
+        public WritableRepository(IConfiguration configuration) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine())
         { }
     }
 }

@@ -51,7 +51,7 @@ namespace Persistence.Repository
             _db = new(connection, compiler);
         }
 
-        public ReadOnlyRepository(IConfiguration configuration) : this(configuration.GetConnectionString(), configuration.GetDatabaseEngine())
+        public ReadOnlyRepository(IConfiguration configuration) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine())
         { }
     }
 }

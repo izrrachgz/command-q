@@ -7,7 +7,7 @@ namespace Persistence.Repository.Extensions
 {
     public static class ConfigurationExtensions
     {
-        public static string GetConnectionString(this IConfiguration configuration, string? pathToKey = null)
+        public static string GetDatabaseConnection(this IConfiguration configuration, string? pathToKey = null)
         {
             string key = pathToKey ?? ApplicationConfiguration.ConnectionStringKeyName;
 

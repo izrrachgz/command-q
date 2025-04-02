@@ -13,14 +13,14 @@ namespace Domain.Interfaces
         /// Should provide a connection with the database
         /// </summary>
         /// <returns></returns>
-        IDbConnection GetConnection();
+        Task<IDbConnection> GetConnection(CancellationToken cancellationToken);
 
         /// <summary>
         /// Should run task list in parallel
         /// </summary>
         /// <param name="commands"></param>
         /// <returns></returns>
-        Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands);
+        Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands, CancellationToken cancellationToken);
 
         /// <summary>
         /// Should execute the command and resturn the set of results
