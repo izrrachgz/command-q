@@ -65,6 +65,14 @@ namespace Persistence.Repository.Command
             }
 
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cmd.Cancel();
+
+                return results;
+            }
+
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
 
@@ -85,6 +93,13 @@ namespace Persistence.Repository.Command
 
                 using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    cmd.Cancel();
+
+                    return new(true, CommandConstants.CommandCancelled);
+                }
+
                 data.Load(reader);
 
                 foreach (var row in rows)
@@ -97,7 +112,9 @@ namespace Persistence.Repository.Command
 
                     data.Rows.Add(r);
                 }
+
                 await cmd.DisposeAsync();
+
                 await reader.DisposeAsync();
             }
             catch
@@ -117,6 +134,13 @@ namespace Persistence.Repository.Command
                 bulkCopy.DestinationTableName = table;
 
                 await bulkCopy.WriteToServerAsync(data, cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+
+                    return new(true, CommandConstants.TransactionCancelled);
+                }
 
                 await transaction.CommitAsync(cancellationToken);
 

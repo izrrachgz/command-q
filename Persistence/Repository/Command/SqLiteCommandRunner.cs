@@ -65,6 +65,14 @@ namespace Persistence.Repository.Command
             }
 
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cmd.Cancel();
+
+                return results;
+            }
+
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
 
@@ -93,6 +101,13 @@ namespace Persistence.Repository.Command
                         cmd.Parameters[$@"@{column}"].Value = row[column];
 
                     await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+
+                        return new(false, CommandConstants.TransactionCancelled);
+                    }
                 }
 
                 await transaction.CommitAsync(cancellationToken);

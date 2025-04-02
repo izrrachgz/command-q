@@ -67,6 +67,14 @@ namespace Persistence.Repository.Command
             }
 
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cmd.Cancel();
+
+                return results;
+            }
+
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
 
@@ -85,9 +93,18 @@ namespace Persistence.Repository.Command
                 cmd.CommandText = $@"SELECT {joinedColumns} FROM ""{table}"" LIMIT 0";
 
                 using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    cmd.Cancel();
+
+                    return new(true, CommandConstants.CommandCancelled);
+                }
+
                 schema = await reader.GetColumnSchemaAsync(cancellationToken);
 
                 await cmd.DisposeAsync();
+
                 await reader.DisposeAsync();
             }
             catch

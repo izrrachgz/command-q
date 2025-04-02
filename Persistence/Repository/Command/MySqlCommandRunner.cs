@@ -70,6 +70,14 @@ namespace Persistence.Repository.Command
             }
 
             using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                cmd.Cancel();
+
+                return results;
+            }
+
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
 
@@ -119,6 +127,15 @@ namespace Persistence.Repository.Command
                     cmd.CommandText = sb.ToString();
 
                     insertedRows += await cmd.ExecuteNonQueryAsync(cancellationToken);
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        cmd.Cancel();
+
+                        await transaction.RollbackAsync(cancellationToken);
+
+                        return new(true, CommandConstants.TransactionCancelled);
+                    }
 
                     await cmd.DisposeAsync();
 
