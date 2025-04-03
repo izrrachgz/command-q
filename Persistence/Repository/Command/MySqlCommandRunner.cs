@@ -107,7 +107,7 @@ namespace Persistence.Repository.Command
                         {
                             string paramName = $@"{column}{i}";
                             sb.Append('@').Append(paramName);
-                            cmd.Parameters.AddWithValue(paramName, row[column]);
+                            cmd.Parameters.AddWithValue(paramName, row[column] ?? DBNull.Value);
                         }
 
                         sb.Append(')').Append(',');

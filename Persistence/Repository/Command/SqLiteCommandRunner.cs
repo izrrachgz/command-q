@@ -93,7 +93,7 @@ namespace Persistence.Repository.Command
                 foreach (var row in rows)
                 {
                     foreach (var column in columns)
-                        cmd.Parameters[$@"@{column}"].Value = row[column];
+                        cmd.Parameters[$@"@{column}"].Value = row[column] ?? DBNull.Value;
 
                     await cmd.ExecuteNonQueryAsync(cancellationToken);
                 }
