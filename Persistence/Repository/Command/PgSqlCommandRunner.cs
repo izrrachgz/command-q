@@ -42,7 +42,18 @@ namespace Persistence.Repository.Command
                 tasks.Add(Execute(command.Query, command.ReturnType, command.Parameters, command.CancellationToken));
             }
 
-            await Parallel.ForEachAsync(tasks, cancellationToken, async (t, token) => { await t.WaitAsync(token); });
+            try
+            {
+                await Parallel.ForEachAsync(tasks, cancellationToken, async (t, token) => { await t.WaitAsync(token); });
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine(CommandConstants.CommandCancelled);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             return tasks;
         }
