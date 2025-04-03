@@ -49,25 +49,36 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            await using var connection = (SqlConnection)await GetConnection(cancellationToken);
-
-            await using var cmd = connection.CreateCommand();
-
-            cmd.CommandText = query;
-
-            if (parameters != null)
+            try
             {
-                foreach (var parameter in parameters)
+                await using var connection = (SqlConnection)await GetConnection(cancellationToken);
+
+                await using var cmd = connection.CreateCommand();
+
+                cmd.CommandText = query;
+
+                if (parameters != null)
                 {
-                    object value = parameter.Value is null ? DBNull.Value : parameter.Value;
-                    cmd.Parameters.AddWithValue(parameter.Key, value);
+                    foreach (var parameter in parameters)
+                    {
+                        object value = parameter.Value is null ? DBNull.Value : parameter.Value;
+                        cmd.Parameters.AddWithValue(parameter.Key, value);
+                    }
                 }
+
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                if (reader.HasRows)
+                    results = [.. reader.Parse(type)];
             }
-
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-            if (reader.HasRows)
-                results = [.. reader.Parse(type)];
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine(CommandConstants.CommandCancelled);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             return results;
         }
@@ -98,6 +109,10 @@ namespace Persistence.Repository.Command
 
                     data.Rows.Add(r);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                return new(false, CommandConstants.CommandCancelled);
             }
             catch
             {

@@ -51,35 +51,48 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            await using var connection = (NpgsqlConnection)await GetConnection(cancellationToken);
-
-            await using var cmd = connection.CreateCommand();
-
-            cmd.CommandText = query;
-
-            if (parameters != null)
+            try
             {
-                foreach (var parameter in parameters)
+                await using var connection = (NpgsqlConnection)await GetConnection(cancellationToken);
+
+                await using var cmd = connection.CreateCommand();
+
+                cmd.CommandText = query;
+
+                if (parameters != null)
                 {
-                    object value = parameter.Value is null ? DBNull.Value : parameter.Value;
-                    cmd.Parameters.AddWithValue(parameter.Key, value);
+                    foreach (var parameter in parameters)
+                    {
+                        object value = parameter.Value is null ? DBNull.Value : parameter.Value;
+                        cmd.Parameters.AddWithValue(parameter.Key, value);
+                    }
                 }
+
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                if (reader.HasRows)
+                    results = [.. reader.Parse(type)];
             }
-
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-            if (reader.HasRows)
-                results = [.. reader.Parse(type)];
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine(CommandConstants.CommandCancelled);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             return results;
         }
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
+            string joinedColumns = $@"""{string.Join(@""",""", columns)}""";
+
+            ReadOnlyCollection<NpgsqlDbColumn> schema;
+
             await using var connection = (NpgsqlConnection)await GetConnection(cancellationToken);
 
-            string joinedColumns = $@"""{string.Join(@""",""", columns)}""";
-            ReadOnlyCollection<NpgsqlDbColumn> schema;
             try
             {
                 await using var cmd = connection.CreateCommand();
@@ -89,14 +102,19 @@ namespace Persistence.Repository.Command
 
                 schema = await reader.GetColumnSchemaAsync(cancellationToken);
             }
+            catch (OperationCanceledException)
+            {
+                return new(false, CommandConstants.CommandCancelled);
+            }
             catch
             {
                 return new(false, CommandConstants.CannotReadSchema);
             }
 
-            await using var writer = await connection.BeginBinaryImportAsync($@"COPY ""{table}"" ({joinedColumns}) FROM STDIN BINARY", cancellationToken);
             try
             {
+                await using var writer = await connection.BeginBinaryImportAsync($@"COPY ""{table}"" ({joinedColumns}) FROM STDIN BINARY", cancellationToken);
+
                 foreach (var row in rows)
                 {
                     await writer.StartRowAsync(cancellationToken);
@@ -123,6 +141,10 @@ namespace Persistence.Repository.Command
                 await writer.CompleteAsync(cancellationToken);
 
                 return new(true, CommandConstants.CopyCompleted);
+            }
+            catch (OperationCanceledException)
+            {
+                return new(false, CommandConstants.TransactionCancelled);
             }
             catch
             {

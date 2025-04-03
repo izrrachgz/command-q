@@ -14,8 +14,6 @@ namespace Persistence.Repository.Command
     {
         private string ConnectionString { get; }
 
-        private const int InsertBatchSize = 1000;
-
         public SqLiteCommandRunner(string connectionString)
         {
             ConnectionString = connectionString;
@@ -42,7 +40,18 @@ namespace Persistence.Repository.Command
                 tasks.Add(Execute(command.Query, command.ReturnType, command.Parameters, command.CancellationToken));
             }
 
-            await Parallel.ForEachAsync(tasks, cancellationToken, async (t, token) => { await t.WaitAsync(token); });
+            try
+            {
+                await Parallel.ForEachAsync(tasks, cancellationToken, async (t, token) => { await t.WaitAsync(token); });
+            }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine(CommandConstants.CommandCancelled);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             return tasks;
         }
@@ -51,25 +60,36 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            await using var connection = (SQLiteConnection)await GetConnection(cancellationToken);
-
-            await using var cmd = connection.CreateCommand();
-
-            cmd.CommandText = query;
-
-            if (parameters != null)
+            try
             {
-                foreach (var parameter in parameters)
+                await using var connection = (SQLiteConnection)await GetConnection(cancellationToken);
+
+                await using var cmd = connection.CreateCommand();
+
+                cmd.CommandText = query;
+
+                if (parameters != null)
                 {
-                    object value = parameter.Value is null ? DBNull.Value : parameter.Value;
-                    cmd.Parameters.AddWithValue(parameter.Key, value);
+                    foreach (var parameter in parameters)
+                    {
+                        object value = parameter.Value is null ? DBNull.Value : parameter.Value;
+                        cmd.Parameters.AddWithValue(parameter.Key, value);
+                    }
                 }
+
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+
+                if (reader.HasRows)
+                    results = [.. reader.Parse(type)];
             }
-
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-            if (reader.HasRows)
-                results = [.. reader.Parse(type)];
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine(CommandConstants.CommandCancelled);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             return results;
         }
