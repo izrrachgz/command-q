@@ -96,8 +96,6 @@ namespace Persistence.Repository.Command
                         cmd.Parameters[$@"@{column}"].Value = row[column];
 
                     await cmd.ExecuteNonQueryAsync(cancellationToken);
-
-                    cmd.Parameters.Clear();
                 }
 
                 await transaction.CommitAsync(cancellationToken);
