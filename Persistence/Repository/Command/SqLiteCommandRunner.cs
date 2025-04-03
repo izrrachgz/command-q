@@ -14,6 +14,8 @@ namespace Persistence.Repository.Command
     {
         private string ConnectionString { get; }
 
+        private const int InsertBatchSize = 1000;
+
         public SqLiteCommandRunner(string connectionString)
         {
             ConnectionString = connectionString;
@@ -49,9 +51,9 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            var connection = await GetConnection(cancellationToken);
+            await using var connection = (SQLiteConnection)await GetConnection(cancellationToken);
 
-            using var cmd = (SQLiteCommand)connection.CreateCommand();
+            await using var cmd = connection.CreateCommand();
 
             cmd.CommandText = query;
 
@@ -64,14 +66,7 @@ namespace Persistence.Repository.Command
                 }
             }
 
-            using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                cmd.Cancel();
-
-                return results;
-            }
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
@@ -81,12 +76,12 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
-            using var connection = (SQLiteConnection)await GetConnection(cancellationToken);
+            await using var connection = (SQLiteConnection)await GetConnection(cancellationToken);
 
-            using var transaction = connection.BeginTransaction();
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
             try
             {
-                using var cmd = transaction.Connection.CreateCommand();
+                await using var cmd = connection.CreateCommand();
 
                 cmd.CommandText = $@"INSERT INTO {table} ({string.Join(",", columns)}) VALUES (@{string.Join(",@", columns)})";
 
@@ -102,31 +97,24 @@ namespace Persistence.Repository.Command
 
                     await cmd.ExecuteNonQueryAsync(cancellationToken);
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        await transaction.RollbackAsync(cancellationToken);
-
-                        return new(false, CommandConstants.TransactionCancelled);
-                    }
+                    cmd.Parameters.Clear();
                 }
 
                 await transaction.CommitAsync(cancellationToken);
 
-                await cmd.DisposeAsync();
-
                 return new(true, CommandConstants.CopyCompleted);
+            }
+            catch (OperationCanceledException)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+
+                return new(false, CommandConstants.TransactionCancelled);
             }
             catch
             {
-                await transaction.RollbackAsync(cancellationToken);
+                await transaction.RollbackAsync(CancellationToken.None);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
-            }
-            finally
-            {
-                await transaction.DisposeAsync();
-
-                await connection.DisposeAsync();
             }
         }
     }

@@ -49,9 +49,9 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            var connection = await GetConnection(cancellationToken);
+            await using var connection = (SqlConnection)await GetConnection(cancellationToken);
 
-            using var cmd = (SqlCommand)connection.CreateCommand();
+            await using var cmd = connection.CreateCommand();
 
             cmd.CommandText = query;
 
@@ -64,14 +64,7 @@ namespace Persistence.Repository.Command
                 }
             }
 
-            using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                cmd.Cancel();
-
-                return results;
-            }
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
@@ -81,24 +74,17 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
-            using var connection = (SqlConnection)await GetConnection(cancellationToken);
+            await using var connection = (SqlConnection)await GetConnection(cancellationToken);
 
             var data = new DataTable();
 
             try
             {
-                using var cmd = connection.CreateCommand();
+                await using var cmd = connection.CreateCommand();
 
                 cmd.CommandText = $@"SELECT TOP 0 * FROM {table}";
 
-                using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    cmd.Cancel();
-
-                    return new(true, CommandConstants.CommandCancelled);
-                }
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
                 data.Load(reader);
 
@@ -112,21 +98,15 @@ namespace Persistence.Repository.Command
 
                     data.Rows.Add(r);
                 }
-
-                await cmd.DisposeAsync();
-
-                await reader.DisposeAsync();
             }
             catch
             {
-                await connection.DisposeAsync();
-
                 data.Dispose();
 
                 return new(false, CommandConstants.CannotReadSchema);
             }
 
-            using var transaction = connection.BeginTransaction();
+            await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(cancellationToken);
             try
             {
                 using var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction);
@@ -148,18 +128,20 @@ namespace Persistence.Repository.Command
 
                 return new(true, CommandConstants.CopyCompleted);
             }
+            catch (OperationCanceledException)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+
+                return new(false, CommandConstants.TransactionCancelled);
+            }
             catch
             {
-                await transaction.RollbackAsync(cancellationToken);
+                await transaction.RollbackAsync(CancellationToken.None);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
             finally
             {
-                await transaction.DisposeAsync();
-
-                await connection.DisposeAsync();
-
                 data.Dispose();
             }
         }

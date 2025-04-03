@@ -54,9 +54,9 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            var connection = await GetConnection(cancellationToken);
+            await using var connection = (MySqlConnection)await GetConnection(cancellationToken);
 
-            using var cmd = (MySqlCommand)connection.CreateCommand();
+            await using var cmd = connection.CreateCommand();
 
             cmd.CommandText = query;
 
@@ -69,14 +69,7 @@ namespace Persistence.Repository.Command
                 }
             }
 
-            using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                cmd.Cancel();
-
-                return results;
-            }
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
@@ -88,9 +81,9 @@ namespace Persistence.Repository.Command
         {
             string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
 
-            using var connection = (MySqlConnection)await GetConnection(cancellationToken);
+            await using var connection = (MySqlConnection)await GetConnection(cancellationToken);
 
-            using var transaction = connection.BeginTransaction();
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
             try
             {
@@ -98,7 +91,7 @@ namespace Persistence.Repository.Command
 
                 while (insertedRows < rows.Length)
                 {
-                    using var cmd = transaction.Connection.CreateCommand();
+                    await using var cmd = transaction.Connection.CreateCommand();
 
                     var batch = rows.Skip(insertedRows).Take(InsertBatchSize);
 
@@ -128,17 +121,6 @@ namespace Persistence.Repository.Command
 
                     insertedRows += await cmd.ExecuteNonQueryAsync(cancellationToken);
 
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        cmd.Cancel();
-
-                        await transaction.RollbackAsync(cancellationToken);
-
-                        return new(true, CommandConstants.TransactionCancelled);
-                    }
-
-                    await cmd.DisposeAsync();
-
                     sb.Clear();
                 }
 
@@ -146,17 +128,17 @@ namespace Persistence.Repository.Command
 
                 return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
             }
+            catch (OperationCanceledException)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+
+                return new(true, CommandConstants.TransactionCancelled);
+            }
             catch
             {
-                await transaction.RollbackAsync(cancellationToken);
+                await transaction.RollbackAsync(CancellationToken.None);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
-            }
-            finally
-            {
-                await transaction.DisposeAsync();
-
-                await connection.DisposeAsync();
             }
         }
 
@@ -179,7 +161,7 @@ namespace Persistence.Repository.Command
 
             sb.Clear();
 
-            using var connection = (MySqlConnection)await GetConnection(cancellationToken);
+            await using var connection = (MySqlConnection)await GetConnection(cancellationToken);
 
             var bulkLoader = new MySqlBulkLoader(connection)
             {
@@ -201,10 +183,6 @@ namespace Persistence.Repository.Command
 
                 //TODO : fix date copy
                 int insertedRows = await bulkLoader.LoadAsync(file, cancellationToken);
-
-                await connection.DisposeAsync();
-
-                await file.DisposeAsync();
 
                 return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
             }

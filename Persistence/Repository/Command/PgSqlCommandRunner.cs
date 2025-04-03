@@ -51,9 +51,9 @@ namespace Persistence.Repository.Command
         {
             List<object> results = [];
 
-            var connection = await GetConnection(cancellationToken);
+            await using var connection = (NpgsqlConnection)await GetConnection(cancellationToken);
 
-            using var cmd = (NpgsqlCommand)connection.CreateCommand();
+            await using var cmd = connection.CreateCommand();
 
             cmd.CommandText = query;
 
@@ -66,14 +66,7 @@ namespace Persistence.Repository.Command
                 }
             }
 
-            using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                cmd.Cancel();
-
-                return results;
-            }
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
             if (reader.HasRows)
                 results = [.. reader.Parse(type)];
@@ -83,38 +76,25 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
-            var connection = (NpgsqlConnection)await GetConnection(cancellationToken);
+            await using var connection = (NpgsqlConnection)await GetConnection(cancellationToken);
 
             string joinedColumns = $@"""{string.Join(@""",""", columns)}""";
             ReadOnlyCollection<NpgsqlDbColumn> schema;
             try
             {
-                using var cmd = connection.CreateCommand();
+                await using var cmd = connection.CreateCommand();
                 cmd.CommandText = $@"SELECT {joinedColumns} FROM ""{table}"" LIMIT 0";
 
-                using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    cmd.Cancel();
-
-                    return new(true, CommandConstants.CommandCancelled);
-                }
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
                 schema = await reader.GetColumnSchemaAsync(cancellationToken);
-
-                await cmd.DisposeAsync();
-
-                await reader.DisposeAsync();
             }
             catch
             {
-                await connection.DisposeAsync();
-
                 return new(false, CommandConstants.CannotReadSchema);
             }
 
-            using var writer = await connection.BeginBinaryImportAsync($@"COPY ""{table}"" ({joinedColumns}) FROM STDIN BINARY", cancellationToken);
+            await using var writer = await connection.BeginBinaryImportAsync($@"COPY ""{table}"" ({joinedColumns}) FROM STDIN BINARY", cancellationToken);
             try
             {
                 foreach (var row in rows)
@@ -139,9 +119,8 @@ namespace Persistence.Repository.Command
                         }
                     }
                 }
-                await writer.CompleteAsync(cancellationToken);
 
-                await connection.DisposeAsync();
+                await writer.CompleteAsync(cancellationToken);
 
                 return new(true, CommandConstants.CopyCompleted);
             }
