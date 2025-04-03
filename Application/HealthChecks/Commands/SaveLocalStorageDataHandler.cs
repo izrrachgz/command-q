@@ -1,4 +1,5 @@
 ﻿using Common.Cqrs;
+using Application.Constants;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.HealthChecks.Commands
@@ -37,6 +38,11 @@ namespace Application.HealthChecks.Commands
                 }
 
                 await File.AppendAllLinesAsync(filePath, content, cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return HealthCheckResult.Unhealthy(ApplicationMessages.CommandCancelled);
+                }
 
                 return HealthCheckResult.Healthy($@"Application is able to write on local storage.");
             }

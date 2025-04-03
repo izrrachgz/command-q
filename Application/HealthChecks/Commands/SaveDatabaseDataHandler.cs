@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Domain.Interfaces;
 using SqlKata.Execution;
+using Application.Constants;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.HealthChecks.Commands
@@ -32,6 +33,11 @@ namespace Application.HealthChecks.Commands
 
             int affected = await _repository.Db.Query($"{nameof(HealthCheckLog)}")
                 .InsertAsync(@params, cancellationToken: cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return HealthCheckResult.Unhealthy(ApplicationMessages.CommandCancelled);
+            }
 
             if (affected == 0)
             {

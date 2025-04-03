@@ -5,7 +5,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using SqlKata.Execution;
 using Common.Extensions;
-using Domain.Extensions;
+using Application.Constants;
 using Application.HealthChecks.Dtos;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -35,6 +35,11 @@ namespace Application.HealthChecks.Queries
                 .Take(1);
 
             var records = await query.GetAsync<HealthCheckLog>(cancellationToken: cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return HealthCheckResult.Unhealthy(ApplicationMessages.QueryCancelled);
+            }
 
             var result = _mapper.Map<List<HealthCheckResponseModel>>(records);
 

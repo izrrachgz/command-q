@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using Application.Constants;
 using Common.Cqrs;
 using Common.Extensions;
 using Common.Transfer.Http;
@@ -33,6 +34,11 @@ namespace Application.HealthChecks.Queries
             var httpCall = new HttpCall();
 
             var response = await httpCall.Get(urlCheckInternetAccess, cancellationToken: cancellationToken);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return HealthCheckResult.Unhealthy(ApplicationMessages.QueryCancelled);
+            }
 
             bool success = response.IsSuccessStatusCode;
 
