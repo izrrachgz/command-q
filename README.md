@@ -12,6 +12,7 @@ This solution supports the following databases:
 - **Microsoft SQL Server**
 - **PostgreSQL**
 - **MySQL**
+- **SqLite**
 
 ## Configuration
 Update the `appsettings.json` file with the appropriate connection string for your database. Example:
@@ -37,6 +38,14 @@ Update the `appsettings.json` file with the appropriate connection string for yo
 "ConnectionStrings": {
   "Engine" : "MySql",
   "Db": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+}
+```
+
+### **SqLite**
+```json
+"ConnectionStrings": {
+  "Engine" : "SqLite",
+  "Db": "Data Source={path_to_file};Version={version_number};"
 }
 ```
 
