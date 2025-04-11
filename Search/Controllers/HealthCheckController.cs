@@ -2,11 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Application.HealthChecks.Queries;
 using Application.HealthChecks.Commands;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Search.Controllers
 {
-    [ApiController, Route("[controller]")]
+    [ApiController, Authorize, Route("[controller]")]
     public class HealthCheckController : ControllerBase
     {
         private readonly ISender _sender;
