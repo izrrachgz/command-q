@@ -1,6 +1,7 @@
 using MediatR;
 using Common.Cqrs;
 using FluentValidation;
+using Search.Extensions;
 using Search.Middleware;
 using Persistence.Repository.Extensions;
 using Persistence.Migrations.Extensions;
@@ -52,6 +53,9 @@ builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
 //Configure Health checks
 builder.Services.ConfigureAppHealthChecks();
+
+//Add jwt authorization flow
+builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

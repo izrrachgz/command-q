@@ -10,14 +10,6 @@
 
         #endregion
 
-        #region Api
-
-        public const string ApiKeyHeaderKeyName = @"ApiAccessKeys:Key";
-
-        public const string ApiKeyHeaderKeyValue = @"ApiAccessKeys:Value";
-
-        #endregion
-
         #region Configuration
 
         public const string ConfigurationFileName = @"appsettings.json";

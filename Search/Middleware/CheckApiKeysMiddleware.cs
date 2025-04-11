@@ -1,4 +1,4 @@
-﻿using Application.Constants;
+﻿using Search.Constants;
 using Search.Middleware.Exceptions;
 
 namespace Search.Middleware
@@ -19,12 +19,12 @@ namespace Search.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            string? headerKeyName = _configuration.GetValue<string>(ApplicationConfiguration.ApiKeyHeaderKeyName);
+            string? headerKeyName = _configuration.GetValue<string>(SearchConfiguration.ApiKeyHeaderKeyName);
 
             if (!string.IsNullOrEmpty(headerKeyName))
             {
                 string? apiKey = context.Request.Headers[headerKeyName];
-                string? excpectedValue = _configuration.GetValue<string>(ApplicationConfiguration.ApiKeyHeaderKeyValue);
+                string? excpectedValue = _configuration.GetValue<string>(SearchConfiguration.ApiKeyHeaderKeyValue);
 
                 if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(excpectedValue) || apiKey != excpectedValue)
                 {

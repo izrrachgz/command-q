@@ -1,10 +1,10 @@
-﻿using Application.Constants;
+﻿using Search.Constants;
 
 namespace Search.Middleware.Exceptions
 {
     public class NotValidApiKeysException : Exception
     {
-        public NotValidApiKeysException() : base(ApplicationMessages.NotValidApiKeys)
+        public NotValidApiKeysException() : base(SearchMessages.NotValidApiKeys)
         {
         }
     }
