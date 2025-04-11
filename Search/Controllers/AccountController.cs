@@ -15,12 +15,19 @@ namespace Search.Controllers
         private readonly ISender _sender;
         private readonly IConfiguration _configuration;
         private string TokenSecretKey { get; }
+        private string TokenIssuer { get; }
+        private string TokenAudience { get; }
+        private int TokenMinutesToExpire { get; }
 
         public AccountController(ISender sender, IConfiguration configuration)
         {
             _sender = sender;
             _configuration = configuration;
+            //TODO: put this into an instance and get it through DI
             TokenSecretKey = _configuration.GetValue<string>(SearchConfiguration.JwtSecretKey) ?? string.Empty;
+            TokenIssuer = _configuration.GetValue<string>(SearchConfiguration.JwtIssuer) ?? string.Empty;
+            TokenAudience = _configuration.GetValue<string>(SearchConfiguration.JwtAudience) ?? string.Empty;
+            TokenMinutesToExpire = configuration.GetValue<int>(SearchConfiguration.JwtMinutesToExpire);
         }
 
         private JwtSecurityToken GenerateToken(string username)
@@ -34,10 +41,10 @@ namespace Search.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: null,
-                audience: null,
+                issuer: TokenIssuer,
+                audience: TokenAudience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddMinutes(TokenMinutesToExpire),
                 signingCredentials: creds
             );
 

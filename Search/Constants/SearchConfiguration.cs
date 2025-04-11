@@ -14,6 +14,12 @@
 
         public const string JwtSecretKey = @"Jwt:SecretKey";
 
+        public const string JwtIssuer = @"Jwt:Issuer";
+
+        public const string JwtAudience = @"Jwt:Audience";
+
+        public const string JwtMinutesToExpire = @"Jwt:MinutesToExpire";
+
         #endregion
     }
 }
