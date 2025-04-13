@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Persistence.Repository.Command.Extensions
 {
-    public static class CommandExtensions
+    public static class DICommandExtensions
     {
         public static void AddCommandRunners(this IServiceCollection services)
         {
