@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Common.Cqrs;
+using Domain.Entities;
 using Common.Models.Response;
 using Application.Accounts.Dtos;
-using Domain.Entities;
 
 namespace Application.Accounts.Queries
 {
