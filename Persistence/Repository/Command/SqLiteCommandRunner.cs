@@ -31,18 +31,16 @@ namespace Persistence.Repository.Command
             return connection;
         }
 
-        public async Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands, CancellationToken cancellationToken = default)
+        public async Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
-            var tasks = new List<Task<List<object>>>(commands.Count);
-
-            foreach (var command in commands)
-            {
-                tasks.Add(Execute(command.Query, command.ReturnType, command.Parameters, command.CancellationToken));
-            }
+            var tasks = commands
+                .Select(c => Execute(c.Query, c.ReturnType, c.Parameters, c.CancellationToken))
+                .ToList();
 
             try
             {
-                await Parallel.ForEachAsync(tasks, cancellationToken, async (t, token) => { await t.WaitAsync(token); });
+                var results = await Task.WhenAll(tasks);
+                return [.. results];
             }
             catch (OperationCanceledException)
             {
@@ -53,7 +51,7 @@ namespace Persistence.Repository.Command
                 Console.WriteLine(e.Message);
             }
 
-            return tasks;
+            return [];
         }
 
         public async Task<List<object>> Execute(string query, Type type, Dictionary<string, object?>? parameters, CancellationToken cancellationToken = default)

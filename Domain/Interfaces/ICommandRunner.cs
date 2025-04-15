@@ -20,7 +20,7 @@ namespace Domain.Interfaces
         /// </summary>
         /// <param name="commands"></param>
         /// <returns></returns>
-        Task<List<Task<List<object>>>> RunInParallel(List<QueryCommand> commands, CancellationToken cancellationToken);
+        Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken);
 
         /// <summary>
         /// Should execute the command and resturn the set of results
