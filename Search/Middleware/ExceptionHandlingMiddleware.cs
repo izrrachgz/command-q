@@ -76,7 +76,7 @@ namespace Search.Middleware
             {
                 return validationException.Errors;
             }
-            return new List<ValidationFailure>();
+            return [];
         }
     }
 }
