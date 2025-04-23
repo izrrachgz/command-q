@@ -1,8 +1,8 @@
 using MediatR;
 using Common.Cqrs;
+using Api.Extensions;
+using Api.Middleware;
 using FluentValidation;
-using Search.Extensions;
-using Search.Middleware;
 using Persistence.Repository.Extensions;
 using Persistence.Migrations.Extensions;
 using Application.HealthChecks.Extensions;

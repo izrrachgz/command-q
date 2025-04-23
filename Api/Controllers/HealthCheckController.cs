@@ -5,7 +5,7 @@ using Application.HealthChecks.Commands;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace Search.Controllers
+namespace Api.Controllers
 {
     [ApiController, Authorize, Route("[controller]")]
     public class HealthCheckController : ControllerBase

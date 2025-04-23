@@ -3,7 +3,7 @@ using System.Text.Json;
 using Common.Exceptions;
 using FluentValidation.Results;
 
-namespace Search.Middleware
+namespace Api.Middleware
 {
     public class ExceptionHandlingMiddleware : IMiddleware
     {

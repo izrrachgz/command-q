@@ -1,13 +1,13 @@
 ﻿using MediatR;
 using System.Text;
-using Search.Constants;
+using Api.Constants;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Application.Accounts.Queries;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Search.Controllers
+namespace Api.Controllers
 {
     [ApiController, Route("[controller]")]
     public class AccountController : Controller
@@ -24,10 +24,10 @@ namespace Search.Controllers
             _sender = sender;
             _configuration = configuration;
             //TODO: put this into an instance and get it through DI
-            TokenSecretKey = _configuration.GetValue<string>(SearchConfiguration.JwtSecretKey) ?? string.Empty;
-            TokenIssuer = _configuration.GetValue<string>(SearchConfiguration.JwtIssuer) ?? string.Empty;
-            TokenAudience = _configuration.GetValue<string>(SearchConfiguration.JwtAudience) ?? string.Empty;
-            TokenMinutesToExpire = configuration.GetValue<int>(SearchConfiguration.JwtMinutesToExpire);
+            TokenSecretKey = _configuration.GetValue<string>(ApiConfiguration.JwtSecretKey) ?? string.Empty;
+            TokenIssuer = _configuration.GetValue<string>(ApiConfiguration.JwtIssuer) ?? string.Empty;
+            TokenAudience = _configuration.GetValue<string>(ApiConfiguration.JwtAudience) ?? string.Empty;
+            TokenMinutesToExpire = configuration.GetValue<int>(ApiConfiguration.JwtMinutesToExpire);
         }
 
         private JwtSecurityToken GenerateToken(string username)

@@ -1,6 +1,6 @@
-﻿namespace Search.Constants
+﻿namespace Api.Constants
 {
-    sealed class SearchMessages
+    sealed class ApiMessages
     {
         public const string NotValidApiKeys = @"The API access keys are not valid to work with or are not present in the request.";
 

@@ -1,19 +1,19 @@
 ﻿using System.Text;
-using Search.Constants;
+using Api.Constants;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-namespace Search.Extensions
+namespace Api.Extensions
 {
     public static class DIJwtExtensions
     {
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
         {
-            string jwtSecretKey = configuration.GetValue<string>(SearchConfiguration.JwtSecretKey) ?? string.Empty;
+            string jwtSecretKey = configuration.GetValue<string>(ApiConfiguration.JwtSecretKey) ?? string.Empty;
 
             if (string.IsNullOrEmpty(jwtSecretKey))
             {
-                throw new Exception(SearchMessages.NotValidJwtSecretKey);
+                throw new Exception(ApiMessages.NotValidJwtSecretKey);
             }
 
             bool isProduction = environment.IsProduction();

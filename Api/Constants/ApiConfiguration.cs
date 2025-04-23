@@ -1,6 +1,6 @@
-﻿namespace Search.Constants
+﻿namespace Api.Constants
 {
-    public static class SearchConfiguration
+    public static class ApiConfiguration
     {
         #region Api
 

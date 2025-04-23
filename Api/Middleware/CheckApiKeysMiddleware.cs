@@ -1,7 +1,7 @@
-﻿using Search.Constants;
-using Search.Middleware.Exceptions;
+﻿using Api.Constants;
+using Api.Middleware.Exceptions;
 
-namespace Search.Middleware
+namespace Api.Middleware
 {
     /// <summary>
     /// Checks if the api keys are present in the request
@@ -19,12 +19,12 @@ namespace Search.Middleware
 
         public async Task Invoke(HttpContext context)
         {
-            string? headerKeyName = _configuration.GetValue<string>(SearchConfiguration.ApiKeyHeaderKeyName);
+            string? headerKeyName = _configuration.GetValue<string>(ApiConfiguration.ApiKeyHeaderKeyName);
 
             if (!string.IsNullOrEmpty(headerKeyName))
             {
                 string? apiKey = context.Request.Headers[headerKeyName];
-                string? excpectedValue = _configuration.GetValue<string>(SearchConfiguration.ApiKeyHeaderKeyValue);
+                string? excpectedValue = _configuration.GetValue<string>(ApiConfiguration.ApiKeyHeaderKeyValue);
 
                 if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(excpectedValue) || apiKey != excpectedValue)
                 {
