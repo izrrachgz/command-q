@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Accounts\Commands\" />
+    <Folder Include="Addresses\Commands\" />
   </ItemGroup>
 
 </Project>
