@@ -1,8 +1,7 @@
 ﻿using SqlKata.Execution;
 using Common.Extensions;
-using Application.Constants;
-using Persistence.Repository;
-using Microsoft.Extensions.Configuration;
+using Domain.Interfaces;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Persistence.Migrations.Extensions
@@ -20,16 +19,11 @@ namespace Persistence.Migrations.Extensions
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static async Task RunMigrations(this IServiceCollection services)
+        public static async Task RunMigrations(this IHost app)
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile(ApplicationConfiguration.ConfigurationFileName, optional: false)
-                .AddUserSecrets(ApplicationConfiguration.UserSecrets)
-                .AddEnvironmentVariables()
-                .Build();
+            using var scope = app.Services.CreateScope();
 
-            var repository = new WritableRepository(configuration);
+            var repository = scope.ServiceProvider.GetRequiredService<IWritableRepository>();
 
             string migrationsPath = repository.MigrationsPath;
 

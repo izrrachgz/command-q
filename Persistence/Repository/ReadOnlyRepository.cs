@@ -1,12 +1,13 @@
 ﻿using Npgsql;
 using System.Data;
+using Domain.Interfaces;
 using SqlKata.Compilers;
 using SqlKata.Execution;
-using Domain.Interfaces;
 using System.Data.SQLite;
 using Common.Enumerations;
 using MySql.Data.MySqlClient;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
@@ -20,7 +21,7 @@ namespace Persistence.Repository
 
         private readonly QueryFactory _db;
 
-        public ReadOnlyRepository(string connectionString, DatabaseEngine engine)
+        public ReadOnlyRepository(string connectionString, DatabaseEngine engine, ILogger<ReadOnlyRepository> logger)
         {
             Engine = engine;
 
@@ -49,9 +50,11 @@ namespace Persistence.Repository
             }
 
             _db = new(connection, compiler);
+
+            logger.LogInformation("Readonly repository instance completed, using engine : {Engine}", Engine);
         }
 
-        public ReadOnlyRepository(IConfiguration configuration) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine())
+        public ReadOnlyRepository(IConfiguration configuration, ILogger<ReadOnlyRepository> logger) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine(), logger)
         { }
     }
 }
