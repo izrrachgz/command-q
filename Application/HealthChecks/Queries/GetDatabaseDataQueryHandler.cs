@@ -4,8 +4,6 @@ using Common.Cqrs;
 using Domain.Entities;
 using Domain.Interfaces;
 using SqlKata.Execution;
-using Common.Extensions;
-using Application.Constants;
 using Application.HealthChecks.Dtos;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -36,21 +34,16 @@ namespace Application.HealthChecks.Queries
 
             var records = await query.GetAsync<HealthCheckLog>(cancellationToken: cancellationToken);
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return HealthCheckResult.Unhealthy(ApplicationMessages.QueryCancelled);
-            }
+            var result = _mapper.Map<HealthCheckResponseModel>(records);
 
-            var result = _mapper.Map<List<HealthCheckResponseModel>>(records);
-
-            bool success = result.NotEmpty();
+            bool success = result is not null;
 
             if (!success)
             {
                 return HealthCheckResult.Unhealthy($@"Application is unable to read last health check execution.");
             }
 
-            HealthCheckResponseModel lastOne = result.FirstOrDefault();
+            HealthCheckResponseModel lastOne = result;
 
             return HealthCheckResult.Healthy($@"Application is able to read from database, last health check ran at : {lastOne.Modified:G}.");
         }

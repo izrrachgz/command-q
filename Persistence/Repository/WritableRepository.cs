@@ -7,6 +7,7 @@ using System.Data.SQLite;
 using Common.Enumerations;
 using MySql.Data.MySqlClient;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
@@ -20,7 +21,7 @@ namespace Persistence.Repository
 
         public string MigrationsPath { get; }
 
-        public WritableRepository(string connectionString, DatabaseEngine engine)
+        public WritableRepository(string connectionString, DatabaseEngine engine, ILogger<WritableRepository> logger)
         {
             MigrationsPath = $@"{Directory.GetParent(Directory.GetCurrentDirectory())}\{nameof(Persistence)}\{nameof(Migrations)}\";
 
@@ -57,9 +58,11 @@ namespace Persistence.Repository
             MigrationsPath += '/';
 
             Db = new QueryFactory(connection, compiler);
+
+            logger.LogInformation("Repository instance completed, using engine : {Engine}", Engine);
         }
 
-        public WritableRepository(IConfiguration configuration) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine())
+        public WritableRepository(IConfiguration configuration, ILogger<WritableRepository> logger) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine(), logger)
         { }
     }
 }

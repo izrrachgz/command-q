@@ -32,9 +32,6 @@ builder.Services.AddRepositories();
 //Command Runners
 builder.Services.AddCommandRunners();
 
-//Migrations
-await builder.Services.RunMigrations();
-
 //Add application services
 applicationAssembly.ExportedTypes
     .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith("Service"))
@@ -58,6 +55,9 @@ builder.Services.ConfigureAppHealthChecks();
 builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
+
+//Migrations
+await app.RunMigrations();
 
 app.MapHealthChecks("/health/checks");
 
