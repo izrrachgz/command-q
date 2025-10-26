@@ -5,6 +5,7 @@ using Persistence.Constant;
 using Common.Models.Command;
 using Common.Models.Response;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
@@ -12,14 +13,19 @@ namespace Persistence.Repository.Command
 {
     public class MsSqlCommandRunner : ICommandRunner
     {
+        public ILogger Logger { get; set; }
+
         private string ConnectionString { get; }
 
-        public MsSqlCommandRunner(string connectionString)
+        public MsSqlCommandRunner(string connectionString, ILogger<MsSqlCommandRunner> logger)
         {
+            Logger = logger;
             ConnectionString = connectionString;
+
+            logger.LogDebug("MsSqlCommandRunner instance created.");
         }
 
-        public MsSqlCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
+        public MsSqlCommandRunner(IConfiguration configuration, ILogger<MsSqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)

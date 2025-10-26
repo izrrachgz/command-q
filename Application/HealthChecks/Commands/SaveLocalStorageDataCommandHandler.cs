@@ -1,14 +1,16 @@
 ﻿using Common.Cqrs;
-using Application.Constants;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.HealthChecks.Commands
 {
-    public class SaveLocalStorageCommandHandler : ICommandHandler<SaveLocalStorageDataCommand, HealthCheckResult>, IHealthCheck
+    public class SaveLocalStorageDataCommandHandler : ICommandHandler<SaveLocalStorageDataCommand, HealthCheckResult>, IHealthCheck
     {
+        private readonly ILogger<SaveLocalStorageDataCommandHandler> _logger;
 
-        public SaveLocalStorageCommandHandler()
+        public SaveLocalStorageDataCommandHandler(ILogger<SaveLocalStorageDataCommandHandler> logger)
         {
+            _logger = logger;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -39,15 +41,14 @@ namespace Application.HealthChecks.Commands
 
                 await File.AppendAllLinesAsync(filePath, content, cancellationToken);
 
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return HealthCheckResult.Unhealthy(ApplicationMessages.CommandCancelled);
-                }
+                _logger.LogDebug(@"Checking storage write : access granted.");
 
                 return HealthCheckResult.Healthy($@"Application is able to write on local storage.");
             }
             catch
             {
+                _logger.LogDebug(@"Checking storage write : no access.");
+
                 return HealthCheckResult.Unhealthy($@"Application is unable to write on local storage.");
             }
         }

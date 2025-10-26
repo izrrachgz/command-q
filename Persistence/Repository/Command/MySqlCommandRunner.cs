@@ -6,6 +6,7 @@ using Persistence.Constant;
 using Common.Models.Command;
 using Common.Models.Response;
 using MySql.Data.MySqlClient;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
@@ -13,18 +14,23 @@ namespace Persistence.Repository.Command
 {
     public class MySqlCommandRunner : ICommandRunner
     {
+        public ILogger Logger { get; set; }
+
         private const char CharacterSeparator = '\x1F';
 
         private const int InsertBatchSize = 1000;
 
         private string ConnectionString { get; }
 
-        public MySqlCommandRunner(string connectionString)
+        public MySqlCommandRunner(string connectionString, ILogger<MySqlCommandRunner> logger)
         {
+            Logger = logger;
             ConnectionString = connectionString;
+
+            logger.LogDebug("MySqlCommandRunner instance created.");
         }
 
-        public MySqlCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
+        public MySqlCommandRunner(IConfiguration configuration, ILogger<MySqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)

@@ -12,8 +12,11 @@ namespace Api.Controllers
     {
         private readonly ISender _sender;
 
-        public HealthCheckController(ISender sender)
+        private readonly ILogger<HealthCheckController> _logger;
+
+        public HealthCheckController(ISender sender, ILogger<HealthCheckController> logger)
         {
+            _logger = logger;
             _sender = sender;
         }
 
@@ -25,6 +28,8 @@ namespace Api.Controllers
         [HttpGet(@"scan")]
         public async Task<List<HealthCheckResult>> Scan(CancellationToken cancellationToken)
         {
+            _logger.LogDebug(@"Checking application health status.");
+
             var writeLocalStorage = new SaveLocalStorageDataCommand();
             var canWriteOnLocalStorage = await _sender.Send(writeLocalStorage, cancellationToken);
 

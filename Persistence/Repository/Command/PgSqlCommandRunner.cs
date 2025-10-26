@@ -6,6 +6,7 @@ using Domain.Interfaces;
 using Persistence.Constant;
 using Common.Models.Command;
 using Common.Models.Response;
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -14,14 +15,19 @@ namespace Persistence.Repository.Command
 {
     internal sealed class PgSqlCommandRunner : ICommandRunner
     {
+        public ILogger Logger { get; set; }
+
         private string ConnectionString { get; }
 
-        public PgSqlCommandRunner(string connectionString)
+        public PgSqlCommandRunner(string connectionString, ILogger<PgSqlCommandRunner> logger)
         {
+            Logger = logger;
             ConnectionString = connectionString;
+
+            logger.LogDebug("PgSqlCommandRunner instance created.");
         }
 
-        public PgSqlCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
+        public PgSqlCommandRunner(IConfiguration configuration, ILogger<PgSqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)

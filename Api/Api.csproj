@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Search</RootNamespace>
+    <RootNamespace>Api</RootNamespace>
     <UserSecretsId>ae43b7ef-537d-4999-b7cb-ff37f9e81ba2</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>

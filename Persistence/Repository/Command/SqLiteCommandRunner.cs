@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using Persistence.Constant;
 using Common.Models.Command;
 using Common.Models.Response;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
@@ -12,14 +13,19 @@ namespace Persistence.Repository.Command
 {
     public class SqLiteCommandRunner : ICommandRunner
     {
+        public ILogger Logger { get; set; }
+
         private string ConnectionString { get; }
 
-        public SqLiteCommandRunner(string connectionString)
+        public SqLiteCommandRunner(string connectionString, ILogger<SqLiteCommandRunner> logger)
         {
+            Logger = logger;
             ConnectionString = connectionString;
+
+            logger.LogDebug("SqLiteCommandRunner instance created.");
         }
 
-        public SqLiteCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
+        public SqLiteCommandRunner(IConfiguration configuration, ILogger<SqLiteCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
