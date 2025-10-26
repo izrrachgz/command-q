@@ -56,9 +56,6 @@ builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment
 
 var app = builder.Build();
 
-//Migrations
-await app.RunMigrations();
-
 app.MapHealthChecks("/health/checks");
 
 // Configure the HTTP request pipeline.
@@ -80,5 +77,7 @@ app.UseMiddleware<CheckApiKeysMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+
+await app.RunMigrations();
 
 app.Run();
