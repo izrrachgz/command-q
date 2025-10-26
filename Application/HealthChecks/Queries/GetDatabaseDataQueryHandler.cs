@@ -32,7 +32,7 @@ namespace Application.HealthChecks.Queries
                 .OrderByDesc($@"{nameof(HealthCheckLog.Modified)}")
                 .Take(1);
 
-            var records = await query.GetAsync<HealthCheckLog>(cancellationToken: cancellationToken);
+            var records = await query.FirstOrDefaultAsync<HealthCheckLog>(cancellationToken: cancellationToken);
 
             var result = _mapper.Map<HealthCheckResponseModel>(records);
 
