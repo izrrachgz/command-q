@@ -3,6 +3,7 @@ using Common.Cqrs;
 using Api.Extensions;
 using Api.Middleware;
 using FluentValidation;
+using Common.Extensions;
 using Persistence.Repository.Extensions;
 using Persistence.Migrations.Extensions;
 using Application.HealthChecks.Extensions;
@@ -31,6 +32,9 @@ builder.Services.AddRepositories();
 
 //Command Runners
 builder.Services.AddCommandRunners();
+
+//Task runner
+builder.Services.AddTaskRunner();
 
 //Add application services
 applicationAssembly.ExportedTypes

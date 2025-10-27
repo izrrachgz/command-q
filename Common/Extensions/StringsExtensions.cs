@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Common.Extensions
 {
-    public static partial class Strings
+    public static partial class StringsExtensions
     {
         private static readonly JsonSerializerOptions _options = new()
         {
