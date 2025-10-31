@@ -1,9 +1,10 @@
 ﻿using Dapper;
-using System.Text;
 using System.Data;
+using System.Text;
 using Common.Constants;
 using Domain.Interfaces;
 using Persistence.Constant;
+using System.Globalization;
 using Common.Models.Command;
 using Common.Models.Response;
 using MySql.Data.MySqlClient;
@@ -22,6 +23,12 @@ namespace Persistence.Repository.Command
         private const int InsertBatchSize = 1000;
 
         private string ConnectionString { get; }
+
+        private const string NullStringRepresentation = @"\N";
+
+        private const string DateTimeDatabaseFileStringFormat = @"o";
+
+        private const string TimeSpanDatabaseFileStringFormat = @"c";
 
         public MySqlCommandRunner(string connectionString, ILogger<MySqlCommandRunner> logger)
         {
@@ -200,9 +207,8 @@ namespace Persistence.Repository.Command
             foreach (var row in rows)
             {
                 foreach (var column in columns)
-                {
-                    sb.Append(row[column]).Append(CharacterSeparator);
-                }
+                    sb.Append(SerializeParameter(row[column])).Append(CharacterSeparator);
+
                 sb.AppendLine();
             }
 
@@ -230,7 +236,6 @@ namespace Persistence.Repository.Command
 
                 using var file = File.OpenRead(bulkLoader.FileName);
 
-                //TODO : fix date copy
                 int insertedRows = await bulkLoader.LoadAsync(file, cancellationToken);
 
                 return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
@@ -247,6 +252,25 @@ namespace Persistence.Repository.Command
 
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
+        }
+
+        private object? SerializeParameter(object? parameter)
+        {
+            if (parameter == null)
+                return NullStringRepresentation;
+
+            if (parameter is DateTime date)
+                return date.ToString(DateTimeDatabaseFileStringFormat, CultureInfo.InvariantCulture);
+
+            if (parameter is DateTimeOffset offset)
+                return offset.ToString(DateTimeDatabaseFileStringFormat, CultureInfo.InvariantCulture);
+
+            if (parameter is TimeSpan span)
+                return span.ToString(TimeSpanDatabaseFileStringFormat, CultureInfo.InvariantCulture);
+
+            //TODO: check for other tricky types
+
+            return parameter;
         }
     }
 }

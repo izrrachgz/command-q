@@ -1,5 +1,4 @@
-﻿
-namespace Common.Constants
+﻿namespace Common.Constants
 {
     public record InstanceConstants
     {
