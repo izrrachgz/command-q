@@ -47,7 +47,7 @@ namespace Application.HealthChecks.Publishers
 
         private Task RunWhenHealthy()
         {
-            _logger.LogInformation($@"Application is Healthy, you can trust its stability.");
+            _logger.LogInformation($@"Application is Healthy.");
             return Task.CompletedTask;
         }
 

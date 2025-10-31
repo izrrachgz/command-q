@@ -14,13 +14,15 @@ namespace Common.System
         {
             _logger = logger;
             _semaphore = new SemaphoreSlim(maxConcurrent, maxConcurrent);
+
+            _logger.LogDebug(InstanceConstants.InstanceCreated, nameof(TaskRunner));
         }
 
         public async Task RunTasksAsync(IEnumerable<Func<CancellationToken, Task>> tasks, CancellationToken cancellationToken = default)
         {
             var runningTasks = new List<Task>();
 
-            _logger.LogDebug(@"Executing {Count} tasks.", tasks.Count());
+            _logger.LogDebug(ProcessConstants.ExecutingTasks, tasks.Count());
 
             foreach (var taskFactory in tasks)
             {
@@ -34,13 +36,15 @@ namespace Common.System
                     }
                     catch (OperationCanceledException)
                     {
-                        Console.WriteLine(ProcessConstants.ProcessCancelled);
+                        Console.WriteLine(ProcessConstants.CancellationHasBeenRequested);
+
+                        _logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error: {ex.Message}");
+                        Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {ex.Message}");
 
-                        _logger.LogError(@"Error executing task : {exception}", ex);
+                        _logger.LogError(ex, ErrorConstants.AnExceptionHasOcurred);
                     }
                     finally
                     {

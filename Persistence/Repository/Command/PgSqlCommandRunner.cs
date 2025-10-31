@@ -2,6 +2,7 @@
 using Dapper;
 using System.Data;
 using Npgsql.Schema;
+using Common.Constants;
 using Domain.Interfaces;
 using Persistence.Constant;
 using Common.Models.Command;
@@ -24,7 +25,7 @@ namespace Persistence.Repository.Command
             Logger = logger;
             ConnectionString = connectionString;
 
-            logger.LogDebug("PgSqlCommandRunner instance created.");
+            Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(PgSqlCommandRunner));
         }
 
         public PgSqlCommandRunner(IConfiguration configuration, ILogger<PgSqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
@@ -45,6 +46,8 @@ namespace Persistence.Repository.Command
                 .Select(c => Execute(c.Query, c.ReturnType, c.Parameters, c.CancellationToken))
                 .ToList();
 
+            Logger.LogDebug(ProcessConstants.ExecutingCommands, commands.Count);
+
             try
             {
                 var results = await Task.WhenAll(tasks);
@@ -53,10 +56,14 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Console.WriteLine(CommandConstants.CommandCancelled);
+
+                Logger.LogDebug(CommandConstants.CommandCancelled);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
             }
 
             return [];
@@ -74,12 +81,16 @@ namespace Persistence.Repository.Command
 
                 cmd.CommandText = query;
 
+                Logger.LogDebug(DatabaseConstants.ExecutingQuery, query);
+
                 if (parameters != null)
                 {
                     foreach (var parameter in parameters)
                     {
                         object value = parameter.Value is null ? DBNull.Value : parameter.Value;
                         cmd.Parameters.AddWithValue(parameter.Key, value);
+
+                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value);
                     }
                 }
 
@@ -91,10 +102,14 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Console.WriteLine(CommandConstants.CommandCancelled);
+
+                Logger.LogDebug(CommandConstants.CommandCancelled);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
             }
 
             return results;
@@ -102,6 +117,8 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
+            Logger.LogDebug(DatabaseConstants.SavingRecords, rows.Length);
+
             string joinedColumns = $@"""{string.Join(@""",""", columns)}""";
 
             ReadOnlyCollection<NpgsqlDbColumn> schema;
@@ -119,10 +136,14 @@ namespace Persistence.Repository.Command
             }
             catch (OperationCanceledException)
             {
+                Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+
                 return new(false, CommandConstants.CommandCancelled);
             }
             catch
             {
+                Logger.LogDebug(ErrorConstants.CannotReadTableMetadata);
+
                 return new(false, CommandConstants.CannotReadSchema);
             }
 
@@ -159,10 +180,14 @@ namespace Persistence.Repository.Command
             }
             catch (OperationCanceledException)
             {
+                Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+
                 return new(false, CommandConstants.TransactionCancelled);
             }
-            catch
+            catch (Exception e)
             {
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
+
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
         }
