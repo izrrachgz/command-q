@@ -7,8 +7,7 @@ namespace Common.Hash
     {
         public static string ComputeSHA256(string chain)
         {
-            using SHA256 sha256 = SHA256.Create();
-            byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(chain));
+            byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(chain));
 
             StringBuilder sb = new();
             foreach (byte b in bytes)

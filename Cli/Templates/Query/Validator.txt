@@ -1,0 +1,11 @@
+﻿using FluentValidation;
+
+namespace Application.{{Namespace}}.Queries
+{
+    public class {{Name}}QueryValidator : AbstractValidator<{{Name}}Query>
+    {
+        public {{Name}}QueryValidator()
+        {
+        }
+    }
+}

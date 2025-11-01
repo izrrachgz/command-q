@@ -25,7 +25,7 @@ namespace Common.Cqrs
                 .Select(error => new ValidationFailure(error.PropertyName, error.ErrorMessage))
                 .ToList();
 
-            if (failures.Any())
+            if (failures.Count != 0)
             {
                 throw new ValidationException(failures);
             }

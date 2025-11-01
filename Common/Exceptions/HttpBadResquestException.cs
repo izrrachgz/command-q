@@ -1,10 +1,6 @@
 ﻿namespace Common.Exceptions
 {
-	public class HttpBadResquestException : Exception
-	{
-		public HttpBadResquestException(string message)
-			: base(message)
-		{
-		}
-	}
+    public class HttpBadResquestException(string message) : Exception(message)
+    {
+    }
 }

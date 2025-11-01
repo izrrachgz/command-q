@@ -1,0 +1,9 @@
+﻿using Common.Cqrs;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
+namespace Application.{{Namespace}}.Commands
+{
+    public class {{Name}}Command : ICommand<{{ResponseModel}}>
+    {
+    }
+}

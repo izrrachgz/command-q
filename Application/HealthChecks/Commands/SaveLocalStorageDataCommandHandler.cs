@@ -26,10 +26,7 @@ namespace Application.HealthChecks.Commands
 
             try
             {
-                string[] content = new string[1]
-                {
-                    now.ToString("G")
-                };
+                string[] content = [now.ToString("G")];
 
                 string filePath = $@"{basePath}HealthCheckLog.log";
 

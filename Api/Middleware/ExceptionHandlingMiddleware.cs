@@ -1,19 +1,13 @@
 ﻿using FluentValidation;
 using System.Text.Json;
+using Common.Constants;
 using Common.Exceptions;
 using FluentValidation.Results;
 
 namespace Api.Middleware
 {
-    public class ExceptionHandlingMiddleware : IMiddleware
+    public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger) : IMiddleware
     {
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-        public ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger)
-        {
-            _logger = logger;
-        }
-
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try
@@ -22,7 +16,7 @@ namespace Api.Middleware
             }
             catch (Exception e)
             {
-                _logger.LogError(exception: e, message: e.Message);
+                logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
 
                 await HandleExceptionAsync(context, e);
             }
