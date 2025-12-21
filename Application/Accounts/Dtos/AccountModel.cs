@@ -2,6 +2,7 @@
 {
     public sealed record AccountModel
     {
-        public Guid Identifier { get; set; }
+        public Guid? Identifier { get; set; }
+        public string? Username { get; set; }
     }
 }

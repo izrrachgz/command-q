@@ -9,5 +9,9 @@
         public const string RecordNotFound = @"Requested record is not found.";
 
         public const string RecordFound = @"";
+
+        public const string CannotCreateAccount = @"Cannot create account";
+
+        public const string AccountSaved = @"Account saved.";
     }
 }

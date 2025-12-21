@@ -21,18 +21,20 @@ IF OBJECT_ID('dbo.Account', 'U') IS NOT NULL
 
 CREATE TABLE dbo.Account
 (
-    [Identifier] UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    [Id] UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     [Username] VARCHAR(256) NOT NULL,
+    [Email] VARCHAR(256) NOT NULL,
     [Password] VARCHAR(256) NOT NULL,
     [Created] DATETIME NOT NULL DEFAULT GETDATE(),
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
-    CONSTRAINT PK_Account_Identifier PRIMARY KEY (Identifier)
+    CONSTRAINT PK_Account_Id PRIMARY KEY (Id)
 );
 --Login lookup performance
 CREATE UNIQUE INDEX UX_Account_Username ON dbo.Account (Username) WHERE Deleted IS NULL;
+CREATE UNIQUE INDEX UX_Account_Email ON dbo.Account (Email) WHERE Deleted IS NULL;
 --Active Account
-CREATE INDEX IX_Account_Active ON dbo.Account (Deleted) INCLUDE (Username, Created);
+CREATE INDEX IX_Account_Active ON dbo.Account (Deleted) INCLUDE (Username, Email, Created);
 
 -- Table: Address
 IF OBJECT_ID('dbo.Address', 'U') IS NOT NULL
@@ -58,7 +60,7 @@ CREATE TABLE dbo.Address
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
     CONSTRAINT PK_Address_Id PRIMARY KEY (Id),
-    CONSTRAINT FK_Address_Account FOREIGN KEY (AccountId) REFERENCES Account(Identifier)
+    CONSTRAINT FK_Address_Account FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
 --For faster performance
 CREATE INDEX IX_Address_AccountId ON dbo.Address (AccountId) WHERE Deleted IS NULL;
@@ -83,7 +85,7 @@ CREATE TABLE dbo.Contact
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
     CONSTRAINT PK_Contact_Id PRIMARY KEY (Id),
-    CONSTRAINT FK_Contact_Account FOREIGN KEY (AccountId) REFERENCES Account(Identifier)
+    CONSTRAINT FK_Contact_Account FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
 --For faster performance
 CREATE INDEX IX_Contact_AccountId ON dbo.Contact (AccountId) WHERE Deleted IS NULL;
@@ -141,7 +143,7 @@ CREATE TABLE dbo.Register
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
     CONSTRAINT PK_Register_Id PRIMARY KEY (Id),
-    CONSTRAINT FK_Register_Account FOREIGN KEY (AccountId) REFERENCES Account(Identifier)
+    CONSTRAINT FK_Register_Account FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
 --For faster performance
 CREATE INDEX IX_Register_AccountId ON dbo.Register (AccountId) WHERE Deleted IS NULL;

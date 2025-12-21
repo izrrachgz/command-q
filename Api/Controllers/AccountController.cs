@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Application.Accounts.Queries;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Application.Accounts.Commands;
 
 namespace Api.Controllers
 {
@@ -67,6 +68,17 @@ namespace Api.Controllers
             {
                 token = new JwtSecurityTokenHandler().WriteToken(token)
             });
+        }
+
+        [HttpPost(@"create")]
+        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
+        {
+            var response = await _sender.Send(request, cancellationToken);
+            if (!response.Success)
+            {
+                return BadRequest(response.Message);
+            }
+            return Ok(response);
         }
     }
 }
