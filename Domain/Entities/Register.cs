@@ -2,7 +2,7 @@
 {
     public class Register : BaseEntity
     {
-        public required long AccountId { get; set; }
+        public required Guid AccountId { get; set; }
         public required TrackingAction Action { get; set; }
     }
 }

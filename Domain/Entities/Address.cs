@@ -2,7 +2,7 @@
 {
     public class Address : BaseEntity
     {
-        public required long AccountId { get; set; }
+        public required Guid AccountId { get; set; }
         public required string Name { get; set; }
         public string? Description { get; set; }
         public required string Line1 { get; set; }
