@@ -1,5 +1,5 @@
-﻿using Common.Hash;
-using Common.Cqrs;
+﻿using Common.Cqrs;
+using Common.Hash;
 using Domain.Entities;
 using Domain.Interfaces;
 using SqlKata.Execution;
@@ -20,33 +20,25 @@ namespace Application.Accounts.Commands
             _repository = repository;
         }
 
+        /// <summary>
+        /// Handles the creation of a new user account based on the specified command.
+        /// </summary>
+        /// <remarks>If an account with the specified username or email already exists, the operation will
+        /// not create a new account and will return a failure response. The method ensures data integrity by performing
+        /// the operation within a transaction. If an error occurs during account creation, the transaction is rolled
+        /// back and a failure response is returned.</remarks>
+        /// <param name="request">The command containing the details required to create the account, including username, email, and password.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a BasicResponse indicating
+        /// whether the account was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
         {
-            // Check if account with same email or username exists
-
-            bool accountExists = await _repository.Db.Query($"{nameof(Account)}")
-                .Where(
-                    q => q.Where($@"{nameof(Account.Username)}", request.Username)
-                    .OrWhere($@"{nameof(Account.Email)}", request.Email)
-                )
-                .ExistsAsync(cancellationToken: cancellationToken);
+            bool accountExists = await AccountAlreadyExists(request, cancellationToken);
 
             if (accountExists)
-            {
-                return new(false, ApplicationMessages.CannotCreateAccount);
-            }
+                return new(false, ApplicationMessages.CannotCreateAccountWithThoseParams);
 
-            //Create payload objects for entities
             var now = DateTime.Now;
-
-            var account = new
-            {
-                Username = request.Username,
-                Email = request.Email,
-                Password = Hash.ComputeSHA256(request.Password),
-                Created = now,
-                Modified = now
-            };
 
             // Create transaction to ensure data integrity
             _repository.Db.Connection.Open();
@@ -54,6 +46,15 @@ namespace Application.Accounts.Commands
 
             try
             {
+                var account = new
+                {
+                    request.Username,
+                    request.Email,
+                    Password = Hash.ComputeSHA256(request.Password),
+                    Created = now,
+                    Modified = now
+                };
+
                 // Insert new account record
                 int affected = await _repository.Db.Query($"{nameof(Account)}")
                     .InsertAsync(account, transaction, cancellationToken: cancellationToken);
@@ -69,6 +70,7 @@ namespace Application.Accounts.Commands
                 if (insertedAccount == null || !Hash.CompareSHA256(account.Password, insertedAccount.Password))
                 {
                     transaction.Rollback();
+
                     return new(false, ApplicationMessages.CannotCreateAccount);
                 }
 
@@ -88,13 +90,9 @@ namespace Application.Accounts.Commands
                 bool saved = affected >= 1;
 
                 if (saved)
-                {
                     transaction.Commit();
-                }
                 else
-                {
                     transaction.Rollback();
-                }
 
                 return new(saved, saved ? ApplicationMessages.AccountSaved : ApplicationMessages.CannotCreateAccount);
             }
@@ -106,6 +104,23 @@ namespace Application.Accounts.Commands
 
                 return new(false, ApplicationMessages.CannotCreateAccount);
             }
+        }
+
+        /// <summary>
+        /// Determines whether an account with the specified username or email address already exists.
+        /// </summary>
+        /// <param name="request">The command containing the username and email address to check for existing accounts. Cannot be null.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains <see langword="true"/> if an
+        /// account with the specified username or email address exists; otherwise, <see langword="false"/>.</returns>
+        public async Task<bool> AccountAlreadyExists(CreateAccountCommand request, CancellationToken cancellationToken)
+        {
+            return await _repository.Db.Query($"{nameof(Account)}")
+               .Where(
+                   q => q.Where($@"{nameof(Account.Username)}", request.Username)
+                   .OrWhere($@"{nameof(Account.Email)}", request.Email)
+               )
+               .ExistsAsync(cancellationToken: cancellationToken);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Common.Extensions;
+using FluentValidation;
 
 namespace Application.Accounts.Commands
 {
@@ -10,7 +11,9 @@ namespace Application.Accounts.Commands
                 .NotEmpty()
                 .WithMessage("Email is required.")
                 .MaximumLength(256)
-                .WithMessage("Email cannot exceed 256 characters.");
+                .WithMessage("Email cannot exceed 256 characters.")
+                .Must(email => email.IsEmailAddress())
+                .WithMessage("Email has to be a valid e-mail address.");
 
             RuleFor(x => x.Username)
                 .NotEmpty()
