@@ -1,0 +1,23 @@
+﻿using AutoMapper;
+using Common.Cqrs;
+using Domain.Entities;
+using Common.Models.Response;
+using Application.{{Namespace}}.Dtos;
+
+namespace Application.{{Namespace}}.Queries
+{
+    public class {{Name}}QueryHandler : IQueryHandler<{{Name}}Query, DetailResponse<{{ResponseModel}}>>
+    {
+        private readonly IMapper _mapper;
+
+        public {{Name}}QueryHandler(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+
+        public async Task<DetailResponse<{{ResponseModel}}>> Handle({{Name}}Query request, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

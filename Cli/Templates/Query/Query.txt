@@ -1,0 +1,10 @@
+﻿using Common.Cqrs;
+using Common.Models.Response;
+using Application.{{Namespace}}.Dtos;
+
+namespace Application.{{Namespace}}.Queries
+{
+    public record {{Name}}Query : IQuery<DetailResponse<{{ResponseModel}}>>
+    {
+    }
+}

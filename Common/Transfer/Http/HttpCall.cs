@@ -42,7 +42,7 @@ namespace Common.Transfer.Http
                     query = HttpUtility.UrlEncode(JsonSerializer.SerializeToUtf8Bytes(queryParams));
                 }
 
-                if (ContentHeaders is not null && ContentHeaders.Any())
+                if (ContentHeaders is not null && ContentHeaders.Count != 0)
                 {
                     client.DefaultRequestHeaders.Clear();
                     foreach (var item in ContentHeaders)
@@ -93,7 +93,7 @@ namespace Common.Transfer.Http
                     content = new StringContent(json, mediaType: new(MediaTypeNames.Application.Json));
                 }
 
-                if (ContentHeaders is not null && ContentHeaders.Any())
+                if (ContentHeaders is not null && ContentHeaders.Count != 0)
                 {
                     client.DefaultRequestHeaders.Clear();
                     foreach (var item in ContentHeaders)

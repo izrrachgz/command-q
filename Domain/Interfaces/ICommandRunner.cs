@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using Common.Models.Command;
 using Common.Models.Response;
+using Microsoft.Extensions.Logging;
 
 namespace Domain.Interfaces
 {
@@ -9,6 +10,11 @@ namespace Domain.Interfaces
     /// </summary>
     public interface ICommandRunner
     {
+        /// <summary>
+        /// Should provide a logger instance associated to the runner
+        /// </summary>
+        ILogger Logger { get; set; }
+
         /// <summary>
         /// Should provide a connection with the database
         /// </summary>

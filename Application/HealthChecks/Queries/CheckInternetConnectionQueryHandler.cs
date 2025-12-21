@@ -1,8 +1,8 @@
 ﻿#nullable disable
-using Application.Constants;
 using Common.Cqrs;
 using Common.Extensions;
 using Common.Transfer.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -11,11 +11,13 @@ namespace Application.HealthChecks.Queries
     public class CheckInternetConnectionQueryHandler : IQueryHandler<CheckInternetConnectionQuery, HealthCheckResult>, IHealthCheck
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<CheckInternetConnectionQueryHandler> _logger;
         private readonly string UnhealthyMessage = @"Application is unable to access internet.";
         private readonly string HealthyMessage = @"Application is able to access internet.";
 
-        public CheckInternetConnectionQueryHandler(IConfiguration configuration)
+        public CheckInternetConnectionQueryHandler(IConfiguration configuration, ILogger<CheckInternetConnectionQueryHandler> logger)
         {
+            _logger = logger;
             _configuration = configuration;
         }
 
@@ -26,7 +28,7 @@ namespace Application.HealthChecks.Queries
 
         public async Task<HealthCheckResult> Handle(CheckInternetConnectionQuery request, CancellationToken cancellationToken)
         {
-            string urlCheckInternetAccess = _configuration.GetValue<string>("HealthCheck:UrlCheckInternetAccess");
+            string urlCheckInternetAccess = _configuration.GetValue<string>(@"HealthCheck:UrlCheckInternetAccess");
 
             if (!urlCheckInternetAccess.IsUri())
                 return HealthCheckResult.Unhealthy(UnhealthyMessage);
@@ -35,15 +37,16 @@ namespace Application.HealthChecks.Queries
 
             var response = await httpCall.Get(urlCheckInternetAccess, cancellationToken: cancellationToken);
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return HealthCheckResult.Unhealthy(ApplicationMessages.QueryCancelled);
-            }
-
             bool success = response.IsSuccessStatusCode;
 
             if (!success)
+            {
+                _logger.LogDebug(@"Checking internet connection : no access.");
+
                 return HealthCheckResult.Unhealthy(UnhealthyMessage);
+            }
+
+            _logger.LogDebug(@"Checking internet connection : access granted.");
 
             return HealthCheckResult.Healthy(HealthyMessage);
         }

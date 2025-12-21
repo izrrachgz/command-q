@@ -1,11 +1,14 @@
 ﻿using Dapper;
-using System.Text;
 using System.Data;
+using System.Text;
+using Common.Constants;
 using Domain.Interfaces;
 using Persistence.Constant;
+using System.Globalization;
 using Common.Models.Command;
 using Common.Models.Response;
 using MySql.Data.MySqlClient;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
@@ -13,18 +16,29 @@ namespace Persistence.Repository.Command
 {
     public class MySqlCommandRunner : ICommandRunner
     {
+        public ILogger Logger { get; set; }
+
         private const char CharacterSeparator = '\x1F';
 
         private const int InsertBatchSize = 1000;
 
         private string ConnectionString { get; }
 
-        public MySqlCommandRunner(string connectionString)
+        private const string NullStringRepresentation = @"\N";
+
+        private const string DateTimeDatabaseFileStringFormat = @"o";
+
+        private const string TimeSpanDatabaseFileStringFormat = @"c";
+
+        public MySqlCommandRunner(string connectionString, ILogger<MySqlCommandRunner> logger)
         {
+            Logger = logger;
             ConnectionString = connectionString;
+
+            Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(MySqlCommandRunner));
         }
 
-        public MySqlCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
+        public MySqlCommandRunner(IConfiguration configuration, ILogger<MySqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
@@ -42,6 +56,8 @@ namespace Persistence.Repository.Command
                 .Select(c => Execute(c.Query, c.ReturnType, c.Parameters, c.CancellationToken))
                 .ToList();
 
+            Logger.LogDebug(ProcessConstants.ExecutingCommands, commands.Count);
+
             try
             {
                 var results = await Task.WhenAll(tasks);
@@ -50,10 +66,14 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Console.WriteLine(CommandConstants.CommandCancelled);
+
+                Logger.LogDebug(CommandConstants.CommandCancelled);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
             }
 
             return [];
@@ -71,12 +91,16 @@ namespace Persistence.Repository.Command
 
                 cmd.CommandText = query;
 
+                Logger.LogDebug(DatabaseConstants.ExecutingQuery, query);
+
                 if (parameters != null)
                 {
                     foreach (var parameter in parameters)
                     {
                         object value = parameter.Value is null ? DBNull.Value : parameter.Value;
                         cmd.Parameters.AddWithValue(parameter.Key, value);
+
+                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value);
                     }
                 }
 
@@ -88,10 +112,14 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Console.WriteLine(CommandConstants.CommandCancelled);
+
+                Logger.LogDebug(CommandConstants.CommandCancelled);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
             }
 
             return results;
@@ -99,6 +127,8 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
+            Logger.LogDebug(DatabaseConstants.SavingRecords, rows.Length);
+
             string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
 
             await using var connection = (MySqlConnection)await GetConnection(cancellationToken);
@@ -152,11 +182,15 @@ namespace Persistence.Repository.Command
             {
                 await transaction.RollbackAsync(CancellationToken.None);
 
+                Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+
                 return new(true, CommandConstants.TransactionCancelled);
             }
-            catch
+            catch (Exception e)
             {
                 await transaction.RollbackAsync(CancellationToken.None);
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
@@ -164,6 +198,8 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsertLocalFile(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
+            Logger.LogDebug(DatabaseConstants.SavingRecords, rows.Length);
+
             string tempPath = Path.GetTempFileName();
 
             var sb = new StringBuilder();
@@ -171,9 +207,8 @@ namespace Persistence.Repository.Command
             foreach (var row in rows)
             {
                 foreach (var column in columns)
-                {
-                    sb.Append(row[column]).Append(CharacterSeparator);
-                }
+                    sb.Append(SerializeParameter(row[column])).Append(CharacterSeparator);
+
                 sb.AppendLine();
             }
 
@@ -201,19 +236,41 @@ namespace Persistence.Repository.Command
 
                 using var file = File.OpenRead(bulkLoader.FileName);
 
-                //TODO : fix date copy
                 int insertedRows = await bulkLoader.LoadAsync(file, cancellationToken);
 
                 return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
             }
             catch (OperationCanceledException)
             {
+                Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+
                 return new(false, CommandConstants.CommandCancelled);
             }
-            catch
+            catch (Exception e)
             {
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
+
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
+        }
+
+        private object? SerializeParameter(object? parameter)
+        {
+            if (parameter == null)
+                return NullStringRepresentation;
+
+            if (parameter is DateTime date)
+                return date.ToString(DateTimeDatabaseFileStringFormat, CultureInfo.InvariantCulture);
+
+            if (parameter is DateTimeOffset offset)
+                return offset.ToString(DateTimeDatabaseFileStringFormat, CultureInfo.InvariantCulture);
+
+            if (parameter is TimeSpan span)
+                return span.ToString(TimeSpanDatabaseFileStringFormat, CultureInfo.InvariantCulture);
+
+            //TODO: check for other tricky types
+
+            return parameter;
         }
     }
 }

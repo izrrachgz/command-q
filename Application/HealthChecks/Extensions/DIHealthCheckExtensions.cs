@@ -14,9 +14,9 @@ namespace Application.HealthChecks.Extensions
         public static IServiceCollection ConfigureAppHealthChecks(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddTypeActivatedCheck<SaveLocalStorageCommandHandler>(@"Can Write On Local Storage", failureStatus: HealthStatus.Unhealthy)
+                .AddTypeActivatedCheck<SaveLocalStorageDataCommandHandler>(@"Can Write On Local Storage", failureStatus: HealthStatus.Unhealthy)
                 .AddTypeActivatedCheck<CheckInternetConnectionQueryHandler>(@"Can Access Internet", failureStatus: HealthStatus.Unhealthy)
-                .AddTypeActivatedCheck<SaveDataCommandHandler>(@"Can Write On Database", failureStatus: HealthStatus.Unhealthy)
+                .AddTypeActivatedCheck<SaveDatabaseDataCommandHandler>(@"Can Write On Database", failureStatus: HealthStatus.Unhealthy)
                 .AddTypeActivatedCheck<GetDatabaseDataQueryHandler>(@"Can Read From Database", failureStatus: HealthStatus.Unhealthy);
 
             services.Configure<HealthCheckPublisherOptions>(options =>

@@ -1,10 +1,12 @@
 ﻿using Dapper;
 using System.Data;
+using Common.Constants;
 using Domain.Interfaces;
 using System.Data.SQLite;
 using Persistence.Constant;
 using Common.Models.Command;
 using Common.Models.Response;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 
@@ -12,14 +14,19 @@ namespace Persistence.Repository.Command
 {
     public class SqLiteCommandRunner : ICommandRunner
     {
+        public ILogger Logger { get; set; }
+
         private string ConnectionString { get; }
 
-        public SqLiteCommandRunner(string connectionString)
+        public SqLiteCommandRunner(string connectionString, ILogger<SqLiteCommandRunner> logger)
         {
+            Logger = logger;
             ConnectionString = connectionString;
+
+            Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(SqLiteCommandRunner));
         }
 
-        public SqLiteCommandRunner(IConfiguration configuration) : this(configuration.GetDatabaseConnection())
+        public SqLiteCommandRunner(IConfiguration configuration, ILogger<SqLiteCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
@@ -37,6 +44,8 @@ namespace Persistence.Repository.Command
                 .Select(c => Execute(c.Query, c.ReturnType, c.Parameters, c.CancellationToken))
                 .ToList();
 
+            Logger.LogDebug(ProcessConstants.ExecutingCommands, commands.Count);
+
             try
             {
                 var results = await Task.WhenAll(tasks);
@@ -45,10 +54,14 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Console.WriteLine(CommandConstants.CommandCancelled);
+
+                Logger.LogDebug(CommandConstants.CommandCancelled);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
             }
 
             return [];
@@ -66,12 +79,16 @@ namespace Persistence.Repository.Command
 
                 cmd.CommandText = query;
 
+                Logger.LogDebug(DatabaseConstants.ExecutingQuery, query);
+
                 if (parameters != null)
                 {
                     foreach (var parameter in parameters)
                     {
                         object value = parameter.Value is null ? DBNull.Value : parameter.Value;
                         cmd.Parameters.AddWithValue(parameter.Key, value);
+
+                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value);
                     }
                 }
 
@@ -83,10 +100,14 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Console.WriteLine(CommandConstants.CommandCancelled);
+
+                Logger.LogDebug(CommandConstants.CommandCancelled);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
             }
 
             return results;
@@ -94,6 +115,8 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
+            Logger.LogDebug(DatabaseConstants.SavingRecords, rows.Length);
+
             await using var connection = (SQLiteConnection)await GetConnection(cancellationToken);
 
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -124,11 +147,15 @@ namespace Persistence.Repository.Command
             {
                 await transaction.RollbackAsync(CancellationToken.None);
 
+                Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+
                 return new(false, CommandConstants.TransactionCancelled);
             }
-            catch
+            catch (Exception e)
             {
                 await transaction.RollbackAsync(CancellationToken.None);
+
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
             }

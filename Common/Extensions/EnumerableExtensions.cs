@@ -33,7 +33,7 @@ namespace Common.Extensions
             if (collection is null)
                 return true;
 
-            return !collection.Any();
+            return collection.Count == 0;
         }
 
         public static bool Empty(this IEnumerable<int>? collection)

@@ -3,6 +3,7 @@ using Common.Cqrs;
 using Api.Extensions;
 using Api.Middleware;
 using FluentValidation;
+using Common.Extensions;
 using Persistence.Repository.Extensions;
 using Persistence.Migrations.Extensions;
 using Application.HealthChecks.Extensions;
@@ -32,6 +33,9 @@ builder.Services.AddRepositories();
 //Command Runners
 builder.Services.AddCommandRunners();
 
+//Task runner
+builder.Services.AddTaskRunner();
+
 //Add application services
 applicationAssembly.ExportedTypes
     .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith("Service"))
@@ -56,9 +60,6 @@ builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment
 
 var app = builder.Build();
 
-//Migrations
-await app.RunMigrations();
-
 app.MapHealthChecks("/health/checks");
 
 // Configure the HTTP request pipeline.
@@ -80,5 +81,7 @@ app.UseMiddleware<CheckApiKeysMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+
+await app.RunMigrations();
 
 app.Run();
