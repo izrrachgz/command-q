@@ -77,7 +77,7 @@ namespace Application.Accounts.Commands
                 var contact = new
                 {
                     AccountId = insertedAccount.Id,
-                    Name = $"Contact for {request.Username}",
+                    Name = $@"{request.Username}'s Contact.",
                     EmailAddress = request.Email,
                     Created = now,
                     Modified = now
@@ -86,6 +86,22 @@ namespace Application.Accounts.Commands
                 // Insert new contact record
                 affected += await _repository.Db.Query($"{nameof(Contact)}")
                     .InsertAsync(contact, transaction, cancellationToken: cancellationToken);
+
+                var address = new
+                {
+                    AccountId = insertedAccount.Id,
+                    Name = $@"{request.Username}'s Address.",
+                    Line1 = string.Empty,
+                    City = string.Empty,
+                    PostalCode = string.Empty,
+                    Country = string.Empty,
+                    EmailAddress = request.Email,
+                    Created = now,
+                    Modified = now
+                };
+
+                affected += await _repository.Db.Query($"{nameof(Address)}")
+                    .InsertAsync(address, transaction, cancellationToken: cancellationToken);
 
                 bool saved = affected >= 1;
 
