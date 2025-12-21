@@ -5,7 +5,8 @@
         public required long AccountId { get; set; }
         public required string Name { get; set; }
         public string? Description { get; set; }
-        public required string Street { get; set; }
+        public required string Line1 { get; set; }
+        public string? Line2 { get; set; }
         public string? ExternalNumber { get; set; }
         public string? InternalNumber { get; set; }
         public string? References { get; set; }
