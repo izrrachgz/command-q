@@ -4,6 +4,7 @@ using Api.Extensions;
 using Api.Middleware;
 using FluentValidation;
 using Common.Extensions;
+using Localization.Extensions;
 using Persistence.Repository.Extensions;
 using Persistence.Migrations.Extensions;
 using Application.HealthChecks.Extensions;
@@ -58,7 +59,20 @@ builder.Services.ConfigureAppHealthChecks();
 //Add jwt authorization flow
 builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
 
+//Add localization services
+builder.Services.AddLocalizationServices();
+
 var app = builder.Build();
+
+//Configure localization
+app.UseRequestLocalization(options =>
+{
+    string[] supportedCultures = ["en-US", "es-ES"];
+
+    options.AddSupportedCultures(supportedCultures);
+    options.AddSupportedUICultures(supportedCultures);
+    options.SetDefaultCulture("en-US");
+});
 
 app.MapHealthChecks("/health/checks");
 

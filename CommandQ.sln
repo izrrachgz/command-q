@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.1.11312.151 d18.0
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Api", "Api\Api.csproj", "{C8C8FAD0-EC6E-4F73-96A7-B729ACA18DC0}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -17,6 +17,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistence", "Persistence\Persistence.csproj", "{F9262B4E-5E88-4732-938B-05ABDA29A479}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.Test", "Application.Test\Application.Test.csproj", "{69C2BA0E-ABB5-41E8-87E8-042C8070D38D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Localization", "Localization\Localization.csproj", "{B2C09EB9-C7E5-4801-BEE2-E4F8EAFCBDAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,10 @@ Global
 		{69C2BA0E-ABB5-41E8-87E8-042C8070D38D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69C2BA0E-ABB5-41E8-87E8-042C8070D38D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69C2BA0E-ABB5-41E8-87E8-042C8070D38D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2C09EB9-C7E5-4801-BEE2-E4F8EAFCBDAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2C09EB9-C7E5-4801-BEE2-E4F8EAFCBDAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2C09EB9-C7E5-4801-BEE2-E4F8EAFCBDAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2C09EB9-C7E5-4801-BEE2-E4F8EAFCBDAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

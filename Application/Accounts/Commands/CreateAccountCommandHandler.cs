@@ -5,19 +5,22 @@ using Domain.Interfaces;
 using SqlKata.Execution;
 using Application.Constants;
 using Common.Models.Response;
+using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Accounts.Commands
 {
     public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand, BasicResponse>
     {
+        private readonly ITextProvider _messageProvider;
         private readonly IWritableRepository _repository;
         private readonly ILogger<CreateAccountCommandHandler> _logger;
 
-        public CreateAccountCommandHandler(IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
+        public CreateAccountCommandHandler(ITextProvider messageProvider, IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
+            _messageProvider = messageProvider;
         }
 
         /// <summary>
@@ -36,7 +39,7 @@ namespace Application.Accounts.Commands
             bool accountExists = await AccountAlreadyExists(request, cancellationToken);
 
             if (accountExists)
-                return new(false, ApplicationMessages.CannotCreateAccountWithThoseParams);
+                return new(false, _messageProvider.Get("User_NotFound"));
 
             var now = DateTime.Now;
 
