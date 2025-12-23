@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Entities\Plain\**" />
+    <EmbeddedResource Remove="Entities\Plain\**" />
+    <None Remove="Entities\Plain\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Pgvector" Version="0.3.1" />
     <PackageReference Include="SqlKata" Version="4.0.1" />
     <PackageReference Include="SqlKata.Execution" Version="4.0.1" />
@@ -14,10 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Entities\Plain\" />
   </ItemGroup>
 
 </Project>

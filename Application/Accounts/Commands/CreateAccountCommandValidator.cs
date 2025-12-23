@@ -1,5 +1,5 @@
-﻿using Common.Extensions;
-using FluentValidation;
+﻿using FluentValidation;
+using Common.Extensions;
 
 namespace Application.Accounts.Commands
 {

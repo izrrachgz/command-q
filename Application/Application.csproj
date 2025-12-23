@@ -21,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Addresses\Commands\" />
+    <Folder Include="Contacts\Queries\" />
+    <Folder Include="Contacts\Profiles\" />
   </ItemGroup>
 
 </Project>

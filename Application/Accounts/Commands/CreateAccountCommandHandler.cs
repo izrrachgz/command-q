@@ -120,6 +120,10 @@ namespace Application.Accounts.Commands
 
                 return new(false, ApplicationMessages.CannotCreateAccount);
             }
+            finally
+            {
+                _repository.Db.Connection.Close();
+            }
         }
 
         /// <summary>

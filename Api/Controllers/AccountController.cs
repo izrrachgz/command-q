@@ -74,10 +74,12 @@ namespace Api.Controllers
         public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
         {
             var response = await _sender.Send(request, cancellationToken);
+
             if (!response.Success)
             {
                 return BadRequest(response.Message);
             }
+
             return Ok(response);
         }
     }
