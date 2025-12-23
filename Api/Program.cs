@@ -2,6 +2,7 @@ using MediatR;
 using Common.Cqrs;
 using Api.Extensions;
 using Api.Middleware;
+using Common.Constants;
 using FluentValidation;
 using Common.Extensions;
 using Localization.Extensions;
@@ -67,11 +68,11 @@ var app = builder.Build();
 //Configure localization
 app.UseRequestLocalization(options =>
 {
-    string[] supportedCultures = ["en-US", "es-ES"];
+    string[] supportedCultures = [Language.English, Language.Spanish];
 
     options.AddSupportedCultures(supportedCultures);
     options.AddSupportedUICultures(supportedCultures);
-    options.SetDefaultCulture("en-US");
+    options.SetDefaultCulture(Language.English);
 });
 
 app.MapHealthChecks("/health/checks");
