@@ -135,6 +135,12 @@
   <data name="Contact_Created" xml:space="preserve">
     <value>Contacto creado.</value>
   </data>
+  <data name="Record_Found" xml:space="preserve">
+    <value>.</value>
+  </data>
+  <data name="Record_Not_Found" xml:space="preserve">
+    <value>No se ha encontrado el registro.</value>
+  </data>
   <data name="User_NotFound" xml:space="preserve">
     <value>Usuario no encontrado.</value>
   </data>

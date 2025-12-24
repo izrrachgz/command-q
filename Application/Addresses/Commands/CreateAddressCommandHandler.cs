@@ -27,6 +27,16 @@ namespace Application.Addresses.Commands
             _address_cannot_create = _messages.Get(nameof(Messages.Address_Cannot_Create));
         }
 
+        /// <summary>
+        /// Handles the creation of a new address for the specified account.
+        /// </summary>
+        /// <remarks>The operation is performed within a database transaction to ensure data integrity. If
+        /// the address cannot be created, the transaction is rolled back and an error message is returned.</remarks>
+        /// <param name="request">The command containing the details of the address to create, including account information and address
+        /// fields.</param>
+        /// <param name="cancellationToken">A token that can be used to request cancellation of the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a BasicResponse indicating
+        /// whether the address was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateAddressCommand request, CancellationToken cancellationToken)
         {
             var now = DateTime.Now;

@@ -28,6 +28,16 @@ namespace Application.Contacts.Commands
             _contact_cannot_create = _messages.Get(nameof(Messages.Contact_Cannot_Create));
         }
 
+        /// <summary>
+        /// Handles the creation of a new contact based on the specified command.
+        /// </summary>
+        /// <remarks>The operation is performed within a database transaction to ensure data integrity. If
+        /// the contact cannot be created, the transaction is rolled back and an error message is returned. An error is
+        /// logged if an exception occurs during the process.</remarks>
+        /// <param name="request">The command containing the details of the contact to create. Must not be null.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a BasicResponse indicating
+        /// whether the contact was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateContactCommand request, CancellationToken cancellationToken)
         {
             var now = DateTime.Now;

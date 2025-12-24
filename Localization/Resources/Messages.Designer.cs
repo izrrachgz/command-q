@@ -115,6 +115,24 @@ namespace Public {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a ..
+        /// </summary>
+        public static string Record_Found {
+            get {
+                return ResourceManager.GetString("Record_Found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Record not found..
+        /// </summary>
+        public static string Record_Not_Found {
+            get {
+                return ResourceManager.GetString("Record_Not_Found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a User not Found..
         /// </summary>
         public static string User_NotFound {
