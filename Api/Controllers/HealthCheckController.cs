@@ -10,7 +10,6 @@ namespace Api.Controllers
     [ApiController, Authorize, Route("[controller]")]
     public class HealthCheckController(ISender sender, ILogger<HealthCheckController> logger) : ControllerBase
     {
-
         /// <summary>
         /// Checks if application is healthy enough in order to be able to properly run
         /// </summary>

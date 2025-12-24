@@ -1,11 +1,8 @@
 ﻿using MediatR;
-using System.Text;
-using Api.Constants;
-using System.Security.Claims;
+using Api.Dtos;
+using Api.Services;
+using System.Security;
 using Microsoft.AspNetCore.Mvc;
-using Application.Accounts.Queries;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using Application.Accounts.Commands;
 
 namespace Api.Controllers
@@ -14,60 +11,45 @@ namespace Api.Controllers
     public class AccountController : Controller
     {
         private readonly ISender _sender;
+        private readonly AuthService _authService;
         private readonly IConfiguration _configuration;
-        private string TokenSecretKey { get; }
-        private string TokenIssuer { get; }
-        private string TokenAudience { get; }
-        private int TokenMinutesToExpire { get; }
 
-        public AccountController(ISender sender, IConfiguration configuration)
+        public AccountController(ISender sender, IConfiguration configuration, AuthService authService)
         {
             _sender = sender;
+            _authService = authService;
             _configuration = configuration;
-            //TODO: put this into an instance and get it through DI
-            TokenSecretKey = _configuration.GetValue<string>(ApiConfiguration.JwtSecretKey) ?? string.Empty;
-            TokenIssuer = _configuration.GetValue<string>(ApiConfiguration.JwtIssuer) ?? string.Empty;
-            TokenAudience = _configuration.GetValue<string>(ApiConfiguration.JwtAudience) ?? string.Empty;
-            TokenMinutesToExpire = configuration.GetValue<int>(ApiConfiguration.JwtMinutesToExpire);
         }
 
-        private JwtSecurityToken GenerateToken(string username)
+        [HttpPost("sign-in")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {
-            var claims = new Claim[2]{
-                new (ClaimTypes.Name, username),
-                new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TokenSecretKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: TokenIssuer,
-                audience: TokenAudience,
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(TokenMinutesToExpire),
-                signingCredentials: creds
-            );
-
-            return token;
-        }
-
-        [HttpPost(@"sign-in")]
-        public async Task<IActionResult> Login([FromBody] GetAccountByUsernameQuery request, CancellationToken cancellationToken = default)
-        {
-            var authorized = await _sender.Send(request, cancellationToken);
-
-            if (!authorized.Success || authorized.Detail is null)
+            try
             {
-                return Forbid();
+                var result = await _authService.LoginAsync(request.Username, request.Password, cancellationToken);
+
+                return result is null ? Unauthorized() : Ok(result);
             }
-
-            var token = GenerateToken(request.Username);
-
-            return Ok(new
+            catch (SecurityException ex)
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token)
-            });
+                return Forbid(ex.Message);
+            }
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken cancellationToken = default)
+        {
+            var result = await _authService.RefreshAsync(request.RefreshToken, cancellationToken);
+
+            return result is null ? Unauthorized() : Ok(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest request, CancellationToken cancellationToken = default)
+        {
+            await _authService.LogoutAsync(request.RefreshToken, cancellationToken);
+
+            return NoContent();
         }
 
         [HttpPost(@"create")]

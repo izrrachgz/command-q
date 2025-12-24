@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Application.Contacts.Commands;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
-    [ApiController, Route("[controller]")]
+    [ApiController, Authorize, Route("[controller]")]
     public class ContactController : Controller
     {
         private readonly ISender _sender;

@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Application.Addresses.Commands;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
-    [ApiController, Route("[controller]")]
+    [ApiController, Authorize, Route("[controller]")]
     public class AddressController : Controller
     {
         private readonly ISender _sender;
@@ -13,7 +14,7 @@ namespace Api.Controllers
         {
             _sender = sender;
         }
-        
+
         [HttpPost(@"create")]
         public async Task<IActionResult> Create([FromBody] CreateAddressCommand request, CancellationToken cancellationToken = default)
         {
