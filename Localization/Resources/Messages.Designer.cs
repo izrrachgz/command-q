@@ -61,7 +61,61 @@ namespace Public {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a User not Found.
+        ///   Busca una cadena traducida similar a Cannot create account..
+        /// </summary>
+        public static string Account_Cannot_Create {
+            get {
+                return ResourceManager.GetString("Account_Cannot_Create", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Account created..
+        /// </summary>
+        public static string Account_Created {
+            get {
+                return ResourceManager.GetString("Account_Created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Cannot create address..
+        /// </summary>
+        public static string Address_Cannot_Create {
+            get {
+                return ResourceManager.GetString("Address_Cannot_Create", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Address created..
+        /// </summary>
+        public static string Address_Created {
+            get {
+                return ResourceManager.GetString("Address_Created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Cannot create contact..
+        /// </summary>
+        public static string Contact_Cannot_Create {
+            get {
+                return ResourceManager.GetString("Contact_Cannot_Create", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Contact created..
+        /// </summary>
+        public static string Contact_Created {
+            get {
+                return ResourceManager.GetString("Contact_Created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a User not Found..
         /// </summary>
         public static string User_NotFound {
             get {

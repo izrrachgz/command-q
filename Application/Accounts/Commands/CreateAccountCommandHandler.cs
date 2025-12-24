@@ -1,9 +1,9 @@
-﻿using Common.Cqrs;
+﻿using Public;
+using Common.Cqrs;
 using Common.Hash;
 using Domain.Entities;
 using Domain.Interfaces;
 using SqlKata.Execution;
-using Application.Constants;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -12,15 +12,20 @@ namespace Application.Accounts.Commands
 {
     public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand, BasicResponse>
     {
-        private readonly ITextProvider _messageProvider;
+        private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;
         private readonly ILogger<CreateAccountCommandHandler> _logger;
+        
+        private readonly string _account_created;
+        private readonly string _account_cannot_create;
 
-        public CreateAccountCommandHandler(ITextProvider messageProvider, IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
+        public CreateAccountCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
-            _messageProvider = messageProvider;
+            _messages = textProvider;
+            _account_created = _messages.Get(nameof(Messages.Account_Created));
+            _account_cannot_create = _messages.Get(nameof(Messages.Account_Cannot_Create));
         }
 
         /// <summary>
@@ -39,7 +44,7 @@ namespace Application.Accounts.Commands
             bool accountExists = await AccountAlreadyExists(request, cancellationToken);
 
             if (accountExists)
-                return new(false, _messageProvider.Get("User_NotFound"));
+                return new(false, _account_cannot_create);
 
             var now = DateTime.Now;
 
@@ -74,7 +79,7 @@ namespace Application.Accounts.Commands
                 {
                     transaction.Rollback();
 
-                    return new(false, ApplicationMessages.CannotCreateAccount);
+                    return new(false, _account_cannot_create);
                 }
 
                 var contact = new
@@ -108,12 +113,20 @@ namespace Application.Accounts.Commands
 
                 bool saved = affected >= 1;
 
-                if (saved)
-                    transaction.Commit();
-                else
-                    transaction.Rollback();
+                string message = string.Empty;
 
-                return new(saved, saved ? ApplicationMessages.AccountSaved : ApplicationMessages.CannotCreateAccount);
+                if (saved)
+                {
+                    transaction.Commit();
+                    message = _account_created;
+                }
+                else
+                {
+                    transaction.Rollback();
+                    message = _account_cannot_create;
+                }
+
+                return new(saved, message);
             }
             catch (Exception ex)
             {
@@ -121,7 +134,7 @@ namespace Application.Accounts.Commands
 
                 _logger.LogError(ex, "Error creating account for Email: {Email}, Username: {Username}", request.Email, request.Username);
 
-                return new(false, ApplicationMessages.CannotCreateAccount);
+                return new(false, _account_cannot_create);
             }
             finally
             {

@@ -117,7 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Account_Cannot_Create" xml:space="preserve">
+    <value>Cannot create account.</value>
+  </data>
+  <data name="Account_Created" xml:space="preserve">
+    <value>Account created.</value>
+  </data>
+  <data name="Address_Cannot_Create" xml:space="preserve">
+    <value>Cannot create address.</value>
+  </data>
+  <data name="Address_Created" xml:space="preserve">
+    <value>Address created.</value>
+  </data>
+  <data name="Contact_Cannot_Create" xml:space="preserve">
+    <value>Cannot create contact.</value>
+  </data>
+  <data name="Contact_Created" xml:space="preserve">
+    <value>Contact created.</value>
+  </data>
   <data name="User_NotFound" xml:space="preserve">
-    <value>User not Found</value>
+    <value>User not Found.</value>
   </data>
 </root>

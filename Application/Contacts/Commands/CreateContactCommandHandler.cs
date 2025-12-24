@@ -1,22 +1,31 @@
-﻿using Common.Cqrs;
+﻿using Public;
+using Common.Cqrs;
 using Domain.Entities;
 using Domain.Interfaces;
 using SqlKata.Execution;
-using Application.Constants;
 using Common.Models.Response;
+using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Contacts.Commands
 {
     public class CreateContactCommandHandler : ICommandHandler<CreateContactCommand, BasicResponse>
     {
+        private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;
         private readonly ILogger<CreateContactCommandHandler> _logger;
 
-        public CreateContactCommandHandler(IWritableRepository repository, ILogger<CreateContactCommandHandler> logger)
+        private readonly string _contact_created;
+        private readonly string _contact_cannot_create;
+
+        public CreateContactCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateContactCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
+            _messages = textProvider;
+
+            _contact_created = _messages.Get(nameof(Messages.Contact_Created));
+            _contact_cannot_create = _messages.Get(nameof(Messages.Contact_Cannot_Create));
         }
 
         public async Task<BasicResponse> Handle(CreateContactCommand request, CancellationToken cancellationToken)
@@ -45,12 +54,20 @@ namespace Application.Contacts.Commands
 
                 bool saved = affected >= 1;
 
-                if (saved)
-                    transaction.Commit();
-                else
-                    transaction.Rollback();
+                string message = string.Empty;
 
-                return new(saved, saved ? ApplicationMessages.AccountSaved : ApplicationMessages.CannotCreateAccount);
+                if (saved)
+                {
+                    transaction.Commit();
+                    message = _contact_created;
+                }
+                else
+                {
+                    transaction.Rollback();
+                    message = _contact_cannot_create;
+                }
+
+                return new(saved, message);
             }
             catch (Exception ex)
             {
@@ -58,7 +75,7 @@ namespace Application.Contacts.Commands
 
                 _logger.LogError(ex, "Error creating contact for AccountId: {AccountId}", request.AccountId);
 
-                return new(false, @"Cannot create contact.");
+                return new(false, _contact_cannot_create);
             }
             finally
             {
