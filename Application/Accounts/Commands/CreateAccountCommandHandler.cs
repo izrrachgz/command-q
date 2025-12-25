@@ -15,17 +15,17 @@ namespace Application.Accounts.Commands
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;
         private readonly ILogger<CreateAccountCommandHandler> _logger;
-        
-        private readonly string _account_created;
-        private readonly string _account_cannot_create;
+
+        private readonly string _message_account_created;
+        private readonly string _message_account_cannot_create;
 
         public CreateAccountCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
-            _account_created = _messages.Get(nameof(Messages.Account_Created));
-            _account_cannot_create = _messages.Get(nameof(Messages.Account_Cannot_Create));
+            _message_account_created = _messages.Get(nameof(Messages.Account_Created));
+            _message_account_cannot_create = _messages.Get(nameof(Messages.Account_Cannot_Create));
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Application.Accounts.Commands
             bool accountExists = await AccountAlreadyExists(request, cancellationToken);
 
             if (accountExists)
-                return new(false, _account_cannot_create);
+                return new(false, _message_account_cannot_create);
 
             var now = DateTime.Now;
 
@@ -59,6 +59,9 @@ namespace Application.Accounts.Commands
                     request.Username,
                     request.Email,
                     Password = Hash.ComputeSHA256(request.Password),
+                    TokenVersion = 0,
+                    Roles = new string[] { "User" },
+                    FailedLoginAttempts = (byte)0,
                     Created = now,
                     Modified = now
                 };
@@ -79,7 +82,7 @@ namespace Application.Accounts.Commands
                 {
                     transaction.Rollback();
 
-                    return new(false, _account_cannot_create);
+                    return new(false, _message_account_cannot_create);
                 }
 
                 var contact = new
@@ -118,12 +121,12 @@ namespace Application.Accounts.Commands
                 if (saved)
                 {
                     transaction.Commit();
-                    message = _account_created;
+                    message = _message_account_created;
                 }
                 else
                 {
                     transaction.Rollback();
-                    message = _account_cannot_create;
+                    message = _message_account_cannot_create;
                 }
 
                 return new(saved, message);
@@ -134,7 +137,7 @@ namespace Application.Accounts.Commands
 
                 _logger.LogError(ex, "Error creating account for Email: {Email}, Username: {Username}", request.Email, request.Username);
 
-                return new(false, _account_cannot_create);
+                return new(false, _message_account_cannot_create);
             }
             finally
             {

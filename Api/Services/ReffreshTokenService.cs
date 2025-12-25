@@ -1,5 +1,6 @@
 ﻿using Api.Models;
 using Api.Interfaces;
+using Application.Accounts.Dtos;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 
@@ -7,7 +8,7 @@ namespace Api.Services
 {
     public sealed class RefreshTokenService : IRefreshTokenService
     {
-        private static readonly List<RefreshToken> _tokens = new();
+        private static readonly List<RefreshToken> _tokens = [];
         private readonly JwtOptions _options;
 
         public RefreshTokenService(IOptions<JwtOptions> options)
@@ -15,22 +16,21 @@ namespace Api.Services
             _options = options.Value;
         }
 
-        public Task<string> CreateAsync(User user, CancellationToken ct)
+        public Task<string> CreateAsync(AccountModel account)
         {
-            var token = Convert.ToBase64String(
-                RandomNumberGenerator.GetBytes(64));
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
             _tokens.Add(new RefreshToken
             {
                 Token = token,
-                UserId = user.Id,
+                AccountId = account.Id,
                 ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
             });
 
             return Task.FromResult(token);
         }
 
-        public Task<User?> ValidateAsync(string refreshToken, CancellationToken ct)
+        public Task<AccountModel?> ValidateAsync(string refreshToken)
         {
             var token = _tokens.FirstOrDefault(t =>
                 t.Token == refreshToken &&
@@ -38,10 +38,10 @@ namespace Api.Services
                 t.ExpiresAt > DateTime.UtcNow);
 
             if (token is null)
-                return Task.FromResult<User?>(null);
+                return Task.FromResult<AccountModel?>(null);
 
             // You would fetch user from repo here
-            return Task.FromResult<User?>(null);
+            return Task.FromResult<AccountModel?>(null);
         }
 
         public Task RotateAsync(string oldToken, string newToken)
@@ -53,14 +53,14 @@ namespace Api.Services
             _tokens.Add(new RefreshToken
             {
                 Token = newToken,
-                UserId = token!.UserId,
+                AccountId = token!.AccountId,
                 ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
             });
 
             return Task.CompletedTask;
         }
 
-        public Task RevokeAsync(string refreshToken, CancellationToken ct)
+        public Task RevokeAsync(string refreshToken)
         {
             var token = _tokens.FirstOrDefault(t => t.Token == refreshToken);
             if (token != null)

@@ -123,6 +123,9 @@
   <data name="Account_Created" xml:space="preserve">
     <value>Cuenta creaada.</value>
   </data>
+  <data name="Account_Locked" xml:space="preserve">
+    <value>Cuenta bloqueada.</value>
+  </data>
   <data name="Address_Cannot_Create" xml:space="preserve">
     <value>No se ha podido crear la dirección.</value>
   </data>
@@ -143,5 +146,20 @@
   </data>
   <data name="User_NotFound" xml:space="preserve">
     <value>Usuario no encontrado.</value>
+  </data>
+  <data name="Validation_Email_Has_To_Be_Valid" xml:space="preserve">
+    <value>Email tiene que ser una dirección de correo valida.</value>
+  </data>
+  <data name="Validation_Field_Cannot_Be" xml:space="preserve">
+    <value>{Name} no puede ser {Value}.</value>
+  </data>
+  <data name="Validation_Field_Cannot_Exceed" xml:space="preserve">
+    <value>{Name} no puede exceder {Amound} caracteres.</value>
+  </data>
+  <data name="Validation_Field_Is_Required" xml:space="preserve">
+    <value>{Name} es requerido.</value>
+  </data>
+  <data name="Validation_Field_Minimum_Length" xml:space="preserve">
+    <value>{Name} tiene que tener al menos {Length} caracteres.</value>
   </data>
 </root>

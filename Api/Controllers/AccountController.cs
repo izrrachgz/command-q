@@ -37,25 +37,25 @@ namespace Api.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
-            var result = await _authService.RefreshAsync(request.RefreshToken, cancellationToken);
+            var result = await _authService.RefreshAsync(request.RefreshToken);
 
             return result is null ? Unauthorized() : Ok(result);
         }
 
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout([FromBody] LogoutRequest request, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
         {
-            await _authService.LogoutAsync(request.RefreshToken, cancellationToken);
+            await _authService.LogoutAsync(request.RefreshToken);
 
             return NoContent();
         }
 
         [HttpPost(@"create")]
-        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request)
         {
-            var response = await _sender.Send(request, cancellationToken);
+            var response = await _sender.Send(request);
 
             if (!response.Success)
             {

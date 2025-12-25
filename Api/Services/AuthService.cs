@@ -1,7 +1,9 @@
-﻿using MediatR;
+﻿using Public;
+using MediatR;
 using Api.Dtos;
 using Api.Interfaces;
 using System.Security;
+using Localization.Abstractions;
 using Application.Accounts.Queries;
 using System.Security.Cryptography;
 
@@ -13,16 +15,22 @@ namespace Api.Services
         private static readonly TimeSpan LockoutTime = TimeSpan.FromMinutes(10);
 
         private readonly ISender _sender;
-        private readonly PasswordHasher _hasher;
         private readonly IJwtTokenService _jwt;
+        private readonly PasswordHasher _hasher;
+        private readonly ITextProvider _messages;
         private readonly IRefreshTokenService _refresh;
 
-        public AuthService(ISender sender, PasswordHasher hasher, IJwtTokenService jwt, IRefreshTokenService refresh)
+        private readonly string _message_account_locked;
+
+        public AuthService(ISender sender, PasswordHasher hasher, IJwtTokenService jwt, IRefreshTokenService refresh, ITextProvider textProvider)
         {
+            _jwt = jwt;
             _sender = sender;
             _hasher = hasher;
-            _jwt = jwt;
             _refresh = refresh;
+            _messages = textProvider;
+
+            _message_account_locked = _messages.Get(nameof(Messages.Account_Locked));
         }
 
         public async Task<LoginResponse?> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
@@ -33,38 +41,39 @@ namespace Api.Services
                 Password = password
             };
 
-            var user = await _sender.Send(query, cancellationToken);
+            var response = await _sender.Send(query, cancellationToken);
 
-            if (user is null) return null;
+            if (!response.Success || response.Detail == null) return null;
 
-            //TODO: implement user return type by account query
-            if (user.LockedUntilUtc > DateTime.UtcNow)
-                throw new SecurityException("Account locked");
+            var account = response.Detail;
 
-            if (!_hasher.Verify(password, user.PasswordHash))
+            if (account.LockedUntilUtc > DateTime.UtcNow)
+                throw new SecurityException(_message_account_locked);
+
+            if (!_hasher.Verify(password, account.Password))
             {
-                user.FailedLoginAttempts++;
+                account.FailedLoginAttempts++;
 
-                if (user.FailedLoginAttempts >= MaxFailedAttempts)
+                if (account.FailedLoginAttempts >= MaxFailedAttempts)
                 {
-                    user.LockedUntilUtc = DateTime.UtcNow.Add(LockoutTime);
+                    account.LockedUntilUtc = DateTime.UtcNow.Add(LockoutTime);
                 }
 
                 return null;
             }
 
-            user.FailedLoginAttempts = 0;
-            user.LockedUntilUtc = null;
+            account.FailedLoginAttempts = 0;
+            account.LockedUntilUtc = null;
 
-            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(user);
-            var refreshToken = await _refresh.CreateAsync(user, cancellationToken);
+            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account);
+            var refreshToken = await _refresh.CreateAsync(account);
 
             return new LoginResponse(accessToken, expiresAt, refreshToken);
         }
 
-        public async Task<LoginResponse?> RefreshAsync(string refreshToken, CancellationToken cancellationToken = default)
+        public async Task<LoginResponse?> RefreshAsync(string refreshToken)
         {
-            var user = await _refresh.ValidateAsync(refreshToken, cancellationToken);
+            var user = await _refresh.ValidateAsync(refreshToken);
             if (user is null) return null;
 
             user.TokenVersion++;
@@ -78,8 +87,8 @@ namespace Api.Services
             return new LoginResponse(accessToken, expiresAt, newRefreshToken);
         }
 
-        public Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default)
-            => _refresh.RevokeAsync(refreshToken, cancellationToken);
+        public Task LogoutAsync(string refreshToken)
+            => _refresh.RevokeAsync(refreshToken);
     }
 
 }

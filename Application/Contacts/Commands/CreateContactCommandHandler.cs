@@ -15,8 +15,8 @@ namespace Application.Contacts.Commands
         private readonly IWritableRepository _repository;
         private readonly ILogger<CreateContactCommandHandler> _logger;
 
-        private readonly string _contact_created;
-        private readonly string _contact_cannot_create;
+        private readonly string _message_contact_created;
+        private readonly string _message_contact_cannot_create;
 
         public CreateContactCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateContactCommandHandler> logger)
         {
@@ -24,8 +24,8 @@ namespace Application.Contacts.Commands
             _repository = repository;
             _messages = textProvider;
 
-            _contact_created = _messages.Get(nameof(Messages.Contact_Created));
-            _contact_cannot_create = _messages.Get(nameof(Messages.Contact_Cannot_Create));
+            _message_contact_created = _messages.Get(nameof(Messages.Contact_Created));
+            _message_contact_cannot_create = _messages.Get(nameof(Messages.Contact_Cannot_Create));
         }
 
         /// <summary>
@@ -69,12 +69,12 @@ namespace Application.Contacts.Commands
                 if (saved)
                 {
                     transaction.Commit();
-                    message = _contact_created;
+                    message = _message_contact_created;
                 }
                 else
                 {
                     transaction.Rollback();
-                    message = _contact_cannot_create;
+                    message = _message_contact_cannot_create;
                 }
 
                 return new(saved, message);
@@ -85,7 +85,7 @@ namespace Application.Contacts.Commands
 
                 _logger.LogError(ex, "Error creating contact for AccountId: {AccountId}", request.AccountId);
 
-                return new(false, _contact_cannot_create);
+                return new(false, _message_contact_cannot_create);
             }
             finally
             {

@@ -16,16 +16,16 @@ namespace Application.Addresses.Queries
         private readonly ITextProvider _messages;
         private readonly IReadOnlyRepository _repository;
 
-        private readonly string _record_found;
-        private readonly string _record_not_found;
+        private readonly string _message_record_found;
+        private readonly string _message_record_not_found;
 
         public GetAddressByAccountIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
         {
             _mapper = mapper;
             _repository = repository;
             _messages = textProvider;
-            _record_found = _messages.Get(nameof(Messages.Record_Found));
-            _record_not_found = _messages.Get(nameof(Messages.Record_Not_Found));
+            _message_record_found = _messages.Get(nameof(Messages.Record_Found));
+            _message_record_not_found = _messages.Get(nameof(Messages.Record_Not_Found));
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Application.Addresses.Queries
 
             bool success = result is not null;
 
-            string message = success ? _record_found : _record_not_found;
+            string message = success ? _message_record_found : _message_record_not_found;
 
             return new(success, message, result);
         }

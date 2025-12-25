@@ -79,6 +79,15 @@ namespace Public {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a Account locked..
+        /// </summary>
+        public static string Account_Locked {
+            get {
+                return ResourceManager.GetString("Account_Locked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a Cannot create address..
         /// </summary>
         public static string Address_Cannot_Create {
@@ -138,6 +147,51 @@ namespace Public {
         public static string User_NotFound {
             get {
                 return ResourceManager.GetString("User_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Email has to be a valid e-mail address..
+        /// </summary>
+        public static string Validation_Email_Has_To_Be_Valid {
+            get {
+                return ResourceManager.GetString("Validation_Email_Has_To_Be_Valid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {Name} cannot be {Value}..
+        /// </summary>
+        public static string Validation_Field_Cannot_Be {
+            get {
+                return ResourceManager.GetString("Validation_Field_Cannot_Be", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {Name} cannot exceed {Amound} characters..
+        /// </summary>
+        public static string Validation_Field_Cannot_Exceed {
+            get {
+                return ResourceManager.GetString("Validation_Field_Cannot_Exceed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {Name} is required..
+        /// </summary>
+        public static string Validation_Field_Is_Required {
+            get {
+                return ResourceManager.GetString("Validation_Field_Is_Required", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {Name} has to be at least {} chatacters..
+        /// </summary>
+        public static string Validation_Field_Minimum_Length {
+            get {
+                return ResourceManager.GetString("Validation_Field_Minimum_Length", resourceCulture);
             }
         }
     }

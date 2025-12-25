@@ -2,6 +2,7 @@
 using System.Text;
 using Api.Interfaces;
 using System.Security.Claims;
+using Application.Accounts.Dtos;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,17 +18,17 @@ namespace Api.Services
             _options = options.Value;
         }
 
-        public (string Token, DateTime ExpiresAt) GenerateAccessToken(User user)
+        public (string Token, DateTime ExpiresAt) GenerateAccessToken(AccountModel account)
         {
             var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(JwtRegisteredClaimNames.UniqueName, user.Username),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new("token_version", user.TokenVersion.ToString())
-        };
+            {
+                new(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
+                new(JwtRegisteredClaimNames.UniqueName, account.Username),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new("token_version", account.TokenVersion.ToString())
+            };
 
-            foreach (var role in user.Roles)
+            foreach (var role in account.Roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }

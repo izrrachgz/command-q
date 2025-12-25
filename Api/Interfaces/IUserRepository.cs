@@ -1,10 +1,10 @@
-﻿using Api.Models;
+﻿using Application.Accounts.Dtos;
 
 namespace Api.Interfaces
 {
     public interface IUserRepository
     {
-        Task<User?> GetByUsernameAsync(string username, CancellationToken ct);
-        Task<User?> GetByIdAsync(Guid id, CancellationToken ct);
+        Task<AccountModel?> GetByUsernameAsync(string username, CancellationToken ct);
+        Task<AccountModel?> GetByIdAsync(Guid id, CancellationToken ct);
     }
 }

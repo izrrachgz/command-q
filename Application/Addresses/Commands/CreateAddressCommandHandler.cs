@@ -15,16 +15,16 @@ namespace Application.Addresses.Commands
         private readonly IWritableRepository _repository;
         private readonly ILogger<CreateAddressCommandHandler> _logger;
 
-        private readonly string _address_created;
-        private readonly string _address_cannot_create;
+        private readonly string _message_address_created;
+        private readonly string _message_address_cannot_create;
 
         public CreateAddressCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateAddressCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
-            _address_created = _messages.Get(nameof(Messages.Address_Created));
-            _address_cannot_create = _messages.Get(nameof(Messages.Address_Cannot_Create));
+            _message_address_created = _messages.Get(nameof(Messages.Address_Created));
+            _message_address_cannot_create = _messages.Get(nameof(Messages.Address_Cannot_Create));
         }
 
         /// <summary>
@@ -69,12 +69,12 @@ namespace Application.Addresses.Commands
                 if (saved)
                 {
                     transaction.Commit();
-                    message = _address_created;
+                    message = _message_address_created;
                 }
                 else
                 {
                     transaction.Rollback();
-                    message = _address_cannot_create;
+                    message = _message_address_cannot_create;
                 }
 
                 return new(saved, message);
@@ -85,7 +85,7 @@ namespace Application.Addresses.Commands
 
                 _logger.LogError(ex, "Error creating address for AccountId: {AccountId}", request.AccountId);
 
-                return new(false, _address_cannot_create);
+                return new(false, _message_address_cannot_create);
             }
             finally
             {

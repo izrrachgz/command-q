@@ -1,12 +1,12 @@
-﻿using Api.Models;
+﻿using Application.Accounts.Dtos;
 
 namespace Api.Interfaces
 {
     public interface IRefreshTokenService
     {
-        Task<string> CreateAsync(User user, CancellationToken cancellationToken);
-        Task<User?> ValidateAsync(string refreshToken, CancellationToken cancellationToken);
+        Task<string> CreateAsync(AccountModel user);
+        Task<AccountModel?> ValidateAsync(string refreshToken);
         Task RotateAsync(string oldRefreshToken, string newRefreshToken);
-        Task RevokeAsync(string refreshToken, CancellationToken cancellationToken);
+        Task RevokeAsync(string refreshToken);
     }
 }

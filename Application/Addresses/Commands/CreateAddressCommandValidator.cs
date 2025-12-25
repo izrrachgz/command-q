@@ -1,44 +1,49 @@
-﻿using FluentValidation;
+﻿using Public;
+using FluentValidation;
 using Common.Extensions;
+using Localization.Abstractions;
 
 namespace Application.Addresses.Commands
 {
     public class CreateAddressCommandValidator : AbstractValidator<CreateAddressCommand>
     {
-        public CreateAddressCommandValidator()
+        private const int MAX_LENGTH = 256;
+
+        public CreateAddressCommandValidator(ITextProvider messages)
         {
             RuleFor(x => x.AccountId)
-                .NotEmpty();
+                .NotEmpty()
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Account"));
 
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .WithMessage("Email is required.")
-                .MaximumLength(256)
-                .WithMessage("Address's Name cannot exceed 256 characters.");
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Name"))
+                .MaximumLength(MAX_LENGTH)
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Cannot_Exceed), "Name", MAX_LENGTH));
 
             RuleFor(x => x.Line1)
                 .NotEmpty()
-                .WithMessage("Address Line 1 is required.")
-                .MaximumLength(256)
-                .WithMessage("Address's Line cannot exceed 256 characters.");
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Address Line"))
+                .MaximumLength(MAX_LENGTH)
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Cannot_Exceed), "Address Line", MAX_LENGTH));
 
             RuleFor(x => x.City)
                 .NotEmpty()
-                .WithMessage("Address City is required.")
-                .MaximumLength(256)
-                .WithMessage("Address's City cannot exceed 256 characters.");
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "City"))
+                .MaximumLength(MAX_LENGTH)
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Cannot_Exceed), "City", MAX_LENGTH));
 
             RuleFor(x => x.PostalCode)
                 .NotEmpty()
-                .WithMessage(@"Address Postal Code is required.")
-                .MaximumLength(256)
-                .WithMessage(@"Address's Postal Code cannot exceed 256 characters.");
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Postal Code"))
+                .MaximumLength(MAX_LENGTH)
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Cannot_Exceed), "Postal Code", MAX_LENGTH));
 
             RuleFor(x => x.Country)
                 .NotEmpty()
-                .WithMessage(@"Address Country is required.")
-                .MaximumLength(256)
-                .WithMessage(@"Address's Country cannot exceed 256 characters.");
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Country"))
+                .MaximumLength(MAX_LENGTH)
+                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Cannot_Exceed), "Country", MAX_LENGTH));
         }
     }
 }
