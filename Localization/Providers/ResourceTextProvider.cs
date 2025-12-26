@@ -8,14 +8,12 @@ namespace Localization.Providers
     {
         public string Get(string key, params object[] args)
         {
-            var value = Messages.ResourceManager
-                .GetString(key, CultureInfo.CurrentUICulture);
+            var value = Messages.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
 
-            if (value == null) return key;
+            if (value == null)
+                return key;
 
-            return args.Length > 0
-                ? string.Format(value, args)
-                : value;
+            return args.Length > 0 ? string.Format(value, args) : value;
         }
     }
 }

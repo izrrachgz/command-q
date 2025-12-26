@@ -5,7 +5,7 @@ namespace Localization.Providers
 {
     public class JsonTextProvider : ITextProvider
     {
-        private Dictionary<string, string> _cache = new();
+        private Dictionary<string, string> _cache = [];
 
         public JsonTextProvider(string culture)
         {
@@ -19,8 +19,8 @@ namespace Localization.Providers
             if (!File.Exists(path)) return;
 
             var json = File.ReadAllText(path);
-            _cache = JsonSerializer.Deserialize<Dictionary<string, string>>(json)
-                     ?? new();
+
+            _cache = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? [];
         }
 
         public string Get(string key, params object[] args)
@@ -28,9 +28,7 @@ namespace Localization.Providers
             if (!_cache.TryGetValue(key, out var value))
                 return key;
 
-            return args.Length > 0
-                ? string.Format(value, args)
-                : value;
+            return args.Length > 0 ? string.Format(value, args) : value;
         }
     }
 }
