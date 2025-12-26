@@ -8,7 +8,11 @@ namespace Application.Accounts.Profiles
     {
         public AccountProfile()
         {
-            CreateMap<Account, AccountModel>();
+            CreateMap<Account, AccountModel>()
+                .ForMember(
+                    d => d.Roles,
+                    s => s.MapFrom(src => src.Roles.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                );
         }
     }
 }

@@ -28,7 +28,6 @@ namespace Api.Extensions
             services.AddScoped<AuthService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-            services.AddScoped<PasswordHasher>();
 
             services.AddAuthentication(options =>
             {

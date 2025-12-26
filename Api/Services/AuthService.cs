@@ -1,6 +1,7 @@
 ﻿using Public;
 using MediatR;
 using Api.Dtos;
+using Common.Hash;
 using Api.Interfaces;
 using System.Security;
 using Localization.Abstractions;
@@ -16,17 +17,15 @@ namespace Api.Services
 
         private readonly ISender _sender;
         private readonly IJwtTokenService _jwt;
-        private readonly PasswordHasher _hasher;
         private readonly ITextProvider _messages;
         private readonly IRefreshTokenService _refresh;
 
         private readonly string _message_account_locked;
 
-        public AuthService(ISender sender, PasswordHasher hasher, IJwtTokenService jwt, IRefreshTokenService refresh, ITextProvider textProvider)
+        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, ITextProvider textProvider)
         {
             _jwt = jwt;
             _sender = sender;
-            _hasher = hasher;
             _refresh = refresh;
             _messages = textProvider;
 
@@ -50,7 +49,9 @@ namespace Api.Services
             if (account.LockedUntilUtc > DateTime.UtcNow)
                 throw new SecurityException(_message_account_locked);
 
-            if (!_hasher.Verify(password, account.Password))
+            password = Hash.ComputeSHA256(password);
+
+            if (!Hash.CompareSHA256(password, account.Password))
             {
                 account.FailedLoginAttempts++;
 
@@ -58,7 +59,7 @@ namespace Api.Services
                 {
                     account.LockedUntilUtc = DateTime.UtcNow.Add(LockoutTime);
                 }
-
+                //TODO: update account tries
                 return null;
             }
 

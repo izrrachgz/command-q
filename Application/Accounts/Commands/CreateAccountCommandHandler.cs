@@ -60,7 +60,7 @@ namespace Application.Accounts.Commands
                     request.Email,
                     Password = Hash.ComputeSHA256(request.Password),
                     TokenVersion = 0,
-                    Roles = new string[] { "User" },
+                    Roles = string.Join(',', new string[] { "User" }),
                     FailedLoginAttempts = (byte)0,
                     Created = now,
                     Modified = now
@@ -155,11 +155,12 @@ namespace Application.Accounts.Commands
         public async Task<bool> AccountAlreadyExists(CreateAccountCommand request, CancellationToken cancellationToken)
         {
             return await _repository.Db.Query($"{nameof(Account)}")
-               .Where(
-                   q => q.Where($@"{nameof(Account.Username)}", request.Username)
-                   .OrWhere($@"{nameof(Account.Email)}", request.Email)
-               )
-               .ExistsAsync(cancellationToken: cancellationToken);
+                .WhereNull($@"{nameof(Account.Deleted)}")
+                .Where(
+                    q => q.Where($@"{nameof(Account.Username)}", request.Username)
+                        .OrWhere($@"{nameof(Account.Email)}", request.Email)
+                )
+                .ExistsAsync(cancellationToken: cancellationToken);
         }
     }
 }
