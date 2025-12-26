@@ -59,5 +59,50 @@ namespace Public {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Email has to be a valid e-mail address..
+        /// </summary>
+        public static string Email_Has_To_Be_Valid {
+            get {
+                return ResourceManager.GetString("Email_Has_To_Be_Valid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} cannot be {1}..
+        /// </summary>
+        public static string Field_Cannot_Be {
+            get {
+                return ResourceManager.GetString("Field_Cannot_Be", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} cannot exceed {1} characters..
+        /// </summary>
+        public static string Field_Cannot_Exceed {
+            get {
+                return ResourceManager.GetString("Field_Cannot_Exceed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} is required..
+        /// </summary>
+        public static string Field_Is_Required {
+            get {
+                return ResourceManager.GetString("Field_Is_Required", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} has to be at least {1} chatacters..
+        /// </summary>
+        public static string Field_Minimum_Length {
+            get {
+                return ResourceManager.GetString("Field_Minimum_Length", resourceCulture);
+            }
+        }
     }
 }

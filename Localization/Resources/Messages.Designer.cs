@@ -61,24 +61,6 @@ namespace Public {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Cannot create account..
-        /// </summary>
-        public static string Account_Cannot_Create {
-            get {
-                return ResourceManager.GetString("Account_Cannot_Create", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a Account created..
-        /// </summary>
-        public static string Account_Created {
-            get {
-                return ResourceManager.GetString("Account_Created", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Busca una cadena traducida similar a Account locked..
         /// </summary>
         public static string Account_Locked {
@@ -88,38 +70,20 @@ namespace Public {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Cannot create address..
+        ///   Busca una cadena traducida similar a Cannot create {0}..
         /// </summary>
-        public static string Address_Cannot_Create {
+        public static string Cannot_Create {
             get {
-                return ResourceManager.GetString("Address_Cannot_Create", resourceCulture);
+                return ResourceManager.GetString("Cannot_Create", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Address created..
+        ///   Busca una cadena traducida similar a {0} created..
         /// </summary>
-        public static string Address_Created {
+        public static string Created {
             get {
-                return ResourceManager.GetString("Address_Created", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a Cannot create contact..
-        /// </summary>
-        public static string Contact_Cannot_Create {
-            get {
-                return ResourceManager.GetString("Contact_Cannot_Create", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a Contact created..
-        /// </summary>
-        public static string Contact_Created {
-            get {
-                return ResourceManager.GetString("Contact_Created", resourceCulture);
+                return ResourceManager.GetString("Created", resourceCulture);
             }
         }
         
@@ -138,60 +102,6 @@ namespace Public {
         public static string Record_Not_Found {
             get {
                 return ResourceManager.GetString("Record_Not_Found", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a User not Found..
-        /// </summary>
-        public static string User_NotFound {
-            get {
-                return ResourceManager.GetString("User_NotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a Email has to be a valid e-mail address..
-        /// </summary>
-        public static string Validation_Email_Has_To_Be_Valid {
-            get {
-                return ResourceManager.GetString("Validation_Email_Has_To_Be_Valid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a {Name} cannot be {Value}..
-        /// </summary>
-        public static string Validation_Field_Cannot_Be {
-            get {
-                return ResourceManager.GetString("Validation_Field_Cannot_Be", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a {Name} cannot exceed {Amound} characters..
-        /// </summary>
-        public static string Validation_Field_Cannot_Exceed {
-            get {
-                return ResourceManager.GetString("Validation_Field_Cannot_Exceed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a {Name} is required..
-        /// </summary>
-        public static string Validation_Field_Is_Required {
-            get {
-                return ResourceManager.GetString("Validation_Field_Is_Required", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Busca una cadena traducida similar a {Name} has to be at least {} chatacters..
-        /// </summary>
-        public static string Validation_Field_Minimum_Length {
-            get {
-                return ResourceManager.GetString("Validation_Field_Minimum_Length", resourceCulture);
             }
         }
     }

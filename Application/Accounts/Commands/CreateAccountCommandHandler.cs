@@ -24,8 +24,8 @@ namespace Application.Accounts.Commands
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
-            _message_account_created = _messages.Get(nameof(Messages.Account_Created));
-            _message_account_cannot_create = _messages.Get(nameof(Messages.Account_Cannot_Create));
+            _message_account_created = _messages.Get(nameof(Messages.Created), nameof(Account));
+            _message_account_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(Account));
         }
 
         /// <summary>

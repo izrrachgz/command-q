@@ -1,7 +1,7 @@
 ﻿using Public;
 using FluentValidation;
 using Common.Extensions;
-using Localization.Abstractions;
+using Localization.Providers;
 
 namespace Application.Contacts.Commands
 {
@@ -9,13 +9,13 @@ namespace Application.Contacts.Commands
     {
         private const int MAX_LENGTH = 256;
 
-        public CreateContactCommandValidator(ITextProvider messages)
+        public CreateContactCommandValidator(ResourceValidationTextProvider messages)
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Name"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Name"))
                 .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Cannot_Exceed), "Name", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), "Name", MAX_LENGTH));
         }
     }
 }

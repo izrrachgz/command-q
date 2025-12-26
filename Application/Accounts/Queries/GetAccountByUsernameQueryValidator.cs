@@ -1,6 +1,6 @@
 ﻿using Public;
 using FluentValidation;
-using Localization.Abstractions;
+using Localization.Providers;
 
 namespace Application.Accounts.Queries
 {
@@ -8,19 +8,19 @@ namespace Application.Accounts.Queries
     {
         private const int MIN_LENGTH = 8;
 
-        public GetAccountByUsernameQueryValidator(ITextProvider messages)
+        public GetAccountByUsernameQueryValidator(ResourceValidationTextProvider messages)
         {
             RuleFor(r => r.Username)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Username"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Username"))
                 .MinimumLength(MIN_LENGTH)
-                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Minimum_Length), "Username", MIN_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Minimum_Length), "Username", MIN_LENGTH));
 
             RuleFor(r => r.Password)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Is_Required), "Password"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Password"))
                 .MinimumLength(MIN_LENGTH)
-                .WithMessage(messages.Get(nameof(Messages.Validation_Field_Minimum_Length), "Password", MIN_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Minimum_Length), "Password", MIN_LENGTH));
         }
     }
 }

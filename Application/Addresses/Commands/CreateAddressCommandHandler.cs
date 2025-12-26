@@ -23,8 +23,8 @@ namespace Application.Addresses.Commands
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
-            _message_address_created = _messages.Get(nameof(Messages.Address_Created));
-            _message_address_cannot_create = _messages.Get(nameof(Messages.Address_Cannot_Create));
+            _message_address_created = _messages.Get(nameof(Messages.Created), nameof(Address));
+            _message_address_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(Address));
         }
 
         /// <summary>

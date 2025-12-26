@@ -18,10 +18,12 @@ namespace Localization.Extensions
             {
                 return new CompositeTextProvider(
                 [
-                    new JsonTextProvider(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName),
-                    new ResourceTextProvider()
+                    new ResourceTextProvider(),
+                    new JsonTextProvider(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)
                 ]);
             });
+
+            services.AddSingleton<ResourceValidationTextProvider>();
         }
     }
 }

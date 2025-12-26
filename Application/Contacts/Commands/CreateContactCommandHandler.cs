@@ -24,8 +24,8 @@ namespace Application.Contacts.Commands
             _repository = repository;
             _messages = textProvider;
 
-            _message_contact_created = _messages.Get(nameof(Messages.Contact_Created));
-            _message_contact_cannot_create = _messages.Get(nameof(Messages.Contact_Cannot_Create));
+            _message_contact_created = _messages.Get(nameof(Messages.Created), nameof(Contact));
+            _message_contact_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(Contact));
         }
 
         /// <summary>
