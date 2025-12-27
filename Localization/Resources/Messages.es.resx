@@ -132,4 +132,10 @@
   <data name="Record_Not_Found" xml:space="preserve">
     <value>No se ha encontrado el registro.</value>
   </data>
+  <data name="Cannot_Update" xml:space="preserve">
+    <value>No se ha podido actualizar {0}.</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>{0} actualizado.</value>
+  </data>
 </root>

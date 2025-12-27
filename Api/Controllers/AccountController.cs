@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Api.Dtos;
 using Api.Services;
-using System.Security;
 using Microsoft.AspNetCore.Mvc;
 using Application.Accounts.Commands;
 
@@ -24,16 +23,9 @@ namespace Api.Controllers
         [HttpPost("sign-in")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await _authService.LoginAsync(request.Username, request.Password, cancellationToken);
+            var result = await _authService.LoginAsync(request.Username, request.Password, cancellationToken);
 
-                return result is null ? Unauthorized() : Ok(result);
-            }
-            catch (SecurityException ex)
-            {
-                return Forbid(ex.Message);
-            }
+            return result is null ? Unauthorized() : Ok(result);
         }
 
         [HttpPost("refresh")]

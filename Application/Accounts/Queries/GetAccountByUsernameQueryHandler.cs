@@ -1,6 +1,5 @@
 ﻿using Public;
 using AutoMapper;
-using Common.Hash;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
@@ -30,29 +29,25 @@ namespace Application.Accounts.Queries
         }
 
         /// <summary>
-        /// Handles a request to retrieve account details by username and verify the provided password.
+        /// Handles the retrieval of an account by username and returns detailed information about the account.
         /// </summary>
-        /// <remarks>If the username does not exist or the password is incorrect, the response indicates
-        /// failure and the account details are not included.</remarks>
-        /// <param name="request">The query containing the username and password to authenticate and retrieve the account details.</param>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <param name="request">The query containing the username of the account to retrieve.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a DetailResponse<AccountModel>
-        /// indicating whether the account was found and authenticated, along with the account details if successful.</returns>
+        /// with the account details if found; otherwise, the result indicates that no matching account was found.</returns>
         public async Task<DetailResponse<AccountModel>> Handle(GetAccountByUsernameQuery request, CancellationToken cancellationToken)
         {
-            string hashPassword = Hash.ComputeSHA256(request.Password);
-
             var query = _repository.Db.Query($@"{nameof(Account)}")
                 .WhereNull($@"{nameof(Account.Deleted)}")
                 .Where($@"{nameof(Account.Username)}", request.Username)
                 .OrderByDesc($@"{nameof(Account.Modified)}")
-                .Take(1);
+                .Limit(1);
 
             var record = await query.FirstOrDefaultAsync<Account>(cancellationToken: cancellationToken);
 
             var result = _mapper.Map<AccountModel>(record);
 
-            bool success = result is not null && Hash.CompareSHA256(record.Password, hashPassword);
+            bool success = result is not null;
 
             string message = success ? _message_record_found : _message_record_not_found;
 

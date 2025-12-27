@@ -79,6 +79,15 @@ namespace Public {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a Cannot update {0}.
+        /// </summary>
+        public static string Cannot_Update {
+            get {
+                return ResourceManager.GetString("Cannot_Update", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a {0} created..
         /// </summary>
         public static string Created {
@@ -102,6 +111,15 @@ namespace Public {
         public static string Record_Not_Found {
             get {
                 return ResourceManager.GetString("Record_Not_Found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} updated..
+        /// </summary>
+        public static string Updated {
+            get {
+                return ResourceManager.GetString("Updated", resourceCulture);
             }
         }
     }

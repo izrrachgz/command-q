@@ -7,6 +7,7 @@ using System.Security;
 using Localization.Abstractions;
 using Application.Accounts.Queries;
 using System.Security.Cryptography;
+using Application.Accounts.Commands;
 
 namespace Api.Services
 {
@@ -56,10 +57,17 @@ namespace Api.Services
                 account.FailedLoginAttempts++;
 
                 if (account.FailedLoginAttempts >= MaxFailedAttempts)
-                {
                     account.LockedUntilUtc = DateTime.UtcNow.Add(LockoutTime);
-                }
-                //TODO: update account tries
+
+                UpdateAccountCommand updateCommand = new()
+                {
+                    Id = account.Id,
+                    FailedLoginAttempts = account.FailedLoginAttempts,
+                    LockedUntilUtc = account.LockedUntilUtc
+                };
+
+                await _sender.Send(updateCommand, cancellationToken);
+
                 return null;
             }
 
