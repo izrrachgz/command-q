@@ -39,10 +39,8 @@ namespace Application.AccountSessions.Queries
             bool exists = await _repository.Db.Query($@"{nameof(AccountSession)}")
                 .WhereNull($@"{nameof(AccountSession.Deleted)}")
                 .Where($@"{nameof(AccountSession.AccountId)}", request.AccountId)
-                .Where(q =>
-                    q.Where($@"{nameof(AccountSession.FailedLoginAttempts)}", ">=", request.MaxFailedAttempts)
-                     .OrWhere($@"{nameof(AccountSession.LockedUntilUtc)}", ">=", DateTime.UtcNow)
-                )
+                .Where($@"{nameof(AccountSession.FailedLoginAttempts)}", ">=", request.MaxFailedAttempts)
+                .Where($@"{nameof(AccountSession.LockedUntilUtc)}", ">=", DateTime.UtcNow)
                 .ExistsAsync(cancellationToken: cancellationToken);
 
             string message = exists ? _message_account_locked : _message_record_not_found;
