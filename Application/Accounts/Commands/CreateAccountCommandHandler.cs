@@ -59,9 +59,7 @@ namespace Application.Accounts.Commands
                     request.Username,
                     request.Email,
                     Password = Hash.ComputeSHA256(request.Password),
-                    TokenVersion = 0,
                     Roles = string.Join(',', new string[] { "User" }),
-                    FailedLoginAttempts = (byte)0,
                     Created = now,
                     Modified = now
                 };

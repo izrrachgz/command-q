@@ -40,7 +40,6 @@ namespace Application.Accounts.Queries
             var query = _repository.Db.Query($@"{nameof(Account)}")
                 .WhereNull($@"{nameof(Account.Deleted)}")
                 .Where($@"{nameof(Account.Username)}", request.Username)
-                .OrderByDesc($@"{nameof(Account.Modified)}")
                 .Limit(1);
 
             var record = await query.FirstOrDefaultAsync<Account>(cancellationToken: cancellationToken);

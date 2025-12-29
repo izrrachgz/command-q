@@ -2,10 +2,10 @@
 using System.Text;
 using Api.Interfaces;
 using System.Security.Claims;
-using Application.Accounts.Dtos;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Application.AccountSessions.Dtos;
 
 namespace Api.Services
 {
@@ -18,12 +18,12 @@ namespace Api.Services
             _options = options.Value;
         }
 
-        public (string Token, DateTime ExpiresAt) GenerateAccessToken(AccountModel account)
+        public (string Token, DateTime ExpiresAt) GenerateAccessToken(AccountSessionModel account)
         {
             var claims = new List<Claim>
             {
-                new(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
-                new(JwtRegisteredClaimNames.UniqueName, account.Username),
+                new(JwtRegisteredClaimNames.Sub, account.SessionId.ToString()),
+                new(JwtRegisteredClaimNames.UniqueName, account.UniqueName),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new("token_version", account.TokenVersion.ToString())
             };

@@ -1,8 +1,8 @@
 ﻿using Api.Models;
 using Api.Interfaces;
-using Application.Accounts.Dtos;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
+using Application.AccountSessions.Dtos;
 
 namespace Api.Services
 {
@@ -16,21 +16,21 @@ namespace Api.Services
             _options = options.Value;
         }
 
-        public Task<string> CreateAsync(AccountModel account)
+        public Task<string> CreateAsync(AccountSessionModel session)
         {
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
             _tokens.Add(new RefreshToken
             {
                 Token = token,
-                AccountId = account.Id,
+                AccountId = session.AccountId,
                 ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
             });
 
             return Task.FromResult(token);
         }
 
-        public Task<AccountModel?> ValidateAsync(string refreshToken)
+        public Task<AccountSessionModel?> ValidateAsync(string refreshToken)
         {
             var token = _tokens.FirstOrDefault(t =>
                 t.Token == refreshToken &&
@@ -38,10 +38,10 @@ namespace Api.Services
                 t.ExpiresAt > DateTime.UtcNow);
 
             if (token is null)
-                return Task.FromResult<AccountModel?>(null);
+                return Task.FromResult<AccountSessionModel?>(null);
 
             // You would fetch user from repo here
-            return Task.FromResult<AccountModel?>(null);
+            return Task.FromResult<AccountSessionModel?>(null);
         }
 
         public Task RotateAsync(string oldToken, string newToken)

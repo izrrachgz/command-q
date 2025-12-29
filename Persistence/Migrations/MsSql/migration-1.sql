@@ -25,9 +25,6 @@ CREATE TABLE dbo.Account
     [Username] VARCHAR(256) NOT NULL,
     [Email] VARCHAR(256) NOT NULL,
     [Password] VARCHAR(256) NOT NULL,
-    [TokenVersion] INT NOT NULL DEFAULT 0,
-    [FailedLoginAttempts] SMALLINT NOT NULL DEFAULT 0,
-    [LockedUntilUtc] DATETIME NULL,
     [Roles] VARCHAR(512) NOT NULL,
     [Created] DATETIME NOT NULL DEFAULT GETDATE(),
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
@@ -39,6 +36,26 @@ CREATE UNIQUE INDEX UX_Account_Username ON dbo.Account (Username) WHERE Deleted 
 CREATE UNIQUE INDEX UX_Account_Email ON dbo.Account (Email) WHERE Deleted IS NULL;
 --Active Account
 CREATE INDEX IX_Account_Active ON dbo.Account (Deleted) INCLUDE (Username, Email, Created);
+
+-- Table: AccountSession
+IF OBJECT_ID('dbo.AccountSession', 'U') IS NOT NULL
+    DROP TABLE dbo.AccountSession;
+
+CREATE TABLE dbo.AccountSession
+(
+    [AccountId] UNIQUEIDENTIFIER NOT NULL,
+    [TokenVersion] INT NOT NULL DEFAULT 0,
+    [FailedLoginAttempts] SMALLINT NOT NULL DEFAULT 0,
+    [LockedUntilUtc] DATETIME NULL,
+    [Created] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Deleted] DATETIME NULL,
+    CONSTRAINT FK_AccountSession_Account FOREIGN KEY ([AccountId]) REFERENCES Account(Id)
+);
+--For faster performance
+CREATE INDEX IX_AccountSession_Active ON dbo.AccountSession (AccountId) WHERE Deleted IS NULL;
+CREATE INDEX IX_AccountSession_LockedUntilUtc ON dbo.AccountSession (LockedUntilUtc) WHERE LockedUntilUtc IS NOT NULL AND Deleted IS NULL;
+CREATE INDEX IX_AccountSession_FailedLoginAttempts ON dbo.AccountSession (FailedLoginAttempts) WHERE FailedLoginAttempts > 0 AND Deleted IS NULL;
 
 -- Table: Address
 IF OBJECT_ID('dbo.Address', 'U') IS NOT NULL
