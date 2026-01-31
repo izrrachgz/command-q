@@ -32,10 +32,7 @@ namespace Api.Services
 
         public Task<AccountSessionModel?> ValidateAsync(string refreshToken)
         {
-            var token = _tokens.FirstOrDefault(t =>
-                t.Token == refreshToken &&
-                !t.Revoked &&
-                t.ExpiresAt > DateTime.UtcNow);
+            var token = _tokens.FirstOrDefault(t => t.Token == refreshToken && !t.Revoked && t.ExpiresAt > DateTime.UtcNow);
 
             if (token is null)
                 return Task.FromResult<AccountSessionModel?>(null);
@@ -47,6 +44,7 @@ namespace Api.Services
         public Task RotateAsync(string oldToken, string newToken)
         {
             var token = _tokens.FirstOrDefault(t => t.Token == oldToken);
+
             if (token != null)
                 token.Revoked = true;
 
@@ -63,6 +61,7 @@ namespace Api.Services
         public Task RevokeAsync(string refreshToken)
         {
             var token = _tokens.FirstOrDefault(t => t.Token == refreshToken);
+
             if (token != null)
                 token.Revoked = true;
 
