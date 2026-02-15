@@ -65,20 +65,19 @@ namespace Api.Controllers
         /// <summary>
         /// Creates a new account using the specified account creation command.
         /// </summary>
-        /// <param name="request">The account creation command containing the details required to create a new account. Cannot be null.</param>
-        /// <returns>An <see cref="IActionResult"/> that represents the result of the account creation operation. Returns a 200
-        /// OK response with the result if successful; otherwise, returns a 400 Bad Request with an error message.</returns>
+        /// <remarks>This action is invoked via an HTTP POST request to the 'create' endpoint. The
+        /// operation is performed asynchronously and returns appropriate HTTP status codes based on the outcome of the
+        /// account creation process.</remarks>
+        /// <param name="request">The command containing the details required to create a new account. Cannot be null.</param>
+        /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> that represents the result of the account creation operation. Returns a
+        /// BadRequest result if the creation fails, or an Ok result with the response data if successful.</returns>
         [HttpPost(@"create")]
-        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request)
+        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken)
         {
-            var response = await _sender.Send(request);
+            var response = await _sender.Send(request, cancellationToken);
 
-            if (!response.Success)
-            {
-                return BadRequest(response.Message);
-            }
-
-            return Ok(response);
+            return !response.Success ? BadRequest(response.Message) : Ok(response);
         }
     }
 }

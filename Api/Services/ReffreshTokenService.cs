@@ -1,18 +1,22 @@
-﻿using Api.Models;
+﻿using MediatR;
+using Api.Models;
 using Api.Interfaces;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Application.AccountSessions.Dtos;
+using Application.AccountSessions.Queries;
 
 namespace Api.Services
 {
     public sealed class RefreshTokenService : IRefreshTokenService
     {
-        private static readonly List<RefreshToken> _tokens = [];
+        private readonly ISender _sender;
         private readonly JwtOptions _options;
+        private static readonly List<RefreshToken> _tokens = [];
 
-        public RefreshTokenService(IOptions<JwtOptions> options)
+        public RefreshTokenService(IOptions<JwtOptions> options, ISender sender)
         {
+            _sender = sender;
             _options = options.Value;
         }
 
@@ -30,15 +34,22 @@ namespace Api.Services
             return Task.FromResult(token);
         }
 
-        public Task<AccountSessionModel?> ValidateAsync(string refreshToken)
+        public async Task<AccountSessionModel?> ValidateAsync(string refreshToken)
         {
             var token = _tokens.FirstOrDefault(t => t.Token == refreshToken && !t.Revoked && t.ExpiresAt > DateTime.UtcNow);
 
             if (token is null)
-                return Task.FromResult<AccountSessionModel?>(null);
+                return null;
 
-            // You would fetch user from repo here
-            return Task.FromResult<AccountSessionModel?>(null);
+            //This could be cached for better performance, but for simplicity, we will query the database every time
+            GetAccountSessionByIdQuery query = new()
+            {
+                AccountId = token.AccountId
+            };
+
+            var sessionResponse = await _sender.Send(query);
+
+            return sessionResponse.Detail;
         }
 
         public Task RotateAsync(string oldToken, string newToken)

@@ -107,7 +107,8 @@ namespace Api.Services
         public async Task<LoginResponse?> RefreshAsync(string refreshToken)
         {
             var user = await _refresh.ValidateAsync(refreshToken);
-            if (user is null) return null;
+            if (user is null)
+                return null;
 
             user.TokenVersion++;
 
