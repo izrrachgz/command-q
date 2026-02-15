@@ -15,6 +15,13 @@ namespace Api.Controllers
             _sender = sender;
         }
 
+        /// <summary>
+        /// Creates a new contact using the specified command.
+        /// </summary>
+        /// <param name="request">The command containing the details of the contact to create. Cannot be null.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+        /// <returns>An IActionResult that represents the result of the create operation. Returns 200 OK with the response if
+        /// successful; otherwise, returns 400 Bad Request with an error message.</returns>
         [HttpPost(@"create")]
         public async Task<IActionResult> Create([FromBody] CreateContactCommand request, CancellationToken cancellationToken = default)
         {
