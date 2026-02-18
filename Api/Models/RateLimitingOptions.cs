@@ -3,7 +3,7 @@
     public class RateLimitingOptions
     {
         public int PermitLimit { get; set; } = 4;
-        public int WindowSeconds { get; set; } = 12;
+        public int WindowSeconds { get; set; } = 16;
         public int QueueLimit { get; set; } = 2;
     }
 

@@ -108,7 +108,7 @@ app.UseMiddleware<CheckApiKeysMiddleware>();
 
 app.UseAuthorization();
 
-app.MapControllers().RequireRateLimiting(ApiConfiguration.RateLimitingFixedPolicyName);
+app.MapControllers().RequireRateLimiting(ApiConfiguration.RateLimitingSlidingPolicyName);
 
 await app.RunMigrations();
 
