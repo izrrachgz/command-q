@@ -21,5 +21,19 @@
         public const string JwtMinutesToExpire = @"Jwt:MinutesToExpire";
 
         #endregion
+
+        #region Rate Limiting
+
+        public const string RateLimitingFixedPolicyName = @"FixedWindowRatePolicy";
+        public const string RateLimitingSlidingPolicyName = @"SlidingWindowRatePolicy";
+        public const string RateLimitingTokenBucketPolicyName = @"TokenBucketRatePolicy";
+        public const string RateLimitingConcurrencyPolicyName = @"ConcurrencyRatePolicy";
+
+        public const string RateLimitingFixedOptions = @"RateLimiting:FixedWindow";
+        public const string RateLimitingSlidingOptions = @"RateLimiting:Sliding";
+        public const string RateLimitingTokenBucketOptions = @"RateLimiting:TokenBucket";
+        public const string RateLimitingConcurrencyOptions = @"RateLimiting:Concurrency";
+
+        #endregion
     }
 }

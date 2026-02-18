@@ -1,5 +1,6 @@
 using MediatR;
 using Common.Cqrs;
+using Api.Constants;
 using Api.Extensions;
 using Api.Middleware;
 using Common.Constants;
@@ -63,7 +64,19 @@ builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment
 //Add localization services
 builder.Services.AddLocalizationServices();
 
+//Add rate limiting policies
+builder.Services.AddFixedWindowRateLimit(builder.Configuration);
+
+builder.Services.AddSlidingWindowRateLimit(builder.Configuration);
+
+builder.Services.AddTokenBucketRateLimit(builder.Configuration);
+
+builder.Services.AddConcurrencyRateLimit(builder.Configuration);
+
 var app = builder.Build();
+
+//Add rate limiting
+app.UseRateLimiter();
 
 //Configure localization
 app.UseRequestLocalization(options =>
@@ -95,7 +108,7 @@ app.UseMiddleware<CheckApiKeysMiddleware>();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting(ApiConfiguration.RateLimitingFixedPolicyName);
 
 await app.RunMigrations();
 
