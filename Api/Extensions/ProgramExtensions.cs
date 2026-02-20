@@ -1,8 +1,8 @@
 using MediatR;
-using Api.Enums;
 using Common.Cqrs;
 using Api.Constants;
 using Api.Middleware;
+using Api.Enumerations;
 using FluentValidation;
 using Common.Constants;
 using Common.Extensions;
@@ -151,8 +151,7 @@ namespace Api.Extensions
         }
 
         /// <summary>
-        /// Logs key application configuration details, including environment, language, rate limiting type, database
-        /// engine, health check URL, and cache maximum age, to the application's logger for diagnostic and monitoring
+        /// Logs key application configuration details to the application's logger for diagnostic and monitoring
         /// purposes.
         /// </summary>
         /// <remarks>This method is useful for capturing the application's operational context at startup,
@@ -170,20 +169,16 @@ namespace Api.Extensions
 
             app.Logger.LogInformation(@"Language: {Language}.", Language.English);
 
-            RateLimitings rateSelected = configuration.GetValue(ApiConfiguration.RateLimitingType, RateLimitings.None);
+            RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ApiConfiguration.RateLimitingType);
+            app.Logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);
 
-            app.Logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateSelected);
+            DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(ApiConfiguration.DatabaseEngine);
+            app.Logger.LogInformation(@"Database Engine: {DatabaseEngine}.", databaseEngine);
 
-            DatabaseEngine databaseSelected = configuration.GetValue(ApiConfiguration.DatabaseEngine, DatabaseEngine.MsSql);
+            string? healthCheckInternetUrl = configuration.GetValue<string?>(ApiConfiguration.HealthCheckUrl);
+            app.Logger.LogInformation(@"Health Check URL: {HealthCheckUrl}.", healthCheckInternetUrl);
 
-            app.Logger.LogInformation(@"Database Engine: {DatabaseEngine}.", databaseSelected);
-
-            string healthCheckUrl = configuration.GetValue(ApiConfiguration.HealthCheckUrl, string.Empty);
-
-            app.Logger.LogInformation(@"Health Check URL: {HealthCheckUrl}.", healthCheckUrl);
-
-            int cacheMaxAgeSeconds = configuration.GetValue(ApiConfiguration.CacheSettingsMaxAgeSeconds, 10);
-
+            int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ApiConfiguration.CacheSettingsMaxAgeSeconds);
             app.Logger.LogInformation(@"Cache Max Age (seconds): {CacheMaxAgeSeconds}.", cacheMaxAgeSeconds);
         }
     }

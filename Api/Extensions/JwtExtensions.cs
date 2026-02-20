@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Api.Extensions
 {
-    public static class DIJwtExtensions
+    public static class JwtExtensions
     {
         /// <summary>
         /// Configures JWT authentication and authorization services for the application, enabling secure token-based

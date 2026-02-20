@@ -1,5 +1,5 @@
-﻿using Api.Enums;
-using Api.Constants;
+﻿using Api.Constants;
+using Api.Enumerations;
 
 namespace Api.Extensions
 {
@@ -21,7 +21,7 @@ namespace Api.Extensions
         /// settings.</returns>
         public static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, IConfiguration configuration) where TBuilder : IEndpointConventionBuilder
         {
-            RateLimitings rateLimitingType = configuration.GetValue(ApiConfiguration.RateLimitingType, RateLimitings.None);
+            RateLimiting rateLimitingType = configuration.GetValue(ApiConfiguration.RateLimitingType, RateLimiting.None);
 
             RequireRateLimiting(builder, rateLimitingType);
 
@@ -38,23 +38,23 @@ namespace Api.Extensions
         /// <param name="builder">The endpoint convention builder to which the rate limiting policy will be applied.</param>
         /// <param name="limiting">The rate limiting strategy to be applied, which determines the policy used for rate limiting.</param>
         /// <returns>The updated endpoint convention builder with the applied rate limiting policy.</returns>
-        public static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, RateLimitings limiting) where TBuilder : IEndpointConventionBuilder
+        public static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, RateLimiting limiting) where TBuilder : IEndpointConventionBuilder
         {
             switch (limiting)
             {
-                case RateLimitings.FixedWindow:
+                case RateLimiting.FixedWindow:
                     builder.RequireRateLimiting(ApiConfiguration.RateLimitingFixedPolicyName);
                     break;
-                case RateLimitings.SlidingWindow:
+                case RateLimiting.SlidingWindow:
                     builder.RequireRateLimiting(ApiConfiguration.RateLimitingSlidingPolicyName);
                     break;
-                case RateLimitings.TokenBucket:
+                case RateLimiting.TokenBucket:
                     builder.RequireRateLimiting(ApiConfiguration.RateLimitingTokenBucketPolicyName);
                     break;
-                case RateLimitings.Concurrent:
+                case RateLimiting.Concurrent:
                     builder.RequireRateLimiting(ApiConfiguration.RateLimitingConcurrencyPolicyName);
                     break;
-                case RateLimitings.None:
+                case RateLimiting.None:
                 default:
                     builder.DisableRateLimiting();
                     break;

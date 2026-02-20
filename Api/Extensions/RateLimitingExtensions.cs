@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Extensions
 {
-    public static class DIRateLimitingExtensions
+    public static class RateLimitingExtensions
     {
         /// <summary>
         /// Configures a fixed window rate limiting policy for the application using the provided service collection.

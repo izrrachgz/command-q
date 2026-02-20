@@ -1,4 +1,4 @@
-﻿namespace Api.Enums
+﻿namespace Api.Enumerations
 {
     /// <summary>
     /// Specifies the available strategies for limiting the rate of access to a resource or service.
@@ -8,7 +8,7 @@
     /// complexity. For example, FixedWindow and SlidingWindow are commonly used for simple request quotas, while
     /// TokenBucket allows for controlled bursts, and Concurrent limits the number of simultaneous operations. Choose
     /// the appropriate value based on the desired rate limiting behavior.</remarks>
-    public enum RateLimitings
+    public enum RateLimiting
     {
         /// <summary>
         /// Represents a value indicating that no specific option is selected.
