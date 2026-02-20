@@ -9,7 +9,14 @@ var app = builder.Build();
 
 app.ConfigurePipeline(builder.Configuration, builder.Environment);
 
+app.LogApplicationConfiguration(builder.Configuration, builder.Environment);
+
+app.Logger.LogInformation(@"Running database migrations...");
+
 //Run database migrations on startup
-await app.RunMigrations();
+await app.RunMigrations().ContinueWith(_ =>
+{
+    app.Logger.LogInformation(@"Database migrations completed. Starting application...");
+});
 
 app.Run();

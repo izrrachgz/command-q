@@ -44,5 +44,17 @@
         public const string CacheSettingsMaxAgeSeconds = @"CacheSettings:MaxAgeSeconds";
 
         #endregion
+
+        #region Database
+
+        public const string DatabaseEngine = @"ConnectionStrings:Engine";
+
+        #endregion
+
+        #region Health Check
+
+        public const string HealthCheckUrl = @"HealthCheck:UrlCheckInternetAccess";
+
+        #endregion
     }
 }

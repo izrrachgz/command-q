@@ -1,9 +1,12 @@
 using MediatR;
+using Api.Enums;
 using Common.Cqrs;
+using Api.Constants;
 using Api.Middleware;
 using FluentValidation;
 using Common.Constants;
 using Common.Extensions;
+using Common.Enumerations;
 using Localization.Extensions;
 using Persistence.Repository.Extensions;
 using Application.HealthChecks.Extensions;
@@ -116,7 +119,7 @@ namespace Api.Extensions
                 options.SetDefaultCulture(Language.English);
             });
 
-            app.MapHealthChecks("/health/checks");
+            app.MapHealthChecks(@"/health/checks");
 
             // Configure the HTTP request pipeline.
             if (env.IsDevelopment())
@@ -145,6 +148,43 @@ namespace Api.Extensions
 
             // Add rate limiting to all endpoints based on configuration
             app.MapControllers().RequireRateLimiting(configuration);
+        }
+
+        /// <summary>
+        /// Logs key application configuration details, including environment, language, rate limiting type, database
+        /// engine, health check URL, and cache maximum age, to the application's logger for diagnostic and monitoring
+        /// purposes.
+        /// </summary>
+        /// <remarks>This method is useful for capturing the application's operational context at startup,
+        /// aiding in diagnostics and troubleshooting by making configuration values visible in the logs.</remarks>
+        /// <param name="app">The web application instance whose logger is used to record configuration information.</param>
+        /// <param name="configuration">The configuration source from which application-specific settings are retrieved.</param>
+        /// <param name="environment">The hosting environment that provides information about the application's current environment, such as
+        /// Development or Production.</param>
+        public static void LogApplicationConfiguration(this WebApplication app, IConfiguration configuration, IWebHostEnvironment environment)
+        {
+            app.Logger.LogInformation(@"Environment: {Environment}.", environment.EnvironmentName);
+
+            if (environment.IsDevelopment())
+                app.Logger.LogInformation(@"Running on Development mode.");
+
+            app.Logger.LogInformation(@"Language: {Language}.", Language.English);
+
+            RateLimitings rateSelected = configuration.GetValue(ApiConfiguration.RateLimitingType, RateLimitings.None);
+
+            app.Logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateSelected);
+
+            DatabaseEngine databaseSelected = configuration.GetValue(ApiConfiguration.DatabaseEngine, DatabaseEngine.MsSql);
+
+            app.Logger.LogInformation(@"Database Engine: {DatabaseEngine}.", databaseSelected);
+
+            string healthCheckUrl = configuration.GetValue(ApiConfiguration.HealthCheckUrl, string.Empty);
+
+            app.Logger.LogInformation(@"Health Check URL: {HealthCheckUrl}.", healthCheckUrl);
+
+            int cacheMaxAgeSeconds = configuration.GetValue(ApiConfiguration.CacheSettingsMaxAgeSeconds, 10);
+
+            app.Logger.LogInformation(@"Cache Max Age (seconds): {CacheMaxAgeSeconds}.", cacheMaxAgeSeconds);
         }
     }
 }
