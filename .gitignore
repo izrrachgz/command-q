@@ -33,4 +33,4 @@ Api/bin/
 Api/obj/
 Api/Obj/
 Api/Bin/
-Api/Logs/
+Api/Logs/*
