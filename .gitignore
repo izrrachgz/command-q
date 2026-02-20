@@ -29,10 +29,8 @@ Persistence/obj/
 Persistence/Obj/
 Persistence/Bin/
 
-Search/bin/
-Search/obj/
-Search/Obj/
-Search/Bin/
-Search/Properties/PublishProfiles/FolderProfile.pubxml
-Search/Properties/PublishProfiles/FolderProfile.pubxml.user
-Search/.config/dotnet-tools.json
+Api/bin/
+Api/obj/
+Api/Obj/
+Api/Bin/
+Api/Logs/

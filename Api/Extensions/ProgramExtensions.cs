@@ -1,10 +1,11 @@
 using MediatR;
+using Api.Models;
 using Common.Cqrs;
 using Api.Constants;
 using Api.Middleware;
 using Api.Enumerations;
-using FluentValidation;
 using Common.Constants;
+using FluentValidation;
 using Common.Extensions;
 using Common.Enumerations;
 using Localization.Extensions;
@@ -168,6 +169,12 @@ namespace Api.Extensions
                 app.Logger.LogInformation(@"Running on Development mode.");
 
             app.Logger.LogInformation(@"Language: {Language}.", Language.English);
+
+            var jwt = configuration.GetSection("Jwt").Get<JwtOptions>()!;
+
+            app.Logger.LogInformation(@"JWT Issuer: {JwtIssuer}.", jwt.Issuer);
+            app.Logger.LogInformation(@"JWT Audience: {JwtAudience}.", jwt.Audience);
+            app.Logger.LogInformation(@"JWT Access Token Minutes: {JwtMinutes}.", jwt.AccessTokenMinutes);
 
             RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ApiConfiguration.RateLimitingType);
             app.Logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);

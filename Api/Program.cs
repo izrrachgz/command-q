@@ -3,6 +3,8 @@ using Persistence.Migrations.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.ConfigureLogging();
+
 builder.ConfigureServices();
 
 var app = builder.Build();
