@@ -37,5 +37,12 @@
         public const string RateLimitingConcurrencyOptions = @"RateLimiting:Concurrency";
 
         #endregion
+
+
+        #region Cache
+
+        public const string CacheSettingsMaxAgeSeconds = @"CacheSettings:MaxAgeSeconds";
+
+        #endregion
     }
 }

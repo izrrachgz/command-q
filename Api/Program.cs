@@ -72,6 +72,9 @@ builder.Services.AddTokenBucketRateLimit(builder.Configuration);
 
 builder.Services.AddConcurrencyRateLimit(builder.Configuration);
 
+//Add cache
+builder.Services.AddResponseCaching();
+
 var app = builder.Build();
 
 //Add rate limiting
@@ -98,6 +101,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+//Adds caching headers to responses and enables caching of responses based on the configured cache profiles
+app.UseResponseCaching();
+
+//Adds cache control headers to responses based on the configured cache settings
+app.UseMiddleware<CacheMiddleware>();
 
 //Check for exceptions
 app.UseMiddleware<ExceptionHandlingMiddleware>();
