@@ -132,7 +132,7 @@ namespace Persistence.Repository.Command
 
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
 
-                schema = await reader.GetColumnSchemaAsync(cancellationToken);
+                schema = reader.GetColumnSchema();
             }
             catch (OperationCanceledException)
             {
