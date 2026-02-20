@@ -1,6 +1,5 @@
 using MediatR;
 using Common.Cqrs;
-using Api.Constants;
 using Api.Extensions;
 using Api.Middleware;
 using Common.Constants;
@@ -106,10 +105,13 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 //Check for api keys presence
 app.UseMiddleware<CheckApiKeysMiddleware>();
 
+//Add authentication and authorization
 app.UseAuthorization();
 
-app.MapControllers().RequireRateLimiting(ApiConfiguration.RateLimitingSlidingPolicyName);
+//Add rate limiting to all endpoints based on configuration
+app.MapControllers().RequireRateLimiting(builder.Configuration);
 
+//Run database migrations on startup
 await app.RunMigrations();
 
 app.Run();

@@ -29,6 +29,8 @@
         public const string RateLimitingTokenBucketPolicyName = @"TokenBucketRatePolicy";
         public const string RateLimitingConcurrencyPolicyName = @"ConcurrencyRatePolicy";
 
+        public const string RateLimitingType = @"RateLimiting:Type";
+
         public const string RateLimitingFixedOptions = @"RateLimiting:FixedWindow";
         public const string RateLimitingSlidingOptions = @"RateLimiting:Sliding";
         public const string RateLimitingTokenBucketOptions = @"RateLimiting:TokenBucket";
