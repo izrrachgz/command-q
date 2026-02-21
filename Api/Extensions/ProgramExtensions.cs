@@ -174,7 +174,8 @@ namespace Api.Extensions
 
             app.Logger.LogInformation(@"JWT Issuer: {JwtIssuer}.", jwt.Issuer);
             app.Logger.LogInformation(@"JWT Audience: {JwtAudience}.", jwt.Audience);
-            app.Logger.LogInformation(@"JWT Access Token Minutes: {JwtMinutes}.", jwt.AccessTokenMinutes);
+            app.Logger.LogInformation(@"JWT Minutes To Expire: {JwtMinutesToExpire}.", jwt.MinutesToExpire);
+            app.Logger.LogInformation(@"JWT Clock Skew Minutes: {JwtClockSkewMinutes}.", jwt.ClockSkewMinutes);
 
             RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ApiConfiguration.RateLimitingType);
             app.Logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);

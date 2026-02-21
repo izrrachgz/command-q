@@ -38,7 +38,7 @@ namespace Api.Services
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.UtcNow.AddMinutes(_options.AccessTokenMinutes);
+            var expires = DateTime.UtcNow.AddMinutes(_options.MinutesToExpire);
 
             var token = new JwtSecurityToken(
                 issuer: _options.Issuer,

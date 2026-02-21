@@ -60,7 +60,7 @@ namespace Api.Extensions
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwt.Issuer,
                     ValidAudience = jwt.Audience,
-                    ClockSkew = TimeSpan.FromSeconds(jwt.AccessTokenMinutes),
+                    ClockSkew = TimeSpan.FromMinutes(jwt.ClockSkewMinutes),
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SecretKey)),
                     NameClaimType = JwtRegisteredClaimNames.UniqueName,
                     RoleClaimType = ClaimTypes.Role
