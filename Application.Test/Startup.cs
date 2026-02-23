@@ -1,10 +1,14 @@
-﻿using MediatR;
+﻿using Serilog;
+using MediatR;
 using Common.Cqrs;
 using FluentValidation;
+using Common.Extensions;
+using Localization.Extensions;
 using Application.Test.Constants;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Persistence.Repository.Command.Extensions;
 
 namespace Application.Test
 {
@@ -35,6 +39,12 @@ namespace Application.Test
             //Repositories
             services.AddRepositories();
 
+            //Command Runners
+            services.AddCommandRunners();
+
+            //Task runner
+            services.AddTaskRunner();
+
             //Add application services
             applicationAssembly.ExportedTypes
                 .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith("Service"))
@@ -47,6 +57,18 @@ namespace Application.Test
                         services.AddTransient(@interface, service);
                     }
                 });
+
+
+            //Add localization services
+            services.AddLocalizationServices();
+
+            //Configure Serilog
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .CreateLogger();
+
+            //Add logging services
+            services.AddLogging(builder => builder.AddSerilog(dispose: true));
         }
     }
 }

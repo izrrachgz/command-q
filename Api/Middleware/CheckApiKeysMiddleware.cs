@@ -10,12 +10,12 @@ namespace Api.Middleware
     {
         public async Task Invoke(HttpContext context)
         {
-            string? headerKeyName = configuration.GetValue<string>(ApiConfiguration.ApiKeyHeaderKeyName);
+            string? headerKeyName = configuration.GetValue<string>(AppSettingsKeys.ApiKeyHeaderKeyName);
 
             if (!string.IsNullOrEmpty(headerKeyName))
             {
                 string? apiKey = context.Request.Headers[headerKeyName];
-                string? excpectedValue = configuration.GetValue<string>(ApiConfiguration.ApiKeyHeaderKeyValue);
+                string? excpectedValue = configuration.GetValue<string>(AppSettingsKeys.ApiKeyHeaderKeyValue);
 
                 if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(excpectedValue) || apiKey != excpectedValue)
                 {

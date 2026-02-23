@@ -113,7 +113,7 @@ namespace Api.Extensions
             // Configure localization
             app.UseRequestLocalization(options =>
             {
-                string[] supportedCultures = new[] { Language.English, Language.Spanish };
+                string[] supportedCultures = [Language.English, Language.Spanish];
 
                 options.AddSupportedCultures(supportedCultures);
                 options.AddSupportedUICultures(supportedCultures);
@@ -177,16 +177,16 @@ namespace Api.Extensions
             app.Logger.LogInformation(@"JWT Minutes To Expire: {JwtMinutesToExpire}.", jwt.MinutesToExpire);
             app.Logger.LogInformation(@"JWT Clock Skew Minutes: {JwtClockSkewMinutes}.", jwt.ClockSkewMinutes);
 
-            RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ApiConfiguration.RateLimitingType);
+            RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(AppSettingsKeys.RateLimitingType);
             app.Logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);
 
-            DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(ApiConfiguration.DatabaseEngine);
+            DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(AppSettingsKeys.DatabaseEngine);
             app.Logger.LogInformation(@"Database Engine: {DatabaseEngine}.", databaseEngine);
 
-            string? healthCheckInternetUrl = configuration.GetValue<string?>(ApiConfiguration.HealthCheckUrl);
+            string? healthCheckInternetUrl = configuration.GetValue<string?>(AppSettingsKeys.HealthCheckUrl);
             app.Logger.LogInformation(@"Health Check URL: {HealthCheckUrl}.", healthCheckInternetUrl);
 
-            int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ApiConfiguration.CacheSettingsMaxAgeSeconds);
+            int? cacheMaxAgeSeconds = configuration.GetValue<int?>(AppSettingsKeys.CacheSettingsMaxAgeSeconds);
             app.Logger.LogInformation(@"Cache Max Age (seconds): {CacheMaxAgeSeconds}.", cacheMaxAgeSeconds);
         }
     }

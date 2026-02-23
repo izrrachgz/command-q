@@ -17,10 +17,10 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. Must not be null.</param>
         public static void AddFixedWindowRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ApiConfiguration.RateLimitingFixedOptions).Get<RateLimitingOptions>()!;
+            var rateOptions = configuration.GetSection(AppSettingsKeys.RateLimitingFixedOptions).Get<RateLimitingOptions>()!;
 
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddFixedWindowLimiter(policyName: ApiConfiguration.RateLimitingFixedPolicyName, options =>
+                configureOptions.AddFixedWindowLimiter(policyName: AppSettingsKeys.RateLimitingFixedPolicyName, options =>
                 {
                     options.PermitLimit = rateOptions.PermitLimit;
                     options.Window = TimeSpan.FromSeconds(rateOptions.WindowSeconds);
@@ -42,10 +42,10 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve the sliding window rate limiting options. This parameter cannot be
         public static void AddSlidingWindowRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ApiConfiguration.RateLimitingSlidingOptions).Get<SlidingRateLimitingOptions>()!;
+            var rateOptions = configuration.GetSection(AppSettingsKeys.RateLimitingSlidingOptions).Get<SlidingRateLimitingOptions>()!;
 
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddSlidingWindowLimiter(policyName: ApiConfiguration.RateLimitingSlidingPolicyName, options =>
+                configureOptions.AddSlidingWindowLimiter(policyName: AppSettingsKeys.RateLimitingSlidingPolicyName, options =>
                 {
                     options.PermitLimit = rateOptions.PermitLimit;
                     options.Window = TimeSpan.FromSeconds(rateOptions.WindowSeconds);
@@ -67,10 +67,10 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. This parameter must not be null.</param>
         public static void AddTokenBucketRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ApiConfiguration.RateLimitingTokenBucketOptions).Get<TokenBucketRateLimitingOptions>()!;
+            var rateOptions = configuration.GetSection(AppSettingsKeys.RateLimitingTokenBucketOptions).Get<TokenBucketRateLimitingOptions>()!;
 
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddTokenBucketLimiter(policyName: ApiConfiguration.RateLimitingTokenBucketPolicyName, options =>
+                configureOptions.AddTokenBucketLimiter(policyName: AppSettingsKeys.RateLimitingTokenBucketPolicyName, options =>
                 {
                     options.TokenLimit = rateOptions.TokenLimit;
                     options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
@@ -93,10 +93,10 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. This parameter must not be null.</param>
         public static void AddConcurrencyRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ApiConfiguration.RateLimitingConcurrencyOptions).Get<RateLimitingOptions>()!;
+            var rateOptions = configuration.GetSection(AppSettingsKeys.RateLimitingConcurrencyOptions).Get<RateLimitingOptions>()!;
 
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddConcurrencyLimiter(policyName: ApiConfiguration.RateLimitingConcurrencyPolicyName, options =>
+                configureOptions.AddConcurrencyLimiter(policyName: AppSettingsKeys.RateLimitingConcurrencyPolicyName, options =>
                 {
                     options.PermitLimit = rateOptions.PermitLimit;
                     options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;

@@ -1,6 +1,6 @@
 ﻿namespace Api.Constants
 {
-    public static class ApiConfiguration
+    public static class AppSettingsKeys
     {
         #region Api
 

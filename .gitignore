@@ -13,6 +13,7 @@ Application.Test/bin/
 Application.Test/Bin/
 Application.Test/obj/
 Application.Test/Obj/
+Application.Test/Logs/*
 
 Common/bin/
 Common/Bin/

@@ -27,7 +27,7 @@ namespace Api.Extensions
         /// <exception cref="Exception">Thrown if the JWT secret key is missing or invalid in the configuration.</exception>
         public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
         {
-            string jwtSecretKey = configuration.GetValue<string>(ApiConfiguration.JwtSecretKey) ?? string.Empty;
+            string jwtSecretKey = configuration.GetValue<string>(AppSettingsKeys.JwtSecretKey) ?? string.Empty;
 
             if (string.IsNullOrEmpty(jwtSecretKey))
             {
