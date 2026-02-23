@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Application.Test.Constants;
 using Application.Accounts.Queries;
 using Microsoft.Extensions.Logging;
 
@@ -12,11 +13,10 @@ namespace Application.Test.Accounts.Queries
         [Fact]
         public async Task GetAccountByUsernameQuery_Should_Return_Account()
         {
-
             var query = new GetAccountByUsernameQuery()
             {
-                Username = @"turbodecoder",
-                Password = @"encoding"
+                Username = ApplicationTest.AcccountUsername,
+                Password = ApplicationTest.AccountPassword
             };
 
             CancellationToken cancellationToken = default;
@@ -31,7 +31,7 @@ namespace Application.Test.Accounts.Queries
 
             Assert.Equal(query.Username, result.Detail.Username);
 
-            _logger.LogInformation(@"GetAccountByUsernameQuery test passed.");
+            _logger.LogInformation(@"GetAccountByUsernameQuery_Should_Return_Account test passed.");
         }
     }
 }

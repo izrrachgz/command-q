@@ -33,7 +33,7 @@ namespace Application.Test.Accounts.Commands
 
             Assert.True(result.Success);
 
-            _logger.LogInformation(@"CreateAccountCommand test passed.");
+            _logger.LogInformation(@"CreateAccountCommand_Should_Create_Account test passed.");
         }
     }
 }

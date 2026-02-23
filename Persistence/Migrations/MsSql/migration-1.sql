@@ -37,6 +37,9 @@ CREATE UNIQUE INDEX UX_Account_Email ON dbo.Account (Email) WHERE Deleted IS NUL
 --Active Account
 CREATE INDEX IX_Account_Active ON dbo.Account (Deleted) INCLUDE (Username, Email, Created);
 
+-- Insert initial session record for the administrator account
+INSERT INTO dbo.Account (Id, Username, Email, [Password], Roles) VALUES ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 'TurboDecoder', 'admin@local.com', 'e8424ea5339b85a750ab5f4c63bde5d5c62975792a3bed6ccb37c045207c6771', 'User');
+
 -- Table: AccountSession
 IF OBJECT_ID('dbo.AccountSession', 'U') IS NOT NULL
     DROP TABLE dbo.AccountSession;
@@ -56,6 +59,9 @@ CREATE TABLE dbo.AccountSession
 CREATE INDEX IX_AccountSession_Active ON dbo.AccountSession (AccountId) WHERE Deleted IS NULL;
 CREATE INDEX IX_AccountSession_LockedUntilUtc ON dbo.AccountSession (LockedUntilUtc) WHERE LockedUntilUtc IS NOT NULL AND Deleted IS NULL;
 CREATE INDEX IX_AccountSession_FailedLoginAttempts ON dbo.AccountSession (FailedLoginAttempts) WHERE FailedLoginAttempts > 0 AND Deleted IS NULL;
+
+-- Insert initial session record for the administrator account
+INSERT INTO dbo.AccountSession (AccountId, TokenVersion, FailedLoginAttempts, LockedUntilUtc) VALUES ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 0, 0, NULL);
 
 -- Table: Address
 IF OBJECT_ID('dbo.Address', 'U') IS NOT NULL
