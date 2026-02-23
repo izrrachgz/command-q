@@ -2,18 +2,12 @@
 using Application.Accounts.Queries;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Test.Accounts.Queries.Facts
+namespace Application.Test.Accounts.Queries
 {
-    public class GetAccountByUsernameQueryTest
+    public class GetAccountByUsernameQueryTest(ILogger<GetAccountByUsernameQueryTest> logger, ISender sender)
     {
-        private readonly ISender _sender;
-        private readonly ILogger<GetAccountByUsernameQueryTest> _logger;
-
-        public GetAccountByUsernameQueryTest(ILogger<GetAccountByUsernameQueryTest> logger, ISender sender)
-        {
-            _sender = sender;
-            _logger = logger;
-        }
+        private readonly ISender _sender = sender;
+        private readonly ILogger<GetAccountByUsernameQueryTest> _logger = logger;
 
         [Fact]
         public async Task GetAccountByUsernameQuery_Should_Return_Account()

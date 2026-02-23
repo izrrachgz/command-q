@@ -65,6 +65,7 @@ namespace Application.Test
             //Configure Serilog
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(configuration)
+                .Enrich.FromLogContext()
                 .CreateLogger();
 
             //Add logging services
