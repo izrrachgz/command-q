@@ -21,9 +21,4 @@
     <ProjectReference Include="..\Localization\Localization.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Contacts\Queries\" />
-    <Folder Include="Contacts\Profiles\" />
-  </ItemGroup>
-
 </Project>

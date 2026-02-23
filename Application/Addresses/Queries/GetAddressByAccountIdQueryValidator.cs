@@ -10,9 +10,7 @@ namespace Application.Addresses.Queries
         {
             RuleFor(q => q.AccountId)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Account"))
-                .GreaterThan(0)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Be), "Account", 0));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Account"));
         }
     }
 }

@@ -5,13 +5,13 @@ using Application.AccountSessions.Queries;
 
 namespace Application.Test.Accounts.Queries
 {
-    public class GetAccountSessionByIdTest(ILogger<GetAccountSessionByIdTest> logger, ISender sender)
+    public class GetAccountSessionByIdQueryTest(ILogger<GetAccountSessionByIdQueryTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
-        private readonly ILogger<GetAccountSessionByIdTest> _logger = logger;
+        private readonly ILogger<GetAccountSessionByIdQueryTest> _logger = logger;
 
         [Fact]
-        public async Task GetAccountSessionById_Should_Return_AccountSession()
+        public async Task GetAccountSessionByIdQuery_Should_Return_AccountSession()
         {
             var query = new GetAccountSessionByIdQuery()
             {
@@ -30,7 +30,7 @@ namespace Application.Test.Accounts.Queries
             
             Assert.Equal(query.AccountId, result.Detail.AccountId);
 
-            _logger.LogInformation(@"GetAccountSessionById_Should_Return_AccountSession test passed.");
+            _logger.LogInformation(@"GetAccountSessionByIdQuery_Should_Return_AccountSession test passed.");
         }
     }
 }

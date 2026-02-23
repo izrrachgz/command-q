@@ -11,7 +11,7 @@ namespace Application.Test.Accounts.Commands
         private readonly ILogger<UpdateAccountSessionCommandTest> _logger = logger;
 
         [Fact]
-        public async Task UpdateAccountSession_Should_Update_Session()
+        public async Task UpdateAccountSessionCommand_Should_Update_Session()
         {
             var command = new UpdateAccountSessionCommand
             {
@@ -29,7 +29,7 @@ namespace Application.Test.Accounts.Commands
 
             Assert.True(result.Success);
 
-            _logger.LogInformation(@"UpdateAccountSession_Should_Update_Session passed.");
+            _logger.LogInformation(@"UpdateAccountSessionCommand_Should_Update_Session passed.");
         }
     }
 }

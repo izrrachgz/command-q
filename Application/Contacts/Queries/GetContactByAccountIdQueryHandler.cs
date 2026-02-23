@@ -1,0 +1,58 @@
+﻿using Public;
+using AutoMapper;
+using Common.Cqrs;
+using Domain.Entities;
+using SqlKata.Execution;
+using Domain.Interfaces;
+using Common.Models.Response;
+using Localization.Abstractions;
+using Application.Contacts.Dtos;
+
+namespace Application.Contacts.Queries
+{
+    public class GetContactByAccountIdQueryHandler : IQueryHandler<GetContactByAccountIdQuery, DetailResponse<ContactModel>>
+    {
+        private readonly IMapper _mapper;
+        private readonly ITextProvider _messages;
+        private readonly IReadOnlyRepository _repository;
+
+        private readonly string _message_record_found;
+        private readonly string _message_record_not_found;
+
+        public GetContactByAccountIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
+        {
+            _mapper = mapper;
+            _repository = repository;
+            _messages = textProvider;
+            _message_record_found = _messages.Get(nameof(Messages.Record_Found));
+            _message_record_not_found = _messages.Get(nameof(Messages.Record_Not_Found));
+        }
+
+        /// <summary>
+        /// Handles the retrieval of the most recently modified contact associated with the specified account
+        /// identifier.
+        /// </summary>
+        /// <param name="request">The query containing the account identifier for which to retrieve the contact.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a DetailResponse<ContactModel>
+        /// with the contact details if found; otherwise, the response indicates that no contact was found.</returns>
+        public async Task<DetailResponse<ContactModel>> Handle(GetContactByAccountIdQuery request, CancellationToken cancellationToken)
+        {
+            var query = _repository.Db.Query($@"{nameof(Contact)}")
+                .WhereNull($@"{nameof(Contact.Deleted)}")
+                .Where($@"{nameof(Contact.AccountId)}", request.AccountId)
+                .OrderByDesc($@"{nameof(Contact.Modified)}")
+                .Take(1);
+
+            var record = await query.FirstOrDefaultAsync<Contact>(cancellationToken: cancellationToken);
+
+            var result = _mapper.Map<ContactModel>(record);
+
+            bool success = result is not null;
+
+            string message = success ? _message_record_found : _message_record_not_found;
+
+            return new(success, message, result);
+        }
+    }
+}

@@ -5,13 +5,13 @@ using Application.AccountSessions.Queries;
 
 namespace Application.Test.Accounts.Queries
 {
-    public class CheckIfAccountSessionIsLockedByIdTest(ILogger<CheckIfAccountSessionIsLockedByIdTest> logger, ISender sender)
+    public class CheckIfAccountSessionIsLockedByIdQueryTest(ILogger<CheckIfAccountSessionIsLockedByIdQueryTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
-        private readonly ILogger<CheckIfAccountSessionIsLockedByIdTest> _logger = logger;
+        private readonly ILogger<CheckIfAccountSessionIsLockedByIdQueryTest> _logger = logger;
 
         [Fact]
-        public async Task CheckIfAccountSessionIsLockedById_Should_Return_Boolean()
+        public async Task CheckIfAccountSessionIsLockedByIdQuery_Should_Return_Boolean()
         {
             var query = new CheckIfAccountSessionIsLockedByIdQuery()
             {
@@ -25,7 +25,7 @@ namespace Application.Test.Accounts.Queries
 
             Assert.NotNull(result);
 
-            _logger.LogInformation(@"CheckIfAccountSessionIsLockedById_Should_Return_Boolean test passed.");
+            _logger.LogInformation(@"CheckIfAccountSessionIsLockedByIdQuery_Should_Return_Boolean test passed.");
         }
     }
 }

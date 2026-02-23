@@ -6,6 +6,6 @@ namespace Application.Addresses.Queries
 {
     public record GetAddressByAccountIdQuery : IQuery<DetailResponse<AddressModel>>
     {
-        public required long AccountId { get; set; }
+        public required Guid AccountId { get; set; }
     }
 }
