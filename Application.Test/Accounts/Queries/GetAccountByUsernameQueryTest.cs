@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Test.Accounts.Queries
 {
-    public class GetAccountByUsernameQueryTest(ILogger<GetAccountByUsernameQueryTest> logger, ISender sender)
+    public sealed class GetAccountByUsernameQueryTest(ILogger<GetAccountByUsernameQueryTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<GetAccountByUsernameQueryTest> _logger = logger;

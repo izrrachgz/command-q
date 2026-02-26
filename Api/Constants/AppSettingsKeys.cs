@@ -1,6 +1,6 @@
 ﻿namespace Api.Constants
 {
-    public static class AppSettingsKeys
+    internal sealed class AppSettingsKeys
     {
         #region Api
 

@@ -5,7 +5,7 @@ using Application.Contacts.Commands;
 
 namespace Application.Test.Contacts.Commands
 {
-    public class CreateContactCommandTest(ILogger<CreateContactCommandTest> logger, ISender sender)
+    public sealed class CreateContactCommandTest(ILogger<CreateContactCommandTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<CreateContactCommandTest> _logger = logger;

@@ -5,7 +5,7 @@ using Application.AccountSessions.Queries;
 
 namespace Application.Test.Accounts.Queries
 {
-    public class GetAccountSessionByIdQueryTest(ILogger<GetAccountSessionByIdQueryTest> logger, ISender sender)
+    public sealed class GetAccountSessionByIdQueryTest(ILogger<GetAccountSessionByIdQueryTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<GetAccountSessionByIdQueryTest> _logger = logger;

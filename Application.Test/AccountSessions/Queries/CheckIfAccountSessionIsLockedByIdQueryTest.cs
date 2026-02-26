@@ -5,7 +5,7 @@ using Application.AccountSessions.Queries;
 
 namespace Application.Test.Accounts.Queries
 {
-    public class CheckIfAccountSessionIsLockedByIdQueryTest(ILogger<CheckIfAccountSessionIsLockedByIdQueryTest> logger, ISender sender)
+    public sealed class CheckIfAccountSessionIsLockedByIdQueryTest(ILogger<CheckIfAccountSessionIsLockedByIdQueryTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<CheckIfAccountSessionIsLockedByIdQueryTest> _logger = logger;

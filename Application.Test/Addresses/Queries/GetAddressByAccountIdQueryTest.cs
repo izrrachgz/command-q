@@ -5,7 +5,7 @@ using Application.Addresses.Queries;
 
 namespace Application.Test.Addresses.Queries
 {
-    public class GetAddressByAccountIdQueryTest(ILogger<GetAddressByAccountIdQueryTest> logger, ISender sender)
+    public sealed class GetAddressByAccountIdQueryTest(ILogger<GetAddressByAccountIdQueryTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<GetAddressByAccountIdQueryTest> _logger = logger;

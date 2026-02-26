@@ -5,7 +5,7 @@ using Application.Addresses.Commands;
 
 namespace Application.Test.Addresses.Commands
 {
-    public class CreateAddressCommandTest(ILogger<CreateAddressCommandTest> logger, ISender sender)
+    public sealed class CreateAddressCommandTest(ILogger<CreateAddressCommandTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<CreateAddressCommandTest> _logger = logger;

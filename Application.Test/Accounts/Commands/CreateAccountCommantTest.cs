@@ -4,7 +4,7 @@ using Application.Accounts.Commands;
 
 namespace Application.Test.Accounts.Commands
 {
-    public class CreateAccountCommantTest(ILogger<CreateAccountCommantTest> logger, ISender sender)
+    public sealed class CreateAccountCommantTest(ILogger<CreateAccountCommantTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<CreateAccountCommantTest> _logger = logger;

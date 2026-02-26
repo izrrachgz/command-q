@@ -5,7 +5,7 @@ using Application.Contacts.Queries;
 
 namespace Application.Test.Contacts.Queries
 {
-    public class GetContactByAccountIdQueryTest(ILogger<GetContactByAccountIdQueryTest> logger, ISender sender)
+    public sealed class GetContactByAccountIdQueryTest(ILogger<GetContactByAccountIdQueryTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<GetContactByAccountIdQueryTest> _logger = logger;

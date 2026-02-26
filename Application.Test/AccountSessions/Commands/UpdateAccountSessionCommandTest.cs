@@ -5,7 +5,7 @@ using Application.AccountSessions.Commands;
 
 namespace Application.Test.Accounts.Commands
 {
-    public class UpdateAccountSessionCommandTest(ILogger<UpdateAccountSessionCommandTest> logger, ISender sender)
+    public sealed class UpdateAccountSessionCommandTest(ILogger<UpdateAccountSessionCommandTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
         private readonly ILogger<UpdateAccountSessionCommandTest> _logger = logger;
