@@ -17,11 +17,11 @@ namespace Persistence.Migrations.Extensions
         /// <summary>
         /// Excplicitly add or call this method after repository creation
         /// </summary>
-        /// <param name="services"></param>
+        /// <param name="host"></param>
         /// <returns></returns>
-        public static async Task RunMigrations(this IHost app)
+        public static async Task RunMigrations(this IHost host)
         {
-            using var scope = app.Services.CreateScope();
+            using var scope = host.Services.CreateScope();
 
             var repository = scope.ServiceProvider.GetRequiredService<IWritableRepository>();
 

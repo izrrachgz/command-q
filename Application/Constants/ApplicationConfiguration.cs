@@ -2,14 +2,6 @@
 {
     public static class ApplicationConfiguration
     {
-        #region Database
-
-        public const string ConnectionStringKeyName = @"Db";
-
-        public const string EngineKeyName = @"ConnectionStrings:Engine";
-
-        #endregion
-
         #region Configuration
 
         public const string ConfigurationFileName = @"appsettings.json";

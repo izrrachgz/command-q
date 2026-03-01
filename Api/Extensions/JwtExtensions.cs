@@ -22,10 +22,10 @@ namespace Api.Extensions
         /// <param name="services">The service collection to which JWT authentication and related services will be added.</param>
         /// <param name="configuration">The configuration source containing JWT options, including the secret key, issuer, audience, and token
         /// lifetime settings.</param>
-        /// <param name="environment">The web host environment used to determine whether production-specific authentication settings should be
+        /// <param name="environment">The host environment used to determine whether production-specific authentication settings should be
         /// applied.</param>
         /// <exception cref="Exception">Thrown if the JWT secret key is missing or invalid in the configuration.</exception>
-        public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
+        public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
             string jwtSecretKey = configuration.GetValue<string>(AppSettingsKeys.JwtSecretKey) ?? string.Empty;
 
