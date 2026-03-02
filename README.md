@@ -1,11 +1,11 @@
-# .NET 9 Solution
+# .NET 10 Solution
 
 ## Prerequisites
 To run this solution, ensure you have the following installed:
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
-- [.NET 9 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
-- [.NET 9 Hosting Bundle](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- [.NET 10 Hosting Bundle](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 
 ## Database Support
 This solution supports the following databases:
@@ -79,4 +79,4 @@ For more details, refer to [Cqrs on microsoft](https://learn.microsoft.com/es-mx
 For deployment instructions, ensure you install the **.NET 9 Hosting Bundle** on the target server and configure the environment variables accordingly.
 
 ---
-For more details, refer to the [official .NET 9 documentation](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-9).
+For more details, refer to the [official .NET 10 documentation](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview).
