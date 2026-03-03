@@ -1,26 +1,17 @@
-﻿using MediatR;
-using Api.Models;
+﻿using Api.Models;
 using Api.Interfaces;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Application.AccountSessions.Dtos;
-using Application.AccountSessions.Queries;
 
 namespace Api.Services
 {
-    public sealed class RefreshTokenService : IRefreshTokenService
+    public sealed class RefreshTokenService(IOptions<JwtOptions> options) : IRefreshTokenService
     {
-        private readonly ISender _sender;
-        private readonly JwtOptions _options;
+        private readonly JwtOptions _options = options.Value;
         private static readonly List<RefreshToken> _tokens = [];
 
-        public RefreshTokenService(IOptions<JwtOptions> options, ISender sender)
-        {
-            _sender = sender;
-            _options = options.Value;
-        }
-
-        public Task<string> CreateAsync(AccountSessionModel session)
+        public Task<string> Create(AccountSessionModel session)
         {
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
@@ -34,25 +25,12 @@ namespace Api.Services
             return Task.FromResult(token);
         }
 
-        public async Task<AccountSessionModel?> ValidateAsync(string refreshToken)
+        public async Task<RefreshToken?> Validate(string refreshToken)
         {
-            var token = _tokens.FirstOrDefault(t => t.Token == refreshToken && !t.Revoked && t.ExpiresAt > DateTime.UtcNow);
-
-            if (token is null)
-                return null;
-
-            //This could be cached for better performance, but for simplicity, we will query the database every time
-            GetAccountSessionByIdQuery query = new()
-            {
-                AccountId = token.AccountId
-            };
-
-            var sessionResponse = await _sender.Send(query);
-
-            return sessionResponse.Detail;
+            return _tokens.FirstOrDefault(t => t.Token == refreshToken && !t.Revoked && t.ExpiresAt > DateTime.UtcNow);
         }
 
-        public Task RotateAsync(string oldToken, string newToken)
+        public Task Rotate(string oldToken, string newToken)
         {
             var token = _tokens.FirstOrDefault(t => t.Token == oldToken);
 
@@ -69,7 +47,7 @@ namespace Api.Services
             return Task.CompletedTask;
         }
 
-        public Task RevokeAsync(string refreshToken)
+        public Task Revoke(string refreshToken)
         {
             var token = _tokens.FirstOrDefault(t => t.Token == refreshToken);
 

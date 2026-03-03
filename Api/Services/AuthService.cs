@@ -34,7 +34,7 @@ namespace Api.Services
             _message_account_locked = _messages.Get(nameof(Messages.Account_Locked));
         }
 
-        public async Task<LoginResponse?> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
+        public async Task<LoginResponse?> Login(string username, string password, CancellationToken cancellationToken = default)
         {
             GetAccountByUsernameQuery getAccounQuery = new()
             {
@@ -96,32 +96,52 @@ namespace Api.Services
 
             session.Roles = account.Roles;
 
-            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(session);
-            var refreshToken = await _refresh.CreateAsync(session);
+            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account, 1);
+            var refreshToken = await _refresh.Create(session);
 
             await _sender.Send(updateSessionCommand, cancellationToken);
 
             return new LoginResponse(accessToken, expiresAt, refreshToken);
         }
 
-        public async Task<LoginResponse?> RefreshAsync(string refreshToken)
+        public async Task<LoginResponse?> Refresh(string refreshToken, CancellationToken cancellationToken = default)
         {
-            var user = await _refresh.ValidateAsync(refreshToken);
-            if (user is null)
+            var token = await _refresh.Validate(refreshToken);
+
+            if (token is null)
                 return null;
 
-            user.TokenVersion++;
+            GetAccountByIdQuery query = new()
+            {
+                AccountId = token.AccountId
+            };
 
-            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(user);
+            var accountResponse = await _sender.Send(query, cancellationToken);
+
+            GetAccountSessionByIdQuery getSessionQuery = new()
+            {
+                AccountId = token.AccountId
+            };
+
+            var sessionResponse = await _sender.Send(getSessionQuery, cancellationToken);
+
+            if (!accountResponse.Success || accountResponse.Detail == null || !sessionResponse.Success || sessionResponse.Detail == null)
+                return null;
+
+            var user = accountResponse.Detail;
+
+            sessionResponse.Detail.TokenVersion++;
+
+            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(user, sessionResponse.Detail.TokenVersion);
 
             var newRefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
-            await _refresh.RotateAsync(refreshToken, newRefreshToken);
+            await _refresh.Rotate(refreshToken, newRefreshToken);
 
             return new LoginResponse(accessToken, expiresAt, newRefreshToken);
         }
 
-        public Task LogoutAsync(string refreshToken) => _refresh.RevokeAsync(refreshToken);
+        public Task Logout(string refreshToken) => _refresh.Revoke(refreshToken);
     }
 
 }

@@ -27,9 +27,9 @@ namespace Api.Controllers
         /// <returns>An <see cref="IActionResult"/> that represents the result of the authentication attempt. Returns 200 OK with
         /// authentication details if successful; otherwise, returns 401 Unauthorized.</returns>
         [HttpPost(@"sign-in")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _authService.LoginAsync(request.Username, request.Password, cancellationToken);
+            var result = await _authService.Login(request.Username, request.Password, cancellationToken);
 
             return result is null ? Unauthorized() : Ok(result);
         }
@@ -38,12 +38,13 @@ namespace Api.Controllers
         /// Generates a new access token using the provided refresh token.
         /// </summary>
         /// <param name="request">The refresh request containing the refresh token to use for generating a new access token. Cannot be null.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
         /// <returns>An <see cref="IActionResult"/> that contains the new access token if the refresh token is valid; otherwise,
         /// an unauthorized result.</returns>
         [Authorize, HttpPost(@"refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken cancellationToken = default)
         {
-            var result = await _authService.RefreshAsync(request.RefreshToken);
+            var result = await _authService.Refresh(request.RefreshToken, cancellationToken);
 
             return result is null ? Unauthorized() : Ok(result);
         }
@@ -56,7 +57,7 @@ namespace Api.Controllers
         [Authorize, HttpPost(@"logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
         {
-            await _authService.LogoutAsync(request.RefreshToken);
+            await _authService.Logout(request.RefreshToken);
 
             return NoContent();
         }
@@ -72,7 +73,7 @@ namespace Api.Controllers
         /// <returns>An <see cref="IActionResult"/> that represents the result of the account creation operation. Returns a
         /// BadRequest result if the creation fails, or an Ok result with the response data if successful.</returns>
         [Authorize, HttpPost(@"create")]
-        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
         {
             var response = await _sender.Send(request, cancellationToken);
 

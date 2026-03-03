@@ -2,30 +2,25 @@
 using System.Text;
 using Api.Interfaces;
 using System.Security.Claims;
+using Application.Accounts.Dtos;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using Application.AccountSessions.Dtos;
 
 namespace Api.Services
 {
-    public sealed class JwtTokenService : IJwtTokenService
+    public sealed class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
     {
-        private readonly JwtOptions _options;
+        private readonly JwtOptions _options = options.Value;
 
-        public JwtTokenService(IOptions<JwtOptions> options)
-        {
-            _options = options.Value;
-        }
-
-        public (string Token, DateTime ExpiresAt) GenerateAccessToken(AccountSessionModel account)
+        public (string Token, DateTime ExpiresAt) GenerateAccessToken(AccountModel account, int version = 0)
         {
             var claims = new List<Claim>
             {
-                new(JwtRegisteredClaimNames.Sub, account.SessionId.ToString()),
-                new(JwtRegisteredClaimNames.UniqueName, account.UniqueName),
+                new(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
+                new(JwtRegisteredClaimNames.UniqueName, account.Username),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new("token_version", account.TokenVersion.ToString())
+                new("token_version", version.ToString())
             };
 
             foreach (var role in account.Roles)
