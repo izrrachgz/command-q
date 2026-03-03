@@ -6,14 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 namespace Api.Controllers
 {
     [ApiController, Authorize, Route("[controller]")]
-    public class ContactController : Controller
+    public class ContactController(ISender sender) : Controller
     {
-        private readonly ISender _sender;
-
-        public ContactController(ISender sender)
-        {
-            _sender = sender;
-        }
+        private readonly ISender _sender = sender;
 
         /// <summary>
         /// Creates a new contact using the specified command.

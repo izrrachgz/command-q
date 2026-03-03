@@ -6,14 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 namespace Api.Controllers
 {
     [ApiController, Authorize, Route("[controller]")]
-    public class AddressController : Controller
+    public class AddressController(ISender sender) : Controller
     {
-        private readonly ISender _sender;
-
-        public AddressController(ISender sender)
-        {
-            _sender = sender;
-        }
+        private readonly ISender _sender = sender;
 
         /// <summary>
         /// Creates a new address using the specified command.

@@ -10,27 +10,31 @@ namespace Api.Controllers
     [ApiController, Authorize, Route("[controller]")]
     public class HealthCheckController(ISender sender, ILogger<HealthCheckController> logger) : ControllerBase
     {
+        private readonly ISender _sender = sender;
+
+        private readonly ILogger<HealthCheckController> _logger = logger;
+
         /// <summary>
         /// Checks if application is healthy enough in order to be able to properly run
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         [HttpGet(@"scan")]
-        public async Task<List<HealthCheckResult>> Scan(CancellationToken cancellationToken)
+        public async Task<List<HealthCheckResult>> Scan(CancellationToken cancellationToken = default)
         {
-            logger.LogDebug(@"Checking application health status.");
+            _logger.LogDebug(@"Checking application health status.");
 
             var writeLocalStorage = new SaveLocalStorageDataCommand();
-            var canWriteOnLocalStorage = await sender.Send(writeLocalStorage, cancellationToken);
+            var canWriteOnLocalStorage = await _sender.Send(writeLocalStorage, cancellationToken);
 
             var writeDb = new SaveDatabaseDataCommand();
-            var canWriteOnDb = await sender.Send(writeDb, cancellationToken);
+            var canWriteOnDb = await _sender.Send(writeDb, cancellationToken);
 
             var readDb = new GetDatabaseDataQuery();
-            var canReadOnDb = await sender.Send(readDb, cancellationToken);
+            var canReadOnDb = await _sender.Send(readDb, cancellationToken);
 
             var accessInternet = new CheckInternetConnectionQuery();
-            var canAccessInternet = await sender.Send(accessInternet, cancellationToken);
+            var canAccessInternet = await _sender.Send(accessInternet, cancellationToken);
 
             return [canWriteOnLocalStorage, canWriteOnDb, canReadOnDb, canAccessInternet];
         }
