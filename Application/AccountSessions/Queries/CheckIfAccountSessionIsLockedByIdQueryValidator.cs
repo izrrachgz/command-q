@@ -10,7 +10,7 @@ namespace Application.AccountSessions.Queries
         {
             RuleFor(r => r.AccountId)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Account Id"));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Account Id"));
         }
     }
 }

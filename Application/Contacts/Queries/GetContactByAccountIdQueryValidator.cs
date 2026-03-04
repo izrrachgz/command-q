@@ -10,7 +10,7 @@ namespace Application.Contacts.Queries
         {
             RuleFor(q => q.AccountId)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Account"));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Account Id"));
         }
     }
 }

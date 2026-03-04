@@ -59,7 +59,7 @@ namespace Application.Addresses.Commands
                     Modified = now
                 };
 
-                int affected = await _repository.Db.Query($"{nameof(Address)}")
+                int affected = await _repository.Db.Query($@"{nameof(Address)}")
                     .InsertAsync(address, transaction, cancellationToken: cancellationToken);
 
                 bool saved = affected >= 1;
@@ -83,7 +83,7 @@ namespace Application.Addresses.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, "Error creating address for AccountId: {AccountId}", request.AccountId);
+                _logger.LogError(ex, @"Error creating address for AccountId: {AccountId}", request.AccountId);
 
                 return new(false, _message_address_cannot_create);
             }

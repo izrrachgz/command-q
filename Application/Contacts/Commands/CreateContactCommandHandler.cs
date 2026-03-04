@@ -59,7 +59,7 @@ namespace Application.Contacts.Commands
                 };
 
                 // Insert new contact record
-                int affected = await _repository.Db.Query($"{nameof(Contact)}")
+                int affected = await _repository.Db.Query($@"{nameof(Contact)}")
                        .InsertAsync(contact, transaction, cancellationToken: cancellationToken);
 
                 bool saved = affected >= 1;
@@ -83,7 +83,7 @@ namespace Application.Contacts.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, "Error creating contact for AccountId: {AccountId}", request.AccountId);
+                _logger.LogError(ex, @"Error creating contact for AccountId: {AccountId}", request.AccountId);
 
                 return new(false, _message_contact_cannot_create);
             }

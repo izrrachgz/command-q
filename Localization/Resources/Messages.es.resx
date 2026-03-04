@@ -138,4 +138,13 @@
   <data name="Updated" xml:space="preserve">
     <value>{0} actualizado.</value>
   </data>
+  <data name="Cannot_Lock_Account" xml:space="preserve">
+    <value>No se ha podido bloquear la cuenta.</value>
+  </data>
+  <data name="Cannot_Unlock_Account" xml:space="preserve">
+    <value>No se ha podido desbloquear la cuenta.</value>
+  </data>
+  <data name="Account_Unlocked" xml:space="preserve">
+    <value>Cuenta desbloqueada.</value>
+  </data>
 </root>

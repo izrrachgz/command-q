@@ -33,7 +33,7 @@ namespace Application.HealthChecks.Commands
                 Modified = now
             };
 
-            int affected = await _repository.Db.Query($"{nameof(HealthCheckLog)}")
+            int affected = await _repository.Db.Query($@"{nameof(HealthCheckLog)}")
                 .InsertAsync(@params, cancellationToken: cancellationToken);
 
             if (affected == 0)

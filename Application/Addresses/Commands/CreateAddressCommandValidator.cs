@@ -13,31 +13,31 @@ namespace Application.Addresses.Commands
         {
             RuleFor(x => x.AccountId)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Account"));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Account"));
 
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Name"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Name"))
                 .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), "Name", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Name", MAX_LENGTH));
 
             RuleFor(x => x.Line1)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Address Line"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Address Line"))
                 .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), "Address Line", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Address Line", MAX_LENGTH));
 
             RuleFor(x => x.City)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "City"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"City"))
                 .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), "City", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"City", MAX_LENGTH));
 
             RuleFor(x => x.PostalCode)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Postal Code"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Postal Code"))
                 .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), "Postal Code", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Postal Code", MAX_LENGTH));
 
             RuleFor(x => x.Country)
                 .NotEmpty()

@@ -70,11 +70,38 @@ namespace Public {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a Account unlocked..
+        /// </summary>
+        public static string Account_Unlocked {
+            get {
+                return ResourceManager.GetString("Account_Unlocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a Cannot create {0}..
         /// </summary>
         public static string Cannot_Create {
             get {
                 return ResourceManager.GetString("Cannot_Create", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Cannot lock account..
+        /// </summary>
+        public static string Cannot_Lock_Account {
+            get {
+                return ResourceManager.GetString("Cannot_Lock_Account", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Cannot unlock account..
+        /// </summary>
+        public static string Cannot_Unlock_Account {
+            get {
+                return ResourceManager.GetString("Cannot_Unlock_Account", resourceCulture);
             }
         }
         

@@ -13,9 +13,9 @@ namespace Application.Contacts.Commands
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Name"))
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Name"))
                 .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), "Name", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Name", MAX_LENGTH));
         }
     }
 }

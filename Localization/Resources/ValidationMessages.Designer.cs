@@ -61,6 +61,15 @@ namespace Public {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a Duration cannot be zero.
+        /// </summary>
+        public static string Duration_Cannot_Be_Zero {
+            get {
+                return ResourceManager.GetString("Duration_Cannot_Be_Zero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a Email has to be a valid e-mail address..
         /// </summary>
         public static string Email_Has_To_Be_Valid {

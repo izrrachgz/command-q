@@ -77,12 +77,12 @@ namespace Application.AccountSessions.Commands
                 int affected = 0;
                 if (create)
                 {
-                    affected = await _repository.Db.Query($"{nameof(AccountSession)}")
+                    affected = await _repository.Db.Query($@"{nameof(AccountSession)}")
                    .InsertAsync(account, transaction, cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    affected = await _repository.Db.Query($"{nameof(AccountSession)}")
+                    affected = await _repository.Db.Query($@"{nameof(AccountSession)}")
                    .UpdateAsync(account, transaction, cancellationToken: cancellationToken);
                 }
 
@@ -107,7 +107,7 @@ namespace Application.AccountSessions.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, "Error updating account for Id: {Id}", request.AccountId);
+                _logger.LogError(ex, @"Error updating account for Id: {Id}", request.AccountId);
 
                 return new(false, _message_account_cannot_update);
             }
@@ -128,7 +128,7 @@ namespace Application.AccountSessions.Commands
         /// otherwise, null.</returns>
         private async Task<AccountSession?> GetSession(UpdateAccountSessionCommand request, CancellationToken cancellationToken)
         {
-            return await _repository.Db.Query($"{nameof(AccountSession)}")
+            return await _repository.Db.Query($@"{nameof(AccountSession)}")
                 .Where($@"{nameof(AccountSession.AccountId)}", request.AccountId)
                 .WhereNull($@"{nameof(AccountSession.Deleted)}")
                 .Limit(1)

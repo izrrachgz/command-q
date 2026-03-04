@@ -59,16 +59,16 @@ namespace Application.Accounts.Commands
                     request.Username,
                     request.Email,
                     Password = Hash.ComputeSHA256(request.Password),
-                    Roles = string.Join(',', new string[] { "User" }),
+                    Roles = string.Join(',', new string[] { @"User" }),
                     Created = now,
                     Modified = now
                 };
 
                 // Insert new account record
-                int affected = await _repository.Db.Query($"{nameof(Account)}")
+                int affected = await _repository.Db.Query($@"{nameof(Account)}")
                     .InsertAsync(account, transaction, cancellationToken: cancellationToken);
 
-                Account insertedAccount = await _repository.Db.Query($"{nameof(Account)}")
+                Account insertedAccount = await _repository.Db.Query($@"{nameof(Account)}")
                     .Where($@"{nameof(Account.Username)}", request.Username)
                     .Where($@"{nameof(Account.Email)}", request.Email)
                     .WhereNull($@"{nameof(Account.Deleted)}")
@@ -93,7 +93,7 @@ namespace Application.Accounts.Commands
                 };
 
                 // Insert new contact record
-                affected += await _repository.Db.Query($"{nameof(Contact)}")
+                affected += await _repository.Db.Query($@"{nameof(Contact)}")
                     .InsertAsync(contact, transaction, cancellationToken: cancellationToken);
 
                 var address = new
@@ -109,7 +109,7 @@ namespace Application.Accounts.Commands
                     Modified = now
                 };
 
-                affected += await _repository.Db.Query($"{nameof(Address)}")
+                affected += await _repository.Db.Query($@"{nameof(Address)}")
                     .InsertAsync(address, transaction, cancellationToken: cancellationToken);
 
                 bool saved = affected >= 1;
@@ -133,7 +133,7 @@ namespace Application.Accounts.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, "Error creating account for Email: {Email}, Username: {Username}", request.Email, request.Username);
+                _logger.LogError(ex, @"Error creating account for Email: {Email}, Username: {Username}", request.Email, request.Username);
 
                 return new(false, _message_account_cannot_create);
             }
@@ -152,7 +152,7 @@ namespace Application.Accounts.Commands
         /// account with the specified username or email address exists; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> AccountAlreadyExists(CreateAccountCommand request, CancellationToken cancellationToken)
         {
-            return await _repository.Db.Query($"{nameof(Account)}")
+            return await _repository.Db.Query($@"{nameof(Account)}")
                 .WhereNull($@"{nameof(Account.Deleted)}")
                 .Where(
                     q => q.Where($@"{nameof(Account.Username)}", request.Username)

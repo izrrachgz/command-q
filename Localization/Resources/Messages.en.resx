@@ -138,4 +138,13 @@
   <data name="Updated" xml:space="preserve">
     <value>{0} updated.</value>
   </data>
+  <data name="Cannot_Lock_Account" xml:space="preserve">
+    <value>Cannot lock account.</value>
+  </data>
+  <data name="Cannot_Unlock_Account" xml:space="preserve">
+    <value>Cannot unlock account.</value>
+  </data>
+  <data name="Account_Unlocked" xml:space="preserve">
+    <value>Account unlocked.</value>
+  </data>
 </root>
