@@ -51,6 +51,10 @@ namespace Application.Extensions
                     {
                         services.AddTransient(@interface, service);
                     }
+                    else
+                    {
+                        services.AddScoped(service);
+                    }
                 });
 
             // Configure health checks

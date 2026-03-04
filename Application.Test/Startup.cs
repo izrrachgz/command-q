@@ -56,6 +56,10 @@ namespace Application.Test
                     {
                         services.AddTransient(@interface, service);
                     }
+                    else
+                    {
+                        services.AddScoped(service);
+                    }
                 });
 
 

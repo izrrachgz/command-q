@@ -6,23 +6,26 @@ using SqlKata.Execution;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
+using Application.Accounts.Services;
 
 namespace Application.AccountSessions.Commands
 {
     public class UnlockAccountSessionCommandHandler : ICommandHandler<UnlockAccountSessionCommand, BasicResponse>
     {
         private readonly ITextProvider _messages;
+        private readonly AccountService _accountService;
         private readonly IWritableRepository _repository;
         private readonly ILogger<UnlockAccountSessionCommandHandler> _logger;
 
         private readonly string _message_account_unlocked;
         private readonly string _message_cannot_unlock_account;
 
-        public UnlockAccountSessionCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<UnlockAccountSessionCommandHandler> logger)
+        public UnlockAccountSessionCommandHandler(AccountService accountService, ITextProvider textProvider, IWritableRepository repository, ILogger<UnlockAccountSessionCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
+            _accountService = accountService;
             _message_account_unlocked = _messages.Get(nameof(Messages.Account_Unlocked));
             _message_cannot_unlock_account = _messages.Get(nameof(Messages.Cannot_Unlock_Account));
         }
@@ -36,7 +39,7 @@ namespace Application.AccountSessions.Commands
         /// whether the account was unlocked successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(UnlockAccountSessionCommand request, CancellationToken cancellationToken)
         {
-            var account = await GetAccountSession(request, cancellationToken);
+            var account = await _accountService.GetAccountSession(request.AccountId, cancellationToken);
 
             if (account == null)
                 return new(false, _message_cannot_unlock_account);
@@ -85,21 +88,6 @@ namespace Application.AccountSessions.Commands
             {
                 _repository.Db.Connection.Close();
             }
-        }
-
-        /// <summary>
-        /// Gets the account session details.
-        /// </summary>
-        /// <param name="request">The command containing the details required to unlock the account.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a AccountSession.</returns>
-        private async Task<AccountSession> GetAccountSession(UnlockAccountSessionCommand request, CancellationToken cancellationToken)
-        {
-            return await _repository.Db.Query($@"{nameof(AccountSession)}")
-                .WhereNull($@"{nameof(AccountSession.Deleted)}")
-                .Where($@"{nameof(AccountSession.AccountId)}", request.AccountId)
-                .Limit(1)
-                .FirstOrDefaultAsync(cancellationToken: cancellationToken);
         }
     }
 }

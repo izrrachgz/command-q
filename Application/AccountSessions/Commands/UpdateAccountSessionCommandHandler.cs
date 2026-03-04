@@ -6,23 +6,26 @@ using SqlKata.Execution;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
+using Application.Accounts.Services;
 
 namespace Application.AccountSessions.Commands
 {
     public class UpdateAccountSessionCommandHandler : ICommandHandler<UpdateAccountSessionCommand, BasicResponse>
     {
         private readonly ITextProvider _messages;
+        private readonly AccountService _accountService;
         private readonly IWritableRepository _repository;
         private readonly ILogger<UpdateAccountSessionCommandHandler> _logger;
 
         private readonly string _message_account_updated;
         private readonly string _message_account_cannot_update;
 
-        public UpdateAccountSessionCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<UpdateAccountSessionCommandHandler> logger)
+        public UpdateAccountSessionCommandHandler(AccountService accountService, ITextProvider textProvider, IWritableRepository repository, ILogger<UpdateAccountSessionCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
+            _accountService = accountService;
             _message_account_updated = _messages.Get(nameof(Messages.Updated), nameof(Account));
             _message_account_cannot_update = _messages.Get(nameof(Messages.Cannot_Update), nameof(Account));
         }
@@ -39,7 +42,7 @@ namespace Application.AccountSessions.Commands
         /// whether the update was successful and includes a corresponding message.</returns>
         public async Task<BasicResponse> Handle(UpdateAccountSessionCommand request, CancellationToken cancellationToken)
         {
-            var account = await GetSession(request, cancellationToken);
+            var account = await _accountService.GetAccountSession(request.AccountId, cancellationToken);
 
             bool create = account is null;
 
@@ -115,24 +118,6 @@ namespace Application.AccountSessions.Commands
             {
                 _repository.Db.Connection.Close();
             }
-        }
-
-        /// <summary>
-        /// Retrieves the active account session associated with the specified account identifier.
-        /// </summary>
-        /// <remarks>Only sessions that have not been marked as deleted are returned. If no active session
-        /// exists for the specified account, the result will be null.</remarks>
-        /// <param name="request">The command containing the account identifier for which to retrieve the session. Cannot be null.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the account session if found;
-        /// otherwise, null.</returns>
-        private async Task<AccountSession?> GetSession(UpdateAccountSessionCommand request, CancellationToken cancellationToken)
-        {
-            return await _repository.Db.Query($@"{nameof(AccountSession)}")
-                .Where($@"{nameof(AccountSession.AccountId)}", request.AccountId)
-                .WhereNull($@"{nameof(AccountSession.Deleted)}")
-                .Limit(1)
-                .FirstOrDefaultAsync<AccountSession?>(cancellationToken: cancellationToken);
         }
     }
 }
