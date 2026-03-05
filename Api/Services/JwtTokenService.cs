@@ -20,7 +20,7 @@ namespace Api.Services
                 new(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
                 new(JwtRegisteredClaimNames.UniqueName, account.Username),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new("token_version", version.ToString())
+                new(@"token_version", version.ToString())
             };
 
             foreach (var role in account.Roles)

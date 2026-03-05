@@ -59,7 +59,7 @@ namespace Persistence.Repository
 
             Db = new QueryFactory(connection, compiler);
 
-            logger.LogDebug("Repository instance created, using engine : {Engine}", Engine);
+            logger.LogDebug(@"Repository instance created, using engine : {Engine}", Engine);
         }
 
         public WritableRepository(IConfiguration configuration, ILogger<WritableRepository> logger) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine(), logger)

@@ -127,7 +127,7 @@ namespace Api.Extensions
 
             logger.LogInformation(@"Language: {Language}.", Language.English);
 
-            var jwt = configuration.GetSection("Jwt").Get<JwtOptions>()!;
+            var jwt = configuration.GetSection(@"Jwt").Get<JwtOptions>()!;
 
             logger.LogInformation(@"JWT Issuer: {JwtIssuer}.", jwt.Issuer);
             logger.LogInformation(@"JWT Audience: {JwtAudience}.", jwt.Audience);

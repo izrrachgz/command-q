@@ -36,7 +36,7 @@ namespace Api.Extensions
 
             bool isProduction = environment.IsProduction();
 
-            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.Configure<JwtOptions>(configuration.GetSection(@"Jwt"));
 
             services.AddScoped<AuthService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -48,7 +48,7 @@ namespace Api.Extensions
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                var jwt = configuration.GetSection("Jwt").Get<JwtOptions>()!;
+                var jwt = configuration.GetSection(@"Jwt").Get<JwtOptions>()!;
 
                 options.RequireHttpsMetadata = isProduction;
                 options.SaveToken = true;

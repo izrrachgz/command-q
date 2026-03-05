@@ -47,11 +47,11 @@ namespace Application.Test
 
             //Add application services
             applicationAssembly.ExportedTypes
-                .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith("Service"))
+                .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith(@"Service"))
                 .ToList()
                 .ForEach(service =>
                 {
-                    var @interface = service.GetInterface("I" + service.Name);
+                    var @interface = service.GetInterface(@"I" + service.Name);
                     if (@interface != null)
                     {
                         services.AddTransient(@interface, service);

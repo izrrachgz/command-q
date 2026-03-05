@@ -14,7 +14,7 @@ namespace Localization.Providers
 
         private void Load(string culture)
         {
-            var path = Path.Combine("locales", $"{culture}.json");
+            var path = Path.Combine(@"locales", $@"{culture}.json");
 
             if (!File.Exists(path)) return;
 

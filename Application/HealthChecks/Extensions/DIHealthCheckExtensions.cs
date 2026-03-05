@@ -23,7 +23,7 @@ namespace Application.HealthChecks.Extensions
             {
                 options.Delay = TimeSpan.FromSeconds(SecondsDelayToRun);
                 options.Period = TimeSpan.FromDays(DaysToRunHealthCheck);
-                options.Predicate = healthCheck => healthCheck.Name.Contains("Can");
+                options.Predicate = healthCheck => healthCheck.Name.Contains(@"Can");
             });
 
             services.AddSingleton<IHealthCheckPublisher, HealthCheckPublisher>();

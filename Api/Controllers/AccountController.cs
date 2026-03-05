@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
-    [ApiController, Route("[controller]")]
+    [ApiController, Route(@"[controller]")]
     public class AccountController : Controller
     {
         private readonly ISender _sender;

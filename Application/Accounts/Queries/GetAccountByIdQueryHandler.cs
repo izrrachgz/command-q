@@ -1,12 +1,11 @@
 ﻿using Public;
 using AutoMapper;
 using Common.Cqrs;
-using Domain.Entities;
-using SqlKata.Execution;
 using Domain.Interfaces;
 using Common.Models.Response;
 using Application.Accounts.Dtos;
 using Localization.Abstractions;
+using Application.Accounts.Services;
 
 namespace Application.Accounts.Queries
 {
@@ -14,16 +13,18 @@ namespace Application.Accounts.Queries
     {
         private readonly IMapper _mapper;
         private readonly ITextProvider _messages;
+        private readonly AccountService _accountService;
         private readonly IReadOnlyRepository _repository;
 
         private readonly string _message_record_found;
         private readonly string _message_record_not_found;
 
-        public GetAccountByIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
+        public GetAccountByIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider, AccountService accountService)
         {
             _mapper = mapper;
             _repository = repository;
             _messages = textProvider;
+            _accountService = accountService;
             _message_record_found = _messages.Get(nameof(Messages.Record_Found));
             _message_record_not_found = _messages.Get(nameof(Messages.Record_Not_Found));
         }
@@ -37,14 +38,9 @@ namespace Application.Accounts.Queries
         /// with the account details if found; otherwise, the result indicates that no matching account was found.</returns>
         public async Task<DetailResponse<AccountModel>> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
         {
-            var query = _repository.Db.Query($@"{nameof(Account)}")
-                .WhereNull($@"{nameof(Account.Deleted)}")
-                .Where($@"{nameof(Account.Id)}", request.AccountId)
-                .Limit(1);
+            var account = await _accountService.GetAccount(request.AccountId, cancellationToken);
 
-            var record = await query.FirstOrDefaultAsync<Account>(cancellationToken: cancellationToken);
-
-            var result = _mapper.Map<AccountModel>(record);
+            var result = _mapper.Map<AccountModel>(account);
 
             bool success = result is not null;
 

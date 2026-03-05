@@ -230,7 +230,7 @@ namespace Persistence.Repository.Command
 
             try
             {
-                using var cmd = new MySqlCommand("SET GLOBAL local_infile = 1", connection);
+                using var cmd = new MySqlCommand(@"SET GLOBAL local_infile = 1", connection);
 
                 await cmd.ExecuteNonQueryAsync(cancellationToken);
 

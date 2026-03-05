@@ -51,7 +51,7 @@ namespace Persistence.Repository
 
             _db = new(connection, compiler);
 
-            logger.LogDebug("Readonly repository instance created, using engine : {Engine}", Engine);
+            logger.LogDebug(@"Readonly repository instance created, using engine : {Engine}", Engine);
         }
 
         public ReadOnlyRepository(IConfiguration configuration, ILogger<ReadOnlyRepository> logger) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine(), logger)

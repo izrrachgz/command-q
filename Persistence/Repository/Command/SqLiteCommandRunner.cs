@@ -124,7 +124,7 @@ namespace Persistence.Repository.Command
             {
                 await using var cmd = connection.CreateCommand();
 
-                cmd.CommandText = $@"INSERT INTO {table} ({string.Join(",", columns)}) VALUES (@{string.Join(",@", columns)})";
+                cmd.CommandText = $@"INSERT INTO {table} ({string.Join(@",", columns)}) VALUES (@{string.Join(@",@", columns)})";
 
                 foreach (var column in columns)
                     cmd.Parameters.Add(new SQLiteParameter($@"@{column}"));

@@ -1,11 +1,10 @@
 ﻿using Public;
 using AutoMapper;
 using Common.Cqrs;
-using Domain.Entities;
-using SqlKata.Execution;
 using Domain.Interfaces;
 using Common.Models.Response;
 using Localization.Abstractions;
+using Application.Accounts.Services;
 using Application.AccountSessions.Dtos;
 
 namespace Application.AccountSessions.Queries
@@ -14,16 +13,18 @@ namespace Application.AccountSessions.Queries
     {
         private readonly IMapper _mapper;
         private readonly ITextProvider _messages;
+        private readonly AccountService _accountService;
         private readonly IReadOnlyRepository _repository;
 
         private readonly string _message_record_found;
         private readonly string _message_record_not_found;
 
-        public GetAccountSessionByIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
+        public GetAccountSessionByIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider, AccountService accountService)
         {
             _mapper = mapper;
             _repository = repository;
             _messages = textProvider;
+            _accountService = accountService;
             _message_record_found = _messages.Get(nameof(Messages.Record_Found));
             _message_record_not_found = _messages.Get(nameof(Messages.Record_Not_Found));
         }
@@ -37,14 +38,9 @@ namespace Application.AccountSessions.Queries
         /// with the account details if found; otherwise, the result indicates that no matching account was found.</returns>
         public async Task<DetailResponse<AccountSessionModel>> Handle(GetAccountSessionByIdQuery request, CancellationToken cancellationToken)
         {
-            var query = _repository.Db.Query($@"{nameof(AccountSession)}")
-                .WhereNull($@"{nameof(AccountSession.Deleted)}")
-                .Where($@"{nameof(AccountSession.AccountId)}", request.AccountId)
-                .Limit(1);
+            var account = await _accountService.GetAccountSession(request.AccountId, cancellationToken);
 
-            var record = await query.FirstOrDefaultAsync<AccountSession>(cancellationToken: cancellationToken);
-
-            var result = _mapper.Map<AccountSessionModel>(record);
+            var result = _mapper.Map<AccountSessionModel>(account);
 
             bool success = result is not null;
 

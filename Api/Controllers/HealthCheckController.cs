@@ -7,7 +7,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Api.Controllers
 {
-    [ApiController, Authorize, Route("[controller]")]
+    [ApiController, Authorize, Route(@"[controller]")]
     public class HealthCheckController(ISender sender, ILogger<HealthCheckController> logger) : ControllerBase
     {
         private readonly ISender _sender = sender;

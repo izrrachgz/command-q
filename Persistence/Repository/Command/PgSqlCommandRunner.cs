@@ -167,9 +167,9 @@ namespace Persistence.Repository.Command
                             continue;
                         }
 
-                        if (type is not null && type.NpgsqlDbType is null && type.DataTypeName.Equals("public.vector"))
+                        if (type is not null && type.NpgsqlDbType is null && type.DataTypeName.Equals(@"public.vector"))
                         {
-                            await writer.WriteAsync(item.Value, "vector", cancellationToken);
+                            await writer.WriteAsync(item.Value, @"vector", cancellationToken);
                         }
                     }
                 }
