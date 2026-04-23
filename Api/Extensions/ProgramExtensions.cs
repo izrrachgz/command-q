@@ -47,6 +47,23 @@ namespace Api.Extensions
 
             // Add application services
             builder.Services.ConfigureApplicationServices();
+
+            //Add Cors
+            if (builder.Environment.IsDevelopment())
+            {
+                builder.Services.AddCors(options =>
+                {
+                    options.AddDefaultPolicy(policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                    });
+                });
+            }
+
+            //Register api clients
+            builder.Services.Configure<List<ApiClient>>(builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName));
         }
 
         /// <summary>
@@ -85,6 +102,7 @@ namespace Api.Extensions
                 // Prefer not to use swagger gen unless it's strictly necessary
                 // app.UseSwagger();
                 // app.UseSwaggerUI();
+                app.UseCors();
             }
 
             app.UseHttpsRedirection();
@@ -99,7 +117,7 @@ namespace Api.Extensions
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             // Check for api keys presence
-            app.UseMiddleware<CheckApiKeysMiddleware>();
+            app.UseMiddleware<CheckApiClientMiddleware>();
 
             // Add authentication and authorization
             app.UseAuthorization();

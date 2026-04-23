@@ -4,9 +4,7 @@
     {
         #region Api
 
-        public const string ApiKeyHeaderKeyName = @"ApiAccessKeys:Key";
-
-        public const string ApiKeyHeaderKeyValue = @"ApiAccessKeys:Value";
+        public const string ApiClientsKeyName = @"ApiClients";
 
         #endregion
 

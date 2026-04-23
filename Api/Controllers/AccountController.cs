@@ -1,8 +1,10 @@
 ﻿using MediatR;
 using Api.Dtos;
 using Api.Services;
+using Api.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Application.Accounts.Commands;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
@@ -26,7 +28,7 @@ namespace Api.Controllers
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
         /// <returns>An <see cref="IActionResult"/> that represents the result of the authentication attempt. Returns 200 OK with
         /// authentication details if successful; otherwise, returns 401 Unauthorized.</returns>
-        [HttpPost(@"sign-in")]
+        [HttpPost(@"sign-in"), EnableRateLimiting(AppSettingsKeys.RateLimitingFixedPolicyName)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
         {
             var result = await _authService.Login(request.Username, request.Password, cancellationToken);
@@ -72,7 +74,7 @@ namespace Api.Controllers
         /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
         /// <returns>An <see cref="IActionResult"/> that represents the result of the account creation operation. Returns a
         /// BadRequest result if the creation fails, or an Ok result with the response data if successful.</returns>
-        [Authorize, HttpPost(@"create")]
+        [HttpPost(@"create"), EnableRateLimiting(AppSettingsKeys.RateLimitingFixedPolicyName)]
         public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
         {
             var response = await _sender.Send(request, cancellationToken);
