@@ -48,6 +48,9 @@ namespace Api.Extensions
             // Add application services
             builder.Services.ConfigureApplicationServices();
 
+            //Register api clients
+            builder.Services.Configure<List<ApiClient>>(builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName));
+
             //Add Cors
             if (builder.Environment.IsDevelopment())
             {
@@ -55,15 +58,17 @@ namespace Api.Extensions
                 {
                     options.AddDefaultPolicy(policy =>
                     {
-                        policy.AllowAnyOrigin()
+                        string clients = builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName).Get<List<ApiClient>>()!
+                            .Select(client => client.Uri.Trim().TrimEnd('/'))
+                            .Aggregate((current, next) => $"{current},{next}");
+
+                        policy.WithOrigins(clients.Split(','))
                               .AllowAnyMethod()
-                              .AllowAnyHeader();
+                              .AllowAnyHeader()
+                              .AllowCredentials();
                     });
                 });
             }
-
-            //Register api clients
-            builder.Services.Configure<List<ApiClient>>(builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName));
         }
 
         /// <summary>

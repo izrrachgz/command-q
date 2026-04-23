@@ -20,6 +20,14 @@
 
         #endregion
 
+        #region Cookie
+
+        public const string CookieName = @"Cookie:Name";
+        public const string CookieDaysToExpire = @"Cookie:DaysToExpire";
+
+        #endregion
+
+
         #region Rate Limiting
 
         public const string RateLimitingFixedPolicyName = @"FixedWindowRatePolicy";

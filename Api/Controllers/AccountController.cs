@@ -5,7 +5,6 @@ using Api.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Application.Accounts.Commands;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
@@ -13,12 +12,18 @@ namespace Api.Controllers
     public class AccountController : Controller
     {
         private readonly ISender _sender;
+        private readonly int _daysToExpire;
+        private readonly string _cookieName;
+        private readonly bool _isProduction;
         private readonly AuthService _authService;
 
-        public AccountController(ISender sender, AuthService authService)
+        public AccountController(ISender sender, IConfiguration configuration, IHostEnvironment environment, AuthService authService)
         {
             _sender = sender;
             _authService = authService;
+            _isProduction = environment.IsProduction();
+            _cookieName = configuration.GetValue<string>(AppSettingsKeys.CookieName)!;
+            _daysToExpire = configuration.GetValue<int>(AppSettingsKeys.CookieDaysToExpire);
         }
 
         /// <summary>
@@ -33,7 +38,22 @@ namespace Api.Controllers
         {
             var result = await _authService.Login(request.Username, request.Password, cancellationToken);
 
-            return result is null ? Unauthorized() : Ok(result);
+            if (result is null)
+                return Unauthorized();
+
+            // Set the refresh token in an HTTP-only cookie to enhance security by preventing client-side scripts from accessing it.
+            Response.Cookies.Append(_cookieName, result.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(_daysToExpire)
+            });
+
+            return Ok(new
+            {
+                accessToken = result.AccessToken
+            });
         }
 
         /// <summary>
@@ -43,12 +63,35 @@ namespace Api.Controllers
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
         /// <returns>An <see cref="IActionResult"/> that contains the new access token if the refresh token is valid; otherwise,
         /// an unauthorized result.</returns>
-        [Authorize, HttpPost(@"refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken cancellationToken = default)
+        [HttpPost(@"refresh")]
+        public async Task<IActionResult> Refresh(CancellationToken cancellationToken = default)
         {
-            var result = await _authService.Refresh(request.RefreshToken, cancellationToken);
+            // read the refresh token from the HTTP-only cookie set during login.
+            // this approach enhances security by preventing client-side scripts from accessing the token.
+            var refreshToken = Request.Cookies[_cookieName];
 
-            return result is null ? Unauthorized() : Ok(result);
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized();
+
+            var result = await _authService.Refresh(refreshToken, cancellationToken);
+
+            if (result is null)
+                return Unauthorized();
+
+            // update the refresh token in the HTTP-only cookie with the new token received from the authentication service.
+            // this ensures that the client has the latest refresh token for future access token refresh operations.
+            Response.Cookies.Append(_cookieName, result.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(_daysToExpire)
+            });
+
+            return Ok(new
+            {
+                accessToken = result.AccessToken
+            });
         }
 
         /// <summary>
@@ -56,10 +99,18 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="request">The logout request containing the refresh token to be invalidated. Cannot be null.</param>
         /// <returns>A 204 No Content response if the logout operation succeeds.</returns>
-        [Authorize, HttpPost(@"logout")]
+        [HttpPost(@"logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
         {
-            await _authService.Logout(request.RefreshToken);
+            var refreshToken = Request.Cookies[_cookieName];
+
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                await _authService.Logout(refreshToken);
+            }
+
+            // delete cookie
+            Response.Cookies.Delete(_cookieName);
 
             return NoContent();
         }
