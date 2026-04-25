@@ -3,6 +3,7 @@ using MediatR;
 using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
+using Application.Interfaces;
 using Localization.Extensions;
 using Application.Test.Constants;
 using Persistence.Repository.Extensions;
@@ -28,8 +29,20 @@ namespace Application.Test
             //Configuration
             services.AddSingleton((IConfiguration)configuration);
 
-            //Automapper
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            // Add mapping profiles
+            applicationAssembly.ExportedTypes
+                .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith(@"Mapper"))
+                .ToList()
+                .ForEach(service =>
+                {
+                    var interfaces = service.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMapper<,>));
+
+                    foreach (var @interface in interfaces)
+                    {
+                        services.AddSingleton(@interface, service);
+                    }
+                });
 
             //Meadiator cqrs
             services.AddMediatR(config => config.RegisterServicesFromAssembly(applicationAssembly));

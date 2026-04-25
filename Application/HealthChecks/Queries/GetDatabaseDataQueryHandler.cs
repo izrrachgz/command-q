@@ -1,9 +1,8 @@
-﻿#nullable disable
-using AutoMapper;
-using Common.Cqrs;
+﻿using Common.Cqrs;
 using Domain.Entities;
-using Domain.Interfaces;
 using SqlKata.Execution;
+using Domain.Interfaces;
+using Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using Application.HealthChecks.Dtos;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -12,11 +11,11 @@ namespace Application.HealthChecks.Queries
 {
     public class GetDatabaseDataQueryHandler : IQueryHandler<GetDatabaseDataQuery, HealthCheckResult>, IHealthCheck
     {
-        private readonly IMapper _mapper;
+        private readonly IMapper<HealthCheckLog, HealthCheckResponseModel> _mapper;
         private readonly ILogger<GetDatabaseDataQueryHandler> _logger;
         private readonly IReadOnlyRepository _readOnlyRepository;
 
-        public GetDatabaseDataQueryHandler(IMapper mapper, IReadOnlyRepository readOnlyRepository, ILogger<GetDatabaseDataQueryHandler> logger)
+        public GetDatabaseDataQueryHandler(IMapper<HealthCheckLog, HealthCheckResponseModel> mapper, IReadOnlyRepository readOnlyRepository, ILogger<GetDatabaseDataQueryHandler> logger)
         {
             _logger = logger;
             _mapper = mapper;
@@ -37,7 +36,7 @@ namespace Application.HealthChecks.Queries
 
             var records = await query.FirstOrDefaultAsync<HealthCheckLog>(cancellationToken: cancellationToken);
 
-            var result = _mapper.Map<HealthCheckResponseModel>(records);
+            var result = _mapper.Map(records);
 
             bool success = result is not null;
 

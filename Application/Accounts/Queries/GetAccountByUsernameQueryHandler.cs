@@ -1,9 +1,9 @@
 ﻿using Public;
-using AutoMapper;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
 using Domain.Interfaces;
+using Application.Interfaces;
 using Common.Models.Response;
 using Application.Accounts.Dtos;
 using Localization.Abstractions;
@@ -12,14 +12,14 @@ namespace Application.Accounts.Queries
 {
     public class GetAccountByUsernameQueryHandler : IQueryHandler<GetAccountByUsernameQuery, DetailResponse<AccountModel>>
     {
-        private readonly IMapper _mapper;
+        private readonly IMapper<Account, AccountModel> _mapper;
         private readonly ITextProvider _messages;
         private readonly IReadOnlyRepository _repository;
 
         private readonly string _message_record_found;
         private readonly string _message_record_not_found;
 
-        public GetAccountByUsernameQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
+        public GetAccountByUsernameQueryHandler(IMapper<Account, AccountModel> mapper, IReadOnlyRepository repository, ITextProvider textProvider)
         {
             _mapper = mapper;
             _repository = repository;
@@ -44,7 +44,7 @@ namespace Application.Accounts.Queries
 
             var record = await query.FirstOrDefaultAsync<Account>(cancellationToken: cancellationToken);
 
-            var result = _mapper.Map<AccountModel>(record);
+            var result = _mapper.Map(record);
 
             bool success = result is not null;
 

@@ -1,9 +1,9 @@
 ﻿using Public;
-using AutoMapper;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
 using Domain.Interfaces;
+using Application.Interfaces;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Application.Addresses.Dtos;
@@ -12,14 +12,14 @@ namespace Application.Addresses.Queries
 {
     public class GetAddressByAccountIdQueryHandler : IQueryHandler<GetAddressByAccountIdQuery, DetailResponse<AddressModel>>
     {
-        private readonly IMapper _mapper;
+        private readonly IMapper<Address, AddressModel> _mapper;
         private readonly ITextProvider _messages;
         private readonly IReadOnlyRepository _repository;
 
         private readonly string _message_record_found;
         private readonly string _message_record_not_found;
 
-        public GetAddressByAccountIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
+        public GetAddressByAccountIdQueryHandler(IMapper<Address, AddressModel> mapper, IReadOnlyRepository repository, ITextProvider textProvider)
         {
             _mapper = mapper;
             _repository = repository;
@@ -46,7 +46,7 @@ namespace Application.Addresses.Queries
 
             var record = await query.FirstOrDefaultAsync<Address>(cancellationToken: cancellationToken);
 
-            var result = _mapper.Map<AddressModel>(record);
+            var result = _mapper.Map(record);
 
             bool success = result is not null;
 

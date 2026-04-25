@@ -9,6 +9,7 @@ using Persistence.Migrations.Extensions;
 using Application.HealthChecks.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Repository.Command.Extensions;
+using Application.Interfaces;
 
 namespace Application.Extensions
 {
@@ -23,8 +24,19 @@ namespace Application.Extensions
         {
             var applicationAssembly = typeof(ProjectLinkReference).Assembly;
 
-            // Auto mapper config for all assemblies
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            // Add mapping profiles
+            applicationAssembly.ExportedTypes
+                .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith(@"Mapper"))
+                .ToList()
+                .ForEach(service =>
+                {
+                    var interfaces = service.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMapper<,>));
+
+                    foreach (var @interface in interfaces)
+                    {
+                        services.AddSingleton(@interface, service);
+                    }
+                });
 
             // MediatR + validation pipeline
             services.AddMediatR(config => config.RegisterServicesFromAssembly(applicationAssembly));

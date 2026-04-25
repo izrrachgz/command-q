@@ -5,6 +5,7 @@
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string Line1 { get; set; } = string.Empty;
+        public string Line2 { get; set; } = string.Empty;
         public string? ExternalNumber { get; set; }
         public string? InternalNumber { get; set; }
         public string? References { get; set; }

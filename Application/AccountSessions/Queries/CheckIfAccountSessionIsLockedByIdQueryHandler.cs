@@ -1,5 +1,4 @@
 ﻿using Public;
-using AutoMapper;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
@@ -11,16 +10,14 @@ namespace Application.AccountSessions.Queries
 {
     public class CheckIfAccountSessionIsLockedByIdQueryHandler : IQueryHandler<CheckIfAccountSessionIsLockedByIdQuery, BasicResponse>
     {
-        private readonly IMapper _mapper;
         private readonly ITextProvider _messages;
         private readonly IReadOnlyRepository _repository;
 
         private readonly string _message_account_locked;
         private readonly string _message_record_not_found;
 
-        public CheckIfAccountSessionIsLockedByIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
+        public CheckIfAccountSessionIsLockedByIdQueryHandler(IReadOnlyRepository repository, ITextProvider textProvider)
         {
-            _mapper = mapper;
             _repository = repository;
             _messages = textProvider;
             _message_account_locked = _messages.Get(nameof(Messages.Account_Locked));

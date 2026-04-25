@@ -1,7 +1,7 @@
 ﻿using Public;
-using AutoMapper;
 using Common.Cqrs;
-using Domain.Interfaces;
+using Domain.Entities;
+using Application.Interfaces;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Application.Accounts.Services;
@@ -11,18 +11,16 @@ namespace Application.AccountSessions.Queries
 {
     public class GetAccountSessionByIdQueryHandler : IQueryHandler<GetAccountSessionByIdQuery, DetailResponse<AccountSessionModel>>
     {
-        private readonly IMapper _mapper;
+        private readonly IMapper<AccountSession, AccountSessionModel> _mapper;
         private readonly ITextProvider _messages;
         private readonly AccountService _accountService;
-        private readonly IReadOnlyRepository _repository;
 
         private readonly string _message_record_found;
         private readonly string _message_record_not_found;
 
-        public GetAccountSessionByIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider, AccountService accountService)
+        public GetAccountSessionByIdQueryHandler(IMapper<AccountSession, AccountSessionModel> mapper, ITextProvider textProvider, AccountService accountService)
         {
             _mapper = mapper;
-            _repository = repository;
             _messages = textProvider;
             _accountService = accountService;
             _message_record_found = _messages.Get(nameof(Messages.Record_Found));
@@ -40,7 +38,7 @@ namespace Application.AccountSessions.Queries
         {
             var account = await _accountService.GetAccountSession(request.AccountId, cancellationToken);
 
-            var result = _mapper.Map<AccountSessionModel>(account);
+            var result = _mapper.Map(account);
 
             bool success = result is not null;
 

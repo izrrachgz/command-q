@@ -1,9 +1,9 @@
 ﻿using Public;
-using AutoMapper;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
 using Domain.Interfaces;
+using Application.Interfaces;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Application.Contacts.Dtos;
@@ -12,14 +12,14 @@ namespace Application.Contacts.Queries
 {
     public class GetContactByAccountIdQueryHandler : IQueryHandler<GetContactByAccountIdQuery, DetailResponse<ContactModel>>
     {
-        private readonly IMapper _mapper;
+        private readonly IMapper<Contact, ContactModel> _mapper;
         private readonly ITextProvider _messages;
         private readonly IReadOnlyRepository _repository;
 
         private readonly string _message_record_found;
         private readonly string _message_record_not_found;
 
-        public GetContactByAccountIdQueryHandler(IMapper mapper, IReadOnlyRepository repository, ITextProvider textProvider)
+        public GetContactByAccountIdQueryHandler(IMapper<Contact, ContactModel> mapper, IReadOnlyRepository repository, ITextProvider textProvider)
         {
             _mapper = mapper;
             _repository = repository;
@@ -46,7 +46,7 @@ namespace Application.Contacts.Queries
 
             var record = await query.FirstOrDefaultAsync<Contact>(cancellationToken: cancellationToken);
 
-            var result = _mapper.Map<ContactModel>(record);
+            var result = _mapper.Map(record);
 
             bool success = result is not null;
 

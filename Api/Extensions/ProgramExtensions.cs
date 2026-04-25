@@ -48,8 +48,10 @@ namespace Api.Extensions
             // Add application services
             builder.Services.ConfigureApplicationServices();
 
+            var clientsSection = builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName);
+
             //Register api clients
-            builder.Services.Configure<List<ApiClient>>(builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName));
+            builder.Services.Configure<List<ApiClient>>(clientsSection);
 
             //Add Cors
             if (builder.Environment.IsDevelopment())
@@ -58,11 +60,11 @@ namespace Api.Extensions
                 {
                     options.AddDefaultPolicy(policy =>
                     {
-                        string clients = builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName).Get<List<ApiClient>>()!
+                        string clientsUris = clientsSection.Get<List<ApiClient>>()!
                             .Select(client => client.Uri.Trim().TrimEnd('/'))
                             .Aggregate((current, next) => $"{current},{next}");
 
-                        policy.WithOrigins(clients.Split(','))
+                        policy.WithOrigins(clientsUris.Split(','))
                               .AllowAnyMethod()
                               .AllowAnyHeader()
                               .AllowCredentials();
