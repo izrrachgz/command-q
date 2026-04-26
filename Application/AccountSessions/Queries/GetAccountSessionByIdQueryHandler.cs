@@ -38,13 +38,10 @@ namespace Application.AccountSessions.Queries
         {
             var account = await _accountService.GetAccountSession(request.AccountId, cancellationToken);
 
-            var result = _mapper.Map(account);
+            if (account is null)
+                return new(false, _message_record_not_found, null);
 
-            bool success = result is not null;
-
-            string message = success ? _message_record_found : _message_record_not_found;
-
-            return new(success, message, result);
+            return new(true, _message_record_found, _mapper.Map(account));
         }
     }
 }

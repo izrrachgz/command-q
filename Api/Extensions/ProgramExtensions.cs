@@ -143,6 +143,7 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration source from which application-specific settings are retrieved.</param>
         /// <param name="environment">The hosting environment that provides information about the application's current environment, such as
         /// Development or Production.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1873:Evitar el registro potencialmente costoso", Justification = "All logging in this method comes from configuration file and there is no heavy calculations.")]
         public static void LogApplicationConfiguration(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
         {
             logger.LogInformation(@"Environment: {Environment}.", environment.EnvironmentName);

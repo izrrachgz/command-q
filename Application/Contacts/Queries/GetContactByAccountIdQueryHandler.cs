@@ -42,7 +42,7 @@ namespace Application.Contacts.Queries
                 .WhereNull($@"{nameof(Contact.Deleted)}")
                 .Where($@"{nameof(Contact.AccountId)}", request.AccountId)
                 .OrderByDesc($@"{nameof(Contact.Modified)}")
-                .Take(1);
+                .Limit(1);
 
             var record = await query.FirstOrDefaultAsync<Contact>(cancellationToken: cancellationToken);
 

@@ -3,7 +3,7 @@ using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.AccountSessions.Queries;
 
-namespace Application.Test.Accounts.Queries
+namespace Application.Test.AccountSessions.Queries
 {
     public sealed class GetAccountSessionByIdQueryTest(ILogger<GetAccountSessionByIdQueryTest> logger, ISender sender)
     {

@@ -18,6 +18,7 @@ namespace Application.Accounts.Commands
 
         private readonly string _message_account_created;
         private readonly string _message_account_cannot_create;
+        private static readonly string defaultAccountRoles = @"User";
 
         public CreateAccountCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
         {
@@ -59,7 +60,7 @@ namespace Application.Accounts.Commands
                     request.Username,
                     request.Email,
                     Password = Hash.ComputeSHA256(request.Password),
-                    Roles = string.Join(',', new string[] { @"User" }),
+                    Roles = defaultAccountRoles,
                     Created = now,
                     Modified = now
                 };

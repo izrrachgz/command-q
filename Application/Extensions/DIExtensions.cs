@@ -2,6 +2,7 @@
 using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
+using Application.Interfaces;
 using Localization.Extensions;
 using Microsoft.Extensions.Hosting;
 using Persistence.Repository.Extensions;
@@ -9,7 +10,6 @@ using Persistence.Migrations.Extensions;
 using Application.HealthChecks.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Repository.Command.Extensions;
-using Application.Interfaces;
 
 namespace Application.Extensions
 {

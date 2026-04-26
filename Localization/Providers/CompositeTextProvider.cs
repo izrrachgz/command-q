@@ -2,14 +2,9 @@
 
 namespace Localization.Providers
 {
-    public class CompositeTextProvider : ITextProvider
+    public class CompositeTextProvider(IEnumerable<ITextProvider> providers) : ITextProvider
     {
-        private readonly IEnumerable<ITextProvider> _providers;
-
-        public CompositeTextProvider(IEnumerable<ITextProvider> providers)
-        {
-            _providers = providers;
-        }
+        private readonly IEnumerable<ITextProvider> _providers = providers;
 
         public string Get(string key, params object[] args)
         {

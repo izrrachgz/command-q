@@ -3,7 +3,7 @@ using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.AccountSessions.Commands;
 
-namespace Application.Test.Accounts.Commands
+namespace Application.Test.AccountSessions.Commands
 {
     public sealed class UpdateAccountSessionCommandTest(ILogger<UpdateAccountSessionCommandTest> logger, ISender sender)
     {

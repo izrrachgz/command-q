@@ -59,7 +59,7 @@ namespace Persistence.Migrations.Extensions
                 .Select($"{nameof(Domain.Entities.Migrations.Id)}")
                 .WhereNull($@"{nameof(Domain.Entities.Migrations.Deleted)}")
                 .OrderByDesc($"{nameof(Domain.Entities.Migrations.Id)}")
-                .Take(1);
+                .Limit(1);
 
                 var records = await queryLastMigration.GetAsync<Domain.Entities.Migrations>();
 
