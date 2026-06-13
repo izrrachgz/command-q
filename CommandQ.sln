@@ -23,6 +23,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{187A6DB6-46F4-4B45-858B-2F24D325AA0A}"
 	ProjectSection(SolutionItems) = preProject
 		Agents.md = Agents.md
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
