@@ -4,9 +4,11 @@ using Api.Dtos;
 using Common.Hash;
 using Api.Interfaces;
 using System.Security;
+using Application.Accounts.Dtos;
 using Localization.Abstractions;
 using Application.Accounts.Queries;
 using System.Security.Cryptography;
+using Application.AccountSessions.Dtos;
 using Application.AccountSessions.Queries;
 using Application.AccountSessions.Commands;
 
@@ -23,6 +25,8 @@ namespace Api.Services
         private readonly IRefreshTokenService _refresh;
 
         private readonly string _message_account_locked;
+
+        private Dictionary<Guid, Tuple<AccountModel, AccountSessionModel>> AccountsCache = [];
 
         public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, ITextProvider textProvider)
         {
@@ -111,37 +115,57 @@ namespace Api.Services
             if (token is null)
                 return null;
 
-            GetAccountByIdQuery query = new()
+            AccountModel account;
+            AccountSessionModel session;
+
+            // Implement in-memory cache for accounts and sessions to avoid multiple database calls during token refresh
+            // set a setting based on the average token lifespan to determine how long to cache the data
+            if (AccountsCache.TryGetValue(token.AccountId, out Tuple<AccountModel, AccountSessionModel>? value))
             {
-                AccountId = token.AccountId
-            };
-
-            var accountResponse = await _sender.Send(query, cancellationToken);
-
-            GetAccountSessionByIdQuery getSessionQuery = new()
+                (account, session) = value;
+            }
+            else
             {
-                AccountId = token.AccountId
-            };
+                GetAccountByIdQuery query = new()
+                {
+                    AccountId = token.AccountId
+                };
 
-            var sessionResponse = await _sender.Send(getSessionQuery, cancellationToken);
+                var accountResponse = await _sender.Send(query, cancellationToken);
 
-            if (!accountResponse.Success || accountResponse.Detail == null || !sessionResponse.Success || sessionResponse.Detail == null)
-                return null;
+                GetAccountSessionByIdQuery getSessionQuery = new()
+                {
+                    AccountId = token.AccountId
+                };
 
-            var user = accountResponse.Detail;
+                var sessionResponse = await _sender.Send(getSessionQuery, cancellationToken);
 
-            sessionResponse.Detail.TokenVersion++;
+                if (!accountResponse.Success || accountResponse.Detail == null || !sessionResponse.Success || sessionResponse.Detail == null)
+                    return null;
 
-            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(user, sessionResponse.Detail.TokenVersion);
+                account = accountResponse.Detail;
+                session = sessionResponse.Detail;
+            }
+
+            session.TokenVersion++;
+
+            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account, session.TokenVersion);
 
             var newRefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
             await _refresh.Rotate(refreshToken, newRefreshToken);
 
+            if (!AccountsCache.ContainsKey(token.AccountId))
+            {
+                AccountsCache.TryAdd(token.AccountId, Tuple.Create(account, session));
+            }
+
             return new LoginResponse(accessToken, expiresAt, newRefreshToken);
         }
 
         public Task Logout(string refreshToken) => _refresh.Revoke(refreshToken);
+
+        public void ClearCache() => AccountsCache.Clear();
     }
 
 }
