@@ -88,6 +88,15 @@ namespace Public {
         }
         
         /// <summary>
+        ///   Busca una cadena traducida similar a Field {0} cannot be read..
+        /// </summary>
+        public static string Field_Cannot_Be_Read {
+            get {
+                return ResourceManager.GetString("Field_Cannot_Be_Read", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Busca una cadena traducida similar a {0} cannot exceed {1} characters..
         /// </summary>
         public static string Field_Cannot_Exceed {

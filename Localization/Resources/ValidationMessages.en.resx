@@ -126,6 +126,9 @@
   <data name="Field_Cannot_Be" xml:space="preserve">
     <value>{0} cannot be {1}.</value>
   </data>
+  <data name="Field_Cannot_Be_Read" xml:space="preserve">
+    <value>Field {0} cannot be read.</value>
+  </data>
   <data name="Field_Cannot_Exceed" xml:space="preserve">
     <value>{0} cannot exceed {1} characters.</value>
   </data>
