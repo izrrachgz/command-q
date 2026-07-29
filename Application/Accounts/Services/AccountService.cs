@@ -1,15 +1,14 @@
 ﻿using Domain.Entities;
 using Domain.Interfaces;
-using SqlKata.Execution;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Accounts.Services
 {
-    public sealed class AccountService(ITextProvider textProvider, IWritableRepository repository, ILogger<AccountService> logger)
+    public sealed class AccountService(ITextProvider textProvider, IReadOnlyRepository repository, ILogger<AccountService> logger)
     {
         private readonly ITextProvider _messages = textProvider;
-        private readonly IWritableRepository _repository = repository;
+        private readonly IReadOnlyRepository _repository = repository;
         private readonly ILogger<AccountService> _logger = logger;
 
         /// <summary>
@@ -20,11 +19,12 @@ namespace Application.Accounts.Services
         /// <returns>A task that represents the asynchronous operation. The task result contains a Account.</returns>
         public async Task<Account?> GetAccount(Guid accountId, CancellationToken cancellationToken = default)
         {
-            return await _repository.Db.Query($@"{nameof(Account)}")
+            var query = _repository.Query($@"{nameof(Account)}")
                 .WhereNull($@"{nameof(Account.Deleted)}")
                 .Where($@"{nameof(Account.Id)}", accountId)
-                .Limit(1)
-                .FirstOrDefaultAsync<Account?>(cancellationToken: cancellationToken);
+                .Limit(1);
+
+            return await _repository.FirstOrDefaultAsync<Account?>(query, cancellationToken);
         }
 
         /// <summary>
@@ -35,11 +35,12 @@ namespace Application.Accounts.Services
         /// <returns>A task that represents the asynchronous operation. The task result contains a AccountSession.</returns>
         public async Task<AccountSession?> GetAccountSession(Guid accountId, CancellationToken cancellationToken = default)
         {
-            return await _repository.Db.Query($@"{nameof(AccountSession)}")
+            var query = _repository.Query($@"{nameof(AccountSession)}")
                 .WhereNull($@"{nameof(AccountSession.Deleted)}")
                 .Where($@"{nameof(AccountSession.AccountId)}", accountId)
-                .Limit(1)
-                .FirstOrDefaultAsync<AccountSession?>(cancellationToken: cancellationToken);
+                .Limit(1);
+
+            return await _repository.FirstOrDefaultAsync<AccountSession?>(query, cancellationToken);
         }
     }
 }

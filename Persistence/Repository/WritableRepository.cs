@@ -1,12 +1,7 @@
-﻿using Npgsql;
-using System.Data;
-using SqlKata.Compilers;
+using SqlKata;
 using SqlKata.Execution;
 using Domain.Interfaces;
-using System.Data.SQLite;
 using Common.Enumerations;
-using MySql.Data.MySqlClient;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -23,46 +18,34 @@ namespace Persistence.Repository
 
         public WritableRepository(string connectionString, DatabaseEngine engine, ILogger<WritableRepository> logger)
         {
-            MigrationsPath = $@"{Directory.GetParent(Directory.GetCurrentDirectory())}\{nameof(Persistence)}\{nameof(Migrations)}\";
-
             Engine = engine;
-
-            IDbConnection connection;
-            Compiler compiler;
-
-            switch (Engine)
-            {
-                case DatabaseEngine.MsSql:
-                    connection = new SqlConnection(connectionString);
-                    compiler = new SqlServerCompiler();
-                    MigrationsPath += nameof(DatabaseEngine.MsSql);
-                    break;
-                case DatabaseEngine.MySql:
-                    connection = new MySqlConnection(connectionString);
-                    compiler = new MySqlCompiler();
-                    MigrationsPath += nameof(DatabaseEngine.MySql);
-                    break;
-                case DatabaseEngine.SqLite:
-                    connection = new SQLiteConnection(connectionString);
-                    compiler = new SqliteCompiler();
-                    MigrationsPath += nameof(DatabaseEngine.SqLite);
-                    break;
-                case DatabaseEngine.PgSql:
-                default:
-                    connection = new NpgsqlConnection(connectionString);
-                    compiler = new PostgresCompiler();
-                    MigrationsPath += nameof(DatabaseEngine.PgSql);
-                    break;
-            }
-
-            MigrationsPath += '/';
-
-            Db = new QueryFactory(connection, compiler);
+            MigrationsPath = RepositoryFactory.GetMigrationsPath(Engine);
+            Db = RepositoryFactory.CreateQueryFactory(connectionString, Engine);
 
             logger.LogDebug(@"Repository instance created, using engine : {Engine}", Engine);
         }
 
         public WritableRepository(IConfiguration configuration, ILogger<WritableRepository> logger) : this(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine(), logger)
         { }
+
+        public Query Query(string table)
+        {
+            return new Query(table);
+        }
+
+        public async Task<T?> FirstOrDefaultAsync<T>(Query query, CancellationToken cancellationToken = default)
+        {
+            return await Db.FirstOrDefaultAsync<T>(query, cancellationToken: cancellationToken);
+        }
+
+        public async Task<IEnumerable<T>> GetAsync<T>(Query query, CancellationToken cancellationToken = default)
+        {
+            return await Db.GetAsync<T>(query, cancellationToken: cancellationToken);
+        }
+
+        public async Task<bool> ExistsAsync(Query query, CancellationToken cancellationToken = default)
+        {
+            return await Db.ExistsAsync(query, cancellationToken: cancellationToken);
+        }
     }
 }

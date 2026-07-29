@@ -1,5 +1,6 @@
 ﻿using Common.Enumerations;
 using Microsoft.Extensions.Configuration;
+using Persistence.Constant;
 
 namespace Persistence.Repository.Extensions
 {
@@ -7,14 +8,14 @@ namespace Persistence.Repository.Extensions
     {
         public static string GetDatabaseConnection(this IConfiguration configuration, string? pathToKey = null)
         {
-            string key = pathToKey ?? @"Db";
+            string key = pathToKey ?? ConfigKeys.ConnectionStrings.Database;
 
             return configuration.GetConnectionString(key) ?? string.Empty;
         }
 
         public static DatabaseEngine GetDatabaseEngine(this IConfiguration configuration, string? pathToKey = null)
         {
-            string key = pathToKey ?? @"ConnectionStrings:Engine";
+            string key = pathToKey ?? ConfigKeys.ConnectionStrings.Engine;
 
             return configuration.GetValue<DatabaseEngine>(key);
         }

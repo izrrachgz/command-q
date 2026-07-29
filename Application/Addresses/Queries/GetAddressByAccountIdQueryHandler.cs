@@ -1,7 +1,6 @@
 ﻿using Public;
 using Common.Cqrs;
 using Domain.Entities;
-using SqlKata.Execution;
 using Domain.Interfaces;
 using Application.Interfaces;
 using Common.Models.Response;
@@ -38,13 +37,13 @@ namespace Application.Addresses.Queries
         /// with the address details if found; otherwise, the response indicates that no address was found.</returns>
         public async Task<DetailResponse<AddressModel>> Handle(GetAddressByAccountIdQuery request, CancellationToken cancellationToken)
         {
-            var query = _repository.Db.Query($@"{nameof(Address)}")
+            var query = _repository.Query($@"{nameof(Address)}")
                 .WhereNull($@"{nameof(Address.Deleted)}")
                 .Where($@"{nameof(Address.AccountId)}", request.AccountId)
                 .OrderByDesc($@"{nameof(Address.Modified)}")
                 .Take(1);
 
-            var record = await query.FirstOrDefaultAsync<Address>(cancellationToken: cancellationToken);
+            var record = await _repository.FirstOrDefaultAsync<Address>(query, cancellationToken);
 
             if (record is null)
                 return new(false, _message_record_not_found, null);

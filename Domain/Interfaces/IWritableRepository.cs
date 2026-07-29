@@ -1,42 +1,20 @@
-﻿using SqlKata.Execution;
-using Common.Enumerations;
+using SqlKata.Execution;
 
 namespace Domain.Interfaces
 {
     /// <summary>
-    /// Should provide a database entry point with read access
+    /// Provides a database entry point intended for write operations.
     /// </summary>
-    public interface IReadOnlyRepository
+    public interface IWritableRepository : IReadOnlyRepository
     {
         /// <summary>
-        /// Should be the database entry point
+        /// Database query entry point with write-capable SqlKata operations.
         /// </summary>
-        public QueryFactory Db { get; }
+        QueryFactory Db { get; }
 
         /// <summary>
-        /// Should be the asociated database engine
+        /// Associated migrations path.
         /// </summary>
-        public DatabaseEngine Engine { get; }
-    }
-
-    /// <summary>
-    /// Should provide a database entry point with write/read access
-    /// </summary>
-    public interface IWritableRepository
-    {
-        /// <summary>
-        /// Should be the database entry point
-        /// </summary>
-        public QueryFactory Db { get; }
-
-        /// <summary>
-        /// Should be the asociated database engine
-        /// </summary>
-        public DatabaseEngine Engine { get; }
-
-        /// <summary>
-        /// Should be the asociated migrations path
-        /// </summary>
-        public string MigrationsPath { get; }
+        string MigrationsPath { get; }
     }
 }

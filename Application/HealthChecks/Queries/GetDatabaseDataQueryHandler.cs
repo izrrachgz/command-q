@@ -1,6 +1,5 @@
 ﻿using Common.Cqrs;
 using Domain.Entities;
-using SqlKata.Execution;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -25,12 +24,12 @@ namespace Application.HealthChecks.Queries
 
         public async Task<HealthCheckResult> Handle(GetDatabaseDataQuery request, CancellationToken cancellationToken)
         {
-            var query = _readOnlyRepository.Db.Query($@"{nameof(HealthCheckLog)}")
+            var query = _readOnlyRepository.Query($@"{nameof(HealthCheckLog)}")
                 .WhereNull($@"{nameof(HealthCheckLog.Deleted)}")
                 .OrderByDesc($@"{nameof(HealthCheckLog.Modified)}")
                 .Limit(1);
 
-            var record = await query.FirstOrDefaultAsync<HealthCheckLog>(cancellationToken: cancellationToken);
+            var record = await _readOnlyRepository.FirstOrDefaultAsync<HealthCheckLog>(query, cancellationToken);
 
             if (record is null)
             {

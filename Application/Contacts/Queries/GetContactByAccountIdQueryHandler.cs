@@ -1,7 +1,6 @@
 ﻿using Public;
 using Common.Cqrs;
 using Domain.Entities;
-using SqlKata.Execution;
 using Domain.Interfaces;
 using Application.Interfaces;
 using Common.Models.Response;
@@ -38,13 +37,13 @@ namespace Application.Contacts.Queries
         /// with the contact details if found; otherwise, the response indicates that no contact was found.</returns>
         public async Task<DetailResponse<ContactModel>> Handle(GetContactByAccountIdQuery request, CancellationToken cancellationToken)
         {
-            var query = _repository.Db.Query($@"{nameof(Contact)}")
+            var query = _repository.Query($@"{nameof(Contact)}")
                 .WhereNull($@"{nameof(Contact.Deleted)}")
                 .Where($@"{nameof(Contact.AccountId)}", request.AccountId)
                 .OrderByDesc($@"{nameof(Contact.Modified)}")
                 .Limit(1);
 
-            var record = await query.FirstOrDefaultAsync<Contact>(cancellationToken: cancellationToken);
+            var record = await _repository.FirstOrDefaultAsync<Contact>(query, cancellationToken);
 
             if (record is null)
                 return new(false, _message_record_not_found, null);

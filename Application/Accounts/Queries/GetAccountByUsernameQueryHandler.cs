@@ -37,12 +37,12 @@ namespace Application.Accounts.Queries
         /// with the account details if found; otherwise, the result indicates that no matching account was found.</returns>
         public async Task<DetailResponse<AccountModel>> Handle(GetAccountByUsernameQuery request, CancellationToken cancellationToken)
         {
-            var query = _repository.Db.Query($@"{nameof(Account)}")
+            var query = _repository.Query($@"{nameof(Account)}")
                 .WhereNull($@"{nameof(Account.Deleted)}")
                 .Where($@"{nameof(Account.Username)}", request.Username)
                 .Limit(1);
 
-            var record = await query.FirstOrDefaultAsync<Account>(cancellationToken: cancellationToken);
+            var record = await _repository.FirstOrDefaultAsync<Account>(query, cancellationToken);
 
             if (record is null)
                 return new(false, _message_record_not_found, null);
