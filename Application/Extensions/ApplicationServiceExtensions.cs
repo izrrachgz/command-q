@@ -1,8 +1,8 @@
 ﻿using MediatR;
+using Application;
 using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
-using Application;
 using Application.Interfaces;
 using Localization.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -41,7 +41,7 @@ namespace Application.Extensions
 
             // MediatR + validation pipeline
             services.AddMediatR(config => config.RegisterServicesFromAssembly(applicationAssembly));
-            services.AddValidatorsFromAssembly(applicationAssembly, ServiceLifetime.Singleton);
+            services.AddValidatorsFromAssembly(applicationAssembly, ServiceLifetime.Scoped);
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
 
             // Repositories

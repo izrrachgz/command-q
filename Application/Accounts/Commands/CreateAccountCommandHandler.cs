@@ -2,8 +2,8 @@ using Public;
 using Common.Cqrs;
 using Common.Hash;
 using Domain.Entities;
-using Persistence.Interfaces;
 using SqlKata.Execution;
+using Persistence.Interfaces;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -18,6 +18,8 @@ namespace Application.Accounts.Commands
 
         private readonly string _message_account_created;
         private readonly string _message_account_cannot_create;
+        private readonly string _message_default_contact_name;
+        private readonly string _message_default_address_name;
         private static readonly string defaultAccountRoles = @"User";
 
         public CreateAccountCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
@@ -27,6 +29,8 @@ namespace Application.Accounts.Commands
             _messages = textProvider;
             _message_account_created = _messages.Get(nameof(Messages.Created), nameof(Account));
             _message_account_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(Account));
+            _message_default_contact_name = _messages.Get(nameof(Messages.Default_Contact_Name));
+            _message_default_address_name = _messages.Get(nameof(Messages.Default_Address_Name));
         }
 
         /// <summary>
@@ -87,7 +91,7 @@ namespace Application.Accounts.Commands
                 var contact = new
                 {
                     AccountId = insertedAccount.Id,
-                    Name = $@"{request.Username}'s Contact.",
+                    Name = string.Format(_message_default_contact_name, request.Username),
                     EmailAddress = request.Email,
                     Created = now,
                     Modified = now
@@ -100,7 +104,7 @@ namespace Application.Accounts.Commands
                 var address = new
                 {
                     AccountId = insertedAccount.Id,
-                    Name = $@"{request.Username}'s Address.",
+                    Name = string.Format(_message_default_address_name, request.Username),
                     Line1 = string.Empty,
                     City = string.Empty,
                     PostalCode = string.Empty,

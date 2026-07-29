@@ -1,12 +1,14 @@
-﻿using FluentValidation;
-using System.Text.Json;
+﻿using Public;
 using Common.Constants;
+using System.Text.Json;
+using FluentValidation;
 using Common.Exceptions;
 using FluentValidation.Results;
+using Localization.Abstractions;
 
 namespace Api.Middleware
 {
-    public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger) : IMiddleware
+    public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger, ITextProvider messages) : IMiddleware
     {
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
@@ -22,13 +24,13 @@ namespace Api.Middleware
             }
         }
 
-        private static async Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
+        private async Task HandleExceptionAsync(HttpContext httpContext, Exception exception)
         {
             var statusCode = GetStatusCode(exception);
 
             var response = new
             {
-                title = GetTitle(exception),
+                title = GetTitle(exception, messages),
                 status = statusCode,
                 exceptionDetail = exception.Message,
                 errors = GetErrors(exception)
@@ -52,16 +54,16 @@ namespace Api.Middleware
                 _ => StatusCodes.Status500InternalServerError
             };
 
-        private static string GetTitle(Exception exception) =>
+        private string GetTitle(Exception exception, ITextProvider messages) =>
             exception switch
             {
                 ApplicationException applicationException => applicationException.Message,
-                ValidationException => "Invalid Model",
-                HttpBadRequestException => "Invalid Model",
-                HttpNotFoundException => "Not Found",
-                HttpForbiddenException => "Forbidden",
-                HttpUnauthorizedException => "Unauthorized",
-                _ => "Server Error"
+                ValidationException => messages.Get(nameof(Messages.Invalid_Model)),
+                HttpBadRequestException => messages.Get(nameof(Messages.Invalid_Model)),
+                HttpNotFoundException => messages.Get(nameof(Messages.Not_Found)),
+                HttpForbiddenException => messages.Get(nameof(Messages.Forbidden)),
+                HttpUnauthorizedException => messages.Get(nameof(Messages.Unauthorized)),
+                _ => messages.Get(nameof(Messages.Server_Error))
             };
 
         private static IEnumerable<ValidationFailure> GetErrors(Exception exception)

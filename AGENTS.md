@@ -81,6 +81,8 @@ This file captures practical repository knowledge for coding agents working in t
   - `ValidationTextProvider`
   - `CompositeTextProvider`
   - `JsonTextProvider`
+- `AddLocalizationServices` accepts `LocalizationOptions` configuration for provider order, supported cultures, fallback culture and JSON locale path.
+- Text providers are scoped so request/current UI culture changes are honored per scope.
 - When adding validator text, update every supported `.resx` language file.
 
 ### Application.Test

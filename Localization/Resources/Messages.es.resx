@@ -147,4 +147,28 @@
   <data name="Account_Unlocked" xml:space="preserve">
     <value>Cuenta desbloqueada.</value>
   </data>
+  <data name="Default_Address_Name" xml:space="preserve">
+    <value>Dirección de {0}.</value>
+  </data>
+  <data name="Default_Contact_Name" xml:space="preserve">
+    <value>Contacto de {0}.</value>
+  </data>
+  <data name="File_Is_Required" xml:space="preserve">
+    <value>Se requiere un archivo.</value>
+  </data>
+  <data name="Forbidden" xml:space="preserve">
+    <value>Prohibido</value>
+  </data>
+  <data name="Invalid_Model" xml:space="preserve">
+    <value>Modelo inválido</value>
+  </data>
+  <data name="Not_Found" xml:space="preserve">
+    <value>No encontrado</value>
+  </data>
+  <data name="Server_Error" xml:space="preserve">
+    <value>Error del servidor</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>No autorizado</value>
+  </data>
 </root>

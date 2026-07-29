@@ -122,6 +122,60 @@ namespace Public {
                 return ResourceManager.GetString("Created", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0}'s Address..
+        /// </summary>
+        public static string Default_Address_Name {
+            get {
+                return ResourceManager.GetString("Default_Address_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0}'s Contact..
+        /// </summary>
+        public static string Default_Contact_Name {
+            get {
+                return ResourceManager.GetString("Default_Contact_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a A file is required..
+        /// </summary>
+        public static string File_Is_Required {
+            get {
+                return ResourceManager.GetString("File_Is_Required", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Forbidden.
+        /// </summary>
+        public static string Forbidden {
+            get {
+                return ResourceManager.GetString("Forbidden", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Invalid Model.
+        /// </summary>
+        public static string Invalid_Model {
+            get {
+                return ResourceManager.GetString("Invalid_Model", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Not Found.
+        /// </summary>
+        public static string Not_Found {
+            get {
+                return ResourceManager.GetString("Not_Found", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Busca una cadena traducida similar a ..
@@ -138,6 +192,24 @@ namespace Public {
         public static string Record_Not_Found {
             get {
                 return ResourceManager.GetString("Record_Not_Found", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Server Error.
+        /// </summary>
+        public static string Server_Error {
+            get {
+                return ResourceManager.GetString("Server_Error", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Unauthorized.
+        /// </summary>
+        public static string Unauthorized {
+            get {
+                return ResourceManager.GetString("Unauthorized", resourceCulture);
             }
         }
         
