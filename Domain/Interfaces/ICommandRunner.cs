@@ -6,46 +6,44 @@ using Microsoft.Extensions.Logging;
 namespace Domain.Interfaces
 {
     /// <summary>
-    /// Should provide a way to run commands against a database engine
+    /// Executes raw database commands and engine-specific bulk insert operations.
     /// </summary>
     public interface ICommandRunner
     {
         /// <summary>
-        /// Should provide a logger instance associated to the runner
+        /// Logger associated with the concrete runner.
         /// </summary>
         ILogger Logger { get; set; }
 
         /// <summary>
-        /// Should provide a connection with the database
+        /// Opens a database connection for the runner's configured connection string.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="cancellationToken">Token used while opening the connection.</param>
         Task<IDbConnection> GetConnection(CancellationToken cancellationToken);
 
         /// <summary>
-        /// Should run task list in parallel
+        /// Executes multiple commands and returns each command result set.
         /// </summary>
-        /// <param name="commands"></param>
-        /// <returns></returns>
+        /// <param name="commands">Commands to execute.</param>
+        /// <param name="cancellationToken">Token used while executing the command batch.</param>
         Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Should execute the command and resturn the set of results
+        /// Executes a command and returns the result set parsed as the requested response type.
         /// </summary>
         /// <param name="query">Command statement</param>
         /// <param name="type">Type of expected response</param>
         /// <param name="parameters">Set of objects to use as params, key is the name and value is the used value</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="cancellationToken">Token used while executing the command.</param>
         Task<List<object>> Execute(string query, Type type, Dictionary<string, object?>? parameters, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Should copy in the most optimized way possible the rows into the table
+        /// Inserts rows using the most efficient bulk operation available for the concrete database engine.
         /// </summary>
         /// <param name="table">Target table</param>
         /// <param name="columns">Columns to insert, not alias and in order.</param>
-        /// <param name="rows">Row data, key is the asociated column name, value is used value</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="rows">Row data where each key is the associated column name.</param>
+        /// <param name="cancellationToken">Token used while inserting rows.</param>
         Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default);
     }
 }

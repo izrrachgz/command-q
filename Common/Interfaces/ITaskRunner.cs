@@ -1,58 +1,52 @@
-﻿namespace Common.Interfaces
+namespace Common.Interfaces
 {
     /// <summary>
-    /// Should provide a way to run tasks in asynchronous thread safe environment
+    /// Runs asynchronous operations with a bounded concurrency limit.
     /// </summary>
     public interface ITaskRunner
     {
         /// <summary>
-        /// Should execute the tasks in asynchronous thread safe way
+        /// Executes task factories while limiting how many operations run at the same time.
         /// </summary>
-        /// <param name="tasks"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="tasks">Task factories that receive the shared cancellation token.</param>
+        /// <param name="cancellationToken">Token used to stop scheduling and passed to each task factory.</param>
         Task RunTasksAsync(IEnumerable<Func<CancellationToken, Task>> tasks, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Should execute the tasks in asynchronous thread safe way
+        /// Executes task factories while limiting how many operations run at the same time.
         /// </summary>
-        /// <param name="tasks"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="tasks">Task factories that do not require a cancellation token.</param>
+        /// <param name="cancellationToken">Token used to stop scheduling new work.</param>
         Task RunTasksAsync(IEnumerable<Func<Task>> tasks, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Should execute the tasks in asynchronous thread safe way
+        /// Executes task factories while limiting how many operations run at the same time.
         /// </summary>
-        /// <param name="tasks"></param>
-        /// <returns></returns>
+        /// <param name="tasks">Task factories that receive the shared cancellation token.</param>
         Task RunTasksAsync(params Func<CancellationToken, Task>[] tasks);
 
         /// <summary>
-        /// Should execute the tasks in asynchronous thread safe way
+        /// Executes task factories while limiting how many operations run at the same time.
         /// </summary>
-        /// <param name="tasks"></param>
-        /// <returns></returns>
+        /// <param name="tasks">Task factories that do not require a cancellation token.</param>
         Task RunTasksAsync(params Func<Task>[] tasks);
 
         /// <summary>
-        /// Should execute an asynchronous operation for each item in a thread safe way
+        /// Executes an asynchronous operation for each item while limiting concurrency.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="items"></param>
-        /// <param name="task"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">Type of the item being processed.</typeparam>
+        /// <param name="items">Items to process.</param>
+        /// <param name="task">Operation to execute for each item.</param>
+        /// <param name="cancellationToken">Token used to stop scheduling and passed to each task invocation.</param>
         Task ForEachAsync<T>(IEnumerable<T> items, Func<T, CancellationToken, Task> task, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Should execute an asynchronous operation for each item in a thread safe way
+        /// Executes an asynchronous operation for each item while limiting concurrency.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="items"></param>
-        /// <param name="task"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">Type of the item being processed.</typeparam>
+        /// <param name="items">Items to process.</param>
+        /// <param name="task">Operation to execute for each item.</param>
+        /// <param name="cancellationToken">Token used to stop scheduling new work.</param>
         Task ForEachAsync<T>(IEnumerable<T> items, Func<T, Task> task, CancellationToken cancellationToken = default);
     }
 }

@@ -12,12 +12,18 @@ using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
 {
+    /// <summary>
+    /// Executes commands and bulk inserts against Microsoft SQL Server.
+    /// </summary>
     public class MsSqlCommandRunner : ICommandRunner
     {
         public ILogger Logger { get; set; }
 
         private string ConnectionString { get; }
 
+        /// <summary>
+        /// Creates a SQL Server command runner for a specific connection string.
+        /// </summary>
         public MsSqlCommandRunner(string connectionString, ILogger<MsSqlCommandRunner> logger)
         {
             Logger = logger;
@@ -26,6 +32,9 @@ namespace Persistence.Repository.Command
             Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(MsSqlCommandRunner));
         }
 
+        /// <summary>
+        /// Creates a SQL Server command runner from the configured database connection.
+        /// </summary>
         public MsSqlCommandRunner(IConfiguration configuration, ILogger<MsSqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 

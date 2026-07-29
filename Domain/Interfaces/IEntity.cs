@@ -2,27 +2,27 @@
 namespace Domain.Interfaces
 {
     /// <summary>
-    /// Should represent an entity object
+    /// Represents a persisted entity with lifecycle timestamps.
     /// </summary>
     public interface IEntity
     {
         /// <summary>
-        /// Should store the primary identifier asociated
+        /// Primary identifier associated with the entity.
         /// </summary>
         long Id { get; set; }
 
         /// <summary>
-        /// Should store the time when the entity has been created
+        /// Date and time when the entity was created.
         /// </summary>
         DateTime Created { get; set; }
 
         /// <summary>
-        /// Should store the time when the entity has been modified
+        /// Date and time when the entity was last modified.
         /// </summary>
         DateTime Modified { get; set; }
 
         /// <summary>
-        /// Should store the time when the entity has been marked as deleted
+        /// Date and time when the entity was soft-deleted, when applicable.
         /// </summary>
         DateTime? Deleted { get; set; }
     }

@@ -1,54 +1,107 @@
-# CommandQ — AGENTS (project summary)
+# CommandQ - AGENTS
 
-This file centralizes brief information for each project (taken from the `readme.txt` files located at each project's root).
+This file captures practical repository knowledge for coding agents working in this solution.
 
-## Api
-- Purpose: Expose the HTTP API (controllers, endpoints, DTOs).
-- Framework: .NET 10 (ASP.NET Core).
-- Run locally: `dotnet run` from `Api` or use the Visual Studio launch profile (__Launch Profiles__).
-- Configuration: Check `appsettings.json` and environment variables for connection strings and keys.
-- Notes: Use Swagger/Postman to validate endpoints.
-
-## Application
-- Purpose: Application logic, use cases and orchestration between domain and persistence.
-- Framework: .NET 10 (class library).
-- Build/Run: `dotnet build`.
-- Dependencies: `Domain`, `Common`. Keep logic decoupled from I/O; use DI.
-
-## Domain
-- Purpose: Domain models, entities, value objects and business rules.
+## Solution
 - Framework: .NET 10.
-- Conventions: Favor immutability and validations within entities; avoid infrastructure dependencies.
+- Solution file: `CommandQ.sln`.
+- Restore: `dotnet restore`.
+- Build: `dotnet build .\CommandQ.sln`.
+- Tests: `dotnet test` or targeted tests with `--filter FullyQualifiedName~...`.
+- The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
 
-## Common
-- Purpose: Shared utilities, constants, exceptions and helper types.
-- Framework: .NET 10.
-- Notes: Keep stable and minimize changes to avoid breaking consumers.
+## Projects
 
-## Persistence
-- Purpose: Data access implementation (repositories, EF Core, migrations).
-- Framework: .NET 10.
-- Migrations: `dotnet ef database update` (run from the appropriate project or solution as configured).
-- Configuration: Use `appsettings.json` or environment variables for the connection string.
+### Api
+- ASP.NET Core HTTP API with controllers, middleware, auth services and app configuration.
+- Run locally from `Api` with `dotnet run` or Visual Studio launch profiles.
+- JWT/Auth settings are configured through `Jwt` and `Auth` sections in `appsettings*.json`.
+- Rate limiting, cache, database and API client settings use constants under `Api/Constants/ConfigKeys.cs`.
 
-## Application.Test
-- Purpose: Unit and integration tests for `Application` and related layers.
-- Framework: .NET 10 (see project for test runner: xUnit/NUnit/MSTest).
-- Run tests: `dotnet test` from the solution or project folder.
-- Check results in Visual Studio: __Output__ pane and __Test Explorer__.
+### Application
+- CQRS use cases, validators, handlers, mappers, services and health checks.
+- Depends on `Domain`, `Common` and `Localization`.
+- Keep application logic decoupled from direct I/O. Use injected interfaces such as repositories, text providers and services.
+- Validators use localized resources through `ValidationTextProvider`.
+- Shared validator limits live in `Application/Constants/ValidationLimits.cs`.
 
-## Localization
-- Purpose: Resources and translations (`.resx` files or other).
-- Framework: .NET 10.
-- Use: Edit/add resources in `.resx` and rebuild; inject localization services in `Api`.
+### Domain
+- Domain entities and interfaces.
+- Persistence-facing abstractions live here, including:
+  - `IReadOnlyRepository`
+  - `IWritableRepository`
+  - `ICommandRunner`
+- Keep this project free from infrastructure implementation details.
 
----
+### Common
+- Shared utilities, constants, exceptions, CQRS abstractions, response/request models and transport helpers.
+- HTTP helpers:
+  - `Common.Transfer.Http.HttpCall` for JSON/form/string HTTP calls.
+  - `Common.Transfer.Http.FileUploader` for multipart uploads.
+  - `Common.Models.Transfer.FileUploadItem` is the reusable upload file model.
+- Async helper:
+  - `Common.System.TaskRunner` runs async operations with bounded concurrency.
+  - Register with `services.AddTaskRunner()` and inject `ITaskRunner`.
+  - Default concurrency is `TaskRunnerConstants.DefaultMaxConcurrency`.
+- Keep this project stable because it is widely referenced.
 
-Quick solution-level instructions:
-- Restore packages: `dotnet restore` at the solution root.
-- Build: `dotnet build`.
-- Run API: `cd Api; dotnet run` (or use Visual Studio).
-- Run tests: `dotnet test`.
-- Review logs and tests in Visual Studio: __Output__ and __Test Explorer__.
+### Persistence
+- SqlKata-backed repositories, database command runners and SQL migrations.
+- Supported engines: `MsSql`, `PgSql`, `MySql`, `SqLite`.
+- Configuration keys:
+  - main connection string name: `Db`
+  - selected engine path: `ConnectionStrings:Engine`
+- Repositories:
+  - `IReadOnlyRepository` is intended for query handlers and does not expose write-capable SqlKata APIs.
+  - `IWritableRepository` is intended for commands/migrations and exposes `QueryFactory Db`.
+  - `ReadOnlyRepository` and `WritableRepository` can be resolved from DI using configured settings or manually created with a connection string and `DatabaseEngine`.
+- Command runners:
+  - `ICommandRunner` executes raw commands and engine-specific bulk inserts.
+  - `AddCommandRunners` registers all concrete runners and resolves the default `ICommandRunner` from `ConnectionStrings:Engine`.
+  - Concrete runners can be constructed manually with a connection string when a service needs a separate runtime database target.
+- Migrations:
+  - Scripts live under `Persistence/Migrations/{Engine}`.
+  - Add scripts as `migration-X.sql`.
+  - `MigrationExtensions` runs scripts from the folder matching the configured engine.
 
-Contact: See the remote repository for author information and `CONTRIBUTING` if present.
+### Localization
+- Resource project for multi-language text.
+- Resource groups:
+  - `Messages`: operation messages.
+  - `ValidationText`: reusable validation templates.
+  - `FieldNames`: localized field display names for validators.
+- Providers:
+  - `ResxTextProvider`
+  - `ValidationTextProvider`
+  - `CompositeTextProvider`
+  - `JsonTextProvider`
+- When adding validator text, update every supported `.resx` language file.
+
+### Application.Test
+- xUnit tests for application and shared helper behavior.
+- Uses `Xunit.DependencyInjection`.
+- Useful targeted examples:
+  - `dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Common.System.TaskRunnerTest`
+  - `dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Common.Transfer.FileUploaderTest`
+
+### Cli
+- Code-generation utility project with command/query templates.
+- Keep generated code consistent with existing CQRS, validator and localization patterns.
+
+### FrontApplication
+- Frontend project placeholder/readme area. Check its own README before changing frontend code.
+
+## Coding Conventions
+- Prefer existing project patterns over new abstractions.
+- Use `rg`/`rg --files` for searches.
+- Use `apply_patch` for manual edits.
+- Avoid unrelated refactors and metadata churn.
+- Add focused tests when changing shared helpers, DI, repositories, command runners or user-facing behavior.
+- Do not expose write-capable persistence APIs to query handlers.
+- Keep command handlers using writable dependencies and query handlers using read-only dependencies.
+- Use resource providers for user-facing messages and validation text instead of hardcoded strings.
+
+## Verification
+- Run `dotnet build .\CommandQ.sln` after code changes.
+- Run targeted tests for touched areas.
+- Full `dotnet test` can include integration-style tests depending on local database configuration, so prefer targeted tests when validating isolated helpers.

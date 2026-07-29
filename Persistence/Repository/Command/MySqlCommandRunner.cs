@@ -14,6 +14,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
 {
+    /// <summary>
+    /// Executes commands and bulk inserts against MySQL.
+    /// </summary>
     public class MySqlCommandRunner : ICommandRunner
     {
         public ILogger Logger { get; set; }
@@ -30,6 +33,9 @@ namespace Persistence.Repository.Command
 
         private const string TimeSpanDatabaseFileStringFormat = @"c";
 
+        /// <summary>
+        /// Creates a MySQL command runner for a specific connection string.
+        /// </summary>
         public MySqlCommandRunner(string connectionString, ILogger<MySqlCommandRunner> logger)
         {
             Logger = logger;
@@ -38,6 +44,9 @@ namespace Persistence.Repository.Command
             Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(MySqlCommandRunner));
         }
 
+        /// <summary>
+        /// Creates a MySQL command runner from the configured database connection.
+        /// </summary>
         public MySqlCommandRunner(IConfiguration configuration, ILogger<MySqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
@@ -199,6 +208,9 @@ namespace Persistence.Repository.Command
             }
         }
 
+        /// <summary>
+        /// Inserts rows using MySQL local-file bulk loading.
+        /// </summary>
         public async Task<BasicResponse> BulkInsertLocalFile(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
             Logger.LogDebug(DatabaseConstants.SavingRecords, rows.Length);

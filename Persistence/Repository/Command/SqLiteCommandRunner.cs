@@ -12,12 +12,18 @@ using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
 {
+    /// <summary>
+    /// Executes commands and bulk inserts against SQLite.
+    /// </summary>
     public class SqLiteCommandRunner : ICommandRunner
     {
         public ILogger Logger { get; set; }
 
         private string ConnectionString { get; }
 
+        /// <summary>
+        /// Creates a SQLite command runner for a specific connection string.
+        /// </summary>
         public SqLiteCommandRunner(string connectionString, ILogger<SqLiteCommandRunner> logger)
         {
             Logger = logger;
@@ -26,6 +32,9 @@ namespace Persistence.Repository.Command
             Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(SqLiteCommandRunner));
         }
 
+        /// <summary>
+        /// Creates a SQLite command runner from the configured database connection.
+        /// </summary>
         public SqLiteCommandRunner(IConfiguration configuration, ILogger<SqLiteCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 

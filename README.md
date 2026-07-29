@@ -63,8 +63,22 @@ Update the `appsettings.json` file with the appropriate connection string for yo
    dotnet run
    ```
 ## Migrations
-For migrations, inside the migrations folder in the Persitence project add a migration-X.sql script file 
-with the changes for each of the engines you are intended to use and just run the solution.
+For migrations, add a `migration-X.sql` script under `Persistence/Migrations/{Engine}` for each database engine you intend to support. The configured engine is selected from `ConnectionStrings:Engine`, and the matching migration folder is used when the solution runs migrations.
+
+## Data Access
+The persistence layer separates read and write entry points:
+
+- `IReadOnlyRepository` is intended for queries and does not expose the write-capable SqlKata `QueryFactory`.
+- `IWritableRepository` is intended for commands and migrations.
+- `ICommandRunner` executes raw commands and engine-specific bulk insert operations.
+- Repositories and command runners can use the configured connection through DI or be created manually with a connection string and database engine when a service needs a separate database target.
+
+## Shared Helpers
+The `Common` project includes reusable helpers:
+
+- `HttpCall` for JSON, form and string HTTP calls.
+- `FileUploader` for multipart file uploads.
+- `TaskRunner` for bounded-concurrency asynchronous work.
 
 ## Cqrs
 Command Query Responsibility Segregation (CQRS) is a design pattern that segregates read and write operations
@@ -76,7 +90,7 @@ For more details, refer to [Cqrs on microsoft](https://learn.microsoft.com/es-mx
 
 
 ## Deployment
-For deployment instructions, ensure you install the **.NET 9 Hosting Bundle** on the target server and configure the environment variables accordingly.
+For deployment instructions, ensure you install the **.NET 10 Hosting Bundle** on the target server and configure the environment variables accordingly.
 
 ---
 For more details, refer to the [official .NET 10 documentation](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview).

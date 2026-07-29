@@ -14,12 +14,18 @@ using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
 {
-    internal sealed class PgSqlCommandRunner : ICommandRunner
+    /// <summary>
+    /// Executes commands and bulk inserts against PostgreSQL.
+    /// </summary>
+    public class PgSqlCommandRunner : ICommandRunner
     {
         public ILogger Logger { get; set; }
 
         private string ConnectionString { get; }
 
+        /// <summary>
+        /// Creates a PostgreSQL command runner for a specific connection string.
+        /// </summary>
         public PgSqlCommandRunner(string connectionString, ILogger<PgSqlCommandRunner> logger)
         {
             Logger = logger;
@@ -28,6 +34,9 @@ namespace Persistence.Repository.Command
             Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(PgSqlCommandRunner));
         }
 
+        /// <summary>
+        /// Creates a PostgreSQL command runner from the configured database connection.
+        /// </summary>
         public PgSqlCommandRunner(IConfiguration configuration, ILogger<PgSqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
