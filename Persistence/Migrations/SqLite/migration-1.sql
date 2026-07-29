@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS RegisterEvent;
 DROP TABLE IF EXISTS "Register";
 DROP TABLE IF EXISTS Place;
 DROP TABLE IF EXISTS Event;
+DROP TABLE IF EXISTS AccountFile;
 DROP TABLE IF EXISTS Contact;
 DROP TABLE IF EXISTS Address;
 DROP TABLE IF EXISTS AccountSession;
@@ -152,6 +153,34 @@ WHERE Deleted IS NULL;
 
 CREATE INDEX IX_Contact_Email
 ON Contact (EmailAddress)
+WHERE Deleted IS NULL;
+
+-- =========================
+-- AccountFile
+-- =========================
+CREATE TABLE AccountFile (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    AccountId TEXT NOT NULL,
+    FileName TEXT NOT NULL,
+    Path TEXT NOT NULL,
+    ContentType TEXT NULL,
+    Size INTEGER NOT NULL DEFAULT 0,
+    Created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Deleted TEXT NULL,
+    FOREIGN KEY (AccountId) REFERENCES Account(Id)
+);
+
+CREATE INDEX IX_AccountFile_AccountId
+ON AccountFile (AccountId)
+WHERE Deleted IS NULL;
+
+CREATE INDEX IX_AccountFile_Created
+ON AccountFile (Created)
+WHERE Deleted IS NULL;
+
+CREATE INDEX IX_AccountFile_FileName
+ON AccountFile (FileName)
 WHERE Deleted IS NULL;
 
 -- =========================

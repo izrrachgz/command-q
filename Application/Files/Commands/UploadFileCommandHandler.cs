@@ -1,5 +1,8 @@
 ﻿using Public;
 using Common.Cqrs;
+using Domain.Entities;
+using SqlKata.Execution;
+using Persistence.Interfaces;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -9,6 +12,7 @@ namespace Application.Files.Commands
     public class UploadFileCommandHandler : ICommandHandler<UploadFileCommand, BasicResponse>
     {
         private readonly ITextProvider _messages;
+        private readonly IWritableRepository _repository;
         private readonly ILogger<UploadFileCommandHandler> _logger;
 
         private const int _buffer_size = 64 * 1024;
@@ -16,12 +20,13 @@ namespace Application.Files.Commands
         private readonly string _message_file_cannot_create;
         private static readonly string _fileStoragePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UploadedFiles");
 
-        public UploadFileCommandHandler(ITextProvider textProvider, ILogger<UploadFileCommandHandler> logger)
+        public UploadFileCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<UploadFileCommandHandler> logger)
         {
             _logger = logger;
+            _repository = repository;
             _messages = textProvider;
-            _message_file_created = _messages.Get(nameof(Messages.Created), nameof(File));
-            _message_file_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(File));
+            _message_file_created = _messages.Get(nameof(Messages.Created), nameof(AccountFile));
+            _message_file_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(AccountFile));
         }
 
         /// <summary>
@@ -90,6 +95,18 @@ namespace Application.Files.Commands
                 cancellationToken.ThrowIfCancellationRequested();
 
                 File.Move(tempFilePath, destination, overwrite: false);
+
+                var accountFile = new AccountFile
+                {
+                    AccountId = request.AccountId,
+                    FileName = safeFileName,
+                    Path = Path.GetRelativePath(AppDomain.CurrentDomain.BaseDirectory, destination),
+                    ContentType = request.ContentType,
+                    Size = request.FileData.CanSeek ? request.FileData.Length : 0
+                };
+
+                await _repository.Db.Query($@"{nameof(AccountFile)}")
+                    .InsertAsync(accountFile, cancellationToken: cancellationToken);
 
                 return new(true, _message_file_created);
             }

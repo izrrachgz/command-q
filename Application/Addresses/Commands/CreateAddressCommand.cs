@@ -5,7 +5,7 @@ namespace Application.Addresses.Commands
 {
     public class CreateAddressCommand : ICommand<BasicResponse>
     {
-        public required Guid AccountId { get; set; }
+        public Guid AccountId { get; set; }
         public required string Name { get; set; }
         public string? Description { get; set; }
         public required string Line1 { get; set; }

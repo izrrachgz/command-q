@@ -160,6 +160,38 @@ ON "Contact" ("EmailAddress")
 WHERE "Deleted" IS NULL;
 
 -- =========================
+-- Table: AccountFile
+-- =========================
+DROP TABLE IF EXISTS "AccountFile" CASCADE;
+
+CREATE TABLE "AccountFile"
+(
+    "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "AccountId" UUID NOT NULL,
+    "FileName" VARCHAR(256) NOT NULL,
+    "Path" VARCHAR(1024) NOT NULL,
+    "ContentType" VARCHAR(256) NULL,
+    "Size" BIGINT NOT NULL DEFAULT 0,
+    "Created" TIMESTAMP NOT NULL DEFAULT NOW(),
+    "Modified" TIMESTAMP NOT NULL DEFAULT NOW(),
+    "Deleted" TIMESTAMP NULL,
+    CONSTRAINT "FK_AccountFile_Account"
+        FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
+);
+
+CREATE INDEX "IX_AccountFile_AccountId"
+ON "AccountFile" ("AccountId")
+WHERE "Deleted" IS NULL;
+
+CREATE INDEX "IX_AccountFile_Created"
+ON "AccountFile" ("Created")
+WHERE "Deleted" IS NULL;
+
+CREATE INDEX "IX_AccountFile_FileName"
+ON "AccountFile" ("FileName")
+WHERE "Deleted" IS NULL;
+
+-- =========================
 -- Table: Event
 -- =========================
 DROP TABLE IF EXISTS "Event" CASCADE;

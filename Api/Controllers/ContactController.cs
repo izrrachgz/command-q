@@ -1,5 +1,7 @@
 ﻿using MediatR;
+using Api.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Application.Contacts.Queries;
 using Application.Contacts.Commands;
 using Microsoft.AspNetCore.Authorization;
 
@@ -20,6 +22,11 @@ namespace Api.Controllers
         [HttpPost(@"create")]
         public async Task<IActionResult> Create([FromBody] CreateContactCommand request, CancellationToken cancellationToken = default)
         {
+            if (!User.TryGetAccountId(out var accountId))
+                return Unauthorized();
+
+            request.AccountId = accountId;
+
             var response = await _sender.Send(request, cancellationToken);
 
             if (!response.Success)
@@ -28,6 +35,25 @@ namespace Api.Controllers
             }
 
             return Ok(response);
+        }
+
+        /// <summary>
+        /// Gets the current account's most recently modified contact.
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
+        {
+            if (!User.TryGetAccountId(out var accountId))
+                return Unauthorized();
+
+            var query = new GetContactByAccountIdQuery
+            {
+                AccountId = accountId
+            };
+
+            var response = await _sender.Send(query, cancellationToken);
+
+            return response.Success ? Ok(response) : NotFound(response);
         }
     }
 }

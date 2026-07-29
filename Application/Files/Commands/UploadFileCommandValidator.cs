@@ -1,7 +1,7 @@
 using Public;
 using FluentValidation;
-using Localization.Providers;
 using Application.Constants;
+using Localization.Providers;
 
 namespace Application.Files.Commands
 {
@@ -9,6 +9,10 @@ namespace Application.Files.Commands
     {
         public UploadFileCommandValidator(ValidationTextProvider messages)
         {
+            RuleFor(x => x.AccountId)
+                .NotEmpty()
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Account_Id))));
+
             RuleFor(x => x.FileName)
                 .NotEmpty()
                 .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.File_Name))))

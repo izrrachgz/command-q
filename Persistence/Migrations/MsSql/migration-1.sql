@@ -16,6 +16,9 @@ CREATE TABLE dbo.HealthCheckLog
 CREATE INDEX IX_HealthCheckLog_Created ON dbo.HealthCheckLog (Created) WHERE Deleted IS NULL;
 
 -- Table: Account
+IF OBJECT_ID('dbo.AccountFile', 'U') IS NOT NULL
+    DROP TABLE dbo.AccountFile;
+
 IF OBJECT_ID('dbo.Account', 'U') IS NOT NULL
     DROP TABLE dbo.Account;
 
@@ -118,6 +121,31 @@ CREATE TABLE dbo.Contact
 CREATE INDEX IX_Contact_AccountId ON dbo.Contact (AccountId) WHERE Deleted IS NULL;
 --For lookups
 CREATE INDEX IX_Contact_Email ON dbo.Contact (EmailAddress) WHERE Deleted IS NULL;
+
+-- Table: AccountFile
+IF OBJECT_ID('dbo.AccountFile', 'U') IS NOT NULL
+    DROP TABLE dbo.AccountFile;
+
+CREATE TABLE dbo.AccountFile
+(
+    [Id] BIGINT IDENTITY(1,1) NOT NULL,
+    [AccountId] UNIQUEIDENTIFIER NOT NULL,
+    [FileName] VARCHAR(256) NOT NULL,
+    [Path] VARCHAR(1024) NOT NULL,
+    [ContentType] VARCHAR(256) NULL,
+    [Size] BIGINT NOT NULL DEFAULT 0,
+    [Created] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Deleted] DATETIME NULL,
+    CONSTRAINT PK_AccountFile_Id PRIMARY KEY (Id),
+    CONSTRAINT FK_AccountFile_Account FOREIGN KEY (AccountId) REFERENCES Account(Id)
+);
+--For faster performance
+CREATE INDEX IX_AccountFile_AccountId ON dbo.AccountFile (AccountId) WHERE Deleted IS NULL;
+--For listing
+CREATE INDEX IX_AccountFile_Created ON dbo.AccountFile (Created) WHERE Deleted IS NULL;
+--For file searches
+CREATE INDEX IX_AccountFile_FileName ON dbo.AccountFile (FileName) WHERE Deleted IS NULL;
 
 -- Table: Event
 IF OBJECT_ID('dbo.Event', 'U') IS NOT NULL

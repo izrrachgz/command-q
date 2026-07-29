@@ -2,9 +2,12 @@ using MediatR;
 using Api.Dtos;
 using Api.Services;
 using Api.Constants;
+using Api.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Application.Accounts.Queries;
 using Application.Accounts.Commands;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
@@ -131,6 +134,25 @@ namespace Api.Controllers
             var response = await _sender.Send(request, cancellationToken);
 
             return !response.Success ? BadRequest(response.Message) : Ok(response);
+        }
+
+        /// <summary>
+        /// Gets the authenticated account information.
+        /// </summary>
+        [Authorize, HttpGet(@"me")]
+        public async Task<IActionResult> Me(CancellationToken cancellationToken = default)
+        {
+            if (!User.TryGetAccountId(out var accountId))
+                return Unauthorized();
+
+            var query = new GetAccountByIdQuery
+            {
+                AccountId = accountId
+            };
+
+            var response = await _sender.Send(query, cancellationToken);
+
+            return response.Success ? Ok(response) : NotFound(response);
         }
     }
 }

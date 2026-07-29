@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS RegisterEvent;
 DROP TABLE IF EXISTS `Register`;
 DROP TABLE IF EXISTS Place;
 DROP TABLE IF EXISTS Event;
+DROP TABLE IF EXISTS AccountFile;
 DROP TABLE IF EXISTS Contact;
 DROP TABLE IF EXISTS Address;
 DROP TABLE IF EXISTS AccountSession;
@@ -122,6 +123,26 @@ CREATE TABLE Contact (
     FOREIGN KEY (AccountId) REFERENCES Account(Id),
     INDEX IX_Contact_AccountId (Deleted, AccountId),
     INDEX IX_Contact_Email (Deleted, EmailAddress)
+) ENGINE=InnoDB;
+
+-- =========================
+-- AccountFile
+-- =========================
+CREATE TABLE AccountFile (
+    Id BIGINT NOT NULL AUTO_INCREMENT,
+    AccountId CHAR(36) NOT NULL,
+    FileName VARCHAR(256) NOT NULL,
+    Path VARCHAR(1024) NOT NULL,
+    ContentType VARCHAR(256) NULL,
+    Size BIGINT NOT NULL DEFAULT 0,
+    Created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    Deleted DATETIME NULL,
+    PRIMARY KEY (Id),
+    FOREIGN KEY (AccountId) REFERENCES Account(Id),
+    INDEX IX_AccountFile_AccountId (Deleted, AccountId),
+    INDEX IX_AccountFile_Created (Deleted, Created),
+    INDEX IX_AccountFile_FileName (Deleted, FileName)
 ) ENGINE=InnoDB;
 
 -- =========================
