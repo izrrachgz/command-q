@@ -27,10 +27,12 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### Domain
 - Domain entities and interfaces.
-- Persistence-facing abstractions live here, including:
-  - `IReadOnlyRepository`
-  - `IWritableRepository`
-  - `ICommandRunner`
+- Entity contracts live here:
+  - `IEntity<TKey>`
+  - `IAuditableEntity`
+  - `ISoftDeletableEntity`
+- `BaseEntity<TKey>` provides typed identity plus lifecycle timestamps.
+- `BaseEntity` remains the long-key default, while `Account` uses `BaseEntity<Guid>`.
 - Keep this project free from infrastructure implementation details.
 
 ### Common
@@ -47,6 +49,10 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### Persistence
 - SqlKata-backed repositories, database command runners and SQL migrations.
+- Persistence-facing abstractions live under `Persistence.Interfaces`, including:
+  - `IReadOnlyRepository`
+  - `IWritableRepository`
+  - `ICommandRunner`
 - Supported engines: `MsSql`, `PgSql`, `MySql`, `SqLite`.
 - Configuration keys:
   - main connection string name: `Db`

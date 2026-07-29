@@ -1,29 +1,15 @@
-﻿#nullable enable
+#nullable enable
 namespace Domain.Interfaces
 {
     /// <summary>
-    /// Represents a persisted entity with lifecycle timestamps.
+    /// Represents a persisted entity with a typed primary identifier.
     /// </summary>
-    public interface IEntity
+    /// <typeparam name="TKey">Type of the entity primary identifier.</typeparam>
+    public interface IEntity<TKey>
     {
         /// <summary>
         /// Primary identifier associated with the entity.
         /// </summary>
-        long Id { get; set; }
-
-        /// <summary>
-        /// Date and time when the entity was created.
-        /// </summary>
-        DateTime Created { get; set; }
-
-        /// <summary>
-        /// Date and time when the entity was last modified.
-        /// </summary>
-        DateTime Modified { get; set; }
-
-        /// <summary>
-        /// Date and time when the entity was soft-deleted, when applicable.
-        /// </summary>
-        DateTime? Deleted { get; set; }
+        TKey Id { get; set; }
     }
 }

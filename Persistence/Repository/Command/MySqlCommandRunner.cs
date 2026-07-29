@@ -1,8 +1,8 @@
-﻿using Dapper;
+using Dapper;
 using System.Data;
 using System.Text;
 using Common.Constants;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using Persistence.Constant;
 using System.Globalization;
 using Common.Models.Command;

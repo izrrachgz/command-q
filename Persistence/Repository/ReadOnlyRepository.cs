@@ -1,5 +1,5 @@
 using SqlKata;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using SqlKata.Execution;
 using Common.Enumerations;
 using Microsoft.Extensions.Logging;

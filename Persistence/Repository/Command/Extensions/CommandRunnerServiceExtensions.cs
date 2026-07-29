@@ -1,5 +1,5 @@
 using Common.Enumerations;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Repository.Extensions;

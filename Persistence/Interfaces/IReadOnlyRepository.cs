@@ -1,7 +1,7 @@
 using SqlKata;
 using Common.Enumerations;
 
-namespace Domain.Interfaces
+namespace Persistence.Interfaces
 {
     /// <summary>
     /// Provides a database entry point intended for read operations without exposing write-capable SqlKata APIs.

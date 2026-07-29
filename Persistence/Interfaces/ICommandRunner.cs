@@ -1,9 +1,9 @@
-﻿using System.Data;
+using System.Data;
 using Common.Models.Command;
 using Common.Models.Response;
 using Microsoft.Extensions.Logging;
 
-namespace Domain.Interfaces
+namespace Persistence.Interfaces
 {
     /// <summary>
     /// Executes raw database commands and engine-specific bulk insert operations.
@@ -31,16 +31,16 @@ namespace Domain.Interfaces
         /// <summary>
         /// Executes a command and returns the result set parsed as the requested response type.
         /// </summary>
-        /// <param name="query">Command statement</param>
-        /// <param name="type">Type of expected response</param>
-        /// <param name="parameters">Set of objects to use as params, key is the name and value is the used value</param>
+        /// <param name="query">Command statement.</param>
+        /// <param name="type">Type of expected response.</param>
+        /// <param name="parameters">Set of objects to use as params, key is the name and value is the used value.</param>
         /// <param name="cancellationToken">Token used while executing the command.</param>
         Task<List<object>> Execute(string query, Type type, Dictionary<string, object?>? parameters, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Inserts rows using the most efficient bulk operation available for the concrete database engine.
         /// </summary>
-        /// <param name="table">Target table</param>
+        /// <param name="table">Target table.</param>
         /// <param name="columns">Columns to insert, not alias and in order.</param>
         /// <param name="rows">Row data where each key is the associated column name.</param>
         /// <param name="cancellationToken">Token used while inserting rows.</param>

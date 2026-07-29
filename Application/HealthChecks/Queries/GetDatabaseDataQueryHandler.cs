@@ -1,6 +1,6 @@
-﻿using Common.Cqrs;
+using Common.Cqrs;
 using Domain.Entities;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 

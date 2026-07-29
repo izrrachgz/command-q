@@ -1,6 +1,6 @@
 using SqlKata;
 using SqlKata.Execution;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using Common.Enumerations;
 using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;

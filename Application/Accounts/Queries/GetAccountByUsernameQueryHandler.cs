@@ -1,8 +1,8 @@
-﻿using Public;
+using Public;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using Application.Interfaces;
 using Common.Models.Response;
 using Application.Accounts.Dtos;

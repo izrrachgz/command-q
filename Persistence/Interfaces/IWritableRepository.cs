@@ -1,6 +1,6 @@
 using SqlKata.Execution;
 
-namespace Domain.Interfaces
+namespace Persistence.Interfaces
 {
     /// <summary>
     /// Provides a database entry point intended for write operations and migrations.

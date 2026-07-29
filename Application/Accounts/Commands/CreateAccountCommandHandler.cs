@@ -1,8 +1,8 @@
-﻿using Public;
+using Public;
 using Common.Cqrs;
 using Common.Hash;
 using Domain.Entities;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using SqlKata.Execution;
 using Common.Models.Response;
 using Localization.Abstractions;

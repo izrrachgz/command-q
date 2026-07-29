@@ -1,9 +1,9 @@
-﻿using Npgsql;
+using Npgsql;
 using Dapper;
 using System.Data;
 using Npgsql.Schema;
 using Common.Constants;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using Persistence.Constant;
 using Common.Models.Command;
 using Common.Models.Response;

@@ -1,12 +1,19 @@
-﻿using Domain.Interfaces;
+using Domain.Interfaces;
 
 namespace Domain.Entities
 {
-    public class BaseEntity : IEntity
+    public class BaseEntity<TKey> : IEntity<TKey>, IAuditableEntity, ISoftDeletableEntity
     {
-        public long Id { get; set; }
+        public TKey Id { get; set; } = default!;
+
         public DateTime Created { get; set; }
+
         public DateTime Modified { get; set; }
+
         public DateTime? Deleted { get; set; }
+    }
+
+    public class BaseEntity : BaseEntity<long>
+    {
     }
 }

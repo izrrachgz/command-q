@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+using Persistence.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Persistence.Repository.Extensions

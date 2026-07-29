@@ -1,7 +1,7 @@
-﻿using Dapper;
+using Dapper;
 using System.Data;
 using Common.Constants;
-using Domain.Interfaces;
+using Persistence.Interfaces;
 using Persistence.Constant;
 using Common.Models.Command;
 using Common.Models.Response;
