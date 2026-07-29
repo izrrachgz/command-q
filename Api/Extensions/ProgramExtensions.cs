@@ -153,12 +153,16 @@ namespace Api.Extensions
 
             logger.LogInformation(@"Language: {Language}.", Language.English);
 
-            var jwt = configuration.GetSection(@"Jwt").Get<JwtOptions>()!;
+            var jwt = configuration.GetSection(ConfigKeys.Jwt.Section).Get<JwtOptions>()!;
+            var auth = configuration.GetSection(ConfigKeys.Auth.Section).Get<AuthOptions>()!;
 
             logger.LogInformation(@"JWT Issuer: {JwtIssuer}.", jwt.Issuer);
             logger.LogInformation(@"JWT Audience: {JwtAudience}.", jwt.Audience);
             logger.LogInformation(@"JWT Minutes To Expire: {JwtMinutesToExpire}.", jwt.MinutesToExpire);
             logger.LogInformation(@"JWT Clock Skew Minutes: {JwtClockSkewMinutes}.", jwt.ClockSkewMinutes);
+            logger.LogInformation(@"Auth Max Failed Attempts: {AuthMaxFailedAttempts}.", auth.MaxFailedAttempts);
+            logger.LogInformation(@"Auth Lockout Minutes: {AuthLockoutMinutes}.", auth.LockoutMinutes);
+            logger.LogInformation(@"Auth Refresh Token Byte Size: {AuthRefreshTokenByteSize}.", auth.RefreshTokenByteSize);
 
             RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ConfigKeys.RateLimiting.Type);
             logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);

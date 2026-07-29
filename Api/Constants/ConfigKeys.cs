@@ -9,10 +9,16 @@ namespace Api.Constants
 
         public static class Jwt
         {
+            public const string Section = @"Jwt";
             public const string SecretKey = @"Jwt:SecretKey";
             public const string Issuer = @"Jwt:Issuer";
             public const string Audience = @"Jwt:Audience";
             public const string MinutesToExpire = @"Jwt:MinutesToExpire";
+        }
+
+        public static class Auth
+        {
+            public const string Section = @"Auth";
         }
 
         public static class Cookie

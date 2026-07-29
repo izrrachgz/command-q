@@ -36,7 +36,13 @@ namespace Api.Extensions
 
             bool isProduction = environment.IsProduction();
 
-            services.Configure<JwtOptions>(configuration.GetSection(@"Jwt"));
+            services.Configure<JwtOptions>(configuration.GetSection(ConfigKeys.Jwt.Section));
+            services.AddOptions<AuthOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.Auth.Section))
+                .Validate(options => options.MaxFailedAttempts > 0, "Auth:MaxFailedAttempts must be greater than zero.")
+                .Validate(options => options.LockoutMinutes > 0, "Auth:LockoutMinutes must be greater than zero.")
+                .Validate(options => options.RefreshTokenByteSize > 0, "Auth:RefreshTokenByteSize must be greater than zero.")
+                .ValidateOnStart();
 
             services.AddScoped<AuthService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -48,7 +54,7 @@ namespace Api.Extensions
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                var jwt = configuration.GetSection(@"Jwt").Get<JwtOptions>()!;
+                var jwt = configuration.GetSection(ConfigKeys.Jwt.Section).Get<JwtOptions>()!;
 
                 options.RequireHttpsMetadata = isProduction;
                 options.SaveToken = true;

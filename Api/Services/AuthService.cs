@@ -1,6 +1,7 @@
 ﻿using Public;
 using MediatR;
 using Api.Dtos;
+using Api.Models;
 using Common.Hash;
 using Api.Interfaces;
 using System.Security;
@@ -11,29 +12,29 @@ using System.Security.Cryptography;
 using Application.AccountSessions.Dtos;
 using Application.AccountSessions.Queries;
 using Application.AccountSessions.Commands;
+using Microsoft.Extensions.Options;
 
 namespace Api.Services
 {
     public sealed class AuthService
     {
-        private const int MaxFailedAttempts = 5;
-        private static readonly TimeSpan LockoutTime = TimeSpan.FromMinutes(10);
-
         private readonly ISender _sender;
         private readonly IJwtTokenService _jwt;
         private readonly ITextProvider _messages;
+        private readonly AuthOptions _authOptions;
         private readonly IRefreshTokenService _refresh;
 
         private readonly string _message_account_locked;
 
         private Dictionary<Guid, Tuple<AccountModel, AccountSessionModel>> AccountsCache = [];
 
-        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, ITextProvider textProvider)
+        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, ITextProvider textProvider, IOptions<AuthOptions> authOptions)
         {
             _jwt = jwt;
             _sender = sender;
             _refresh = refresh;
             _messages = textProvider;
+            _authOptions = authOptions.Value;
 
             _message_account_locked = _messages.Get(nameof(Messages.Account_Locked));
         }
@@ -56,7 +57,7 @@ namespace Api.Services
             CheckIfAccountSessionIsLockedByIdQuery checkLockedSessionQuery = new()
             {
                 AccountId = account.Id,
-                MaxFailedAttempts = MaxFailedAttempts
+                MaxFailedAttempts = _authOptions.MaxFailedAttempts
             };
 
             var accountIsLocked = await _sender.Send(checkLockedSessionQuery, cancellationToken);
@@ -84,8 +85,8 @@ namespace Api.Services
             {
                 session.FailedLoginAttempts++;
 
-                if (session.FailedLoginAttempts >= MaxFailedAttempts)
-                    session.LockedUntilUtc = DateTime.UtcNow.Add(LockoutTime);
+                if (session.FailedLoginAttempts >= _authOptions.MaxFailedAttempts)
+                    session.LockedUntilUtc = DateTime.UtcNow.AddMinutes(_authOptions.LockoutMinutes);
 
                 updateSessionCommand.FailedLoginAttempts = session.FailedLoginAttempts;
                 updateSessionCommand.LockedUntilUtc = session.LockedUntilUtc;
@@ -151,7 +152,7 @@ namespace Api.Services
 
             var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account, session.TokenVersion);
 
-            var newRefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            var newRefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(_authOptions.RefreshTokenByteSize));
 
             await _refresh.Rotate(refreshToken, newRefreshToken);
 

@@ -6,14 +6,15 @@ using Application.AccountSessions.Dtos;
 
 namespace Api.Services
 {
-    public sealed class RefreshTokenService(IOptions<JwtOptions> options) : IRefreshTokenService
+    public sealed class RefreshTokenService(IOptions<JwtOptions> options, IOptions<AuthOptions> authOptions) : IRefreshTokenService
     {
         private readonly JwtOptions _options = options.Value;
+        private readonly AuthOptions _authOptions = authOptions.Value;
         private static readonly List<RefreshToken> _tokens = [];
 
         public Task<string> Create(AccountSessionModel session)
         {
-            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(_authOptions.RefreshTokenByteSize));
 
             _tokens.Add(new RefreshToken
             {
