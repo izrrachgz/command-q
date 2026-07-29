@@ -142,6 +142,7 @@ namespace Persistence.Repository.Command
                 while (insertedRows < rows.Length)
                 {
                     await using var cmd = transaction.Connection.CreateCommand();
+                    cmd.Transaction = transaction;
 
                     var batch = rows.Skip(insertedRows).Take(InsertBatchSize);
 
@@ -158,8 +159,10 @@ namespace Persistence.Repository.Command
                             string paramName = $@"{column}{i}";
                             sb.Append('@').Append(paramName);
                             cmd.Parameters.AddWithValue(paramName, row[column] ?? DBNull.Value);
+                            sb.Append(',');
                         }
 
+                        sb.Length -= 1;
                         sb.Append(')').Append(',');
 
                         i++;
@@ -184,7 +187,7 @@ namespace Persistence.Repository.Command
 
                 Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
 
-                return new(true, CommandConstants.TransactionCancelled);
+                return new(false, CommandConstants.TransactionCancelled);
             }
             catch (Exception e)
             {
@@ -206,9 +209,7 @@ namespace Persistence.Repository.Command
 
             foreach (var row in rows)
             {
-                foreach (var column in columns)
-                    sb.Append(SerializeParameter(row[column])).Append(CharacterSeparator);
-
+                sb.AppendJoin(CharacterSeparator, columns.Select(column => SerializeParameter(row[column])));
                 sb.AppendLine();
             }
 
@@ -251,6 +252,10 @@ namespace Persistence.Repository.Command
                 Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
+            }
+            finally
+            {
+                File.Delete(tempPath);
             }
         }
 

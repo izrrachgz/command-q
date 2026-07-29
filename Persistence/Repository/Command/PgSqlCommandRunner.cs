@@ -154,23 +154,31 @@ namespace Persistence.Repository.Command
                 foreach (var row in rows)
                 {
                     await writer.StartRowAsync(cancellationToken);
-                    foreach (var item in row)
+                    foreach (var column in columns)
                     {
-                        if (item.Value == null)
-                            await writer.WriteNullAsync(cancellationToken);
+                        object? value = row[column];
 
-                        var type = schema.FirstOrDefault(s => s.ColumnName == item.Key);
+                        if (value == null)
+                        {
+                            await writer.WriteNullAsync(cancellationToken);
+                            continue;
+                        }
+
+                        var type = schema.FirstOrDefault(s => s.ColumnName == column);
 
                         if (type is not null && type.NpgsqlDbType is not null)
                         {
-                            await writer.WriteAsync(item.Value, type.NpgsqlDbType.Value, cancellationToken);
+                            await writer.WriteAsync(value, type.NpgsqlDbType.Value, cancellationToken);
                             continue;
                         }
 
                         if (type is not null && type.NpgsqlDbType is null && type.DataTypeName.Equals(@"public.vector"))
                         {
-                            await writer.WriteAsync(item.Value, @"vector", cancellationToken);
+                            await writer.WriteAsync(value, @"vector", cancellationToken);
+                            continue;
                         }
+
+                        await writer.WriteAsync(value, cancellationToken);
                     }
                 }
 

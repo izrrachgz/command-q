@@ -23,7 +23,7 @@ CREATE TABLE HealthCheckLog (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    INDEX IX_HealthCheckLog_Created (Created)
+    INDEX IX_HealthCheckLog_Created (Deleted, Created)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -38,10 +38,11 @@ CREATE TABLE Account (
     Created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
     PRIMARY KEY (Id),
-    UNIQUE KEY UX_Account_Username (Username),
-    UNIQUE KEY UX_Account_Email (Email),
-    INDEX IX_Account_Deleted (Deleted)
+    UNIQUE KEY UX_Account_Username (Username, ActiveRecord),
+    UNIQUE KEY UX_Account_Email (Email, ActiveRecord),
+    INDEX IX_Account_Active (Deleted, Username, Email, Created)
 ) ENGINE=InnoDB;
 
 INSERT INTO Account
@@ -64,12 +65,11 @@ CREATE TABLE AccountSession (
     Created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
-    PRIMARY KEY (AccountId),
     CONSTRAINT FK_AccountSession_Account
-        FOREIGN KEY (AccountId) REFERENCES Account(Id)
-        ON DELETE CASCADE,
-    INDEX IX_AccountSession_LockedUntilUtc (LockedUntilUtc),
-    INDEX IX_AccountSession_FailedLoginAttempts (FailedLoginAttempts)
+        FOREIGN KEY (AccountId) REFERENCES Account(Id),
+    INDEX IX_AccountSession_Active (Deleted, AccountId),
+    INDEX IX_AccountSession_LockedUntilUtc (Deleted, LockedUntilUtc),
+    INDEX IX_AccountSession_FailedLoginAttempts (Deleted, FailedLoginAttempts)
 ) ENGINE=InnoDB;
 
 INSERT INTO AccountSession
@@ -99,10 +99,10 @@ CREATE TABLE Address (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    FOREIGN KEY (AccountId) REFERENCES Account(Id) ON DELETE CASCADE,
-    INDEX IX_Address_AccountId (AccountId),
-    INDEX IX_Address_Location (Country, City, PostalCode),
-    INDEX IX_Address_Created (Created)
+    FOREIGN KEY (AccountId) REFERENCES Account(Id),
+    INDEX IX_Address_AccountId (Deleted, AccountId),
+    INDEX IX_Address_Location (Deleted, Country, City, PostalCode),
+    INDEX IX_Address_Created (Deleted, Created)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -119,9 +119,9 @@ CREATE TABLE Contact (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    FOREIGN KEY (AccountId) REFERENCES Account(Id) ON DELETE CASCADE,
-    INDEX IX_Contact_AccountId (AccountId),
-    INDEX IX_Contact_Email (EmailAddress)
+    FOREIGN KEY (AccountId) REFERENCES Account(Id),
+    INDEX IX_Contact_AccountId (Deleted, AccountId),
+    INDEX IX_Contact_Email (Deleted, EmailAddress)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -137,8 +137,8 @@ CREATE TABLE Event (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    INDEX IX_Event_Start_End (`Start`, `End`),
-    INDEX IX_Event_Name (Name)
+    INDEX IX_Event_Start_End (Deleted, `Start`, `End`),
+    INDEX IX_Event_Name (Deleted, Name)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -152,7 +152,7 @@ CREATE TABLE Place (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    INDEX IX_Place_Name (Name)
+    INDEX IX_Place_Name (Deleted, Name)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -166,10 +166,10 @@ CREATE TABLE `Register` (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    FOREIGN KEY (AccountId) REFERENCES Account(Id) ON DELETE CASCADE,
-    INDEX IX_Register_AccountId (AccountId),
-    INDEX IX_Register_Created (Created),
-    INDEX IX_Register_Action (Action, Created)
+    FOREIGN KEY (AccountId) REFERENCES Account(Id),
+    INDEX IX_Register_AccountId (Deleted, AccountId),
+    INDEX IX_Register_Created (Deleted, Created),
+    INDEX IX_Register_Action (Deleted, Action, Created)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -183,11 +183,12 @@ CREATE TABLE RegisterEvent (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    FOREIGN KEY (RegisterId) REFERENCES `Register`(Id) ON DELETE CASCADE,
-    FOREIGN KEY (EventId) REFERENCES Event(Id) ON DELETE CASCADE,
-    UNIQUE KEY UX_RegisterEvent_Unique (RegisterId, EventId),
-    INDEX IX_RegisterEvent_RegisterId (RegisterId),
-    INDEX IX_RegisterEvent_EventId (EventId)
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    FOREIGN KEY (RegisterId) REFERENCES `Register`(Id),
+    FOREIGN KEY (EventId) REFERENCES Event(Id),
+    UNIQUE KEY UX_RegisterEvent_Unique (RegisterId, EventId, ActiveRecord),
+    INDEX IX_RegisterEvent_RegisterId (Deleted, RegisterId),
+    INDEX IX_RegisterEvent_EventId (Deleted, EventId)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -201,11 +202,12 @@ CREATE TABLE RegisterPlace (
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
     PRIMARY KEY (Id),
-    FOREIGN KEY (RegisterId) REFERENCES `Register`(Id) ON DELETE CASCADE,
-    FOREIGN KEY (PlaceId) REFERENCES Place(Id) ON DELETE CASCADE,
-    UNIQUE KEY UX_RegisterPlace_Unique (RegisterId, PlaceId),
-    INDEX IX_RegisterPlace_RegisterId (RegisterId),
-    INDEX IX_RegisterPlace_PlaceId (PlaceId)
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    FOREIGN KEY (RegisterId) REFERENCES `Register`(Id),
+    FOREIGN KEY (PlaceId) REFERENCES Place(Id),
+    UNIQUE KEY UX_RegisterPlace_Unique (RegisterId, PlaceId, ActiveRecord),
+    INDEX IX_RegisterPlace_RegisterId (Deleted, RegisterId),
+    INDEX IX_RegisterPlace_PlaceId (Deleted, PlaceId)
 ) ENGINE=InnoDB;
 
 -- =========================

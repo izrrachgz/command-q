@@ -170,7 +170,7 @@ namespace Persistence.Repository.Command
                 {
                     await transaction.RollbackAsync(cancellationToken);
 
-                    return new(true, CommandConstants.TransactionCancelled);
+                    return new(false, CommandConstants.TransactionCancelled);
                 }
 
                 await transaction.CommitAsync(cancellationToken);

@@ -123,6 +123,7 @@ namespace Persistence.Repository.Command
             try
             {
                 await using var cmd = connection.CreateCommand();
+                cmd.Transaction = (SQLiteTransaction)transaction;
 
                 cmd.CommandText = $@"INSERT INTO {table} ({string.Join(@",", columns)}) VALUES (@{string.Join(@",@", columns)})";
 
