@@ -1,35 +1,34 @@
-﻿using Public;
+using Public;
 using Common.Extensions;
 using FluentValidation;
 using Localization.Providers;
+using Application.Constants;
 
 namespace Application.Accounts.Commands
 {
     public class CreateAccountCommandValidator : AbstractValidator<CreateAccountCommand>
     {
-        private const int MAX_LENGTH = 256;
-
-        public CreateAccountCommandValidator(ResourceValidationTextProvider messages)
+        public CreateAccountCommandValidator(ValidationTextProvider messages)
         {
             RuleFor(x => x.Email)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Email Address"))
-                .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Email Address", MAX_LENGTH))
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Email_Address))))
+                .MaximumLength(ValidationLimits.MaxLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), messages.Get(nameof(FieldNames.Email_Address)), ValidationLimits.MaxLength))
                 .Must(email => email.IsEmailAddress())
-                .WithMessage(messages.Get(nameof(ValidationMessages.Email_Has_To_Be_Valid)));
+                .WithMessage(messages.Get(nameof(ValidationText.Email_Has_To_Be_Valid)));
 
             RuleFor(x => x.Username)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Username"))
-                .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Username", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Username))))
+                .MaximumLength(ValidationLimits.MaxLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), messages.Get(nameof(FieldNames.Username)), ValidationLimits.MaxLength));
 
             RuleFor(x => x.Password)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Password"))
-                .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Password", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Password))))
+                .MaximumLength(ValidationLimits.MaxLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), messages.Get(nameof(FieldNames.Password)), ValidationLimits.MaxLength));
         }
     }
 }

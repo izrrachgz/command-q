@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.AccountSessions.Queries;
@@ -15,7 +15,7 @@ namespace Application.Test.AccountSessions.Queries
         {
             var query = new GetAccountSessionByIdQuery()
             {
-                AccountId = ApplicationTest.AccountId
+                AccountId = TestValues.AccountId
             };
             
             CancellationToken cancellationToken = default;

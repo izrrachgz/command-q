@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.Addresses.Commands;
@@ -15,7 +15,7 @@ namespace Application.Test.Addresses.Commands
         {
             var command = new CreateAddressCommand()
             {
-                AccountId = ApplicationTest.AccountId,
+                AccountId = TestValues.AccountId,
                 Name = @"Test Address",
                 Line1 = @"123 Test Street",
                 City = @"Test City",

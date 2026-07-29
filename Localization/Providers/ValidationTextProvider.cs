@@ -1,14 +1,15 @@
-﻿using Public;
+using Public;
 using System.Globalization;
 using Localization.Abstractions;
 
 namespace Localization.Providers
 {
-    public class ResourceTextProvider : ITextProvider
+    public class ValidationTextProvider : ITextProvider
     {
         public string Get(string key, params object[] args)
         {
-            var value = Messages.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
+            var value = ValidationText.ResourceManager.GetString(key, CultureInfo.CurrentUICulture)
+                ?? FieldNames.ResourceManager.GetString(key, CultureInfo.CurrentUICulture);
 
             if (value == null)
                 return key;

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Api.Dtos;
 using Api.Services;
 using Api.Constants;
@@ -22,8 +22,8 @@ namespace Api.Controllers
             _sender = sender;
             _authService = authService;
             _isProduction = environment.IsProduction();
-            _cookieName = configuration.GetValue<string>(AppSettingsKeys.CookieName)!;
-            _daysToExpire = configuration.GetValue<int>(AppSettingsKeys.CookieDaysToExpire);
+            _cookieName = configuration.GetValue<string>(ConfigKeys.Cookie.Name)!;
+            _daysToExpire = configuration.GetValue<int>(ConfigKeys.Cookie.DaysToExpire);
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Api.Controllers
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
         /// <returns>An <see cref="IActionResult"/> that represents the result of the authentication attempt. Returns 200 OK with
         /// authentication details if successful; otherwise, returns 401 Unauthorized.</returns>
-        [HttpPost(@"sign-in"), EnableRateLimiting(AppSettingsKeys.RateLimitingFixedPolicyName)]
+        [HttpPost(@"sign-in"), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
         {
             var result = await _authService.Login(request.Username, request.Password, cancellationToken);
@@ -125,7 +125,7 @@ namespace Api.Controllers
         /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
         /// <returns>An <see cref="IActionResult"/> that represents the result of the account creation operation. Returns a
         /// BadRequest result if the creation fails, or an Ok result with the response data if successful.</returns>
-        [HttpPost(@"create"), EnableRateLimiting(AppSettingsKeys.RateLimitingFixedPolicyName)]
+        [HttpPost(@"create"), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
         {
             var response = await _sender.Send(request, cancellationToken);

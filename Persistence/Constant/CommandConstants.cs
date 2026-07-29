@@ -1,6 +1,6 @@
 ﻿namespace Persistence.Constant
 {
-    sealed record CommandConstants
+    internal static class CommandConstants
     {
         public const string CopyCompleted = @"Copy completed.";
 

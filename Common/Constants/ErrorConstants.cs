@@ -1,8 +1,8 @@
 ﻿namespace Common.Constants
 {
-    public record ErrorConstants
+    public static class ErrorConstants
     {
-        public const string AnExceptionHasOcurred = @"An exception has ocurred.";
+        public const string AnExceptionHasOccurred = @"An exception has occurred.";
 
         public const string CannotReadTableMetadata = @"Cannot read table schema metadata.";
     }

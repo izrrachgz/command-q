@@ -1,10 +1,10 @@
 ﻿namespace Application.Constants
 {
-    public record ApplicationMessages
+    public static class ApplicationMessages
     {
-        public const string CommandCancelled = @"The command has ben cancelled.";
+        public const string CommandCancelled = @"The command has been cancelled.";
 
-        public const string QueryCancelled = @"The query has ben cancelled.";
+        public const string QueryCancelled = @"The query has been cancelled.";
 
         public const string RecordNotFound = @"Requested record is not found.";
 

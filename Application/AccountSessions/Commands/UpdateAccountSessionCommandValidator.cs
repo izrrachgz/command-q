@@ -1,4 +1,4 @@
-﻿using Public;
+using Public;
 using FluentValidation;
 using Localization.Providers;
 
@@ -6,11 +6,11 @@ namespace Application.AccountSessions.Commands
 {
     public class UpdateAccountSessionCommandValidator : AbstractValidator<UpdateAccountSessionCommand>
     {
-        public UpdateAccountSessionCommandValidator(ResourceValidationTextProvider messages)
+        public UpdateAccountSessionCommandValidator(ValidationTextProvider messages)
         {
             RuleFor(x => x.AccountId)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Account Id"));
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Account_Id))));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.Contacts.Queries;
@@ -15,7 +15,7 @@ namespace Application.Test.Contacts.Queries
         {
             var query = new GetContactByAccountIdQuery()
             {
-                AccountId = ApplicationTest.AccountId
+                AccountId = TestValues.AccountId
             };
 
             CancellationToken cancellationToken = default;

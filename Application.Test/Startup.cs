@@ -3,7 +3,9 @@ using MediatR;
 using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
+using Application;
 using Application.Interfaces;
+using Application.Constants;
 using Localization.Extensions;
 using Application.Test.Constants;
 using Persistence.Repository.Extensions;
@@ -17,12 +19,12 @@ namespace Application.Test
     {
         public static void ConfigureServices(IServiceCollection services)
         {
-            var applicationAssembly = typeof(ProjectLinkReference).Assembly;
+            var applicationAssembly = typeof(ApplicationAssemblyMarker).Assembly;
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile(ApplicationTest.ConfigurationFileName, optional: false)
-                .AddUserSecrets(ApplicationTest.UserSecrets)
+                .AddJsonFile(AppConfig.ConfigurationFileName, optional: false)
+                .AddUserSecrets(AppConfig.UserSecrets)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -44,7 +46,7 @@ namespace Application.Test
                     }
                 });
 
-            //Meadiator cqrs
+            //MediatR cqrs
             services.AddMediatR(config => config.RegisterServicesFromAssembly(applicationAssembly));
             services.AddValidatorsFromAssembly(applicationAssembly, ServiceLifetime.Singleton);
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));

@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Persistence.Repository.Extensions
 {
-    public static class DIRepositoryExtensions
+    public static class RepositoryServiceExtensions
     {
         public static void AddRepositories(this IServiceCollection services)
         {

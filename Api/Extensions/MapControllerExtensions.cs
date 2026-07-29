@@ -1,4 +1,4 @@
-﻿using Api.Constants;
+using Api.Constants;
 using Api.Enumerations;
 
 namespace Api.Extensions
@@ -21,7 +21,7 @@ namespace Api.Extensions
         /// settings.</returns>
         public static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, IConfiguration configuration) where TBuilder : IEndpointConventionBuilder
         {
-            RateLimiting rateLimitingType = configuration.GetValue(AppSettingsKeys.RateLimitingType, RateLimiting.None);
+            RateLimiting rateLimitingType = configuration.GetValue(ConfigKeys.RateLimiting.Type, RateLimiting.None);
 
             RequireRateLimiting(builder, rateLimitingType);
 
@@ -43,16 +43,16 @@ namespace Api.Extensions
             switch (limiting)
             {
                 case RateLimiting.FixedWindow:
-                    builder.RequireRateLimiting(AppSettingsKeys.RateLimitingFixedPolicyName);
+                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName);
                     break;
                 case RateLimiting.SlidingWindow:
-                    builder.RequireRateLimiting(AppSettingsKeys.RateLimitingSlidingPolicyName);
+                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.SlidingPolicyName);
                     break;
                 case RateLimiting.TokenBucket:
-                    builder.RequireRateLimiting(AppSettingsKeys.RateLimitingTokenBucketPolicyName);
+                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.TokenBucketPolicyName);
                     break;
                 case RateLimiting.Concurrent:
-                    builder.RequireRateLimiting(AppSettingsKeys.RateLimitingConcurrencyPolicyName);
+                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.ConcurrencyPolicyName);
                     break;
                 case RateLimiting.None:
                 default:

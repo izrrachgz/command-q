@@ -1,6 +1,6 @@
 ﻿namespace Application.Constants
 {
-    public static class ApplicationConfiguration
+    public static class AppConfig
     {
         #region Configuration
 

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.Contacts.Commands;
@@ -15,7 +15,7 @@ namespace Application.Test.Contacts.Commands
         {
             var command = new CreateContactCommand()
             {
-                AccountId = ApplicationTest.AccountId,
+                AccountId = TestValues.AccountId,
                 Name = @"Test Contact",
             };
 

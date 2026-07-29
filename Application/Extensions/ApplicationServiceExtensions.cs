@@ -2,6 +2,7 @@
 using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
+using Application;
 using Application.Interfaces;
 using Localization.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -13,7 +14,7 @@ using Persistence.Repository.Command.Extensions;
 
 namespace Application.Extensions
 {
-    public static class DIExtensions
+    public static class ApplicationServiceExtensions
     {
         /// <summary>
         /// Configures essential services and middleware for the application, including dependency injection for
@@ -22,7 +23,7 @@ namespace Application.Extensions
         /// <param name="services"></param>
         public static void ConfigureApplicationServices(this IServiceCollection services)
         {
-            var applicationAssembly = typeof(ProjectLinkReference).Assembly;
+            var applicationAssembly = typeof(ApplicationAssemblyMarker).Assembly;
 
             // Add mapping profiles
             applicationAssembly.ExportedTypes
@@ -46,7 +47,7 @@ namespace Application.Extensions
             // Repositories
             services.AddRepositories();
 
-            //// Command Runners
+            // Command runners
             services.AddCommandRunners();
 
             // Task runner
@@ -83,7 +84,7 @@ namespace Application.Extensions
         /// <returns></returns>
         public static async Task RunApplicationMigrations(this IHost host)
         {
-            //Run database migrations on startup
+            // Run database migrations on startup
             await host.RunMigrations();
         }
     }

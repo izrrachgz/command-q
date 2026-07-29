@@ -59,9 +59,9 @@ namespace Persistence.Repository.Command
             }
             catch (Exception e)
             {
-                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOccurred}: {e.Message}");
 
-                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
             }
 
             return [];
@@ -105,9 +105,9 @@ namespace Persistence.Repository.Command
             }
             catch (Exception e)
             {
-                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {e.Message}");
+                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOccurred}: {e.Message}");
 
-                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
             }
 
             return results;
@@ -155,7 +155,7 @@ namespace Persistence.Repository.Command
             {
                 await transaction.RollbackAsync(CancellationToken.None);
 
-                Logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
+                Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
             }

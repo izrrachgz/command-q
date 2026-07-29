@@ -11,7 +11,7 @@ var app = builder.Build();
 
 app.ConfigurePipeline(builder.Configuration, builder.Environment);
 
-app.Logger.LogApplicationConfiguration(builder.Configuration, builder.Environment);
+app.Logger.LogAppConfig(builder.Configuration, builder.Environment);
 
 // Run migrations before starting the application    
 await app.RunApplicationMigrations();

@@ -1,6 +1,6 @@
 ﻿namespace Common.Constants
 {
-    public record ProcessConstants
+    public static class ProcessConstants
     {
         public const string ProcessCompleted = @"Process completed.";
 

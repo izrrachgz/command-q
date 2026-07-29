@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -16,10 +16,15 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Messages.resx</DependentUpon>
     </Compile>
-    <Compile Update="Resources\ValidationMessages.Designer.cs">
+    <Compile Update="Resources\ValidationText.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>ValidationMessages.resx</DependentUpon>
+      <DependentUpon>ValidationText.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\FieldNames.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FieldNames.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -37,9 +42,22 @@
       <LastGenOutput>Messages.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Public</CustomToolNamespace>
     </EmbeddedResource>
-    <EmbeddedResource Update="Resources\ValidationMessages.resx">
+    <EmbeddedResource Update="Resources\ValidationText.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>ValidationMessages.Designer.cs</LastGenOutput>
+      <LastGenOutput>ValidationText.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Public</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\FieldNames.en.resx">
+      <Generator></Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\FieldNames.es.resx">
+      <Generator></Generator>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\FieldNames.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>FieldNames.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Public</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>

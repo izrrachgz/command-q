@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.AccountSessions.Queries;
@@ -15,7 +15,7 @@ namespace Application.Test.AccountSessions.Queries
         {
             var query = new CheckIfAccountSessionIsLockedByIdQuery()
             {
-                AccountId = ApplicationTest.AccountId,
+                AccountId = TestValues.AccountId,
                 MaxFailedAttempts = 5,
             };
 

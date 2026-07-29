@@ -16,7 +16,7 @@ namespace Api.Middleware
             }
             catch (Exception e)
             {
-                logger.LogError(e, ErrorConstants.AnExceptionHasOcurred);
+                logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
 
                 await HandleExceptionAsync(context, e);
             }
@@ -45,7 +45,7 @@ namespace Api.Middleware
             exception switch
             {
                 ValidationException => StatusCodes.Status400BadRequest,
-                HttpBadResquestException => StatusCodes.Status400BadRequest,
+                HttpBadRequestException => StatusCodes.Status400BadRequest,
                 HttpNotFoundException => StatusCodes.Status404NotFound,
                 HttpForbiddenException => StatusCodes.Status403Forbidden,
                 HttpUnauthorizedException => StatusCodes.Status401Unauthorized,
@@ -57,7 +57,7 @@ namespace Api.Middleware
             {
                 ApplicationException applicationException => applicationException.Message,
                 ValidationException => "Invalid Model",
-                HttpBadResquestException => "Invalid Model",
+                HttpBadRequestException => "Invalid Model",
                 HttpNotFoundException => "Not Found",
                 HttpForbiddenException => "Forbidden",
                 HttpUnauthorizedException => "Unauthorized",

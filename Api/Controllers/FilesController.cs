@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Api.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Application.Files.Commands;
@@ -21,7 +21,7 @@ namespace Api.Controllers
         /// Uploads a file to the server.
         /// </summary>
         [HttpPost("upload"), Consumes("multipart/form-data")]
-        [EnableRateLimiting(AppSettingsKeys.RateLimitingFixedPolicyName)]
+        [EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Upload([FromForm] IFormFile file, CancellationToken cancellationToken)
         {
             if (file is null || file.Length == 0)

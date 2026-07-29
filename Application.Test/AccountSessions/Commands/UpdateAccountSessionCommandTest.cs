@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.AccountSessions.Commands;
@@ -15,7 +15,7 @@ namespace Application.Test.AccountSessions.Commands
         {
             var command = new UpdateAccountSessionCommand
             {
-                AccountId = ApplicationTest.AccountId,
+                AccountId = TestValues.AccountId,
                 TokenVersion = 1,
                 FailedLoginAttempts = 0,
                 LockedUntilUtc = null

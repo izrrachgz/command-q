@@ -1,21 +1,20 @@
-﻿using Public;
+using Public;
 using FluentValidation;
 using Common.Extensions;
 using Localization.Providers;
+using Application.Constants;
 
 namespace Application.Contacts.Commands
 {
     public class CreateContactCommandValidator : AbstractValidator<CreateContactCommand>
     {
-        private const int MAX_LENGTH = 256;
-
-        public CreateContactCommandValidator(ResourceValidationTextProvider messages)
+        public CreateContactCommandValidator(ValidationTextProvider messages)
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), @"Name"))
-                .MaximumLength(MAX_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Cannot_Exceed), @"Name", MAX_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Name))))
+                .MaximumLength(ValidationLimits.MaxLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), messages.Get(nameof(FieldNames.Name)), ValidationLimits.MaxLength));
         }
     }
 }

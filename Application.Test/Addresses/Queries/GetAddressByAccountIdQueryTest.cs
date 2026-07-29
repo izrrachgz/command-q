@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Microsoft.Extensions.Logging;
 using Application.Addresses.Queries;
@@ -15,7 +15,7 @@ namespace Application.Test.Addresses.Queries
         {
             var query = new GetAddressByAccountIdQuery()
             {
-                AccountId = ApplicationTest.AccountId
+                AccountId = TestValues.AccountId
             };
 
             CancellationToken cancellationToken = default;

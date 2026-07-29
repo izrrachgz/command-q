@@ -48,7 +48,7 @@ namespace Api.Extensions
             // Add application services
             builder.Services.ConfigureApplicationServices();
 
-            var clientsSection = builder.Configuration.GetSection(AppSettingsKeys.ApiClientsKeyName);
+            var clientsSection = builder.Configuration.GetSection(ConfigKeys.Api.Clients);
 
             //Register api clients
             builder.Services.Configure<List<ApiClient>>(clientsSection);
@@ -144,7 +144,7 @@ namespace Api.Extensions
         /// <param name="environment">The hosting environment that provides information about the application's current environment, such as
         /// Development or Production.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1873:Evitar el registro potencialmente costoso", Justification = "All logging in this method comes from configuration file and there is no heavy calculations.")]
-        public static void LogApplicationConfiguration(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
+        public static void LogAppConfig(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
         {
             logger.LogInformation(@"Environment: {Environment}.", environment.EnvironmentName);
 
@@ -160,16 +160,16 @@ namespace Api.Extensions
             logger.LogInformation(@"JWT Minutes To Expire: {JwtMinutesToExpire}.", jwt.MinutesToExpire);
             logger.LogInformation(@"JWT Clock Skew Minutes: {JwtClockSkewMinutes}.", jwt.ClockSkewMinutes);
 
-            RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(AppSettingsKeys.RateLimitingType);
+            RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ConfigKeys.RateLimiting.Type);
             logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);
 
-            DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(AppSettingsKeys.DatabaseEngine);
+            DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(ConfigKeys.Database.Engine);
             logger.LogInformation(@"Database Engine: {DatabaseEngine}.", databaseEngine);
 
-            string? healthCheckInternetUrl = configuration.GetValue<string?>(AppSettingsKeys.HealthCheckUrl);
+            string? healthCheckInternetUrl = configuration.GetValue<string?>(ConfigKeys.HealthCheck.Url);
             logger.LogInformation(@"Health Check URL: {HealthCheckUrl}.", healthCheckInternetUrl);
 
-            int? cacheMaxAgeSeconds = configuration.GetValue<int?>(AppSettingsKeys.CacheSettingsMaxAgeSeconds);
+            int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ConfigKeys.Cache.MaxAgeSeconds);
             logger.LogInformation(@"Cache Max Age (seconds): {CacheMaxAgeSeconds}.", cacheMaxAgeSeconds);
         }
     }

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Test.Constants;
 using Application.Accounts.Queries;
 using Microsoft.Extensions.Logging;
@@ -15,8 +15,8 @@ namespace Application.Test.Accounts.Queries
         {
             var query = new GetAccountByUsernameQuery()
             {
-                Username = ApplicationTest.AcccountUsername,
-                Password = ApplicationTest.AccountPassword
+                Username = TestValues.AccountUsername,
+                Password = TestValues.AccountPassword
             };
 
             CancellationToken cancellationToken = default;

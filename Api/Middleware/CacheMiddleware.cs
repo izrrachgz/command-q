@@ -1,4 +1,4 @@
-﻿using Api.Constants;
+using Api.Constants;
 using Microsoft.Net.Http.Headers;
 
 namespace Api.Middleware
@@ -34,7 +34,7 @@ namespace Api.Middleware
             if (context.Response.Headers.ContainsKey(HeaderNames.CacheControl))
                 return;
 
-            int maxAge = configuration.GetValue(AppSettingsKeys.CacheSettingsMaxAgeSeconds, 10);
+            int maxAge = configuration.GetValue(ConfigKeys.Cache.MaxAgeSeconds, 10);
 
             context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
             {

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.HealthChecks.Extensions
 {
-    public static class DIHealthCheckExtensions
+    public static class HealthCheckServiceExtensions
     {
         private const int SecondsDelayToRun = 1;
         private const int DaysToRunHealthCheck = 1;

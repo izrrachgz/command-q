@@ -1,6 +1,6 @@
 ﻿namespace Api.Constants
 {
-    internal sealed class ApiMessages
+    internal static class ApiMessages
     {
         public const string NotValidApiClient = @"This API client is not valid to work with or client headers are not present in the request.";
 

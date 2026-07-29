@@ -42,9 +42,9 @@ namespace Common.System
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($@"{ErrorConstants.AnExceptionHasOcurred}: {ex.Message}");
+                        Console.WriteLine($@"{ErrorConstants.AnExceptionHasOccurred}: {ex.Message}");
 
-                        _logger.LogError(ex, ErrorConstants.AnExceptionHasOcurred);
+                        _logger.LogError(ex, ErrorConstants.AnExceptionHasOccurred);
                     }
                     finally
                     {

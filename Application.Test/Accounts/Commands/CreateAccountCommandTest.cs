@@ -4,10 +4,10 @@ using Application.Accounts.Commands;
 
 namespace Application.Test.Accounts.Commands
 {
-    public sealed class CreateAccountCommantTest(ILogger<CreateAccountCommantTest> logger, ISender sender)
+    public sealed class CreateAccountCommandTest(ILogger<CreateAccountCommandTest> logger, ISender sender)
     {
         private readonly ISender _sender = sender;
-        private readonly ILogger<CreateAccountCommantTest> _logger = logger;
+        private readonly ILogger<CreateAccountCommandTest> _logger = logger;
 
         [Fact]
         public async Task CreateAccountCommand_Should_Create_Account()

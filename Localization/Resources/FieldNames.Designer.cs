@@ -22,14 +22,14 @@ namespace Public {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class ValidationMessages {
+    public class FieldNames {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ValidationMessages() {
+        internal FieldNames() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Public {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Localization.Resources.ValidationMessages", typeof(ValidationMessages).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Localization.Resources.FieldNames", typeof(FieldNames).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,65 +61,119 @@ namespace Public {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Duration cannot be zero.
+        ///   Busca una cadena traducida similar a Account.
         /// </summary>
-        public static string Duration_Cannot_Be_Zero {
+        public static string Account {
             get {
-                return ResourceManager.GetString("Duration_Cannot_Be_Zero", resourceCulture);
+                return ResourceManager.GetString("Account", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Email has to be a valid e-mail address..
+        ///   Busca una cadena traducida similar a Account Id.
         /// </summary>
-        public static string Email_Has_To_Be_Valid {
+        public static string Account_Id {
             get {
-                return ResourceManager.GetString("Email_Has_To_Be_Valid", resourceCulture);
+                return ResourceManager.GetString("Account_Id", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a {0} cannot be {1}..
+        ///   Busca una cadena traducida similar a Address Line.
         /// </summary>
-        public static string Field_Cannot_Be {
+        public static string Address_Line {
             get {
-                return ResourceManager.GetString("Field_Cannot_Be", resourceCulture);
+                return ResourceManager.GetString("Address_Line", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Field {0} cannot be read..
+        ///   Busca una cadena traducida similar a City.
         /// </summary>
-        public static string Field_Cannot_Be_Read {
+        public static string City {
             get {
-                return ResourceManager.GetString("Field_Cannot_Be_Read", resourceCulture);
+                return ResourceManager.GetString("City", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a {0} cannot exceed {1} characters..
+        ///   Busca una cadena traducida similar a Country.
         /// </summary>
-        public static string Field_Cannot_Exceed {
+        public static string Country {
             get {
-                return ResourceManager.GetString("Field_Cannot_Exceed", resourceCulture);
+                return ResourceManager.GetString("Country", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a {0} is required..
+        ///   Busca una cadena traducida similar a Email Address.
         /// </summary>
-        public static string Field_Is_Required {
+        public static string Email_Address {
             get {
-                return ResourceManager.GetString("Field_Is_Required", resourceCulture);
+                return ResourceManager.GetString("Email_Address", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a {0} has to be at least {1} chatacters..
+        ///   Busca una cadena traducida similar a File Data.
         /// </summary>
-        public static string Field_Minimum_Length {
+        public static string File_Data {
             get {
-                return ResourceManager.GetString("Field_Minimum_Length", resourceCulture);
+                return ResourceManager.GetString("File_Data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a File Name.
+        /// </summary>
+        public static string File_Name {
+            get {
+                return ResourceManager.GetString("File_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Lock Duration.
+        /// </summary>
+        public static string Lock_Duration {
+            get {
+                return ResourceManager.GetString("Lock_Duration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Name.
+        /// </summary>
+        public static string Name {
+            get {
+                return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Password.
+        /// </summary>
+        public static string Password {
+            get {
+                return ResourceManager.GetString("Password", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Postal Code.
+        /// </summary>
+        public static string Postal_Code {
+            get {
+                return ResourceManager.GetString("Postal_Code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Username.
+        /// </summary>
+        public static string Username {
+            get {
+                return ResourceManager.GetString("Username", resourceCulture);
             }
         }
     }

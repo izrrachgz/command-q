@@ -1,26 +1,25 @@
-﻿using Public;
+using Public;
 using FluentValidation;
 using Localization.Providers;
+using Application.Constants;
 
 namespace Application.Accounts.Queries
 {
     public class GetAccountByUsernameQueryValidator : AbstractValidator<GetAccountByUsernameQuery>
     {
-        private const int MIN_LENGTH = 8;
-
-        public GetAccountByUsernameQueryValidator(ResourceValidationTextProvider messages)
+        public GetAccountByUsernameQueryValidator(ValidationTextProvider messages)
         {
             RuleFor(r => r.Username)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Username"))
-                .MinimumLength(MIN_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Minimum_Length), "Username", MIN_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Username))))
+                .MinimumLength(ValidationLimits.MinLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Minimum_Length), messages.Get(nameof(FieldNames.Username)), ValidationLimits.MinLength));
 
             RuleFor(r => r.Password)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Is_Required), "Password"))
-                .MinimumLength(MIN_LENGTH)
-                .WithMessage(messages.Get(nameof(ValidationMessages.Field_Minimum_Length), "Password", MIN_LENGTH));
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Password))))
+                .MinimumLength(ValidationLimits.MinLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Minimum_Length), messages.Get(nameof(FieldNames.Password)), ValidationLimits.MinLength));
         }
     }
 }

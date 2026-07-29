@@ -95,7 +95,7 @@ namespace Persistence.Migrations.Extensions
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($@"An error ocurred while trying to apply migration {filePath}, {e.Message}");
+                    Console.WriteLine($@"An error occurred while trying to apply migration {filePath}, {e.Message}");
                 }
             }
         }

@@ -1,6 +1,6 @@
 ﻿namespace Common.Constants
 {
-    public record InstanceConstants
+    public static class InstanceConstants
     {
         public const string InstanceCreated = @"Instance of {Name} has been created.";
     }

@@ -1,11 +1,11 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Localization.Providers;
 using Localization.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Localization.Extensions
 {
-    public static class DILocalizationExtensions
+    public static class LocalizationServiceExtensions
     {
         public static void AddLocalizationServices(this IServiceCollection services)
         {
@@ -18,12 +18,12 @@ namespace Localization.Extensions
             {
                 return new CompositeTextProvider(
                 [
-                    new ResourceTextProvider(),
+                    new ResxTextProvider(),
                     new JsonTextProvider(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName)
                 ]);
             });
 
-            services.AddSingleton<ResourceValidationTextProvider>();
+            services.AddSingleton<ValidationTextProvider>();
         }
     }
 }

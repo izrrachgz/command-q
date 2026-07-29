@@ -1,6 +1,6 @@
 ﻿namespace Common.Constants
 {
-    public record DatabaseConstants
+    public static class DatabaseConstants
     {
         public const string ExecutingQuery = @"Executing sql query : {Query}.";
 
