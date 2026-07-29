@@ -8,11 +8,11 @@ using System.Security;
 using Application.Accounts.Dtos;
 using Localization.Abstractions;
 using Application.Accounts.Queries;
+using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Application.AccountSessions.Dtos;
 using Application.AccountSessions.Queries;
 using Application.AccountSessions.Commands;
-using Microsoft.Extensions.Options;
 
 namespace Api.Services
 {
@@ -23,18 +23,18 @@ namespace Api.Services
         private readonly ITextProvider _messages;
         private readonly AuthOptions _authOptions;
         private readonly IRefreshTokenService _refresh;
+        private readonly IAccountSessionCache _accountSessionCache;
 
         private readonly string _message_account_locked;
 
-        private Dictionary<Guid, Tuple<AccountModel, AccountSessionModel>> AccountsCache = [];
-
-        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, ITextProvider textProvider, IOptions<AuthOptions> authOptions)
+        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, IAccountSessionCache accountSessionCache, ITextProvider textProvider, IOptions<AuthOptions> authOptions)
         {
             _jwt = jwt;
             _sender = sender;
             _refresh = refresh;
             _messages = textProvider;
             _authOptions = authOptions.Value;
+            _accountSessionCache = accountSessionCache;
 
             _message_account_locked = _messages.Get(nameof(Messages.Account_Locked));
         }
@@ -73,6 +73,7 @@ namespace Api.Services
             var sessionResponse = await _sender.Send(getSessionQuery, cancellationToken);
 
             var session = sessionResponse.Detail ?? new();
+            session.AccountId = account.Id;
 
             UpdateAccountSessionCommand updateSessionCommand = new()
             {
@@ -100,11 +101,15 @@ namespace Api.Services
             updateSessionCommand.LockedUntilUtc = null;
 
             session.Roles = account.Roles;
+            session.TokenVersion = 1;
+            updateSessionCommand.TokenVersion = session.TokenVersion;
 
-            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account, 1);
+            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account, session.TokenVersion);
             var refreshToken = await _refresh.Create(session);
 
             await _sender.Send(updateSessionCommand, cancellationToken);
+
+            _accountSessionCache.Set(account.Id, account, session);
 
             return new LoginResponse(accessToken, expiresAt, refreshToken);
         }
@@ -119,11 +124,10 @@ namespace Api.Services
             AccountModel account;
             AccountSessionModel session;
 
-            // Implement in-memory cache for accounts and sessions to avoid multiple database calls during token refresh
-            // set a setting based on the average token lifespan to determine how long to cache the data
-            if (AccountsCache.TryGetValue(token.AccountId, out Tuple<AccountModel, AccountSessionModel>? value))
+            if (_accountSessionCache.TryGet(token.AccountId, out var cached))
             {
-                (account, session) = value;
+                account = cached.Account;
+                session = cached.Session;
             }
             else
             {
@@ -146,6 +150,8 @@ namespace Api.Services
 
                 account = accountResponse.Detail;
                 session = sessionResponse.Detail;
+
+                _accountSessionCache.Set(token.AccountId, account, session);
             }
 
             session.TokenVersion++;
@@ -156,17 +162,21 @@ namespace Api.Services
 
             await _refresh.Rotate(refreshToken, newRefreshToken);
 
-            if (!AccountsCache.ContainsKey(token.AccountId))
-            {
-                AccountsCache.TryAdd(token.AccountId, Tuple.Create(account, session));
-            }
+            _accountSessionCache.Set(token.AccountId, account, session);
 
             return new LoginResponse(accessToken, expiresAt, newRefreshToken);
         }
 
-        public Task Logout(string refreshToken) => _refresh.Revoke(refreshToken);
+        public async Task Logout(string refreshToken)
+        {
+            var token = await _refresh.Validate(refreshToken);
 
-        public void ClearCache() => AccountsCache.Clear();
+            await _refresh.Revoke(refreshToken);
+
+            if (token is not null)
+                _accountSessionCache.Remove(token.AccountId);
+        }
+
     }
 
 }

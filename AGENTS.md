@@ -16,6 +16,12 @@ This file captures practical repository knowledge for coding agents working in t
 - ASP.NET Core HTTP API with controllers, middleware, auth services and app configuration.
 - Run locally from `Api` with `dotnet run` or Visual Studio launch profiles.
 - JWT/Auth settings are configured through `Jwt` and `Auth` sections in `appsettings*.json`.
+- Current authenticated-account data is resolved from JWT claims through `Api/Extensions/ClaimsPrincipalExtensions.cs`.
+- Auth refresh flows use `IAccountSessionCache`/`AccountSessionCache` to avoid repeated account/session database reads.
+- Register account/session refresh caching through `services.AddAccountSessionCache()`.
+- `Auth:RefreshCacheMinutes` controls cache entry lifetime; `Auth:RefreshCacheCleanupMinutes` controls the hosted cleanup period.
+- `AccountSessionCacheCleanupService` periodically clears account/session cache entries. Keep this in API/auth infrastructure, not health checks.
+- Refresh tokens are kept in a thread-safe in-memory store in `RefreshTokenService`; use persistent/distributed storage before multi-instance deployments.
 - Rate limiting, cache, database and API client settings use constants under `Api/Constants/ConfigKeys.cs`.
 
 ### Application

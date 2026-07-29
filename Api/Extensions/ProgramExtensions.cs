@@ -163,6 +163,8 @@ namespace Api.Extensions
             logger.LogInformation(@"Auth Max Failed Attempts: {AuthMaxFailedAttempts}.", auth.MaxFailedAttempts);
             logger.LogInformation(@"Auth Lockout Minutes: {AuthLockoutMinutes}.", auth.LockoutMinutes);
             logger.LogInformation(@"Auth Refresh Token Byte Size: {AuthRefreshTokenByteSize}.", auth.RefreshTokenByteSize);
+            logger.LogInformation(@"Auth Refresh Cache Minutes: {AuthRefreshCacheMinutes}.", auth.RefreshCacheMinutes);
+            logger.LogInformation(@"Auth Refresh Cache Cleanup Minutes: {AuthRefreshCacheCleanupMinutes}.", auth.RefreshCacheCleanupMinutes);
 
             RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ConfigKeys.RateLimiting.Type);
             logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);

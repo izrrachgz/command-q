@@ -42,11 +42,14 @@ namespace Api.Extensions
                 .Validate(options => options.MaxFailedAttempts > 0, "Auth:MaxFailedAttempts must be greater than zero.")
                 .Validate(options => options.LockoutMinutes > 0, "Auth:LockoutMinutes must be greater than zero.")
                 .Validate(options => options.RefreshTokenByteSize > 0, "Auth:RefreshTokenByteSize must be greater than zero.")
+                .Validate(options => options.RefreshCacheMinutes > 0, "Auth:RefreshCacheMinutes must be greater than zero.")
+                .Validate(options => options.RefreshCacheCleanupMinutes > 0, "Auth:RefreshCacheCleanupMinutes must be greater than zero.")
                 .ValidateOnStart();
 
             services.AddScoped<AuthService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            services.AddAccountSessionCache();
 
             services.AddAuthentication(options =>
             {

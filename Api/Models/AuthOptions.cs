@@ -7,5 +7,9 @@ namespace Api.Models
         public int LockoutMinutes { get; init; }
 
         public int RefreshTokenByteSize { get; init; }
+
+        public int RefreshCacheMinutes { get; init; } = 10;
+
+        public int RefreshCacheCleanupMinutes { get; init; } = 60;
     }
 }
