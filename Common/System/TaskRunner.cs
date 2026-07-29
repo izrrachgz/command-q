@@ -6,27 +6,34 @@ namespace Common.System
 {
     public class TaskRunner : ITaskRunner
     {
-        private readonly SemaphoreSlim _semaphore;
-
         private readonly ILogger<TaskRunner> _logger;
 
-        public TaskRunner(ILogger<TaskRunner> logger, int maxConcurrent = 4)
+        private readonly int _maxConcurrent;
+
+        public TaskRunner(ILogger<TaskRunner> logger, int maxConcurrent = TaskRunnerConstants.DefaultMaxConcurrency)
         {
             _logger = logger;
-            _semaphore = new SemaphoreSlim(maxConcurrent, maxConcurrent);
+            _maxConcurrent = maxConcurrent > 0
+                ? maxConcurrent
+                : throw new ArgumentOutOfRangeException(nameof(maxConcurrent), maxConcurrent, "Max concurrency must be greater than zero.");
 
             _logger.LogDebug(InstanceConstants.InstanceCreated, nameof(TaskRunner));
         }
 
         public async Task RunTasksAsync(IEnumerable<Func<CancellationToken, Task>> tasks, CancellationToken cancellationToken = default)
         {
-            var runningTasks = new List<Task>();
+            ArgumentNullException.ThrowIfNull(tasks);
 
-            _logger.LogDebug(ProcessConstants.ExecutingTasks, tasks.Count());
+            var taskFactories = tasks.ToList();
+            using var semaphore = new SemaphoreSlim(_maxConcurrent, _maxConcurrent);
+            var runningTasks = new List<Task>(taskFactories.Count);
 
-            foreach (var taskFactory in tasks)
+            _logger.LogDebug(ProcessConstants.ExecutingTasks, taskFactories.Count);
+
+            foreach (var taskFactory in taskFactories)
             {
-                await _semaphore.WaitAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+                await semaphore.WaitAsync(cancellationToken);
 
                 var task = Task.Run(async () =>
                 {
@@ -48,14 +55,47 @@ namespace Common.System
                     }
                     finally
                     {
-                        _semaphore.Release();
+                        semaphore.Release();
                     }
-                }, cancellationToken);
+                });
 
                 runningTasks.Add(task);
             }
 
             await Task.WhenAll(runningTasks);
+        }
+
+        public async Task RunTasksAsync(IEnumerable<Func<Task>> tasks, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(tasks);
+
+            await RunTasksAsync(tasks.Select<Func<Task>, Func<CancellationToken, Task>>(task => _ => task()), cancellationToken);
+        }
+
+        public async Task RunTasksAsync(params Func<CancellationToken, Task>[] tasks)
+        {
+            await RunTasksAsync((IEnumerable<Func<CancellationToken, Task>>)tasks);
+        }
+
+        public async Task RunTasksAsync(params Func<Task>[] tasks)
+        {
+            await RunTasksAsync((IEnumerable<Func<Task>>)tasks);
+        }
+
+        public async Task ForEachAsync<T>(IEnumerable<T> items, Func<T, CancellationToken, Task> task, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+            ArgumentNullException.ThrowIfNull(task);
+
+            await RunTasksAsync(items.Select<T, Func<CancellationToken, Task>>(item => token => task(item, token)), cancellationToken);
+        }
+
+        public async Task ForEachAsync<T>(IEnumerable<T> items, Func<T, Task> task, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+            ArgumentNullException.ThrowIfNull(task);
+
+            await ForEachAsync(items, (item, _) => task(item), cancellationToken);
         }
     }
 }
