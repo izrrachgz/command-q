@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using Api.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Application.HealthChecks.Queries;
 using Application.HealthChecks.Commands;
@@ -22,7 +23,7 @@ namespace Api.Controllers
         [HttpGet(@"scan")]
         public async Task<List<HealthCheckResult>> Scan(CancellationToken cancellationToken = default)
         {
-            _logger.LogDebug(@"Checking application health status.");
+            _logger.CheckingApplicationHealth();
 
             var writeLocalStorage = new SaveLocalStorageDataCommand();
             var canWriteOnLocalStorage = await _mediator.Send(writeLocalStorage, cancellationToken);

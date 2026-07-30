@@ -2,8 +2,9 @@ using Public;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Application.Logging;
 using Common.Models.Response;
+using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -70,13 +71,13 @@ namespace Application.Contacts.Commands
                 {
                     transaction.Commit();
                     message = _message_contact_created;
-                    _logger.LogInformation(@"Contact created for account {AccountId}.", request.AccountId);
+                    _logger.EntityCreatedForAccount("Contact", request.AccountId);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_contact_cannot_create;
-                    _logger.LogWarning(@"Contact creation affected no records for account {AccountId}.", request.AccountId);
+                    _logger.EntityCreationAffectedNoRecords("Contact", request.AccountId);
                 }
 
                 return new(saved, message);
@@ -85,7 +86,7 @@ namespace Application.Contacts.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, @"Error creating contact for AccountId: {AccountId}", request.AccountId);
+                _logger.EntityCreationFailed(ex, "contact", request.AccountId);
 
                 return new(false, _message_contact_cannot_create);
             }

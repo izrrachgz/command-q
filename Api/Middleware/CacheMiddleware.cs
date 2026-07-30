@@ -1,3 +1,4 @@
+using Api.Logging;
 using Api.Constants;
 using Microsoft.Net.Http.Headers;
 
@@ -23,26 +24,26 @@ namespace Api.Middleware
             // Only apply cache headers for safe idempotent requests and successful responses
             if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
             {
-                logger.LogDebug(@"Response cache headers skipped for method {Method}.", context.Request.Method);
+                logger.ResponseCacheSkippedForMethod(context.Request.Method);
                 return;
             }
 
             if (context.Response.StatusCode != StatusCodes.Status200OK)
             {
-                logger.LogDebug(@"Response cache headers skipped for status code {StatusCode}.", context.Response.StatusCode);
+                logger.ResponseCacheSkippedForStatusCode(context.Response.StatusCode);
                 return;
             }
 
             // Do not add cache headers if response sets cookies (sensitive) or already has cache-control set
             if (context.Response.Headers.ContainsKey(HeaderNames.SetCookie))
             {
-                logger.LogDebug(@"Response cache headers skipped because response sets cookies.");
+                logger.ResponseCacheSkippedForCookies();
                 return;
             }
 
             if (context.Response.Headers.ContainsKey(HeaderNames.CacheControl))
             {
-                logger.LogDebug(@"Response cache headers skipped because cache-control already exists.");
+                logger.ResponseCacheSkippedForExistingHeader();
                 return;
             }
 
@@ -56,7 +57,7 @@ namespace Api.Middleware
 
             context.Response.Headers[HeaderNames.Vary] = new[] { HeaderNames.AcceptEncoding };
 
-            logger.LogDebug(@"Response cache headers applied. MaxAgeSeconds: {MaxAgeSeconds}.", maxAge);
+            logger.ResponseCacheApplied(maxAge);
         }
     }
 }

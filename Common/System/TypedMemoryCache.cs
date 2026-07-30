@@ -1,4 +1,5 @@
 using Common.Interfaces;
+using Common.Logging;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Caching.Memory;
@@ -19,7 +20,7 @@ namespace Common.System
         {
             bool found = memoryCache.TryGetValue(GetKey(key), out entry!);
 
-            logger.LogDebug(@"Typed cache {CacheType} {Result} for key {CacheKey}.", typeof(TEntry).Name, found ? "hit" : "miss", key);
+            logger.TypedCacheLookup(typeof(TEntry).Name, found ? "hit" : "miss", key);
 
             return found;
         }
@@ -34,7 +35,7 @@ namespace Common.System
                 AbsoluteExpirationRelativeToNow = absoluteExpiration
             });
 
-            logger.LogDebug(@"Typed cache {CacheType} set key {CacheKey}.", typeof(TEntry).Name, key);
+            logger.TypedCacheSet(typeof(TEntry).Name, key);
         }
 
         public void Remove(string key)
@@ -42,7 +43,7 @@ namespace Common.System
             _keys.TryRemove(key, out _);
             memoryCache.Remove(GetKey(key));
 
-            logger.LogDebug(@"Typed cache {CacheType} removed key {CacheKey}.", typeof(TEntry).Name, key);
+            logger.TypedCacheRemoved(typeof(TEntry).Name, key);
         }
 
         public void Clear()
@@ -52,7 +53,7 @@ namespace Common.System
             foreach (var key in _keys.Keys)
                 Remove(key);
 
-            logger.LogDebug(@"Typed cache {CacheType} cleared {Count} keys.", typeof(TEntry).Name, count);
+            logger.TypedCacheCleared(typeof(TEntry).Name, count);
         }
     }
 }

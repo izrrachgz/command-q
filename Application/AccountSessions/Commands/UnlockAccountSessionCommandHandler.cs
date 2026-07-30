@@ -2,8 +2,9 @@ using Public;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Application.Logging;
 using Common.Models.Response;
+using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Accounts.Services;
@@ -43,7 +44,7 @@ namespace Application.AccountSessions.Commands
 
             if (account == null)
             {
-                _logger.LogWarning(@"Account session unlock failed because account session was not found. AccountId: {AccountId}.", request.AccountId);
+                _logger.AccountSessionNotFound("unlock", request.AccountId);
                 return new(false, _message_cannot_unlock_account);
             }
 
@@ -70,13 +71,13 @@ namespace Application.AccountSessions.Commands
                 {
                     transaction.Commit();
                     message = _message_account_unlocked;
-                    _logger.LogInformation(@"Account session unlocked. AccountId: {AccountId}.", request.AccountId);
+                    _logger.AccountSessionUnlocked(request.AccountId);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_cannot_unlock_account;
-                    _logger.LogWarning(@"Account session unlock affected no records. AccountId: {AccountId}.", request.AccountId);
+                    _logger.AccountSessionAffectedNoRecords("unlock", request.AccountId);
                 }
 
                 return new(saved, message);
@@ -85,7 +86,7 @@ namespace Application.AccountSessions.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, @"Error unlocking account for Id: {AccountId}", request.AccountId);
+                _logger.AccountSessionChangeFailed(ex, "unlocking", request.AccountId);
 
                 return new(false, _message_cannot_unlock_account);
             }

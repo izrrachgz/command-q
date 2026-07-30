@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+using Application.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.HealthChecks.Publishers
@@ -28,25 +29,25 @@ namespace Application.HealthChecks.Publishers
 
         private Task RunWhenUnhealthy()
         {
-            logger.LogCritical($@"Application is unhealthy");
+            logger.ApplicationUnhealthy();
             return Task.CompletedTask;
         }
 
         private Task RunWhenDegraded()
         {
-            logger.LogWarning($@"Application is Degraded");
+            logger.ApplicationDegraded();
             return Task.CompletedTask;
         }
 
         private Task RunWhenHealthy()
         {
-            logger.LogInformation($@"Application is Healthy.");
+            logger.ApplicationHealthy();
             return Task.CompletedTask;
         }
 
         private Task RunWhenDefault()
         {
-            logger.LogInformation($@"Application is running.");
+            logger.ApplicationRunning();
             return Task.CompletedTask;
         }
     }

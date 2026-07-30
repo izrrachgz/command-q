@@ -1,7 +1,8 @@
 using SqlKata;
 using SqlKata.Execution;
-using Persistence.Interfaces;
 using Common.Enumerations;
+using Persistence.Logging;
+using Persistence.Interfaces;
 using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +38,7 @@ namespace Persistence.Repository
             MigrationsPath = RepositoryFactory.GetMigrationsPath(Engine);
             Db = RepositoryFactory.CreateQueryFactory(connectionString, Engine);
 
-            logger.LogDebug(@"Repository instance created, using engine : {Engine}", Engine);
+            logger.RepositoryCreated(nameof(WritableRepository), Engine);
         }
 
         /// <summary>

@@ -1,10 +1,13 @@
-﻿#nullable disable
+
+#nullable disable
 using Common.Cqrs;
 using Common.Extensions;
 using Common.Transfer.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+
+using Application.Logging;
 
 namespace Application.HealthChecks.Queries
 {
@@ -41,12 +44,12 @@ namespace Application.HealthChecks.Queries
 
             if (!success)
             {
-                _logger.LogDebug(@"Checking internet connection : no access.");
+                _logger.DependencyCheckFailed("internet connection");
 
                 return HealthCheckResult.Unhealthy(UnhealthyMessage);
             }
 
-            _logger.LogDebug(@"Checking internet connection : access granted.");
+            _logger.DependencyCheckSucceeded("internet connection");
 
             return HealthCheckResult.Healthy(HealthyMessage);
         }

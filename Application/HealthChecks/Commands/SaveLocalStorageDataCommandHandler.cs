@@ -1,4 +1,5 @@
-﻿using Common.Cqrs;
+using Common.Cqrs;
+using Application.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -38,13 +39,13 @@ namespace Application.HealthChecks.Commands
 
                 await File.AppendAllLinesAsync(filePath, content, cancellationToken);
 
-                _logger.LogDebug(@"Checking storage write : access granted.");
+                _logger.DependencyCheckSucceeded("storage write");
 
                 return HealthCheckResult.Healthy($@"Application is able to write on local storage.");
             }
             catch
             {
-                _logger.LogDebug(@"Checking storage write : no access.");
+                _logger.DependencyCheckFailed("storage write");
 
                 return HealthCheckResult.Unhealthy($@"Application is unable to write on local storage.");
             }

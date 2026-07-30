@@ -1,4 +1,5 @@
 ﻿using Api.Models;
+using Api.Logging;
 using Api.Interfaces;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
@@ -24,7 +25,7 @@ namespace Api.Services
                 ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
             };
 
-            logger.LogDebug(@"Refresh token created for account {AccountId}.", session.AccountId);
+            logger.RefreshTokenCreated(session.AccountId);
 
             return Task.FromResult(token);
         }
@@ -33,13 +34,13 @@ namespace Api.Services
         {
             if (!Tokens.TryGetValue(refreshToken, out var token))
             {
-                logger.LogDebug(@"Refresh token validation missed in token store.");
+                logger.RefreshTokenStoreMiss();
                 return Task.FromResult<RefreshToken?>(null);
             }
 
             if (token.Revoked || token.ExpiresAt <= DateTime.UtcNow)
             {
-                logger.LogDebug(@"Refresh token rejected for account {AccountId}. Revoked: {Revoked}. Expired: {Expired}.", token.AccountId, token.Revoked, token.ExpiresAt <= DateTime.UtcNow);
+                logger.RefreshTokenRejected(token.AccountId, token.Revoked, token.ExpiresAt <= DateTime.UtcNow);
                 return Task.FromResult<RefreshToken?>(null);
             }
 
@@ -50,7 +51,7 @@ namespace Api.Services
         {
             if (!Tokens.TryGetValue(oldToken, out var token))
             {
-                logger.LogWarning(@"Refresh token rotation skipped because the old token was not found.");
+                logger.RefreshTokenRotationSkipped();
                 return Task.CompletedTask;
             }
 
@@ -63,7 +64,7 @@ namespace Api.Services
                 ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
             };
 
-            logger.LogDebug(@"Refresh token rotated for account {AccountId}.", token.AccountId);
+            logger.RefreshTokenRotated(token.AccountId);
 
             return Task.CompletedTask;
         }
@@ -75,7 +76,7 @@ namespace Api.Services
             if (token != null)
             {
                 token.Revoked = true;
-                logger.LogDebug(@"Refresh token revoked for account {AccountId}.", token.AccountId);
+                logger.RefreshTokenRevoked(token.AccountId);
             }
 
             return Task.CompletedTask;

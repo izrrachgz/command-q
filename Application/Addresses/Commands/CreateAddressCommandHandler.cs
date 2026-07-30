@@ -2,8 +2,9 @@ using Public;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Application.Logging;
 using Common.Models.Response;
+using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -70,13 +71,13 @@ namespace Application.Addresses.Commands
                 {
                     transaction.Commit();
                     message = _message_address_created;
-                    _logger.LogInformation(@"Address created for account {AccountId}.", request.AccountId);
+                    _logger.EntityCreatedForAccount("Address", request.AccountId);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_address_cannot_create;
-                    _logger.LogWarning(@"Address creation affected no records for account {AccountId}.", request.AccountId);
+                    _logger.EntityCreationAffectedNoRecords("Address", request.AccountId);
                 }
 
                 return new(saved, message);
@@ -85,7 +86,7 @@ namespace Application.Addresses.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, @"Error creating address for AccountId: {AccountId}", request.AccountId);
+                _logger.EntityCreationFailed(ex, "address", request.AccountId);
 
                 return new(false, _message_address_cannot_create);
             }

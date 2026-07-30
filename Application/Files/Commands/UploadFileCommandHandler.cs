@@ -1,9 +1,10 @@
-﻿using Public;
+using Public;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Application.Logging;
 using Common.Models.Response;
+using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -42,13 +43,13 @@ namespace Application.Files.Commands
 
             if (string.IsNullOrWhiteSpace(safeFileName))
             {
-                _logger.LogWarning(@"File upload rejected for account {AccountId} because the file name was empty.", request.AccountId);
+                _logger.FileUploadEmptyName(request.AccountId);
                 return new(false, _message_file_cannot_create);
             }
 
             var tempFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.upload");
 
-            _logger.LogDebug(@"File upload temp path created for account {AccountId}. FileName: {FileName}.", request.AccountId, safeFileName);
+            _logger.FileUploadTempPathCreated(request.AccountId, safeFileName);
 
             try
             {
@@ -74,7 +75,7 @@ namespace Application.Files.Commands
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, @"Error uploading file {FileName}", request.FileName);
+                _logger.FileUploadFailed(ex, request.FileName);
 
                 TryDelete(tempFilePath);
 
@@ -93,7 +94,7 @@ namespace Application.Files.Commands
 
             destination = Path.Combine(destination, $"{Guid.NewGuid():N}{extension}");
 
-            _logger.LogDebug(@"File upload destination path generated for account {AccountId}. RelativePath: {RelativePath}.", request.AccountId, Path.GetRelativePath(AppDomain.CurrentDomain.BaseDirectory, destination));
+            _logger.FileUploadDestinationGenerated(request.AccountId, Path.GetRelativePath(AppDomain.CurrentDomain.BaseDirectory, destination));
 
             #endregion
 
@@ -115,7 +116,7 @@ namespace Application.Files.Commands
                 var accountFileId = await _repository.Db.Query($@"{nameof(AccountFile)}")
                     .InsertGetIdAsync<long>(accountFile, cancellationToken: cancellationToken);
 
-                _logger.LogInformation(@"File metadata saved. AccountId: {AccountId}. AccountFileId: {AccountFileId}. FileName: {FileName}. Size: {Size}. ContentType: {ContentType}.", request.AccountId, accountFileId, safeFileName, accountFile.Size, request.ContentType);
+                _logger.FileMetadataSaved(request.AccountId, accountFileId, safeFileName, accountFile.Size, request.ContentType);
 
                 return new(true, _message_file_created);
             }
@@ -127,7 +128,7 @@ namespace Application.Files.Commands
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, @"Error creating file {FileName}", request.FileName);
+                _logger.FileMetadataCreationFailed(ex, request.FileName);
 
                 TryDelete(destination);
 

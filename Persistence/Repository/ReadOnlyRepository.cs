@@ -1,7 +1,8 @@
 using SqlKata;
-using Persistence.Interfaces;
 using SqlKata.Execution;
 using Common.Enumerations;
+using Persistence.Logging;
+using Persistence.Interfaces;
 using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -25,7 +26,7 @@ namespace Persistence.Repository
             Engine = engine;
             _db = RepositoryFactory.CreateQueryFactory(connectionString, Engine);
 
-            logger.LogDebug(@"Readonly repository instance created, using engine : {Engine}", Engine);
+            logger.RepositoryCreated(nameof(ReadOnlyRepository), Engine);
         }
 
         /// <summary>

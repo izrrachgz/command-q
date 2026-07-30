@@ -1,8 +1,9 @@
-using SqlKata.Execution;
 using Common.Extensions;
+using SqlKata.Execution;
+using Persistence.Logging;
 using Persistence.Interfaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Persistence.Migrations.Extensions
@@ -29,11 +30,11 @@ namespace Persistence.Migrations.Extensions
 
             string migrationsPath = repository.MigrationsPath;
 
-            logger.LogInformation(@"Migration scan started. Engine: {Engine}. Path: {MigrationsPath}.", repository.Engine, migrationsPath);
+            logger.MigrationScanStarted(repository.Engine, migrationsPath);
 
             if (!Directory.Exists(migrationsPath))
             {
-                logger.LogWarning(@"Migrations are not setup, {Reason}", MigrationCannotContinueMessage);
+                logger.MigrationsNotSetup(MigrationCannotContinueMessage);
                 return;
             }
 
@@ -41,7 +42,7 @@ namespace Persistence.Migrations.Extensions
 
             if (filePaths == null || filePaths.Length == 0)
             {
-                logger.LogWarning(@"Migration files were not found, {Reason}", MigrationCannotContinueMessage);
+                logger.MigrationFilesNotFound(MigrationCannotContinueMessage);
                 return;
             }
 
@@ -51,7 +52,7 @@ namespace Persistence.Migrations.Extensions
 
             if (!long.TryParse(migrationCountIndex, out long migrationCount))
             {
-                logger.LogWarning(@"Last migration index is not valid, {Reason}", MigrationCannotContinueMessage);
+                logger.LastMigrationIndexInvalid(MigrationCannotContinueMessage);
                 return;
             }
 
@@ -72,12 +73,12 @@ namespace Persistence.Migrations.Extensions
             }
             catch (Exception ex)
             {
-                logger.LogDebug(ex, @"Unable to read last applied migration. Starting from first migration.");
+                logger.LastMigrationReadFailed(ex);
             }
 
             if (lastMigrationId >= migrationCount)
             {
-                logger.LogInformation(@"Migrations are already up to date. Last migration: {LastMigrationId}. Available migration: {MigrationCount}.", lastMigrationId, migrationCount);
+                logger.MigrationsAlreadyCurrent(lastMigrationId, migrationCount);
                 return;
             }
 
@@ -89,7 +90,7 @@ namespace Persistence.Migrations.Extensions
 
                 if (!File.Exists(filePath))
                 {
-                    logger.LogWarning(@"Migration file was expected but not found. File: {MigrationFile}.", filePath);
+                    logger.MigrationFileMissing(filePath);
                     continue;
                 }
 
@@ -97,7 +98,7 @@ namespace Persistence.Migrations.Extensions
 
                 try
                 {
-                    logger.LogInformation(@"Applying migration {MigrationFile}.", filePath);
+                    logger.ApplyingMigration(filePath);
 
                     using var cmd = repository.Db.Connection.CreateCommand();
 
@@ -108,15 +109,15 @@ namespace Persistence.Migrations.Extensions
 
                     cmd.ExecuteNonQuery();
 
-                    logger.LogInformation(@"Migration applied successfully. File: {MigrationFile}.", filePath);
+                    logger.MigrationApplied(filePath);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError(e, @"An error occurred while applying migration {MigrationFile}.", filePath);
+                    logger.MigrationApplyFailed(e, filePath);
                 }
             }
 
-            logger.LogInformation(@"Migration scan completed. Engine: {Engine}.", repository.Engine);
+            logger.MigrationScanCompleted(repository.Engine);
         }
     }
 }

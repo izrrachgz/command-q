@@ -1,4 +1,5 @@
 using Api.Models;
+using Api.Logging;
 using Api.Constants;
 using Api.Middleware;
 using Api.Enumerations;
@@ -143,40 +144,39 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration source from which application-specific settings are retrieved.</param>
         /// <param name="environment">The hosting environment that provides information about the application's current environment, such as
         /// Development or Production.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1873:Evitar el registro potencialmente costoso", Justification = "All logging in this method comes from configuration file and there is no heavy calculations.")]
         public static void LogAppConfig(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
         {
-            logger.LogInformation(@"Environment: {Environment}.", environment.EnvironmentName);
+            logger.StartupSetting("Environment", environment.EnvironmentName);
 
             if (environment.IsDevelopment())
-                logger.LogInformation(@"Running on Development mode.");
+                logger.RunningInDevelopment();
 
-            logger.LogInformation(@"Language: {Language}.", Language.English);
+            logger.StartupSetting("Language", Language.English);
 
             var jwt = configuration.GetSection(ConfigKeys.Jwt.Section).Get<JwtOptions>()!;
             var auth = configuration.GetSection(ConfigKeys.Auth.Section).Get<AuthOptions>()!;
 
-            logger.LogInformation(@"JWT Issuer: {JwtIssuer}.", jwt.Issuer);
-            logger.LogInformation(@"JWT Audience: {JwtAudience}.", jwt.Audience);
-            logger.LogInformation(@"JWT Minutes To Expire: {JwtMinutesToExpire}.", jwt.MinutesToExpire);
-            logger.LogInformation(@"JWT Clock Skew Minutes: {JwtClockSkewMinutes}.", jwt.ClockSkewMinutes);
-            logger.LogInformation(@"Auth Max Failed Attempts: {AuthMaxFailedAttempts}.", auth.MaxFailedAttempts);
-            logger.LogInformation(@"Auth Lockout Minutes: {AuthLockoutMinutes}.", auth.LockoutMinutes);
-            logger.LogInformation(@"Auth Refresh Token Byte Size: {AuthRefreshTokenByteSize}.", auth.RefreshTokenByteSize);
-            logger.LogInformation(@"Auth Refresh Cache Minutes: {AuthRefreshCacheMinutes}.", auth.RefreshCacheMinutes);
-            logger.LogInformation(@"Auth Refresh Cache Cleanup Minutes: {AuthRefreshCacheCleanupMinutes}.", auth.RefreshCacheCleanupMinutes);
+            logger.StartupSetting("JWT Issuer", jwt.Issuer);
+            logger.StartupSetting("JWT Audience", jwt.Audience);
+            logger.StartupSetting("JWT Minutes To Expire", jwt.MinutesToExpire);
+            logger.StartupSetting("JWT Clock Skew Minutes", jwt.ClockSkewMinutes);
+            logger.StartupSetting("Auth Max Failed Attempts", auth.MaxFailedAttempts);
+            logger.StartupSetting("Auth Lockout Minutes", auth.LockoutMinutes);
+            logger.StartupSetting("Auth Refresh Token Byte Size", auth.RefreshTokenByteSize);
+            logger.StartupSetting("Auth Refresh Cache Minutes", auth.RefreshCacheMinutes);
+            logger.StartupSetting("Auth Refresh Cache Cleanup Minutes", auth.RefreshCacheCleanupMinutes);
 
             RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ConfigKeys.RateLimiting.Type);
-            logger.LogInformation(@"Rate Limiting: {RateLimiting}.", rateLimiting);
+            logger.StartupSetting("Rate Limiting", rateLimiting);
 
             DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(ConfigKeys.Database.Engine);
-            logger.LogInformation(@"Database Engine: {DatabaseEngine}.", databaseEngine);
+            logger.StartupSetting("Database Engine", databaseEngine);
 
             string? healthCheckInternetUrl = configuration.GetValue<string?>(ConfigKeys.HealthCheck.Url);
-            logger.LogInformation(@"Health Check URL: {HealthCheckUrl}.", healthCheckInternetUrl);
+            logger.StartupSetting("Health Check URL", healthCheckInternetUrl);
 
             int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ConfigKeys.Cache.MaxAgeSeconds);
-            logger.LogInformation(@"Cache Max Age (seconds): {CacheMaxAgeSeconds}.", cacheMaxAgeSeconds);
+            logger.StartupSetting("Cache Max Age (seconds)", cacheMaxAgeSeconds);
         }
     }
 }

@@ -1,7 +1,8 @@
 using Common.Cqrs;
 using Domain.Entities;
-using Persistence.Interfaces;
 using SqlKata.Execution;
+using Application.Logging;
+using Persistence.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -38,12 +39,12 @@ namespace Application.HealthChecks.Commands
 
             if (affected == 0)
             {
-                _logger.LogDebug(@"Checking database write : no access.");
+                _logger.DependencyCheckFailed("database write");
 
                 return HealthCheckResult.Unhealthy($@"Application is unable to write on database.");
             }
 
-            _logger.LogDebug(@"Checking database write : access granted.");
+            _logger.DependencyCheckSucceeded("database write");
 
             return HealthCheckResult.Healthy($@"Application is able to write on database.");
         }

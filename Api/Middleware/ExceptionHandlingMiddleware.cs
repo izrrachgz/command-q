@@ -1,7 +1,8 @@
-﻿using Public;
+using Public;
+using Api.Logging;
 using Common.Constants;
-using System.Text.Json;
 using FluentValidation;
+using System.Text.Json;
 using Common.Exceptions;
 using FluentValidation.Results;
 using Localization.Abstractions;
@@ -18,7 +19,7 @@ namespace Api.Middleware
             }
             catch (Exception e)
             {
-                logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
+                logger.UnhandledRequestException(e);
 
                 await HandleExceptionAsync(context, e);
             }

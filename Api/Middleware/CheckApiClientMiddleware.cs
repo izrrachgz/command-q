@@ -1,4 +1,5 @@
-﻿using Api.Models;
+using Api.Models;
+using Api.Logging;
 using Api.Middleware.Exceptions;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Options;
@@ -14,7 +15,7 @@ namespace Api.Middleware
         {
             if (configuredClients.Value is null || configuredClients.Value.Count == 0)
             {
-                logger.LogWarning(@"API client validation failed because no API clients are configured.");
+                logger.ApiClientsNotConfigured();
                 throw new NotValidApiClientException();
             }
 
@@ -22,11 +23,11 @@ namespace Api.Middleware
 
             if (client is null || (!environment.IsDevelopment() && !context.Request.Headers[HeaderNames.Origin].Equals(client.Uri)))
             {
-                logger.LogWarning(@"API client validation failed. Origin: {Origin}.", context.Request.Headers[HeaderNames.Origin].ToString());
+                logger.ApiClientValidationFailed(context.Request.Headers[HeaderNames.Origin].ToString());
                 throw new NotValidApiClientException();
             }
 
-            logger.LogDebug(@"API client validation succeeded. Client: {ClientName}.", client.Name);
+            logger.ApiClientValidationSucceeded(client.Name);
 
             await next(context);
         }

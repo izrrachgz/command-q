@@ -2,8 +2,9 @@ using Public;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Application.Logging;
 using Common.Models.Response;
+using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Accounts.Services;
@@ -43,7 +44,7 @@ namespace Application.AccountSessions.Commands
 
             if (account == null)
             {
-                _logger.LogWarning(@"Account session lock failed because account session was not found. AccountId: {AccountId}.", request.AccountId);
+                _logger.AccountSessionNotFound("lock", request.AccountId);
                 return new(false, _message_cannot_lock_account);
             }
 
@@ -71,13 +72,13 @@ namespace Application.AccountSessions.Commands
                 {
                     transaction.Commit();
                     message = _message_account_locked;
-                    _logger.LogInformation(@"Account session locked. AccountId: {AccountId}. LockedUntilUtc: {LockedUntilUtc}.", request.AccountId, account.LockedUntilUtc);
+                    _logger.AccountSessionLocked(request.AccountId, account.LockedUntilUtc);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_cannot_lock_account;
-                    _logger.LogWarning(@"Account session lock affected no records. AccountId: {AccountId}.", request.AccountId);
+                    _logger.AccountSessionAffectedNoRecords("lock", request.AccountId);
                 }
 
                 return new(saved, message);
@@ -86,7 +87,7 @@ namespace Application.AccountSessions.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, @"Error locking account for Id: {AccountId}", request.AccountId);
+                _logger.AccountSessionChangeFailed(ex, "locking", request.AccountId);
 
                 return new(false, _message_cannot_lock_account);
             }

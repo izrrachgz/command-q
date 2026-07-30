@@ -2,12 +2,13 @@ using Dapper;
 using System.Data;
 using System.Text;
 using Common.Constants;
+using Persistence.Logging;
 using Persistence.Constant;
 using System.Globalization;
 using Common.Models.Command;
-using Persistence.Interfaces;
 using Common.Models.Response;
 using MySql.Data.MySqlClient;
+using Persistence.Interfaces;
 using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -41,7 +42,7 @@ namespace Persistence.Repository.Command
             Logger = logger;
             ConnectionString = connectionString;
 
-            Logger.LogDebug(InstanceConstants.InstanceCreated, nameof(MySqlCommandRunner));
+            Logger.CommandRunnerCreated(nameof(MySqlCommandRunner));
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace Persistence.Repository.Command
                 .Select(c => Execute(c.Query, c.ReturnType, c.Parameters, c.CancellationToken))
                 .ToList();
 
-            Logger.LogDebug(ProcessConstants.ExecutingCommands, commands.Count);
+            Logger.ExecutingCommandBatch(commands.Count);
 
             try
             {
@@ -74,15 +75,11 @@ namespace Persistence.Repository.Command
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine(CommandConstants.CommandCancelled);
-
-                Logger.LogDebug(CommandConstants.CommandCancelled);
+                Logger.CommandCancelled();
             }
             catch (Exception e)
             {
-                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOccurred}: {e.Message}");
-
-                Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
+                Logger.CommandFailed(e);
             }
 
             return [];
@@ -100,7 +97,7 @@ namespace Persistence.Repository.Command
 
                 cmd.CommandText = query;
 
-                Logger.LogDebug(DatabaseConstants.ExecutingQuery, query);
+                Logger.ExecutingQuery(query);
 
                 if (parameters != null)
                 {
@@ -109,7 +106,7 @@ namespace Persistence.Repository.Command
                         object value = parameter.Value is null ? DBNull.Value : parameter.Value;
                         cmd.Parameters.AddWithValue(parameter.Key, value);
 
-                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value?.GetType().Name ?? nameof(DBNull));
+                        Logger.ParameterInQuery(parameter.Key, parameter.Value?.GetType().Name ?? nameof(DBNull));
                     }
                 }
 
@@ -120,15 +117,11 @@ namespace Persistence.Repository.Command
             }
             catch (OperationCanceledException)
             {
-                Console.WriteLine(CommandConstants.CommandCancelled);
-
-                Logger.LogDebug(CommandConstants.CommandCancelled);
+                Logger.CommandCancelled();
             }
             catch (Exception e)
             {
-                Console.WriteLine($@"{ErrorConstants.AnExceptionHasOccurred}: {e.Message}");
-
-                Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
+                Logger.CommandFailed(e);
             }
 
             return results;
@@ -136,7 +129,7 @@ namespace Persistence.Repository.Command
 
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
-            Logger.LogDebug(DatabaseConstants.SavingRecords, rows.Length);
+            Logger.SavingRecords(rows.Length);
 
             string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
 
@@ -194,7 +187,7 @@ namespace Persistence.Repository.Command
             {
                 await transaction.RollbackAsync(CancellationToken.None);
 
-                Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+                Logger.CancellationRequested();
 
                 return new(false, CommandConstants.TransactionCancelled);
             }
@@ -202,7 +195,7 @@ namespace Persistence.Repository.Command
             {
                 await transaction.RollbackAsync(CancellationToken.None);
 
-                Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
+                Logger.CommandFailed(e);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
@@ -213,7 +206,7 @@ namespace Persistence.Repository.Command
         /// </summary>
         public async Task<BasicResponse> BulkInsertLocalFile(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
-            Logger.LogDebug(DatabaseConstants.SavingRecords, rows.Length);
+            Logger.SavingRecords(rows.Length);
 
             string tempPath = Path.GetTempFileName();
 
@@ -255,13 +248,13 @@ namespace Persistence.Repository.Command
             }
             catch (OperationCanceledException)
             {
-                Logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+                Logger.CancellationRequested();
 
                 return new(false, CommandConstants.CommandCancelled);
             }
             catch (Exception e)
             {
-                Logger.LogError(e, ErrorConstants.AnExceptionHasOccurred);
+                Logger.CommandFailed(e);
 
                 return new(false, CommandConstants.ErrorDuringCopy);
             }

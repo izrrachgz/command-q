@@ -1,4 +1,5 @@
 using Api.Models;
+using Api.Logging;
 using Api.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -21,14 +22,14 @@ namespace Api.Services
             {
                 while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
-                    logger.LogDebug(@"Account session cache cleanup started.");
+                    logger.AccountSessionCacheCleanupStarted();
                     accountSessionCache.Clear();
-                    logger.LogDebug(@"Account session cache cleanup completed.");
+                    logger.AccountSessionCacheCleanupCompleted();
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                logger.LogDebug(@"Account session cache cleanup stopped.");
+                logger.AccountSessionCacheCleanupStopped();
             }
         }
     }

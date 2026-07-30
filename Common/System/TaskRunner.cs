@@ -1,5 +1,6 @@
 ﻿using Common.Constants;
 using Common.Interfaces;
+using Common.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Common.System
@@ -23,7 +24,7 @@ namespace Common.System
                 ? maxConcurrent
                 : throw new ArgumentOutOfRangeException(nameof(maxConcurrent), maxConcurrent, "Max concurrency must be greater than zero.");
 
-            _logger.LogDebug(InstanceConstants.InstanceCreated, nameof(TaskRunner));
+            _logger.TaskRunnerCreated(nameof(TaskRunner));
         }
 
         /// <summary>
@@ -37,7 +38,7 @@ namespace Common.System
             using var semaphore = new SemaphoreSlim(_maxConcurrent, _maxConcurrent);
             var runningTasks = new List<Task>(taskFactories.Count);
 
-            _logger.LogDebug(ProcessConstants.ExecutingTasks, taskFactories.Count);
+            _logger.ExecutingTasks(taskFactories.Count);
 
             foreach (var taskFactory in taskFactories)
             {
@@ -52,15 +53,11 @@ namespace Common.System
                     }
                     catch (OperationCanceledException)
                     {
-                        Console.WriteLine(ProcessConstants.CancellationHasBeenRequested);
-
-                        _logger.LogDebug(ProcessConstants.CancellationHasBeenRequested);
+                        _logger.TaskExecutionCancelled();
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($@"{ErrorConstants.AnExceptionHasOccurred}: {ex.Message}");
-
-                        _logger.LogError(ex, ErrorConstants.AnExceptionHasOccurred);
+                        _logger.TaskExecutionFailed(ex);
                     }
                     finally
                     {

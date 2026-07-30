@@ -3,8 +3,9 @@ using Common.Cqrs;
 using Common.Hash;
 using Domain.Entities;
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Application.Logging;
 using Common.Models.Response;
+using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -50,7 +51,7 @@ namespace Application.Accounts.Commands
 
             if (accountExists)
             {
-                _logger.LogWarning(@"Account creation rejected because username or email already exists. Username: {Username}.", request.Username);
+                _logger.AccountCreationDuplicate(request.Username);
                 return new(false, _message_account_cannot_create);
             }
 
@@ -87,7 +88,7 @@ namespace Application.Accounts.Commands
                 if (insertedAccount == null || !Hash.CompareSHA256(account.Password, insertedAccount.Password))
                 {
                     transaction.Rollback();
-                    _logger.LogWarning(@"Account creation verification failed for username {Username}.", request.Username);
+                    _logger.AccountCreationVerificationFailed(request.Username);
 
                     return new(false, _message_account_cannot_create);
                 }
@@ -129,13 +130,13 @@ namespace Application.Accounts.Commands
                 {
                     transaction.Commit();
                     message = _message_account_created;
-                    _logger.LogInformation(@"Account created. AccountId: {AccountId}. Username: {Username}.", insertedAccount.Id, request.Username);
+                    _logger.AccountCreated(insertedAccount.Id, request.Username);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_account_cannot_create;
-                    _logger.LogWarning(@"Account creation affected no records for username {Username}.", request.Username);
+                    _logger.AccountCreationAffectedNoRecords(request.Username);
                 }
 
                 return new(saved, message);
@@ -144,7 +145,7 @@ namespace Application.Accounts.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, @"Error creating account for Email: {Email}, Username: {Username}", request.Email, request.Username);
+                _logger.AccountCreationFailed(ex, request.Email, request.Username);
 
                 return new(false, _message_account_cannot_create);
             }

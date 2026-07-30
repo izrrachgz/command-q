@@ -2,8 +2,9 @@ using Public;
 using Common.Cqrs;
 using Domain.Entities;
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Application.Logging;
 using Common.Models.Response;
+using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Accounts.Services;
@@ -97,13 +98,13 @@ namespace Application.AccountSessions.Commands
                 {
                     transaction.Commit();
                     message = _message_account_updated;
-                    _logger.LogInformation(@"Account session {Operation}. AccountId: {AccountId}. TokenVersion: {TokenVersion}.", create ? "created" : "updated", request.AccountId, account.TokenVersion);
+                    _logger.AccountSessionChanged(create ? "created" : "updated", request.AccountId, account.TokenVersion);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_account_cannot_update;
-                    _logger.LogWarning(@"Account session update affected no records. AccountId: {AccountId}.", request.AccountId);
+                    _logger.AccountSessionAffectedNoRecords("update", request.AccountId);
                 }
 
                 return new(saved, message);
@@ -112,7 +113,7 @@ namespace Application.AccountSessions.Commands
             {
                 transaction.Rollback();
 
-                _logger.LogError(ex, @"Error updating account for Id: {Id}", request.AccountId);
+                _logger.AccountSessionChangeFailed(ex, "updating", request.AccountId);
 
                 return new(false, _message_account_cannot_update);
             }

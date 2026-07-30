@@ -3,6 +3,7 @@ using MediatR;
 using Api.Dtos;
 using Api.Models;
 using Common.Hash;
+using Api.Logging;
 using Api.Interfaces;
 using System.Security;
 using Application.Accounts.Dtos;
@@ -53,7 +54,7 @@ namespace Api.Services
 
             if (!response.Success || response.Detail == null)
             {
-                _logger.LogWarning(@"Login failed for username {Username}.", username);
+                _logger.LoginFailedForUsername(username);
                 return null;
             }
 
@@ -69,7 +70,7 @@ namespace Api.Services
 
             if (accountIsLocked.Success)
             {
-                _logger.LogWarning(@"Login blocked because account {AccountId} is locked.", account.Id);
+                _logger.LoginBlockedForLockedAccount(account.Id);
                 throw new SecurityException(_message_account_locked);
             }
 
@@ -97,7 +98,7 @@ namespace Api.Services
                 if (session.FailedLoginAttempts >= _authOptions.MaxFailedAttempts)
                 {
                     session.LockedUntilUtc = DateTime.UtcNow.AddMinutes(_authOptions.LockoutMinutes);
-                    _logger.LogWarning(@"Account {AccountId} locked until {LockedUntilUtc}.", account.Id, session.LockedUntilUtc);
+                    _logger.AccountLocked(account.Id, session.LockedUntilUtc);
                 }
 
                 updateSessionCommand.FailedLoginAttempts = session.FailedLoginAttempts;
@@ -105,7 +106,7 @@ namespace Api.Services
 
                 await _mediator.Send(updateSessionCommand, cancellationToken);
 
-                _logger.LogWarning(@"Login failed for account {AccountId}. Failed attempts: {FailedLoginAttempts}.", account.Id, session.FailedLoginAttempts);
+                _logger.LoginFailedForAccount(account.Id, session.FailedLoginAttempts);
 
                 return null;
             }
@@ -124,7 +125,7 @@ namespace Api.Services
 
             _accountSessionCache.Set(account.Id, account, session);
 
-            _logger.LogInformation(@"Login succeeded for account {AccountId}.", account.Id);
+            _logger.LoginSucceeded(account.Id);
 
             return new LoginResponse(accessToken, expiresAt, refreshToken);
         }
@@ -135,7 +136,7 @@ namespace Api.Services
 
             if (token is null)
             {
-                _logger.LogWarning(@"Refresh token validation failed.");
+                _logger.RefreshTokenValidationFailed();
                 return null;
             }
 
@@ -144,13 +145,13 @@ namespace Api.Services
 
             if (_accountSessionCache.TryGet(token.AccountId, out var cached))
             {
-                _logger.LogDebug(@"Refresh account/session cache hit for account {AccountId}.", token.AccountId);
+                _logger.RefreshCacheHit(token.AccountId);
                 account = cached.Account;
                 session = cached.Session;
             }
             else
             {
-                _logger.LogDebug(@"Refresh account/session cache miss for account {AccountId}.", token.AccountId);
+                _logger.RefreshCacheMiss(token.AccountId);
 
                 GetAccountByIdQuery query = new()
                 {
@@ -168,7 +169,7 @@ namespace Api.Services
 
                 if (!accountResponse.Success || accountResponse.Detail == null || !sessionResponse.Success || sessionResponse.Detail == null)
                 {
-                    _logger.LogWarning(@"Refresh failed because account/session data was not found for account {AccountId}.", token.AccountId);
+                    _logger.RefreshAccountSessionNotFound(token.AccountId);
                     return null;
                 }
 
@@ -188,7 +189,7 @@ namespace Api.Services
 
             _accountSessionCache.Set(token.AccountId, account, session);
 
-            _logger.LogInformation(@"Refresh succeeded for account {AccountId}. Token version: {TokenVersion}.", token.AccountId, session.TokenVersion);
+            _logger.RefreshSucceeded(token.AccountId, session.TokenVersion);
 
             return new LoginResponse(accessToken, expiresAt, newRefreshToken);
         }
@@ -202,11 +203,11 @@ namespace Api.Services
             if (token is not null)
             {
                 _accountSessionCache.Remove(token.AccountId);
-                _logger.LogInformation(@"Logout revoked refresh token and removed cache for account {AccountId}.", token.AccountId);
+                _logger.LogoutRevokedRefreshToken(token.AccountId);
             }
             else
             {
-                _logger.LogWarning(@"Logout attempted with an invalid or expired refresh token.");
+                _logger.LogoutInvalidRefreshToken();
             }
         }
 

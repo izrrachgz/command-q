@@ -1,5 +1,6 @@
 using MediatR;
 using Api.Dtos;
+using Api.Logging;
 using Api.Services;
 using Api.Constants;
 using Api.Extensions;
@@ -45,7 +46,7 @@ namespace Api.Controllers
 
             if (result is null)
             {
-                _logger.LogWarning(@"Sign-in returned unauthorized for username {Username}.", request.Username);
+                _logger.SignInUnauthorized(request.Username);
                 return Unauthorized();
             }
 
@@ -80,7 +81,7 @@ namespace Api.Controllers
 
             if (string.IsNullOrEmpty(refreshToken))
             {
-                _logger.LogWarning(@"Refresh requested without refresh cookie.");
+                _logger.RefreshCookieMissing();
                 return Unauthorized();
             }
 
@@ -88,7 +89,7 @@ namespace Api.Controllers
 
             if (result is null)
             {
-                _logger.LogWarning(@"Refresh returned unauthorized.");
+                _logger.RefreshUnauthorized();
                 return Unauthorized();
             }
 
@@ -124,7 +125,7 @@ namespace Api.Controllers
             }
             else
             {
-                _logger.LogDebug(@"Logout requested without refresh cookie.");
+                _logger.LogoutCookieMissing();
             }
 
             // delete cookie

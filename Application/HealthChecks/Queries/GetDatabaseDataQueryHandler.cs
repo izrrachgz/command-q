@@ -1,5 +1,6 @@
 using Common.Cqrs;
 using Domain.Entities;
+using Application.Logging;
 using Persistence.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -33,12 +34,12 @@ namespace Application.HealthChecks.Queries
 
             if (record is null)
             {
-                _logger.LogDebug(@"Checking database connection : no access.");
+                _logger.DependencyCheckFailed("database connection");
 
                 return HealthCheckResult.Unhealthy(@"Application is unable to read last health check execution.");
             }
 
-            _logger.LogDebug(@"Checking database connection : access granted.");
+            _logger.DependencyCheckSucceeded("database connection");
 
             return HealthCheckResult.Healthy($@"Application is able to read from database, last health check ran at : {record.Modified:G}.");
         }
