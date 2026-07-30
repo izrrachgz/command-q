@@ -18,6 +18,7 @@ This file captures practical repository knowledge for coding agents working in t
 - JWT/Auth settings are configured through `Jwt` and `Auth` sections in `appsettings*.json`.
 - Current authenticated-account data is resolved from JWT claims through `Api/Extensions/ClaimsPrincipalExtensions.cs`.
 - Auth refresh flows use `IAccountSessionCache`/`AccountSessionCache` to avoid repeated account/session database reads.
+- Generic cache mechanics live in `Common.Interfaces.ITypeCache<TItem>` and `Common.System.TypeMemoryCache<TItem>`; add specific cache adapters over this when new typed caches are needed.
 - Register account/session refresh caching through `services.AddAccountSessionCache()`.
 - `Auth:RefreshCacheMinutes` controls cache entry lifetime; `Auth:RefreshCacheCleanupMinutes` controls the hosted cleanup period.
 - `AccountSessionCacheCleanupService` periodically clears account/session cache entries. Keep this in API/auth infrastructure, not health checks.
@@ -51,6 +52,10 @@ This file captures practical repository knowledge for coding agents working in t
   - `Common.System.TaskRunner` runs async operations with bounded concurrency.
   - Register with `services.AddTaskRunner()` and inject `ITaskRunner`.
   - Default concurrency is `TaskRunnerConstants.DefaultMaxConcurrency`.
+- Typed memory cache:
+  - `Common.Interfaces.ITypeCache<TItem>` is the reusable cache contract.
+  - `Common.System.TypeMemoryCache<TItem>` stores values in `IMemoryCache` using type-scoped keys.
+  - Build project-specific cache adapters over `ITypeCache<TItem>` when settings or domain-specific methods are needed.
 - Keep this project stable because it is widely referenced.
 
 ### Persistence

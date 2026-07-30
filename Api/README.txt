@@ -12,10 +12,12 @@ Authentication:
 
 Account/session refresh cache:
 - Register auth cache services through `services.AddAccountSessionCache()`.
-- `AccountSessionCache` stores account/session data in `IMemoryCache` to reduce database reads during refresh-token flows.
+- `ITypeCache<TItem>`/`TypeMemoryCache<TItem>` live in `Common` and provide reusable type-scoped in-memory caching.
+- `AccountSessionCache` is the account/session-specific adapter over `ITypeCache<AccountSessionCacheItem>`.
+- Account/session caching reduces database reads during refresh-token flows.
 - `Auth:RefreshCacheMinutes` controls sliding cache lifetime.
 - `Auth:RefreshCacheCleanupMinutes` controls how often `AccountSessionCacheCleanupService` clears account/session cache entries.
-- `AccountSessionCache.Clear()` removes only account-session cache keys, not all shared memory-cache entries.
+- `Clear()` on a typed cache removes only keys tracked for that cached value type.
 
 Development notes: Use Visual Studio launch profiles for local testing and Postman/Swagger to validate endpoints.
 Contact / Author: See CONTRIBUTING or the remote repository.

@@ -1,6 +1,7 @@
-using Api.Models;
 using Api.Services;
+using Common.System;
 using Api.Interfaces;
+using Common.Interfaces;
 
 namespace Api.Extensions
 {
@@ -12,6 +13,7 @@ namespace Api.Extensions
         public static IServiceCollection AddAccountSessionCache(this IServiceCollection services)
         {
             services.AddMemoryCache();
+            services.AddSingleton(typeof(ITypeCache<>), typeof(TypeMemoryCache<>));
             services.AddSingleton<IAccountSessionCache, AccountSessionCache>();
             services.AddHostedService<AccountSessionCacheCleanupService>();
 
