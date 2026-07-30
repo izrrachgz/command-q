@@ -7,10 +7,11 @@ namespace Api.Logging
     /// </summary>
     internal static partial class StartupLog
     {
-        [LoggerMessage(EventId = 1450, Level = LogLevel.Information, Message = "{SettingName}: {SettingValue}.")]
+        [LoggerMessage(EventId = ApiEventIds.StartupSetting, Level = LogLevel.Information, Message = "{SettingName}: {SettingValue}.")]
         public static partial void StartupSetting(this ILogger logger, string settingName, object? settingValue);
 
-        [LoggerMessage(EventId = 1451, Level = LogLevel.Information, Message = "Running on Development mode.")]
+        [LoggerMessage(EventId = ApiEventIds.RunningInDevelopment, Level = LogLevel.Information, Message = "Running on Development mode.")]
         public static partial void RunningInDevelopment(this ILogger logger);
     }
 }
+
