@@ -8,9 +8,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace Api.Controllers
 {
     [ApiController, Authorize, Route(@"[controller]")]
-    public class HealthCheckController(ISender sender, ILogger<HealthCheckController> logger) : ControllerBase
+    public class HealthCheckController(ISender mediator, ILogger<HealthCheckController> logger) : ControllerBase
     {
-        private readonly ISender _sender = sender;
+        private readonly ISender _mediator = mediator;
 
         private readonly ILogger<HealthCheckController> _logger = logger;
 
@@ -25,16 +25,16 @@ namespace Api.Controllers
             _logger.LogDebug(@"Checking application health status.");
 
             var writeLocalStorage = new SaveLocalStorageDataCommand();
-            var canWriteOnLocalStorage = await _sender.Send(writeLocalStorage, cancellationToken);
+            var canWriteOnLocalStorage = await _mediator.Send(writeLocalStorage, cancellationToken);
 
             var writeDb = new SaveDatabaseDataCommand();
-            var canWriteOnDb = await _sender.Send(writeDb, cancellationToken);
+            var canWriteOnDb = await _mediator.Send(writeDb, cancellationToken);
 
             var readDb = new GetDatabaseDataQuery();
-            var canReadOnDb = await _sender.Send(readDb, cancellationToken);
+            var canReadOnDb = await _mediator.Send(readDb, cancellationToken);
 
             var accessInternet = new CheckInternetConnectionQuery();
-            var canAccessInternet = await _sender.Send(accessInternet, cancellationToken);
+            var canAccessInternet = await _mediator.Send(accessInternet, cancellationToken);
 
             return [canWriteOnLocalStorage, canWriteOnDb, canReadOnDb, canAccessInternet];
         }

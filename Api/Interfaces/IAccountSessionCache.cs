@@ -9,7 +9,7 @@ namespace Api.Interfaces
     /// </summary>
     public interface IAccountSessionCache
     {
-        bool TryGet(Guid accountId, out AccountSessionCacheItem item);
+        bool TryGet(Guid accountId, out AccountSessionCacheEntry entry);
 
         void Set(Guid accountId, AccountModel account, AccountSessionModel session);
 

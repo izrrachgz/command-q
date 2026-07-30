@@ -9,7 +9,7 @@ namespace Localization.Providers
     /// </summary>
     public class ValidationTextProvider : ITextProvider
     {
-        private readonly CultureInfo _culture;
+        private readonly CultureInfo _primaryCulture;
 
         private readonly CultureInfo? _fallbackCulture;
 
@@ -25,9 +25,9 @@ namespace Localization.Providers
         /// </summary>
         /// <param name="culture">Primary culture used to resolve validation text.</param>
         /// <param name="fallbackCulture">Fallback culture used when the primary culture has no value.</param>
-        public ValidationTextProvider(CultureInfo culture, CultureInfo? fallbackCulture = null)
+        public ValidationTextProvider(CultureInfo primaryCulture, CultureInfo? fallbackCulture = null)
         {
-            _culture = culture;
+            _primaryCulture = primaryCulture;
             _fallbackCulture = fallbackCulture;
         }
 
@@ -36,9 +36,9 @@ namespace Localization.Providers
         /// </summary>
         public string Get(string key, params object[] args)
         {
-            var value = GetResourceValue(key, _culture);
+            var value = GetResourceValue(key, _primaryCulture);
 
-            if (value is null && _fallbackCulture is not null && !_fallbackCulture.Equals(_culture))
+            if (value is null && _fallbackCulture is not null && !_fallbackCulture.Equals(_primaryCulture))
                 value = GetResourceValue(key, _fallbackCulture);
 
             if (value == null)

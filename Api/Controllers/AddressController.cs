@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 namespace Api.Controllers
 {
     [ApiController, Authorize, Route(@"[controller]")]
-    public class AddressController(ISender sender) : Controller
+    public class AddressController(ISender mediator) : Controller
     {
-        private readonly ISender _sender = sender;
+        private readonly ISender _mediator = mediator;
 
         /// <summary>
         /// Creates a new address using the specified command.
@@ -27,7 +27,7 @@ namespace Api.Controllers
 
             request.AccountId = accountId;
 
-            var response = await _sender.Send(request, cancellationToken);
+            var response = await _mediator.Send(request, cancellationToken);
 
             if (!response.Success)
             {
@@ -51,7 +51,7 @@ namespace Api.Controllers
                 AccountId = accountId
             };
 
-            var response = await _sender.Send(query, cancellationToken);
+            var response = await _mediator.Send(query, cancellationToken);
 
             return response.Success ? Ok(response) : NotFound(response);
         }

@@ -7,7 +7,7 @@ namespace Common.Extensions
 {
     public static partial class StringsExtensions
     {
-        private static readonly JsonSerializerOptions _options = new()
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNameCaseInsensitive = true,
         };
@@ -15,7 +15,7 @@ namespace Common.Extensions
         [GeneratedRegex("^\\d+$")]
         private static partial Regex IntegerRegex();
 
-        private static readonly Regex _regexIntegerNumber = IntegerRegex();
+        private static readonly Regex _integerRegex = IntegerRegex();
 
         public static T? FromJson<T>(this string? content)
         {
@@ -24,7 +24,7 @@ namespace Common.Extensions
                 return default;
             }
 
-            return JsonSerializer.Deserialize<T?>(content, _options);
+            return JsonSerializer.Deserialize<T?>(content, _jsonSerializerOptions);
         }
 
         public static bool IsNumber(this string content)
@@ -34,7 +34,7 @@ namespace Common.Extensions
                 return false;
             }
 
-            return _regexIntegerNumber.IsMatch(content);
+            return _integerRegex.IsMatch(content);
         }
 
         public static bool IsUri(this string? content)

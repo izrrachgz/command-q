@@ -14,16 +14,16 @@ namespace Api.Controllers
     [ApiController, Route(@"[controller]")]
     public class AccountController : Controller
     {
-        private readonly ISender _sender;
+        private readonly ISender _mediator;
         private readonly int _daysToExpire;
         private readonly string _cookieName;
         private readonly bool _isProduction;
         private readonly AuthService _authService;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(ISender sender, IConfiguration configuration, IHostEnvironment environment, AuthService authService, ILogger<AccountController> logger)
+        public AccountController(ISender mediator, IConfiguration configuration, IHostEnvironment environment, AuthService authService, ILogger<AccountController> logger)
         {
-            _sender = sender;
+            _mediator = mediator;
             _logger = logger;
             _authService = authService;
             _isProduction = environment.IsProduction();
@@ -146,7 +146,7 @@ namespace Api.Controllers
         [HttpPost(@"create"), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
         {
-            var response = await _sender.Send(request, cancellationToken);
+            var response = await _mediator.Send(request, cancellationToken);
 
             return !response.Success ? BadRequest(response.Message) : Ok(response);
         }
@@ -165,7 +165,7 @@ namespace Api.Controllers
                 AccountId = accountId
             };
 
-            var response = await _sender.Send(query, cancellationToken);
+            var response = await _mediator.Send(query, cancellationToken);
 
             return response.Success ? Ok(response) : NotFound(response);
         }

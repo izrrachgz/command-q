@@ -9,9 +9,9 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Api.Services
 {
-    public sealed class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
+    public sealed class JwtTokenService(IOptions<JwtOptions> jwtOptions) : IJwtTokenService
     {
-        private readonly JwtOptions _options = options.Value;
+        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
         public (string Token, DateTime ExpiresAt) GenerateAccessToken(AccountModel account, int version = 0)
         {
@@ -29,15 +29,15 @@ namespace Api.Services
             }
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_options.SecretKey)
+                Encoding.UTF8.GetBytes(_jwtOptions.SecretKey)
             );
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.UtcNow.AddMinutes(_options.MinutesToExpire);
+            var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.MinutesToExpire);
 
             var token = new JwtSecurityToken(
-                issuer: _options.Issuer,
-                audience: _options.Audience,
+                issuer: _jwtOptions.Issuer,
+                audience: _jwtOptions.Audience,
                 claims: claims,
                 expires: expires,
                 signingCredentials: creds

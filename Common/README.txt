@@ -5,8 +5,8 @@ Framework: .NET 10 (class library).
 Main areas:
 - Common.Cqrs: MediatR command/query marker interfaces, handlers and validation pipeline behavior.
 - Common.Transfer.Http: Lightweight HTTP helpers for JSON/form/string requests and multipart file uploads.
-- Common.System: TaskRunner for bounded-concurrency asynchronous work and TypeMemoryCache for reusable typed memory caching.
-- Common.Interfaces: Reusable contracts such as ITaskRunner and ITypeCache.
+- Common.System: TaskRunner for bounded-concurrency asynchronous work and TypedMemoryCache for reusable typed memory caching.
+- Common.Interfaces: Reusable contracts such as ITaskRunner and ITypedCache.
 - Common.Models: Shared response, request, command, system and transfer models.
 - Common.Constants: Stable shared constants for logging, process messages, database messages, languages and helper defaults.
 - Common.Extensions: Small extension methods used by other projects.
@@ -23,10 +23,10 @@ Task runner:
 - TaskRunner logs individual operation failures and continues waiting for the scheduled batch to complete.
 
 Typed memory cache:
-- `ITypeCache<TItem>` is the reusable cache contract.
-- `TypeMemoryCache<TItem>` stores values in `IMemoryCache` using type-scoped keys.
+- `ITypedCache<TEntry>` is the reusable cache contract.
+- `TypedMemoryCache<TEntry>` stores values in `IMemoryCache` using type-scoped keys.
 - `Clear()` removes only keys tracked for that cached value type.
-- Projects can build domain-specific cache adapters over `ITypeCache<TItem>` when they need expressive methods or settings.
+- Projects can build domain-specific cache adapters over `ITypedCache<TEntry>` when they need expressive methods or settings.
 
 Notes:
 - Keep this project stable and minimize breaking changes because it is referenced across application layers.

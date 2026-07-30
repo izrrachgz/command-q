@@ -12,8 +12,8 @@ Authentication:
 
 Account/session refresh cache:
 - Register auth cache services through `services.AddAccountSessionCache()`.
-- `ITypeCache<TItem>`/`TypeMemoryCache<TItem>` live in `Common` and provide reusable type-scoped in-memory caching.
-- `AccountSessionCache` is the account/session-specific adapter over `ITypeCache<AccountSessionCacheItem>`.
+- `ITypedCache<TEntry>`/`TypedMemoryCache<TEntry>` live in `Common` and provide reusable type-scoped in-memory caching.
+- `AccountSessionCache` is the account/session-specific adapter over `ITypedCache<AccountSessionCacheEntry>`.
 - Account/session caching reduces database reads during refresh-token flows.
 - `Auth:RefreshCacheMinutes` controls sliding cache lifetime.
 - `Auth:RefreshCacheCleanupMinutes` controls how often `AccountSessionCacheCleanupService` clears account/session cache entries.

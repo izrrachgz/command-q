@@ -14,7 +14,7 @@ namespace Api.Middleware
     /// <param name="next">The delegate representing the next middleware component in the HTTP request processing pipeline.</param>
     /// <param name="configuration">The configuration instance used to retrieve cache-related settings, such as the maximum age for cached
     /// responses.</param>
-    public sealed class CacheMiddleware(RequestDelegate next, IConfiguration configuration, ILogger<CacheMiddleware> logger)
+    public sealed class CacheMiddleware(RequestDelegate next, IConfiguration cacheConfiguration, ILogger<CacheMiddleware> logger)
     {
         public async Task Invoke(HttpContext context)
         {
@@ -46,7 +46,7 @@ namespace Api.Middleware
                 return;
             }
 
-            int maxAge = configuration.GetValue(ConfigKeys.Cache.MaxAgeSeconds, 10);
+            int maxAge = cacheConfiguration.GetValue(ConfigKeys.Cache.MaxAgeSeconds, 10);
 
             context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
             {

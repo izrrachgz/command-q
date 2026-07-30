@@ -9,7 +9,7 @@ namespace Localization.Providers
     /// </summary>
     public class ResxTextProvider : ITextProvider
     {
-        private readonly CultureInfo _culture;
+        private readonly CultureInfo _primaryCulture;
 
         private readonly CultureInfo? _fallbackCulture;
 
@@ -25,9 +25,9 @@ namespace Localization.Providers
         /// </summary>
         /// <param name="culture">Primary culture used to resolve messages.</param>
         /// <param name="fallbackCulture">Fallback culture used when the primary culture has no value.</param>
-        public ResxTextProvider(CultureInfo culture, CultureInfo? fallbackCulture = null)
+        public ResxTextProvider(CultureInfo primaryCulture, CultureInfo? fallbackCulture = null)
         {
-            _culture = culture;
+            _primaryCulture = primaryCulture;
             _fallbackCulture = fallbackCulture;
         }
 
@@ -36,9 +36,9 @@ namespace Localization.Providers
         /// </summary>
         public string Get(string key, params object[] args)
         {
-            var value = Messages.ResourceManager.GetString(key, _culture);
+            var value = Messages.ResourceManager.GetString(key, _primaryCulture);
 
-            if (value is null && _fallbackCulture is not null && !_fallbackCulture.Equals(_culture))
+            if (value is null && _fallbackCulture is not null && !_fallbackCulture.Equals(_primaryCulture))
                 value = Messages.ResourceManager.GetString(key, _fallbackCulture);
 
             if (value == null)

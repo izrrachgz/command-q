@@ -7,13 +7,13 @@ namespace Api.Services
     /// <summary>
     /// Periodically clears cached account/session data based on authentication settings.
     /// </summary>
-    public sealed class AccountSessionCacheCleanupService(IAccountSessionCache cache, IOptions<AuthOptions> options, ILogger<AccountSessionCacheCleanupService> logger) : BackgroundService
+    public sealed class AccountSessionCacheCleanupService(IAccountSessionCache accountSessionCache, IOptions<AuthOptions> authOptions, ILogger<AccountSessionCacheCleanupService> logger) : BackgroundService
     {
-        private readonly AuthOptions _options = options.Value;
+        private readonly AuthOptions _authOptions = authOptions.Value;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var period = TimeSpan.FromMinutes(_options.RefreshCacheCleanupMinutes);
+            var period = TimeSpan.FromMinutes(_authOptions.RefreshCacheCleanupMinutes);
 
             using var timer = new PeriodicTimer(period);
 
@@ -22,7 +22,7 @@ namespace Api.Services
                 while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
                     logger.LogDebug(@"Account session cache cleanup started.");
-                    cache.Clear();
+                    accountSessionCache.Clear();
                     logger.LogDebug(@"Account session cache cleanup completed.");
                 }
             }

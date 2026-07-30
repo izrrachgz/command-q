@@ -15,12 +15,12 @@ namespace Api.Controllers
     [ApiController, Authorize, Route("[controller]")]
     public sealed class FilesController : ControllerBase
     {
-        private readonly ISender _sender;
+        private readonly ISender _mediator;
         private readonly ITextProvider _messages;
 
-        public FilesController(ISender sender, ITextProvider messages)
+        public FilesController(ISender mediator, ITextProvider messages)
         {
-            _sender = sender;
+            _mediator = mediator;
             _messages = messages;
         }
 
@@ -47,7 +47,7 @@ namespace Api.Controllers
                 ContentType = file.ContentType
             };
 
-            var response = await _sender.Send(command, cancellationToken);
+            var response = await _mediator.Send(command, cancellationToken);
 
             return response.Success ? Ok(response) : BadRequest(response);
         }
@@ -67,7 +67,7 @@ namespace Api.Controllers
                 SearchCriteria = searchCriteria
             };
 
-            var response = await _sender.Send(query, cancellationToken);
+            var response = await _mediator.Send(query, cancellationToken);
 
             return Ok(response);
         }

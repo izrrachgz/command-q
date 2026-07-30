@@ -7,9 +7,9 @@ using Application.AccountSessions.Dtos;
 
 namespace Api.Services
 {
-    public sealed class RefreshTokenService(IOptions<JwtOptions> options, IOptions<AuthOptions> authOptions, ILogger<RefreshTokenService> logger) : IRefreshTokenService
+    public sealed class RefreshTokenService(IOptions<JwtOptions> jwtOptions, IOptions<AuthOptions> authOptions, ILogger<RefreshTokenService> logger) : IRefreshTokenService
     {
-        private readonly JwtOptions _options = options.Value;
+        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
         private readonly AuthOptions _authOptions = authOptions.Value;
         private static readonly ConcurrentDictionary<string, RefreshToken> Tokens = [];
 
@@ -21,7 +21,7 @@ namespace Api.Services
             {
                 Token = token,
                 AccountId = session.AccountId,
-                ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
+                ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
             };
 
             logger.LogDebug(@"Refresh token created for account {AccountId}.", session.AccountId);
@@ -60,7 +60,7 @@ namespace Api.Services
             {
                 Token = newToken,
                 AccountId = token.AccountId,
-                ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
+                ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
             };
 
             logger.LogDebug(@"Refresh token rotated for account {AccountId}.", token.AccountId);

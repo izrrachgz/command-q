@@ -18,21 +18,21 @@ namespace Api.Services
 {
     public sealed class AuthService
     {
-        private readonly ISender _sender;
-        private readonly IJwtTokenService _jwt;
+        private readonly ISender _mediator;
+        private readonly IJwtTokenService _jwtTokenService;
         private readonly ITextProvider _messages;
         private readonly AuthOptions _authOptions;
-        private readonly IRefreshTokenService _refresh;
+        private readonly IRefreshTokenService _refreshTokenService;
         private readonly IAccountSessionCache _accountSessionCache;
         private readonly ILogger<AuthService> _logger;
 
         private readonly string _message_account_locked;
 
-        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, IAccountSessionCache accountSessionCache, ITextProvider textProvider, IOptions<AuthOptions> authOptions, ILogger<AuthService> logger)
+        public AuthService(ISender mediator, IJwtTokenService jwtTokenService, IRefreshTokenService refreshTokenService, IAccountSessionCache accountSessionCache, ITextProvider textProvider, IOptions<AuthOptions> authOptions, ILogger<AuthService> logger)
         {
-            _jwt = jwt;
-            _sender = sender;
-            _refresh = refresh;
+            _jwtTokenService = jwtTokenService;
+            _mediator = mediator;
+            _refreshTokenService = refreshTokenService;
             _messages = textProvider;
             _authOptions = authOptions.Value;
             _logger = logger;
@@ -49,7 +49,7 @@ namespace Api.Services
                 Password = password
             };
 
-            var response = await _sender.Send(getAccounQuery, cancellationToken);
+            var response = await _mediator.Send(getAccounQuery, cancellationToken);
 
             if (!response.Success || response.Detail == null)
             {
@@ -65,7 +65,7 @@ namespace Api.Services
                 MaxFailedAttempts = _authOptions.MaxFailedAttempts
             };
 
-            var accountIsLocked = await _sender.Send(checkLockedSessionQuery, cancellationToken);
+            var accountIsLocked = await _mediator.Send(checkLockedSessionQuery, cancellationToken);
 
             if (accountIsLocked.Success)
             {
@@ -78,7 +78,7 @@ namespace Api.Services
                 AccountId = account.Id
             };
 
-            var sessionResponse = await _sender.Send(getSessionQuery, cancellationToken);
+            var sessionResponse = await _mediator.Send(getSessionQuery, cancellationToken);
 
             var session = sessionResponse.Detail ?? new();
             session.AccountId = account.Id;
@@ -103,7 +103,7 @@ namespace Api.Services
                 updateSessionCommand.FailedLoginAttempts = session.FailedLoginAttempts;
                 updateSessionCommand.LockedUntilUtc = session.LockedUntilUtc;
 
-                await _sender.Send(updateSessionCommand, cancellationToken);
+                await _mediator.Send(updateSessionCommand, cancellationToken);
 
                 _logger.LogWarning(@"Login failed for account {AccountId}. Failed attempts: {FailedLoginAttempts}.", account.Id, session.FailedLoginAttempts);
 
@@ -117,10 +117,10 @@ namespace Api.Services
             session.TokenVersion = 1;
             updateSessionCommand.TokenVersion = session.TokenVersion;
 
-            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account, session.TokenVersion);
-            var refreshToken = await _refresh.Create(session);
+            var (accessToken, expiresAt) = _jwtTokenService.GenerateAccessToken(account, session.TokenVersion);
+            var refreshToken = await _refreshTokenService.Create(session);
 
-            await _sender.Send(updateSessionCommand, cancellationToken);
+            await _mediator.Send(updateSessionCommand, cancellationToken);
 
             _accountSessionCache.Set(account.Id, account, session);
 
@@ -131,7 +131,7 @@ namespace Api.Services
 
         public async Task<LoginResponse?> Refresh(string refreshToken, CancellationToken cancellationToken = default)
         {
-            var token = await _refresh.Validate(refreshToken);
+            var token = await _refreshTokenService.Validate(refreshToken);
 
             if (token is null)
             {
@@ -157,14 +157,14 @@ namespace Api.Services
                     AccountId = token.AccountId
                 };
 
-                var accountResponse = await _sender.Send(query, cancellationToken);
+                var accountResponse = await _mediator.Send(query, cancellationToken);
 
                 GetAccountSessionByIdQuery getSessionQuery = new()
                 {
                     AccountId = token.AccountId
                 };
 
-                var sessionResponse = await _sender.Send(getSessionQuery, cancellationToken);
+                var sessionResponse = await _mediator.Send(getSessionQuery, cancellationToken);
 
                 if (!accountResponse.Success || accountResponse.Detail == null || !sessionResponse.Success || sessionResponse.Detail == null)
                 {
@@ -180,11 +180,11 @@ namespace Api.Services
 
             session.TokenVersion++;
 
-            var (accessToken, expiresAt) = _jwt.GenerateAccessToken(account, session.TokenVersion);
+            var (accessToken, expiresAt) = _jwtTokenService.GenerateAccessToken(account, session.TokenVersion);
 
             var newRefreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(_authOptions.RefreshTokenByteSize));
 
-            await _refresh.Rotate(refreshToken, newRefreshToken);
+            await _refreshTokenService.Rotate(refreshToken, newRefreshToken);
 
             _accountSessionCache.Set(token.AccountId, account, session);
 
@@ -195,9 +195,9 @@ namespace Api.Services
 
         public async Task Logout(string refreshToken)
         {
-            var token = await _refresh.Validate(refreshToken);
+            var token = await _refreshTokenService.Validate(refreshToken);
 
-            await _refresh.Revoke(refreshToken);
+            await _refreshTokenService.Revoke(refreshToken);
 
             if (token is not null)
             {

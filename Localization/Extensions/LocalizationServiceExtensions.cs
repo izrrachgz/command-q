@@ -18,11 +18,11 @@ namespace Localization.Extensions
         /// <param name="configure">Optional localization settings such as provider order, supported cultures and fallback culture.</param>
         public static IServiceCollection AddLocalizationServices(this IServiceCollection services, Action<LocalizationOptions>? configure = null)
         {
-            var options = new LocalizationOptions();
+            var localizationOptions = new LocalizationOptions();
 
-            configure?.Invoke(options);
+            configure?.Invoke(localizationOptions);
 
-            services.AddSingleton(options);
+            services.AddSingleton(localizationOptions);
             services.AddScoped<ITextProvider>(serviceProvider =>
             {
                 var localizationOptions = serviceProvider.GetRequiredService<LocalizationOptions>();
@@ -40,35 +40,35 @@ namespace Localization.Extensions
             return services;
         }
 
-        private static IEnumerable<ITextProvider> CreateProviders(CultureInfo culture, LocalizationOptions options)
+        private static IEnumerable<ITextProvider> CreateProviders(CultureInfo primaryCulture, LocalizationOptions localizationOptions)
         {
-            var fallbackCulture = CreateFallbackCulture(options);
+            var fallbackCulture = CreateFallbackCulture(localizationOptions);
 
-            foreach (var provider in options.ProviderOrder)
+            foreach (var providerType in localizationOptions.ProviderOrder)
             {
-                yield return provider switch
+                yield return providerType switch
                 {
-                    LocalizationProviderType.Json => new JsonTextProvider(culture.Name, options),
-                    LocalizationProviderType.Resx => new ResxTextProvider(culture, fallbackCulture),
-                    _ => new ResxTextProvider(culture, fallbackCulture)
+                    LocalizationProviderType.Json => new JsonTextProvider(primaryCulture.Name, localizationOptions),
+                    LocalizationProviderType.Resx => new ResxTextProvider(primaryCulture, fallbackCulture),
+                    _ => new ResxTextProvider(primaryCulture, fallbackCulture)
                 };
             }
         }
 
-        private static CultureInfo CreateFallbackCulture(LocalizationOptions options)
+        private static CultureInfo CreateFallbackCulture(LocalizationOptions localizationOptions)
         {
-            return CultureInfo.GetCultureInfo(options.FallbackCulture);
+            return CultureInfo.GetCultureInfo(localizationOptions.FallbackCulture);
         }
 
-        private static CultureInfo ResolveCulture(CultureInfo culture, LocalizationOptions options)
+        private static CultureInfo ResolveCulture(CultureInfo requestedCulture, LocalizationOptions localizationOptions)
         {
-            if (options.SupportedCultures.Any(supportedCulture => supportedCulture.Equals(culture.Name, StringComparison.OrdinalIgnoreCase)))
-                return culture;
+            if (localizationOptions.SupportedCultures.Any(supportedCulture => supportedCulture.Equals(requestedCulture.Name, StringComparison.OrdinalIgnoreCase)))
+                return requestedCulture;
 
-            if (options.SupportedCultures.Any(supportedCulture => supportedCulture.Equals(culture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase)))
-                return culture;
+            if (localizationOptions.SupportedCultures.Any(supportedCulture => supportedCulture.Equals(requestedCulture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase)))
+                return requestedCulture;
 
-            return CreateFallbackCulture(options);
+            return CreateFallbackCulture(localizationOptions);
         }
     }
 }

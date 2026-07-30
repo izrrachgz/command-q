@@ -12,30 +12,30 @@ namespace Localization.Providers
     {
         private static readonly ConcurrentDictionary<string, IReadOnlyDictionary<string, string>> Cache = [];
 
-        private readonly string _culture;
+        private readonly string _primaryCultureName;
 
-        private readonly string _fallbackCulture;
+        private readonly string _fallbackCultureName;
 
         private readonly string _localesPath;
 
         /// <summary>
         /// Creates a JSON provider for the specified culture using default localization options.
         /// </summary>
-        /// <param name="culture">Primary culture used to resolve JSON locale values.</param>
-        public JsonTextProvider(string culture) : this(culture, new LocalizationOptions())
+        /// <param name="primaryCultureName">Primary culture used to resolve JSON locale values.</param>
+        public JsonTextProvider(string primaryCultureName) : this(primaryCultureName, new LocalizationOptions())
         {
         }
 
         /// <summary>
         /// Creates a JSON provider for the specified culture and localization options.
         /// </summary>
-        /// <param name="culture">Primary culture used to resolve JSON locale values.</param>
-        /// <param name="options">Localization options containing fallback culture and JSON locale path.</param>
-        public JsonTextProvider(string culture, LocalizationOptions options)
+        /// <param name="primaryCultureName">Primary culture used to resolve JSON locale values.</param>
+        /// <param name="localizationOptions">Localization options containing fallback culture and JSON locale path.</param>
+        public JsonTextProvider(string primaryCultureName, LocalizationOptions localizationOptions)
         {
-            _culture = NormalizeCulture(culture);
-            _fallbackCulture = NormalizeCulture(options.FallbackCulture);
-            _localesPath = options.JsonLocalesPath;
+            _primaryCultureName = NormalizeCulture(primaryCultureName);
+            _fallbackCultureName = NormalizeCulture(localizationOptions.FallbackCulture);
+            _localesPath = localizationOptions.JsonLocalesPath;
         }
 
         /// <summary>
@@ -43,10 +43,10 @@ namespace Localization.Providers
         /// </summary>
         public string Get(string key, params object[] args)
         {
-            var value = GetValue(_culture, key);
+            var value = GetValue(_primaryCultureName, key);
 
-            if (value is null && !_fallbackCulture.Equals(_culture, StringComparison.OrdinalIgnoreCase))
-                value = GetValue(_fallbackCulture, key);
+            if (value is null && !_fallbackCultureName.Equals(_primaryCultureName, StringComparison.OrdinalIgnoreCase))
+                value = GetValue(_fallbackCultureName, key);
 
             if (value is null)
                 return key;
@@ -54,16 +54,16 @@ namespace Localization.Providers
             return args.Length > 0 ? string.Format(value, args) : value;
         }
 
-        private string? GetValue(string culture, string key)
+        private string? GetValue(string cultureName, string key)
         {
-            var values = Cache.GetOrAdd($@"{_localesPath}|{culture}", _ => Load(culture));
+            var values = Cache.GetOrAdd($@"{_localesPath}|{cultureName}", _ => Load(cultureName));
 
             return values.TryGetValue(key, out var value) ? value : null;
         }
 
-        private IReadOnlyDictionary<string, string> Load(string culture)
+        private IReadOnlyDictionary<string, string> Load(string cultureName)
         {
-            var path = Path.Combine(_localesPath, $@"{culture}.json");
+            var path = Path.Combine(_localesPath, $@"{cultureName}.json");
 
             if (!File.Exists(path))
                 return new Dictionary<string, string>();
