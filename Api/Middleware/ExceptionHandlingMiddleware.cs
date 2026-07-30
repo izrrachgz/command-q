@@ -1,5 +1,7 @@
 using Public;
+using Api.Models;
 using Api.Logging;
+using Api.Serialization;
 using Common.Constants;
 using FluentValidation;
 using System.Text.Json;
@@ -29,19 +31,19 @@ namespace Api.Middleware
         {
             var statusCode = GetStatusCode(exception);
 
-            var response = new
+            var response = new ErrorResponse
             {
-                title = GetTitle(exception, messages),
-                status = statusCode,
-                exceptionDetail = exception.Message,
-                errors = GetErrors(exception)
+                Title = GetTitle(exception, messages),
+                Status = statusCode,
+                ExceptionDetail = exception.Message,
+                Errors = GetErrors(exception)
             };
 
             httpContext.Response.ContentType = "application/json";
 
             httpContext.Response.StatusCode = statusCode;
 
-            await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response));
+            await httpContext.Response.WriteAsync(JsonSerializer.Serialize(response, ApiJsonContext.Default.ErrorResponse));
         }
 
         private static int GetStatusCode(Exception exception) =>

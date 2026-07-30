@@ -2,6 +2,7 @@
 using System.Net.Mail;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Common.Extensions
 {
@@ -25,6 +26,16 @@ namespace Common.Extensions
             }
 
             return JsonSerializer.Deserialize<T?>(content, _jsonSerializerOptions);
+        }
+
+        public static T? FromJson<T>(this string? content, JsonTypeInfo<T> jsonTypeInfo)
+        {
+            if (content is null)
+            {
+                return default;
+            }
+
+            return JsonSerializer.Deserialize(content, jsonTypeInfo);
         }
 
         public static bool IsNumber(this string content)

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Localization.Models;
 using Localization.Abstractions;
+using Localization.Serialization;
 using System.Collections.Concurrent;
 
 namespace Localization.Providers
@@ -70,7 +71,7 @@ namespace Localization.Providers
 
             var json = File.ReadAllText(path);
 
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? [];
+            return JsonSerializer.Deserialize(json, LocalizationJsonContext.Default.DictionaryStringString) ?? [];
         }
 
         private static string NormalizeCulture(string culture)

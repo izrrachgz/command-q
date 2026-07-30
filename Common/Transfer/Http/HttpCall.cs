@@ -3,6 +3,7 @@ using System.Text;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Net.Mime;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Common.Transfer.Http
 {
@@ -125,6 +126,16 @@ namespace Common.Transfer.Http
         }
 
         /// <summary>
+        /// Sends a GET request and deserializes the response body as JSON using source-generated type metadata.
+        /// </summary>
+        public async Task<T?> GetAndReadFromJson<T>(string baseUrl, JsonTypeInfo<T> jsonTypeInfo, string? method = null, Dictionary<string, object>? queryParams = null, CancellationToken cancellationToken = default)
+        {
+            var response = await Get(baseUrl, method, queryParams, cancellationToken);
+
+            return await ReadFromJson(response, jsonTypeInfo, cancellationToken);
+        }
+
+        /// <summary>
         /// Sends a POST request with a JSON body.
         /// </summary>
         public async Task<HttpResponseMessage> Post(string baseUrl, string? method = null, object? bodyParams = null, CancellationToken cancellationToken = default)
@@ -140,6 +151,16 @@ namespace Common.Transfer.Http
             var response = await Post(baseUrl, method, bodyParams, cancellationToken);
 
             return await ReadFromJson<T>(response, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sends a POST request with a JSON body and deserializes the response body as JSON using source-generated type metadata.
+        /// </summary>
+        public async Task<T?> PostAndReadFromJson<T>(string baseUrl, JsonTypeInfo<T> jsonTypeInfo, string? method = null, object? bodyParams = null, CancellationToken cancellationToken = default)
+        {
+            var response = await Post(baseUrl, method, bodyParams, cancellationToken);
+
+            return await ReadFromJson(response, jsonTypeInfo, cancellationToken);
         }
 
         /// <summary>
@@ -204,6 +225,19 @@ namespace Common.Transfer.Http
         }
 
         /// <summary>
+        /// Creates JSON HTTP content using source-generated type metadata.
+        /// </summary>
+        public HttpContent CreateJsonContent<T>(T body, JsonTypeInfo<T> jsonTypeInfo)
+        {
+            if (body is null)
+                return new StringContent(string.Empty);
+
+            string json = JsonSerializer.Serialize(body, jsonTypeInfo);
+
+            return CreateStringContent(json, MediaTypeNames.Application.Json);
+        }
+
+        /// <summary>
         /// Creates form-url-encoded HTTP content.
         /// </summary>
         public HttpContent CreateFormContent(Dictionary<string, string>? form)
@@ -251,6 +285,18 @@ namespace Common.Transfer.Http
             try
             {
                 return await response.Content.ReadFromJsonAsync<T?>(SerializerOptions, cancellationToken);
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        private static async Task<T?> ReadFromJson<T>(HttpResponseMessage response, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken);
             }
             catch
             {
