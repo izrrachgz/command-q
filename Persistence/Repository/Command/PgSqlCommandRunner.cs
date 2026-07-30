@@ -3,9 +3,9 @@ using Dapper;
 using System.Data;
 using Npgsql.Schema;
 using Common.Constants;
-using Persistence.Interfaces;
 using Persistence.Constant;
 using Common.Models.Command;
+using Persistence.Interfaces;
 using Common.Models.Response;
 using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
@@ -99,7 +99,7 @@ namespace Persistence.Repository.Command
                         object value = parameter.Value is null ? DBNull.Value : parameter.Value;
                         cmd.Parameters.AddWithValue(parameter.Key, value);
 
-                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value);
+                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value?.GetType().Name ?? nameof(DBNull));
                     }
                 }
 

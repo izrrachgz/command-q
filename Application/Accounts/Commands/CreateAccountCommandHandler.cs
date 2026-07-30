@@ -49,7 +49,10 @@ namespace Application.Accounts.Commands
             bool accountExists = await AccountAlreadyExists(request, cancellationToken);
 
             if (accountExists)
+            {
+                _logger.LogWarning(@"Account creation rejected because username or email already exists. Username: {Username}.", request.Username);
                 return new(false, _message_account_cannot_create);
+            }
 
             var now = DateTime.Now;
 
@@ -84,6 +87,7 @@ namespace Application.Accounts.Commands
                 if (insertedAccount == null || !Hash.CompareSHA256(account.Password, insertedAccount.Password))
                 {
                     transaction.Rollback();
+                    _logger.LogWarning(@"Account creation verification failed for username {Username}.", request.Username);
 
                     return new(false, _message_account_cannot_create);
                 }
@@ -125,11 +129,13 @@ namespace Application.Accounts.Commands
                 {
                     transaction.Commit();
                     message = _message_account_created;
+                    _logger.LogInformation(@"Account created. AccountId: {AccountId}. Username: {Username}.", insertedAccount.Id, request.Username);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_account_cannot_create;
+                    _logger.LogWarning(@"Account creation affected no records for username {Username}.", request.Username);
                 }
 
                 return new(saved, message);

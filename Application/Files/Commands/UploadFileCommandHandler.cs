@@ -41,9 +41,14 @@ namespace Application.Files.Commands
             var safeFileName = Path.GetFileName(request.FileName);
 
             if (string.IsNullOrWhiteSpace(safeFileName))
+            {
+                _logger.LogWarning(@"File upload rejected for account {AccountId} because the file name was empty.", request.AccountId);
                 return new(false, _message_file_cannot_create);
+            }
 
             var tempFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.upload");
+
+            _logger.LogDebug(@"File upload temp path created for account {AccountId}. FileName: {FileName}.", request.AccountId, safeFileName);
 
             try
             {
@@ -88,6 +93,8 @@ namespace Application.Files.Commands
 
             destination = Path.Combine(destination, $"{Guid.NewGuid():N}{extension}");
 
+            _logger.LogDebug(@"File upload destination path generated for account {AccountId}. RelativePath: {RelativePath}.", request.AccountId, Path.GetRelativePath(AppDomain.CurrentDomain.BaseDirectory, destination));
+
             #endregion
 
             try
@@ -105,8 +112,10 @@ namespace Application.Files.Commands
                     Size = request.FileData.CanSeek ? request.FileData.Length : 0
                 };
 
-                await _repository.Db.Query($@"{nameof(AccountFile)}")
-                    .InsertAsync(accountFile, cancellationToken: cancellationToken);
+                var accountFileId = await _repository.Db.Query($@"{nameof(AccountFile)}")
+                    .InsertGetIdAsync<long>(accountFile, cancellationToken: cancellationToken);
+
+                _logger.LogInformation(@"File metadata saved. AccountId: {AccountId}. AccountFileId: {AccountFileId}. FileName: {FileName}. Size: {Size}. ContentType: {ContentType}.", request.AccountId, accountFileId, safeFileName, accountFile.Size, request.ContentType);
 
                 return new(true, _message_file_created);
             }

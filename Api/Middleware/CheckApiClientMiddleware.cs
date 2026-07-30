@@ -8,12 +8,13 @@ namespace Api.Middleware
     /// <summary>
     /// Checks if the api keys for the client are present in the request
     /// </summary>
-    public sealed class CheckApiClientMiddleware(RequestDelegate next, IHostEnvironment environment, IOptions<List<ApiClient>> clients)
+    public sealed class CheckApiClientMiddleware(RequestDelegate next, IHostEnvironment environment, IOptions<List<ApiClient>> clients, ILogger<CheckApiClientMiddleware> logger)
     {
         public async Task Invoke(HttpContext context)
         {
             if (clients.Value is null || clients.Value.Count == 0)
             {
+                logger.LogWarning(@"API client validation failed because no API clients are configured.");
                 throw new NotValidApiClientException();
             }
 
@@ -21,8 +22,11 @@ namespace Api.Middleware
 
             if (client is null || (!environment.IsDevelopment() && !context.Request.Headers[HeaderNames.Origin].Equals(client.Uri)))
             {
+                logger.LogWarning(@"API client validation failed. Origin: {Origin}.", context.Request.Headers[HeaderNames.Origin].ToString());
                 throw new NotValidApiClientException();
             }
+
+            logger.LogDebug(@"API client validation succeeded. Client: {ClientName}.", client.Name);
 
             await next(context);
         }

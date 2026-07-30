@@ -14,7 +14,7 @@ namespace Api.Middleware
     /// <param name="next">The delegate representing the next middleware component in the HTTP request processing pipeline.</param>
     /// <param name="configuration">The configuration instance used to retrieve cache-related settings, such as the maximum age for cached
     /// responses.</param>
-    public sealed class CacheMiddleware(RequestDelegate next, IConfiguration configuration)
+    public sealed class CacheMiddleware(RequestDelegate next, IConfiguration configuration, ILogger<CacheMiddleware> logger)
     {
         public async Task Invoke(HttpContext context)
         {
@@ -22,17 +22,29 @@ namespace Api.Middleware
 
             // Only apply cache headers for safe idempotent requests and successful responses
             if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
+            {
+                logger.LogDebug(@"Response cache headers skipped for method {Method}.", context.Request.Method);
                 return;
+            }
 
             if (context.Response.StatusCode != StatusCodes.Status200OK)
+            {
+                logger.LogDebug(@"Response cache headers skipped for status code {StatusCode}.", context.Response.StatusCode);
                 return;
+            }
 
             // Do not add cache headers if response sets cookies (sensitive) or already has cache-control set
             if (context.Response.Headers.ContainsKey(HeaderNames.SetCookie))
+            {
+                logger.LogDebug(@"Response cache headers skipped because response sets cookies.");
                 return;
+            }
 
             if (context.Response.Headers.ContainsKey(HeaderNames.CacheControl))
+            {
+                logger.LogDebug(@"Response cache headers skipped because cache-control already exists.");
                 return;
+            }
 
             int maxAge = configuration.GetValue(ConfigKeys.Cache.MaxAgeSeconds, 10);
 
@@ -43,6 +55,8 @@ namespace Api.Middleware
             };
 
             context.Response.Headers[HeaderNames.Vary] = new[] { HeaderNames.AcceptEncoding };
+
+            logger.LogDebug(@"Response cache headers applied. MaxAgeSeconds: {MaxAgeSeconds}.", maxAge);
         }
     }
 }

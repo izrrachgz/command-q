@@ -19,10 +19,12 @@ namespace Api.Controllers
         private readonly string _cookieName;
         private readonly bool _isProduction;
         private readonly AuthService _authService;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(ISender sender, IConfiguration configuration, IHostEnvironment environment, AuthService authService)
+        public AccountController(ISender sender, IConfiguration configuration, IHostEnvironment environment, AuthService authService, ILogger<AccountController> logger)
         {
             _sender = sender;
+            _logger = logger;
             _authService = authService;
             _isProduction = environment.IsProduction();
             _cookieName = configuration.GetValue<string>(ConfigKeys.Cookie.Name)!;
@@ -42,7 +44,10 @@ namespace Api.Controllers
             var result = await _authService.Login(request.Username, request.Password, cancellationToken);
 
             if (result is null)
+            {
+                _logger.LogWarning(@"Sign-in returned unauthorized for username {Username}.", request.Username);
                 return Unauthorized();
+            }
 
             // Set the refresh token in an HTTP-only cookie to enhance security by preventing client-side scripts from accessing it.
             Response.Cookies.Append(_cookieName, result.RefreshToken, new CookieOptions
@@ -74,12 +79,18 @@ namespace Api.Controllers
             var refreshToken = Request.Cookies[_cookieName];
 
             if (string.IsNullOrEmpty(refreshToken))
+            {
+                _logger.LogWarning(@"Refresh requested without refresh cookie.");
                 return Unauthorized();
+            }
 
             var result = await _authService.Refresh(refreshToken, cancellationToken);
 
             if (result is null)
+            {
+                _logger.LogWarning(@"Refresh returned unauthorized.");
                 return Unauthorized();
+            }
 
             // update the refresh token in the HTTP-only cookie with the new token received from the authentication service.
             // this ensures that the client has the latest refresh token for future access token refresh operations.
@@ -110,6 +121,10 @@ namespace Api.Controllers
             if (!string.IsNullOrEmpty(refreshToken))
             {
                 await _authService.Logout(refreshToken);
+            }
+            else
+            {
+                _logger.LogDebug(@"Logout requested without refresh cookie.");
             }
 
             // delete cookie

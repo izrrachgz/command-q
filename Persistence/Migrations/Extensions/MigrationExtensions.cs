@@ -1,6 +1,7 @@
 using SqlKata.Execution;
 using Common.Extensions;
 using Persistence.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,12 +25,15 @@ namespace Persistence.Migrations.Extensions
             using var scope = host.Services.CreateScope();
 
             var repository = scope.ServiceProvider.GetRequiredService<IWritableRepository>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(MigrationExtensions));
 
             string migrationsPath = repository.MigrationsPath;
 
+            logger.LogInformation(@"Migration scan started. Engine: {Engine}. Path: {MigrationsPath}.", repository.Engine, migrationsPath);
+
             if (!Directory.Exists(migrationsPath))
             {
-                Console.WriteLine($"Migrations are not setup, {MigrationCannotContinueMessage}");
+                logger.LogWarning(@"Migrations are not setup, {Reason}", MigrationCannotContinueMessage);
                 return;
             }
 
@@ -37,7 +41,7 @@ namespace Persistence.Migrations.Extensions
 
             if (filePaths == null || filePaths.Length == 0)
             {
-                Console.WriteLine($"Migrations files are not found, {MigrationCannotContinueMessage}");
+                logger.LogWarning(@"Migration files were not found, {Reason}", MigrationCannotContinueMessage);
                 return;
             }
 
@@ -47,7 +51,7 @@ namespace Persistence.Migrations.Extensions
 
             if (!long.TryParse(migrationCountIndex, out long migrationCount))
             {
-                Console.WriteLine($"Last migration index is not a valid value, {MigrationCannotContinueMessage}");
+                logger.LogWarning(@"Last migration index is not valid, {Reason}", MigrationCannotContinueMessage);
                 return;
             }
 
@@ -66,10 +70,16 @@ namespace Persistence.Migrations.Extensions
                 if (records is not null)
                     lastMigrationId = records.First().Id;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex, @"Unable to read last applied migration. Starting from first migration.");
+            }
 
             if (lastMigrationId >= migrationCount)
+            {
+                logger.LogInformation(@"Migrations are already up to date. Last migration: {LastMigrationId}. Available migration: {MigrationCount}.", lastMigrationId, migrationCount);
                 return;
+            }
 
             lastMigrationId = lastMigrationId <= 0 ? 1 : lastMigrationId;
 
@@ -78,12 +88,17 @@ namespace Persistence.Migrations.Extensions
                 string filePath = $@"{migrationsPath}{FileNameSequence}{x}{MigrationFileExtension}";
 
                 if (!File.Exists(filePath))
+                {
+                    logger.LogWarning(@"Migration file was expected but not found. File: {MigrationFile}.", filePath);
                     continue;
+                }
 
                 string content = await File.ReadAllTextAsync(filePath);
 
                 try
                 {
+                    logger.LogInformation(@"Applying migration {MigrationFile}.", filePath);
+
                     using var cmd = repository.Db.Connection.CreateCommand();
 
                     if (repository.Db.Connection.State != System.Data.ConnectionState.Open)
@@ -92,12 +107,16 @@ namespace Persistence.Migrations.Extensions
                     cmd.CommandText = content;
 
                     cmd.ExecuteNonQuery();
+
+                    logger.LogInformation(@"Migration applied successfully. File: {MigrationFile}.", filePath);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($@"An error occurred while trying to apply migration {filePath}, {e.Message}");
+                    logger.LogError(e, @"An error occurred while applying migration {MigrationFile}.", filePath);
                 }
             }
+
+            logger.LogInformation(@"Migration scan completed. Engine: {Engine}.", repository.Engine);
         }
     }
 }

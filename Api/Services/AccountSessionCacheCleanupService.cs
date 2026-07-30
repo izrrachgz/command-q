@@ -17,10 +17,18 @@ namespace Api.Services
 
             using var timer = new PeriodicTimer(period);
 
-            while (await timer.WaitForNextTickAsync(stoppingToken))
+            try
             {
-                cache.Clear();
-                logger.LogDebug(@"Account session cache cleared.");
+                while (await timer.WaitForNextTickAsync(stoppingToken))
+                {
+                    logger.LogDebug(@"Account session cache cleanup started.");
+                    cache.Clear();
+                    logger.LogDebug(@"Account session cache cleanup completed.");
+                }
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                logger.LogDebug(@"Account session cache cleanup stopped.");
             }
         }
     }

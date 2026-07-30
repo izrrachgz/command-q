@@ -1,8 +1,8 @@
 using Public;
 using Common.Cqrs;
 using Domain.Entities;
-using Persistence.Interfaces;
 using SqlKata.Execution;
+using Persistence.Interfaces;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -42,7 +42,10 @@ namespace Application.AccountSessions.Commands
             var account = await _accountService.GetAccountSession(request.AccountId, cancellationToken);
 
             if (account == null)
+            {
+                _logger.LogWarning(@"Account session lock failed because account session was not found. AccountId: {AccountId}.", request.AccountId);
                 return new(false, _message_cannot_lock_account);
+            }
 
             var now = DateTime.Now;
             var utcNow = DateTime.UtcNow;
@@ -68,11 +71,13 @@ namespace Application.AccountSessions.Commands
                 {
                     transaction.Commit();
                     message = _message_account_locked;
+                    _logger.LogInformation(@"Account session locked. AccountId: {AccountId}. LockedUntilUtc: {LockedUntilUtc}.", request.AccountId, account.LockedUntilUtc);
                 }
                 else
                 {
                     transaction.Rollback();
                     message = _message_cannot_lock_account;
+                    _logger.LogWarning(@"Account session lock affected no records. AccountId: {AccountId}.", request.AccountId);
                 }
 
                 return new(saved, message);

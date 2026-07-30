@@ -7,7 +7,7 @@ using Application.AccountSessions.Dtos;
 
 namespace Api.Services
 {
-    public sealed class RefreshTokenService(IOptions<JwtOptions> options, IOptions<AuthOptions> authOptions) : IRefreshTokenService
+    public sealed class RefreshTokenService(IOptions<JwtOptions> options, IOptions<AuthOptions> authOptions, ILogger<RefreshTokenService> logger) : IRefreshTokenService
     {
         private readonly JwtOptions _options = options.Value;
         private readonly AuthOptions _authOptions = authOptions.Value;
@@ -24,16 +24,24 @@ namespace Api.Services
                 ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
             };
 
+            logger.LogDebug(@"Refresh token created for account {AccountId}.", session.AccountId);
+
             return Task.FromResult(token);
         }
 
         public Task<RefreshToken?> Validate(string refreshToken)
         {
             if (!Tokens.TryGetValue(refreshToken, out var token))
+            {
+                logger.LogDebug(@"Refresh token validation missed in token store.");
                 return Task.FromResult<RefreshToken?>(null);
+            }
 
             if (token.Revoked || token.ExpiresAt <= DateTime.UtcNow)
+            {
+                logger.LogDebug(@"Refresh token rejected for account {AccountId}. Revoked: {Revoked}. Expired: {Expired}.", token.AccountId, token.Revoked, token.ExpiresAt <= DateTime.UtcNow);
                 return Task.FromResult<RefreshToken?>(null);
+            }
 
             return Task.FromResult<RefreshToken?>(token);
         }
@@ -41,7 +49,10 @@ namespace Api.Services
         public Task Rotate(string oldToken, string newToken)
         {
             if (!Tokens.TryGetValue(oldToken, out var token))
+            {
+                logger.LogWarning(@"Refresh token rotation skipped because the old token was not found.");
                 return Task.CompletedTask;
+            }
 
             token.Revoked = true;
 
@@ -52,6 +63,8 @@ namespace Api.Services
                 ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDays)
             };
 
+            logger.LogDebug(@"Refresh token rotated for account {AccountId}.", token.AccountId);
+
             return Task.CompletedTask;
         }
 
@@ -60,7 +73,10 @@ namespace Api.Services
             Tokens.TryGetValue(refreshToken, out var token);
 
             if (token != null)
+            {
                 token.Revoked = true;
+                logger.LogDebug(@"Refresh token revoked for account {AccountId}.", token.AccountId);
+            }
 
             return Task.CompletedTask;
         }

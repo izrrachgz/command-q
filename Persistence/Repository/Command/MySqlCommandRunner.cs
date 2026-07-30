@@ -2,10 +2,10 @@ using Dapper;
 using System.Data;
 using System.Text;
 using Common.Constants;
-using Persistence.Interfaces;
 using Persistence.Constant;
 using System.Globalization;
 using Common.Models.Command;
+using Persistence.Interfaces;
 using Common.Models.Response;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Logging;
@@ -109,7 +109,7 @@ namespace Persistence.Repository.Command
                         object value = parameter.Value is null ? DBNull.Value : parameter.Value;
                         cmd.Parameters.AddWithValue(parameter.Key, value);
 
-                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value);
+                        Logger.LogDebug(DatabaseConstants.ParameterInQuery, parameter.Key, parameter.Value?.GetType().Name ?? nameof(DBNull));
                     }
                 }
 

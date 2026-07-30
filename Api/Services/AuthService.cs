@@ -24,16 +24,18 @@ namespace Api.Services
         private readonly AuthOptions _authOptions;
         private readonly IRefreshTokenService _refresh;
         private readonly IAccountSessionCache _accountSessionCache;
+        private readonly ILogger<AuthService> _logger;
 
         private readonly string _message_account_locked;
 
-        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, IAccountSessionCache accountSessionCache, ITextProvider textProvider, IOptions<AuthOptions> authOptions)
+        public AuthService(ISender sender, IJwtTokenService jwt, IRefreshTokenService refresh, IAccountSessionCache accountSessionCache, ITextProvider textProvider, IOptions<AuthOptions> authOptions, ILogger<AuthService> logger)
         {
             _jwt = jwt;
             _sender = sender;
             _refresh = refresh;
             _messages = textProvider;
             _authOptions = authOptions.Value;
+            _logger = logger;
             _accountSessionCache = accountSessionCache;
 
             _message_account_locked = _messages.Get(nameof(Messages.Account_Locked));
@@ -50,7 +52,10 @@ namespace Api.Services
             var response = await _sender.Send(getAccounQuery, cancellationToken);
 
             if (!response.Success || response.Detail == null)
+            {
+                _logger.LogWarning(@"Login failed for username {Username}.", username);
                 return null;
+            }
 
             var account = response.Detail;
 
@@ -63,7 +68,10 @@ namespace Api.Services
             var accountIsLocked = await _sender.Send(checkLockedSessionQuery, cancellationToken);
 
             if (accountIsLocked.Success)
+            {
+                _logger.LogWarning(@"Login blocked because account {AccountId} is locked.", account.Id);
                 throw new SecurityException(_message_account_locked);
+            }
 
             GetAccountSessionByIdQuery getSessionQuery = new()
             {
@@ -87,12 +95,17 @@ namespace Api.Services
                 session.FailedLoginAttempts++;
 
                 if (session.FailedLoginAttempts >= _authOptions.MaxFailedAttempts)
+                {
                     session.LockedUntilUtc = DateTime.UtcNow.AddMinutes(_authOptions.LockoutMinutes);
+                    _logger.LogWarning(@"Account {AccountId} locked until {LockedUntilUtc}.", account.Id, session.LockedUntilUtc);
+                }
 
                 updateSessionCommand.FailedLoginAttempts = session.FailedLoginAttempts;
                 updateSessionCommand.LockedUntilUtc = session.LockedUntilUtc;
 
                 await _sender.Send(updateSessionCommand, cancellationToken);
+
+                _logger.LogWarning(@"Login failed for account {AccountId}. Failed attempts: {FailedLoginAttempts}.", account.Id, session.FailedLoginAttempts);
 
                 return null;
             }
@@ -111,6 +124,8 @@ namespace Api.Services
 
             _accountSessionCache.Set(account.Id, account, session);
 
+            _logger.LogInformation(@"Login succeeded for account {AccountId}.", account.Id);
+
             return new LoginResponse(accessToken, expiresAt, refreshToken);
         }
 
@@ -119,18 +134,24 @@ namespace Api.Services
             var token = await _refresh.Validate(refreshToken);
 
             if (token is null)
+            {
+                _logger.LogWarning(@"Refresh token validation failed.");
                 return null;
+            }
 
             AccountModel account;
             AccountSessionModel session;
 
             if (_accountSessionCache.TryGet(token.AccountId, out var cached))
             {
+                _logger.LogDebug(@"Refresh account/session cache hit for account {AccountId}.", token.AccountId);
                 account = cached.Account;
                 session = cached.Session;
             }
             else
             {
+                _logger.LogDebug(@"Refresh account/session cache miss for account {AccountId}.", token.AccountId);
+
                 GetAccountByIdQuery query = new()
                 {
                     AccountId = token.AccountId
@@ -146,7 +167,10 @@ namespace Api.Services
                 var sessionResponse = await _sender.Send(getSessionQuery, cancellationToken);
 
                 if (!accountResponse.Success || accountResponse.Detail == null || !sessionResponse.Success || sessionResponse.Detail == null)
+                {
+                    _logger.LogWarning(@"Refresh failed because account/session data was not found for account {AccountId}.", token.AccountId);
                     return null;
+                }
 
                 account = accountResponse.Detail;
                 session = sessionResponse.Detail;
@@ -164,6 +188,8 @@ namespace Api.Services
 
             _accountSessionCache.Set(token.AccountId, account, session);
 
+            _logger.LogInformation(@"Refresh succeeded for account {AccountId}. Token version: {TokenVersion}.", token.AccountId, session.TokenVersion);
+
             return new LoginResponse(accessToken, expiresAt, newRefreshToken);
         }
 
@@ -174,7 +200,14 @@ namespace Api.Services
             await _refresh.Revoke(refreshToken);
 
             if (token is not null)
+            {
                 _accountSessionCache.Remove(token.AccountId);
+                _logger.LogInformation(@"Logout revoked refresh token and removed cache for account {AccountId}.", token.AccountId);
+            }
+            else
+            {
+                _logger.LogWarning(@"Logout attempted with an invalid or expired refresh token.");
+            }
         }
 
     }
