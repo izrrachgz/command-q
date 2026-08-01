@@ -17,7 +17,7 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. Must not be null.</param>
         public static void AddFixedWindowRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.FixedOptions).Get<RateLimitingOptions>()!;
+            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.FixedOptions).Get<FixedRateLimitingOptions>()!;
 
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
                 configureOptions.AddFixedWindowLimiter(policyName: ConfigKeys.RateLimiting.FixedPolicyName, options =>
@@ -93,7 +93,7 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. This parameter must not be null.</param>
         public static void AddConcurrencyRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.ConcurrencyOptions).Get<RateLimitingOptions>()!;
+            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.ConcurrencyOptions).Get<ConcurrencyRateLimitingOptions>()!;
 
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
                 configureOptions.AddConcurrencyLimiter(policyName: ConfigKeys.RateLimiting.ConcurrencyPolicyName, options =>

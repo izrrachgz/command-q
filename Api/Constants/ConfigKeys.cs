@@ -43,11 +43,13 @@ namespace Api.Constants
 
         public static class Cache
         {
+            public const string Section = @"CacheSettings";
             public const string MaxAgeSeconds = @"CacheSettings:MaxAgeSeconds";
         }
 
         public static class Database
         {
+            public const string Section = @"ConnectionStrings";
             public const string Engine = @"ConnectionStrings:Engine";
         }
 

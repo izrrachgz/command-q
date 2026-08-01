@@ -7,6 +7,14 @@
         public int QueueLimit { get; set; } = 2;
     }
 
+    public sealed class FixedRateLimitingOptions : RateLimitingOptions
+    {
+    }
+
+    public sealed class ConcurrencyRateLimitingOptions : RateLimitingOptions
+    {
+    }
+
     public sealed class SlidingRateLimitingOptions : RateLimitingOptions
     {
         public int SegmentsPerWindow { get; set; } = 4;

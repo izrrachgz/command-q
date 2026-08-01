@@ -1,6 +1,7 @@
 using Public;
 using Api.Models;
 using Api.Logging;
+using Api.Constants;
 using Api.Serialization;
 using Common.Constants;
 using FluentValidation;
@@ -11,7 +12,7 @@ using Localization.Abstractions;
 
 namespace Api.Middleware
 {
-    public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger, ITextProvider messages) : IMiddleware
+    public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger, ITextProvider messages, IHostEnvironment environment) : IMiddleware
     {
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
@@ -35,7 +36,7 @@ namespace Api.Middleware
             {
                 Title = GetTitle(exception, messages),
                 Status = statusCode,
-                ExceptionDetail = exception.Message,
+                ExceptionDetail = GetExceptionDetail(exception, environment),
                 Errors = GetErrors(exception)
             };
 
@@ -68,6 +69,16 @@ namespace Api.Middleware
                 HttpUnauthorizedException => messages.Get(nameof(Messages.Unauthorized)),
                 _ => messages.Get(nameof(Messages.Server_Error))
             };
+
+        private static string GetExceptionDetail(Exception exception, IHostEnvironment environment)
+        {
+            if (environment.IsDevelopment() || exception is ValidationException or HttpBadRequestException or HttpNotFoundException or HttpForbiddenException or HttpUnauthorizedException)
+            {
+                return exception.Message;
+            }
+
+            return ApiMessages.ProductionExceptionDetail;
+        }
 
         private static IEnumerable<ValidationFailure> GetErrors(Exception exception)
         {

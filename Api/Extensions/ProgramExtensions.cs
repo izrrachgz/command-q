@@ -6,7 +6,6 @@ using Api.Enumerations;
 using Common.Constants;
 using Common.Enumerations;
 using Application.Extensions;
-
 namespace Api.Extensions
 {
     internal static class ProgramExtensions
@@ -34,6 +33,10 @@ namespace Api.Extensions
             // Register exception handler service
             builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
+            builder.Services.AddTransient<SecurityHeadersMiddleware>();
+
+            builder.Services.ValidateAppConfiguration(builder.Configuration);
+
             // Add JWT authorization flow
             builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
 
@@ -52,7 +55,15 @@ namespace Api.Extensions
             var clientsSection = builder.Configuration.GetSection(ConfigKeys.Api.Clients);
 
             //Register api clients
-            builder.Services.Configure<List<ApiClient>>(clientsSection);
+            builder.Services.AddOptions<List<ApiClient>>()
+                .Bind(clientsSection)
+                .Validate(clients => clients.Count > 0, "At least one API client must be configured.")
+                .Validate(clients => clients.All(client =>
+                    !string.IsNullOrWhiteSpace(client.Name) &&
+                    !string.IsNullOrWhiteSpace(client.Id) &&
+                    Uri.TryCreate(client.Uri, UriKind.Absolute, out _)),
+                    "Every API client requires a name, id and absolute URI.")
+                .ValidateOnStart();
 
             //Add Cors
             if (builder.Environment.IsDevelopment())
@@ -115,6 +126,8 @@ namespace Api.Extensions
 
             app.UseHttpsRedirection();
 
+            app.UseMiddleware<SecurityHeadersMiddleware>();
+
             // Adds caching headers to responses and enables caching of responses based on the configured cache profiles
             app.UseResponseCaching();
 
@@ -128,6 +141,7 @@ namespace Api.Extensions
             app.UseMiddleware<CheckApiClientMiddleware>();
 
             // Add authentication and authorization
+            app.UseAuthentication();
             app.UseAuthorization();
 
             // Add rate limiting to all endpoints based on configuration
@@ -177,6 +191,58 @@ namespace Api.Extensions
 
             int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ConfigKeys.Cache.MaxAgeSeconds);
             logger.StartupSetting("Cache Max Age (seconds)", cacheMaxAgeSeconds);
+        }
+
+        private static void ValidateAppConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddOptions<FixedRateLimitingOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.FixedOptions))
+                .Validate(IsValidRateLimit, "FixedWindow rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
+                .ValidateOnStart();
+
+            services.AddOptions<SlidingRateLimitingOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.SlidingOptions))
+                .Validate(options => IsValidRateLimit(options) && options.SegmentsPerWindow > 0, "Sliding rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
+                .ValidateOnStart();
+
+            services.AddOptions<TokenBucketRateLimitingOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.TokenBucketOptions))
+                .Validate(options => IsValidRateLimit(options) && options.TokenLimit > 0 && options.TokensPerPeriod > 0, "TokenBucket rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
+                .ValidateOnStart();
+
+            services.AddOptions<ConcurrencyRateLimitingOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.ConcurrencyOptions))
+                .Validate(options => options.PermitLimit > 0 && options.QueueLimit >= 0, "Concurrency rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
+                .ValidateOnStart();
+
+            services.AddOptions<CacheOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.Cache.Section))
+                .Validate(options => options.MaxAgeSeconds >= 0, "CacheSettings:MaxAgeSeconds cannot be negative.")
+                .ValidateOnStart();
+
+            services.AddOptions<DatabaseOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.Database.Section))
+                .Validate(options => Enum.IsDefined(options.Engine), "ConnectionStrings:Engine must be a supported database engine.")
+                .Validate(options => !string.IsNullOrWhiteSpace(options.Db), "ConnectionStrings:Db is required.")
+                .ValidateOnStart();
+        }
+
+        private static bool IsValidRateLimit(RateLimitingOptions options)
+        {
+            return options.PermitLimit > 0 &&
+                options.WindowSeconds > 0 &&
+                options.QueueLimit >= 0;
+        }
+
+        private sealed class CacheOptions
+        {
+            public int MaxAgeSeconds { get; init; }
+        }
+
+        private sealed class DatabaseOptions
+        {
+            public string Db { get; init; } = string.Empty;
+            public DatabaseEngine Engine { get; init; }
         }
     }
 }

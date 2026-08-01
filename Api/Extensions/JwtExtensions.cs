@@ -36,7 +36,16 @@ namespace Api.Extensions
 
             bool isProduction = environment.IsProduction();
 
-            services.Configure<JwtOptions>(configuration.GetSection(ConfigKeys.Jwt.Section));
+            services.AddOptions<JwtOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.Jwt.Section))
+                .Validate(options => !string.IsNullOrWhiteSpace(options.SecretKey), "Jwt:SecretKey is required.")
+                .Validate(options => Encoding.UTF8.GetByteCount(options.SecretKey) >= 32, "Jwt:SecretKey must be at least 32 bytes.")
+                .Validate(options => !string.IsNullOrWhiteSpace(options.Issuer), "Jwt:Issuer is required.")
+                .Validate(options => !string.IsNullOrWhiteSpace(options.Audience), "Jwt:Audience is required.")
+                .Validate(options => options.MinutesToExpire > 0, "Jwt:MinutesToExpire must be greater than zero.")
+                .Validate(options => options.ClockSkewMinutes >= 0, "Jwt:ClockSkewMinutes cannot be negative.")
+                .Validate(options => options.RefreshTokenDays > 0, "Jwt:RefreshTokenDays must be greater than zero.")
+                .ValidateOnStart();
             services.AddOptions<AuthOptions>()
                 .Bind(configuration.GetSection(ConfigKeys.Auth.Section))
                 .Validate(options => options.MaxFailedAttempts > 0, "Auth:MaxFailedAttempts must be greater than zero.")
@@ -49,6 +58,7 @@ namespace Api.Extensions
             services.AddScoped<AuthService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            services.AddSingleton<IRefreshTokenStore, InMemoryRefreshTokenStore>();
             services.AddAccountSessionCache();
 
             services.AddAuthentication(options =>

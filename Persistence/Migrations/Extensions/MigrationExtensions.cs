@@ -5,6 +5,7 @@ using Persistence.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using MigrationRecord = Domain.Entities.Migrations;
 
 namespace Persistence.Migrations.Extensions
 {
@@ -38,38 +39,37 @@ namespace Persistence.Migrations.Extensions
                 return;
             }
 
-            string[] filePaths = [.. Directory.GetFiles(migrationsPath).Where(f => f.Contains(FileNameSequence)).Order()];
+            var migrationFiles = Directory.GetFiles(migrationsPath)
+                .Select(filePath => new
+                {
+                    FilePath = filePath,
+                    MigrationId = GetMigrationId(filePath)
+                })
+                .Where(migration => migration.MigrationId is not null)
+                .OrderBy(migration => migration.MigrationId)
+                .ToList();
 
-            if (filePaths == null || filePaths.Length == 0)
+            if (migrationFiles.Count == 0)
             {
                 logger.MigrationFilesNotFound(MigrationCannotContinueMessage);
                 return;
             }
 
-            string migrationCountIndex = new FileInfo(filePaths[^1]).Name
-                .Remove(FileNameSequence)
-                .Remove(MigrationFileExtension);
-
-            if (!long.TryParse(migrationCountIndex, out long migrationCount))
-            {
-                logger.LastMigrationIndexInvalid(MigrationCannotContinueMessage);
-                return;
-            }
+            long migrationCount = migrationFiles[^1].MigrationId!.Value;
 
             long lastMigrationId = 0;
 
             try
             {
-                var queryLastMigration = repository.Db.Query($"{nameof(Domain.Entities.Migrations)}")
-                .Select($"{nameof(Domain.Entities.Migrations.Id)}")
-                .WhereNull($@"{nameof(Domain.Entities.Migrations.Deleted)}")
-                .OrderByDesc($"{nameof(Domain.Entities.Migrations.Id)}")
+                var queryLastMigration = repository.Db.Query($"{nameof(MigrationRecord)}")
+                .Select($"{nameof(MigrationRecord.Id)}")
+                .WhereNull($@"{nameof(MigrationRecord.Deleted)}")
+                .OrderByDesc($"{nameof(MigrationRecord.Id)}")
                 .Limit(1);
 
-                var records = await queryLastMigration.GetAsync<Domain.Entities.Migrations>();
+                var records = await queryLastMigration.GetAsync<MigrationRecord>();
 
-                if (records is not null)
-                    lastMigrationId = records.First().Id;
+                lastMigrationId = records.FirstOrDefault()?.Id ?? 0;
             }
             catch (Exception ex)
             {
@@ -82,16 +82,16 @@ namespace Persistence.Migrations.Extensions
                 return;
             }
 
-            lastMigrationId = lastMigrationId <= 0 ? 1 : lastMigrationId;
+            long firstPendingMigrationId = lastMigrationId <= 0 ? 1 : lastMigrationId + 1;
 
-            for (long x = lastMigrationId; x <= migrationCount; x++)
+            for (long x = firstPendingMigrationId; x <= migrationCount; x++)
             {
-                string filePath = $@"{migrationsPath}{FileNameSequence}{x}{MigrationFileExtension}";
+                string filePath = Path.Combine(migrationsPath, $@"{FileNameSequence}{x}{MigrationFileExtension}");
 
                 if (!File.Exists(filePath))
                 {
                     logger.MigrationFileMissing(filePath);
-                    continue;
+                    throw new FileNotFoundException($"Migration file {x} was not found.", filePath);
                 }
 
                 string content = await File.ReadAllTextAsync(filePath);
@@ -109,15 +109,41 @@ namespace Persistence.Migrations.Extensions
 
                     cmd.ExecuteNonQuery();
 
+                    if (x > 1)
+                    {
+                        await repository.Db.Query(nameof(MigrationRecord)).InsertAsync(new
+                        {
+                            Deleted = (DateTime?)null
+                        });
+                    }
+
                     logger.MigrationApplied(filePath);
                 }
                 catch (Exception e)
                 {
                     logger.MigrationApplyFailed(e, filePath);
+                    throw;
                 }
             }
 
             logger.MigrationScanCompleted(repository.Engine);
+        }
+
+        private static long? GetMigrationId(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+
+            if (!fileName.StartsWith(FileNameSequence, StringComparison.OrdinalIgnoreCase) ||
+                !fileName.EndsWith(MigrationFileExtension, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            string migrationId = fileName
+                .Remove(FileNameSequence)
+                .Remove(MigrationFileExtension);
+
+            return long.TryParse(migrationId, out long value) ? value : null;
         }
     }
 }

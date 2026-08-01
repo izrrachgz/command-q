@@ -3,83 +3,83 @@ using Api.Logging;
 using Api.Interfaces;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
-using System.Collections.Concurrent;
 using Application.AccountSessions.Dtos;
 
 namespace Api.Services
 {
-    public sealed class RefreshTokenService(IOptions<JwtOptions> jwtOptions, IOptions<AuthOptions> authOptions, ILogger<RefreshTokenService> logger) : IRefreshTokenService
+    public sealed class RefreshTokenService(IOptions<JwtOptions> jwtOptions, IOptions<AuthOptions> authOptions, IRefreshTokenStore tokenStore, ILogger<RefreshTokenService> logger) : IRefreshTokenService
     {
         private readonly JwtOptions _jwtOptions = jwtOptions.Value;
         private readonly AuthOptions _authOptions = authOptions.Value;
-        private static readonly ConcurrentDictionary<string, RefreshToken> Tokens = [];
 
-        public Task<string> Create(AccountSessionModel session)
+        public async Task<string> Create(AccountSessionModel session)
         {
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(_authOptions.RefreshTokenByteSize));
 
-            Tokens[token] = new RefreshToken
+            await tokenStore.Save(new RefreshToken
             {
                 Token = token,
                 AccountId = session.AccountId,
                 ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
-            };
+            });
 
             logger.RefreshTokenCreated(session.AccountId);
 
-            return Task.FromResult(token);
+            return token;
         }
 
-        public Task<RefreshToken?> Validate(string refreshToken)
+        public async Task<RefreshToken?> Validate(string refreshToken)
         {
-            if (!Tokens.TryGetValue(refreshToken, out var token))
+            var token = await tokenStore.Get(refreshToken);
+
+            if (token is null)
             {
                 logger.RefreshTokenStoreMiss();
-                return Task.FromResult<RefreshToken?>(null);
+                return null;
             }
 
             if (token.Revoked || token.ExpiresAt <= DateTime.UtcNow)
             {
                 logger.RefreshTokenRejected(token.AccountId, token.Revoked, token.ExpiresAt <= DateTime.UtcNow);
-                return Task.FromResult<RefreshToken?>(null);
+                return null;
             }
 
-            return Task.FromResult<RefreshToken?>(token);
+            return token;
         }
 
-        public Task Rotate(string oldToken, string newToken)
+        public async Task Rotate(string oldToken, string newToken)
         {
-            if (!Tokens.TryGetValue(oldToken, out var token))
+            var token = await tokenStore.Get(oldToken);
+
+            if (token is null)
             {
                 logger.RefreshTokenRotationSkipped();
-                return Task.CompletedTask;
+                return;
             }
 
             token.Revoked = true;
+            await tokenStore.Save(token);
 
-            Tokens[newToken] = new RefreshToken
+            await tokenStore.Save(new RefreshToken
             {
                 Token = newToken,
                 AccountId = token.AccountId,
                 ExpiresAt = DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenDays)
-            };
+            });
 
             logger.RefreshTokenRotated(token.AccountId);
-
-            return Task.CompletedTask;
         }
 
-        public Task Revoke(string refreshToken)
+        public async Task Revoke(string refreshToken)
         {
-            Tokens.TryGetValue(refreshToken, out var token);
+            var token = await tokenStore.Get(refreshToken);
 
             if (token != null)
             {
                 token.Revoked = true;
+                await tokenStore.Save(token);
                 logger.RefreshTokenRevoked(token.AccountId);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

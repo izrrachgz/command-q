@@ -1,6 +1,8 @@
 using Api.Models;
 using Api.Logging;
+using System.Text;
 using Api.Middleware.Exceptions;
+using System.Security.Cryptography;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 
@@ -19,9 +21,11 @@ namespace Api.Middleware
                 throw new NotValidApiClientException();
             }
 
-            ApiClient? client = configuredClients.Value.FirstOrDefault(c => context.Request.Headers.Any(h => c.Name == h.Key && c.Id == h.Value));
+            ApiClient? client = configuredClients.Value.FirstOrDefault(c =>
+                context.Request.Headers.TryGetValue(c.Name, out var headerValues) &&
+                headerValues.Any(headerValue => SecureEquals(c.Id, headerValue)));
 
-            if (client is null || (!environment.IsDevelopment() && !context.Request.Headers[HeaderNames.Origin].Equals(client.Uri)))
+            if (client is null || (!environment.IsDevelopment() && !IsAllowedOrigin(context, client)))
             {
                 logger.ApiClientValidationFailed(context.Request.Headers[HeaderNames.Origin].ToString());
                 throw new NotValidApiClientException();
@@ -30,6 +34,29 @@ namespace Api.Middleware
             logger.ApiClientValidationSucceeded(client.Name);
 
             await next(context);
+        }
+
+        private static bool IsAllowedOrigin(HttpContext context, ApiClient client)
+        {
+            string? origin = context.Request.Headers[HeaderNames.Origin].FirstOrDefault();
+
+            return Uri.TryCreate(origin, UriKind.Absolute, out var requestOrigin) &&
+                Uri.TryCreate(client.Uri, UriKind.Absolute, out var configuredOrigin) &&
+                Uri.Compare(requestOrigin, configuredOrigin, UriComponents.SchemeAndServer, UriFormat.SafeUnescaped, StringComparison.OrdinalIgnoreCase) == 0;
+        }
+
+        private static bool SecureEquals(string expected, string? actual)
+        {
+            if (string.IsNullOrEmpty(actual))
+            {
+                return false;
+            }
+
+            byte[] expectedBytes = Encoding.UTF8.GetBytes(expected);
+            byte[] actualBytes = Encoding.UTF8.GetBytes(actual);
+
+            return expectedBytes.Length == actualBytes.Length &&
+                CryptographicOperations.FixedTimeEquals(expectedBytes, actualBytes);
         }
     }
 }
