@@ -2,12 +2,12 @@ using Public;
 using Api.Models;
 using Api.Logging;
 using Api.Constants;
-using Api.Serialization;
-using Common.Constants;
 using FluentValidation;
 using System.Text.Json;
+using Api.Serialization;
 using Common.Exceptions;
 using FluentValidation.Results;
+using Api.Middleware.Exceptions;
 using Localization.Abstractions;
 
 namespace Api.Middleware
@@ -54,6 +54,7 @@ namespace Api.Middleware
                 HttpBadRequestException => StatusCodes.Status400BadRequest,
                 HttpNotFoundException => StatusCodes.Status404NotFound,
                 HttpForbiddenException => StatusCodes.Status403Forbidden,
+                NotValidApiClientException => StatusCodes.Status403Forbidden,
                 HttpUnauthorizedException => StatusCodes.Status401Unauthorized,
                 _ => StatusCodes.Status500InternalServerError
             };
@@ -66,13 +67,14 @@ namespace Api.Middleware
                 HttpBadRequestException => messages.Get(nameof(Messages.Invalid_Model)),
                 HttpNotFoundException => messages.Get(nameof(Messages.Not_Found)),
                 HttpForbiddenException => messages.Get(nameof(Messages.Forbidden)),
+                NotValidApiClientException => messages.Get(nameof(Messages.Forbidden)),
                 HttpUnauthorizedException => messages.Get(nameof(Messages.Unauthorized)),
                 _ => messages.Get(nameof(Messages.Server_Error))
             };
 
         private static string GetExceptionDetail(Exception exception, IHostEnvironment environment)
         {
-            if (environment.IsDevelopment() || exception is ValidationException or HttpBadRequestException or HttpNotFoundException or HttpForbiddenException or HttpUnauthorizedException)
+            if (environment.IsDevelopment() || exception is ValidationException or HttpBadRequestException or HttpNotFoundException or HttpForbiddenException or NotValidApiClientException or HttpUnauthorizedException)
             {
                 return exception.Message;
             }

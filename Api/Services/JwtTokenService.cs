@@ -1,11 +1,11 @@
-﻿using Api.Models;
+using Api.Models;
 using System.Text;
 using Api.Interfaces;
 using System.Security.Claims;
-using Application.Accounts.Dtos;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Application.Modules.Identity.Accounts.Dtos;
 
 namespace Api.Services
 {

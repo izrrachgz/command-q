@@ -16,8 +16,10 @@ Command runners:
 
 Database engines:
 - Supported engines are MsSql, MySql, SqLite and PgSql.
-- Migrations live under Persistence/Migrations/{Engine}.
-- MigrationExtensions runs SQL migration scripts from the folder matching the configured engine.
+- Migrations live under Persistence/Migrations/{Engine}/{Module}.
+- MigrationExtensions scans SQL migration scripts recursively from the folder matching the configured engine.
+- Migration IDs must be unique per engine, even when scripts live in different module folders.
+- Core/migration-1.sql creates the initial schema and seeds the Migrations table.
 
 Configuration:
 - Main database connection string name: Db.

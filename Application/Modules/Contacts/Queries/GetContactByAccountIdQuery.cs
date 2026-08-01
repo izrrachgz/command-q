@@ -1,0 +1,11 @@
+using Common.Cqrs;
+using Common.Models.Response;
+using Application.Modules.Contacts.Dtos;
+
+namespace Application.Modules.Contacts.Queries
+{
+    public record GetContactByAccountIdQuery : IQuery<DetailResponse<ContactModel>>
+    {
+        public required Guid AccountId { get; set; }
+    }
+}

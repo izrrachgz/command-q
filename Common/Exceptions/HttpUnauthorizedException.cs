@@ -1,6 +1,6 @@
 ﻿namespace Common.Exceptions
 {
-	public class HttpUnauthorizedException : Exception
-	{
-	}
+    public class HttpUnauthorizedException : Exception
+    {
+    }
 }

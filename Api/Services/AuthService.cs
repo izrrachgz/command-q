@@ -1,19 +1,19 @@
-﻿using Public;
+using Public;
 using MediatR;
 using Api.Dtos;
 using Api.Models;
 using Common.Hash;
-using Api.Logging;
 using Api.Interfaces;
 using System.Security;
-using Application.Accounts.Dtos;
 using Localization.Abstractions;
-using Application.Accounts.Queries;
+using Api.Modules.Identity.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
-using Application.AccountSessions.Dtos;
-using Application.AccountSessions.Queries;
-using Application.AccountSessions.Commands;
+using Application.Modules.Identity.Accounts.Dtos;
+using Application.Modules.Identity.Accounts.Queries;
+using Application.Modules.Identity.AccountSessions.Dtos;
+using Application.Modules.Identity.AccountSessions.Queries;
+using Application.Modules.Identity.AccountSessions.Commands;
 
 namespace Api.Services
 {

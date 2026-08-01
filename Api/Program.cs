@@ -13,7 +13,10 @@ app.ConfigurePipeline(builder.Configuration, builder.Environment);
 
 app.Logger.LogAppConfig(builder.Configuration, builder.Environment);
 
-// Run migrations before starting the application    
-await app.RunApplicationMigrations();
+// Run migrations before starting the application
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    await app.RunApplicationMigrations();
+}
 
 app.Run();

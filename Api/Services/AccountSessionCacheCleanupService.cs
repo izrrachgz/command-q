@@ -1,6 +1,6 @@
 using Api.Models;
-using Api.Logging;
 using Api.Interfaces;
+using Api.Modules.Identity.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Api.Services

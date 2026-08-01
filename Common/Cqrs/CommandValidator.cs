@@ -2,7 +2,7 @@
 
 namespace Common.Cqrs
 {
-	public abstract class CommandValidator<TCommand> : AbstractValidator<TCommand>
-	{
-	}
+    public abstract class CommandValidator<TCommand> : AbstractValidator<TCommand>
+    {
+    }
 }

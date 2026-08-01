@@ -1,6 +1,6 @@
-﻿using Common.Enumerations;
-using Microsoft.Extensions.Configuration;
+using Common.Enumerations;
 using Persistence.Constant;
+using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Extensions
 {

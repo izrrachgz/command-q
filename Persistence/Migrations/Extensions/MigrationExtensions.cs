@@ -39,7 +39,7 @@ namespace Persistence.Migrations.Extensions
                 return;
             }
 
-            var migrationFiles = Directory.GetFiles(migrationsPath)
+            var migrationFiles = Directory.GetFiles(migrationsPath, $"*{MigrationFileExtension}", SearchOption.AllDirectories)
                 .Select(filePath => new
                 {
                     FilePath = filePath,
@@ -53,6 +53,15 @@ namespace Persistence.Migrations.Extensions
             {
                 logger.MigrationFilesNotFound(MigrationCannotContinueMessage);
                 return;
+            }
+
+            var duplicateMigration = migrationFiles
+                .GroupBy(migration => migration.MigrationId)
+                .FirstOrDefault(group => group.Count() > 1);
+
+            if (duplicateMigration is not null)
+            {
+                throw new InvalidOperationException($"Migration id {duplicateMigration.Key} is defined more than once.");
             }
 
             long migrationCount = migrationFiles[^1].MigrationId!.Value;
@@ -86,12 +95,14 @@ namespace Persistence.Migrations.Extensions
 
             for (long x = firstPendingMigrationId; x <= migrationCount; x++)
             {
-                string filePath = Path.Combine(migrationsPath, $@"{FileNameSequence}{x}{MigrationFileExtension}");
+                string? filePath = migrationFiles.FirstOrDefault(migration => migration.MigrationId == x)?.FilePath;
 
-                if (!File.Exists(filePath))
+                if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
                 {
-                    logger.MigrationFileMissing(filePath);
-                    throw new FileNotFoundException($"Migration file {x} was not found.", filePath);
+                    string expectedFileName = $@"{FileNameSequence}{x}{MigrationFileExtension}";
+
+                    logger.MigrationFileMissing(expectedFileName);
+                    throw new FileNotFoundException($"Migration file {x} was not found.", expectedFileName);
                 }
 
                 string content = await File.ReadAllTextAsync(filePath);

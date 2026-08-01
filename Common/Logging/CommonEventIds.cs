@@ -5,14 +5,14 @@ namespace Common.Logging
     /// </summary>
     internal static class CommonEventIds
     {
-        public const int TypedCacheLookup = 2000;
-        public const int TypedCacheSet = 2001;
-        public const int TypedCacheRemoved = 2002;
-        public const int TypedCacheCleared = 2003;
+        public const int TypedCacheLookup = CommonEventIdRanges.General + 0;
+        public const int TypedCacheSet = CommonEventIdRanges.General + 1;
+        public const int TypedCacheRemoved = CommonEventIdRanges.General + 2;
+        public const int TypedCacheCleared = CommonEventIdRanges.General + 3;
 
-        public const int TaskRunnerCreated = 2100;
-        public const int ExecutingTasks = 2101;
-        public const int TaskExecutionCancelled = 2102;
-        public const int TaskExecutionFailed = 2103;
+        public const int TaskRunnerCreated = CommonEventIdRanges.General + 100;
+        public const int ExecutingTasks = CommonEventIdRanges.General + 101;
+        public const int TaskExecutionCancelled = CommonEventIdRanges.General + 102;
+        public const int TaskExecutionFailed = CommonEventIdRanges.General + 103;
     }
 }

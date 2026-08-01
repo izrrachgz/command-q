@@ -22,11 +22,4 @@
 		<ProjectReference Include="..\Persistence\Persistence.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Files\Dtos\" />
-	  <Folder Include="Files\Mappings\" />
-	  <Folder Include="Files\Queries\" />
-	  <Folder Include="Files\Services\" />
-	</ItemGroup>
-
 </Project>

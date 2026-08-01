@@ -2,9 +2,9 @@ using Api.Models;
 using Api.Logging;
 using System.Text;
 using Api.Middleware.Exceptions;
-using System.Security.Cryptography;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
 
 namespace Api.Middleware
 {

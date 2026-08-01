@@ -1,0 +1,4 @@
+root = true
+
+[Persistence/Migrations/**/*.sql]
+generated_code = true

@@ -1,6 +1,6 @@
 using Api.Models;
-using Application.Accounts.Dtos;
-using Application.AccountSessions.Dtos;
+using Application.Modules.Identity.Accounts.Dtos;
+using Application.Modules.Identity.AccountSessions.Dtos;
 
 namespace Api.Interfaces
 {

@@ -1,9 +1,9 @@
-﻿using Api.Models;
-using Api.Logging;
+using Api.Models;
 using Api.Interfaces;
+using Api.Modules.Identity.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
-using Application.AccountSessions.Dtos;
+using Application.Modules.Identity.AccountSessions.Dtos;
 
 namespace Api.Services
 {

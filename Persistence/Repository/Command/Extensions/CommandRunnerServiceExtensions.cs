@@ -1,8 +1,8 @@
 using Common.Enumerations;
 using Persistence.Interfaces;
+using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Persistence.Repository.Extensions;
 
 namespace Persistence.Repository.Command.Extensions
 {

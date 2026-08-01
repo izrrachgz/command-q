@@ -1,11 +1,13 @@
 using Api.Models;
 using Api.Logging;
+using Api.Modules;
 using Api.Constants;
 using Api.Middleware;
 using Api.Enumerations;
 using Common.Constants;
 using Common.Enumerations;
 using Application.Extensions;
+
 namespace Api.Extensions
 {
     internal static class ProgramExtensions
@@ -145,7 +147,7 @@ namespace Api.Extensions
             app.UseAuthorization();
 
             // Add rate limiting to all endpoints based on configuration
-            app.MapControllers().RequireRateLimiting(configuration);
+            app.MapApiModules(configuration);
         }
 
         /// <summary>

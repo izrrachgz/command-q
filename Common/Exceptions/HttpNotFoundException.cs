@@ -1,6 +1,6 @@
 ﻿namespace Common.Exceptions
 {
-	public class HttpNotFoundException : Exception
-	{
-	}
+    public class HttpNotFoundException : Exception
+    {
+    }
 }

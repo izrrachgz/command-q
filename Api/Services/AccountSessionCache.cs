@@ -1,9 +1,9 @@
 using Api.Models;
 using Api.Interfaces;
 using Common.Interfaces;
-using Application.Accounts.Dtos;
 using Microsoft.Extensions.Options;
-using Application.AccountSessions.Dtos;
+using Application.Modules.Identity.Accounts.Dtos;
+using Application.Modules.Identity.AccountSessions.Dtos;
 
 namespace Api.Services
 {

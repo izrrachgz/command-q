@@ -1,13 +1,11 @@
-﻿using Serilog;
 using MediatR;
+using Serilog;
 using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
-using Application;
-using Application.Interfaces;
 using Application.Constants;
+using Application.Interfaces;
 using Localization.Extensions;
-using Application.Test.Constants;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

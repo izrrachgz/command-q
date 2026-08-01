@@ -1,14 +1,14 @@
-﻿using MediatR;
+using MediatR;
 using Application;
 using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
+using Application.Modules;
 using Application.Interfaces;
 using Localization.Extensions;
 using Microsoft.Extensions.Hosting;
-using Persistence.Repository.Extensions;
 using Persistence.Migrations.Extensions;
-using Application.HealthChecks.Extensions;
+using Persistence.Repository.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Repository.Command.Extensions;
 
@@ -53,25 +53,8 @@ namespace Application.Extensions
             // Task runner
             services.AddTaskRunner();
 
-            // Add application services (convention-based registration)
-            applicationAssembly.ExportedTypes
-                .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith(@"Service"))
-                .ToList()
-                .ForEach(service =>
-                {
-                    var @interface = service.GetInterface(@"I" + service.Name);
-                    if (@interface != null)
-                    {
-                        services.AddTransient(@interface, service);
-                    }
-                    else
-                    {
-                        services.AddScoped(service);
-                    }
-                });
-
-            // Configure health checks
-            services.ConfigureAppHealthChecks();
+            // Feature modules
+            services.AddApplicationModules();
 
             // Add localization services
             services.AddLocalizationServices();

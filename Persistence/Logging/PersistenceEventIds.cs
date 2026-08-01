@@ -5,28 +5,28 @@ namespace Persistence.Logging
     /// </summary>
     internal static class PersistenceEventIds
     {
-        public const int RepositoryCreated = 4000;
+        public const int RepositoryCreated = PersistenceEventIdRanges.General + 0;
 
-        public const int CommandRunnerCreated = 4010;
-        public const int ExecutingCommandBatch = 4011;
-        public const int CommandCancelled = 4012;
-        public const int CommandFailed = 4013;
-        public const int ExecutingQuery = 4014;
-        public const int ParameterInQuery = 4015;
-        public const int SavingRecords = 4016;
-        public const int CancellationRequested = 4017;
-        public const int CannotReadTableMetadata = 4018;
+        public const int CommandRunnerCreated = PersistenceEventIdRanges.General + 100;
+        public const int ExecutingCommandBatch = PersistenceEventIdRanges.General + 101;
+        public const int CommandCancelled = PersistenceEventIdRanges.General + 102;
+        public const int CommandFailed = PersistenceEventIdRanges.General + 103;
+        public const int ExecutingQuery = PersistenceEventIdRanges.General + 104;
+        public const int ParameterInQuery = PersistenceEventIdRanges.General + 105;
+        public const int SavingRecords = PersistenceEventIdRanges.General + 106;
+        public const int CancellationRequested = PersistenceEventIdRanges.General + 107;
+        public const int CannotReadTableMetadata = PersistenceEventIdRanges.General + 108;
 
-        public const int MigrationScanStarted = 4020;
-        public const int MigrationsNotSetup = 4021;
-        public const int MigrationFilesNotFound = 4022;
-        public const int LastMigrationIndexInvalid = 4023;
-        public const int LastMigrationReadFailed = 4024;
-        public const int MigrationsAlreadyCurrent = 4025;
-        public const int MigrationFileMissing = 4026;
-        public const int ApplyingMigration = 4027;
-        public const int MigrationApplied = 4028;
-        public const int MigrationApplyFailed = 4029;
-        public const int MigrationScanCompleted = 4030;
+        public const int MigrationScanStarted = PersistenceEventIdRanges.General + 200;
+        public const int MigrationsNotSetup = PersistenceEventIdRanges.General + 201;
+        public const int MigrationFilesNotFound = PersistenceEventIdRanges.General + 202;
+        public const int LastMigrationIndexInvalid = PersistenceEventIdRanges.General + 203;
+        public const int LastMigrationReadFailed = PersistenceEventIdRanges.General + 204;
+        public const int MigrationsAlreadyCurrent = PersistenceEventIdRanges.General + 205;
+        public const int MigrationFileMissing = PersistenceEventIdRanges.General + 206;
+        public const int ApplyingMigration = PersistenceEventIdRanges.General + 207;
+        public const int MigrationApplied = PersistenceEventIdRanges.General + 208;
+        public const int MigrationApplyFailed = PersistenceEventIdRanges.General + 209;
+        public const int MigrationScanCompleted = PersistenceEventIdRanges.General + 210;
     }
 }

@@ -1,4 +1,4 @@
-﻿using Application.Accounts.Dtos;
+using Application.Modules.Identity.Accounts.Dtos;
 
 namespace Api.Interfaces
 {
