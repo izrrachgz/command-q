@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Identity.Accounts.Commands;
 
@@ -14,15 +14,14 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
         {
             string username = $@"TestUsername{Guid.NewGuid()}";
 
-            string password = @"TestPassword123!";
-
             string email = $@"{username}@test.com";
 
             var command = new CreateAccountCommand()
             {
                 Username = username,
                 Email = email,
-                Password = password
+                IdentityIssuer = "https://identity.test",
+                IdentitySubject = Guid.NewGuid().ToString()
             };
 
             CancellationToken cancellationToken = default;

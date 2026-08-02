@@ -1,7 +1,7 @@
-using Public;
+﻿using Public;
 using MediatR;
 using Api.Constants;
-using Api.Extensions;
+using Api.Interfaces;
 using Common.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Localization.Abstractions;
@@ -17,11 +17,16 @@ namespace Api.Modules.Files
     {
         private readonly ISender _mediator;
         private readonly ITextProvider _messages;
+        private readonly ICurrentAccountAccessor _currentAccountAccessor;
 
-        public FilesController(ISender mediator, ITextProvider messages)
+        public FilesController(
+            ISender mediator,
+            ITextProvider messages,
+            ICurrentAccountAccessor currentAccountAccessor)
         {
             _mediator = mediator;
             _messages = messages;
+            _currentAccountAccessor = currentAccountAccessor;
         }
 
         /// <summary>
@@ -34,14 +39,16 @@ namespace Api.Modules.Files
             if (file is null || file.Length == 0)
                 return BadRequest(_messages.Get(nameof(Messages.File_Is_Required)));
 
-            if (!User.TryGetAccountId(out var accountId))
-                return Unauthorized(_messages.Get(nameof(Messages.Unauthorized)));
+            var currentAccount = await _currentAccountAccessor.Get(cancellationToken);
+
+            if (currentAccount is null)
+                return Forbid();
 
             await using var fileStream = file.OpenReadStream();
 
             var command = new UploadFileCommand
             {
-                AccountId = accountId,
+                AccountId = currentAccount.AccountId,
                 FileName = file.FileName,
                 FileData = fileStream,
                 ContentType = file.ContentType
@@ -58,12 +65,14 @@ namespace Api.Modules.Files
         [HttpGet(@"get")]
         public async Task<IActionResult> Get([FromQuery] SearchCriteria searchCriteria, CancellationToken cancellationToken)
         {
-            if (!User.TryGetAccountId(out var accountId))
-                return Unauthorized(_messages.Get(nameof(Messages.Unauthorized)));
+            var currentAccount = await _currentAccountAccessor.Get(cancellationToken);
+
+            if (currentAccount is null)
+                return Forbid();
 
             var query = new GetAccountFilesQuery
             {
-                AccountId = accountId,
+                AccountId = currentAccount.AccountId,
                 SearchCriteria = searchCriteria
             };
 

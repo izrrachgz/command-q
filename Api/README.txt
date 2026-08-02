@@ -1,23 +1,15 @@
 Project: Api
-Purpose: Expose the HTTP API (controllers, endpoints, DTOs) for CommandQ.
+Purpose: Expose the CommandQ application HTTP API as an OAuth resource server.
 Framework: .NET 10 (ASP.NET Core).
-How to run: From the project root: `dotnet run` or use the Visual Studio launch profile.
-Configuration: Check `appsettings.json` and environment variables for connection strings and keys.
-Key dependencies: References to `Application` and `Common`. Restore packages: `dotnet restore`.
+How to run: From the project root, use `dotnet run` or the Visual Studio launch profile.
+Configuration: Check `appsettings.json`, user-secrets and environment variables.
+
 Authentication:
-- JWT settings live under `Jwt`.
-- Authentication behavior lives under `Auth`.
-- Refresh token flows use `AuthService`, `JwtTokenService`, and `RefreshTokenService`.
-- Controllers can resolve the current account through `ClaimsPrincipalExtensions`, for example `User.TryGetAccountId(out var accountId)`.
+- `IdentityServer` owns users, credentials, lockout, clients, grants and tokens.
+- API validation settings live under `Authentication`.
+- The API validates issuer discovery keys, audience, lifetime, `at+jwt` token type and the `command_q_api` scope.
+- The API never issues JWTs or stores refresh tokens.
+- `ClaimsPrincipalExtensions` reads protocol claims; `ICurrentAccountAccessor` resolves `(iss, sub)` to the application profile through `AccountIdentity`.
+- Call authenticated `POST /Account/create` once after initial identity registration/login to provision the application profile.
 
-Account/session refresh cache:
-- Register auth cache services through `services.AddAccountSessionCache()`.
-- `ITypedCache<TEntry>`/`TypedMemoryCache<TEntry>` live in `Common` and provide reusable type-scoped in-memory caching.
-- `AccountSessionCache` is the account/session-specific adapter over `ITypedCache<AccountSessionCacheEntry>`.
-- Account/session caching reduces database reads during refresh-token flows.
-- `Auth:RefreshCacheMinutes` controls sliding cache lifetime.
-- `Auth:RefreshCacheCleanupMinutes` controls how often `AccountSessionCacheCleanupService` clears account/session cache entries.
-- `Clear()` on a typed cache removes only keys tracked for that cached value type.
-
-Development notes: Use Visual Studio launch profiles for local testing and Postman/Swagger to validate endpoints.
-Contact / Author: See CONTRIBUTING or the remote repository.
+Development notes: Run IdentityServer before testing authenticated API workflows. The frontend remains optional and is not required by either backend host.

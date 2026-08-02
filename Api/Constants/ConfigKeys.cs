@@ -7,24 +7,9 @@ namespace Api.Constants
             public const string Clients = @"ApiClients";
         }
 
-        public static class Jwt
+        public static class Authentication
         {
-            public const string Section = @"Jwt";
-            public const string SecretKey = @"Jwt:SecretKey";
-            public const string Issuer = @"Jwt:Issuer";
-            public const string Audience = @"Jwt:Audience";
-            public const string MinutesToExpire = @"Jwt:MinutesToExpire";
-        }
-
-        public static class Auth
-        {
-            public const string Section = @"Auth";
-        }
-
-        public static class Cookie
-        {
-            public const string Name = @"Cookie:Name";
-            public const string DaysToExpire = @"Cookie:DaysToExpire";
+            public const string Section = @"Authentication";
         }
 
         public static class RateLimiting

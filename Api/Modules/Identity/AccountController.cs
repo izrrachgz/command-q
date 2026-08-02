@@ -1,11 +1,9 @@
-using MediatR;
-using Api.Dtos;
-using Api.Services;
+﻿using MediatR;
 using Api.Constants;
 using Api.Extensions;
+using Api.Interfaces;
 using Common.Models.Request;
 using Microsoft.AspNetCore.Mvc;
-using Api.Modules.Identity.Logging;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Application.Modules.Identity.Accounts.Queries;
@@ -14,183 +12,78 @@ using Application.Modules.Identity.AccountActivity.Queries;
 
 namespace Api.Modules.Identity
 {
-    [ApiController, Route(@"[controller]")]
-    public class AccountController : Controller
+    [ApiController, Route("[controller]")]
+    public sealed class AccountController(
+        ISender mediator,
+        ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
-        private readonly ISender _mediator;
-        private readonly int _daysToExpire;
-        private readonly string _cookieName;
-        private readonly bool _isProduction;
-        private readonly AuthService _authService;
-        private readonly ILogger<AccountController> _logger;
-
-        public AccountController(ISender mediator, IConfiguration configuration, IHostEnvironment environment, AuthService authService, ILogger<AccountController> logger)
+        [Authorize, HttpPost("create")]
+        [EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
+        public async Task<IActionResult> Create(CancellationToken cancellationToken = default)
         {
-            _mediator = mediator;
-            _logger = logger;
-            _authService = authService;
-            _isProduction = environment.IsProduction();
-            _cookieName = configuration.GetValue<string>(ConfigKeys.Cookie.Name)!;
-            _daysToExpire = configuration.GetValue<int>(ConfigKeys.Cookie.DaysToExpire);
-        }
-
-        /// <summary>
-        /// Authenticates a user with the provided credentials and returns an authentication result if successful.
-        /// </summary>
-        /// <param name="request">The login request containing the user's credentials. Cannot be null.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
-        /// <returns>An <see cref="IActionResult"/> that represents the result of the authentication attempt. Returns 200 OK with
-        /// authentication details if successful; otherwise, returns 401 Unauthorized.</returns>
-        [HttpPost(@"sign-in"), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
-        {
-            var result = await _authService.Login(request.Username, request.Password, cancellationToken);
-
-            if (result is null)
+            if (!User.TryGetIdentityKey(out var issuer, out var subject))
             {
-                _logger.SignInUnauthorized(request.Username);
                 return Unauthorized();
             }
 
-            // Set the refresh token in an HTTP-only cookie to enhance security by preventing client-side scripts from accessing it.
-            Response.Cookies.Append(_cookieName, result.RefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddDays(_daysToExpire)
-            });
+            var username = User.GetUsername();
+            var email = User.GetEmail();
 
-            return Ok(new
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
             {
-                accessToken = result.AccessToken
-            });
-        }
-
-        /// <summary>
-        /// Generates a new access token using the provided refresh token.
-        /// </summary>
-        /// <param name="request">The refresh request containing the refresh token to use for generating a new access token. Cannot be null.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
-        /// <returns>An <see cref="IActionResult"/> that contains the new access token if the refresh token is valid; otherwise,
-        /// an unauthorized result.</returns>
-        [HttpPost(@"refresh")]
-        public async Task<IActionResult> Refresh(CancellationToken cancellationToken = default)
-        {
-            // read the refresh token from the HTTP-only cookie set during login.
-            // this approach enhances security by preventing client-side scripts from accessing the token.
-            var refreshToken = Request.Cookies[_cookieName];
-
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                _logger.RefreshCookieMissing();
-                return Unauthorized();
+                return BadRequest();
             }
 
-            var result = await _authService.Refresh(refreshToken, cancellationToken);
-
-            if (result is null)
+            var response = await mediator.Send(new CreateAccountCommand
             {
-                _logger.RefreshUnauthorized();
-                return Unauthorized();
-            }
+                Username = username,
+                Email = email,
+                IdentityIssuer = issuer,
+                IdentitySubject = subject
+            }, cancellationToken);
 
-            // update the refresh token in the HTTP-only cookie with the new token received from the authentication service.
-            // this ensures that the client has the latest refresh token for future access token refresh operations.
-            Response.Cookies.Append(_cookieName, result.RefreshToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.None,
-                Expires = DateTime.UtcNow.AddDays(_daysToExpire)
-            });
-
-            return Ok(new
-            {
-                accessToken = result.AccessToken
-            });
+            return response.Success ? Ok(response) : BadRequest(response.Message);
         }
 
-        /// <summary>
-        /// Logs out the user by invalidating the specified refresh token.
-        /// </summary>
-        /// <param name="request">The logout request containing the refresh token to be invalidated. Cannot be null.</param>
-        /// <returns>A 204 No Content response if the logout operation succeeds.</returns>
-        [HttpPost(@"logout")]
-        public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
-        {
-            var refreshToken = Request.Cookies[_cookieName];
-
-            if (!string.IsNullOrEmpty(refreshToken))
-            {
-                await _authService.Logout(refreshToken);
-            }
-            else
-            {
-                _logger.LogoutCookieMissing();
-            }
-
-            // delete cookie
-            Response.Cookies.Delete(_cookieName);
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Creates a new account using the specified account creation command.
-        /// </summary>
-        /// <remarks>This action is invoked via an HTTP POST request to the 'create' endpoint. The
-        /// operation is performed asynchronously and returns appropriate HTTP status codes based on the outcome of the
-        /// account creation process.</remarks>
-        /// <param name="request">The command containing the details required to create a new account. Cannot be null.</param>
-        /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>An <see cref="IActionResult"/> that represents the result of the account creation operation. Returns a
-        /// BadRequest result if the creation fails, or an Ok result with the response data if successful.</returns>
-        [HttpPost(@"create"), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
-        public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
-        {
-            var response = await _mediator.Send(request, cancellationToken);
-
-            return !response.Success ? BadRequest(response.Message) : Ok(response);
-        }
-
-        /// <summary>
-        /// Gets the authenticated account information.
-        /// </summary>
-        [Authorize, HttpGet(@"me")]
+        [Authorize, HttpGet("me")]
         public async Task<IActionResult> Me(CancellationToken cancellationToken = default)
         {
-            if (!User.TryGetAccountId(out var accountId))
-                return Unauthorized();
+            var currentAccount = await currentAccountAccessor.Get(cancellationToken);
 
-            var query = new GetAccountByIdQuery
+            if (currentAccount is null)
             {
-                AccountId = accountId
-            };
+                return Forbid();
+            }
 
-            var response = await _mediator.Send(query, cancellationToken);
+            var response = await mediator.Send(new GetAccountByIdQuery
+            {
+                AccountId = currentAccount.AccountId
+            }, cancellationToken);
 
             return response.Success ? Ok(response) : NotFound(response);
         }
 
-        /// <summary>
-        /// Gets activity recorded for the authenticated account.
-        /// </summary>
-        [Authorize, HttpGet(@"activity")]
-        public async Task<IActionResult> Activity([FromQuery] SearchCriteria searchCriteria, [FromQuery] string? module = null, [FromQuery] string? action = null, CancellationToken cancellationToken = default)
+        [Authorize, HttpGet("activity")]
+        public async Task<IActionResult> Activity(
+            [FromQuery] SearchCriteria searchCriteria,
+            [FromQuery] string? module = null,
+            [FromQuery] string? action = null,
+            CancellationToken cancellationToken = default)
         {
-            if (!User.TryGetAccountId(out var accountId))
-                return Unauthorized();
+            var currentAccount = await currentAccountAccessor.Get(cancellationToken);
 
-            var query = new GetAccountActivityQuery
+            if (currentAccount is null)
             {
-                AccountId = accountId,
+                return Forbid();
+            }
+
+            var response = await mediator.Send(new GetAccountActivityQuery
+            {
+                AccountId = currentAccount.AccountId,
                 Module = module,
                 Action = action,
                 SearchCriteria = searchCriteria ?? new()
-            };
-
-            var response = await _mediator.Send(query, cancellationToken);
+            }, cancellationToken);
 
             return Ok(response);
         }

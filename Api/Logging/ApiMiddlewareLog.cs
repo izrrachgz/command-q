@@ -22,7 +22,7 @@ namespace Api.Logging
         [LoggerMessage(EventId = ApiEventIds.ResponseCacheSkippedForStatusCode, Level = LogLevel.Debug, Message = "Response cache headers skipped for status code {StatusCode}.")]
         public static partial void ResponseCacheSkippedForStatusCode(this ILogger logger, int statusCode);
 
-        [LoggerMessage(EventId = ApiEventIds.ResponseCacheSkippedForCookies, Level = LogLevel.Debug, Message = "Response cache headers skipped because response sets cookies.")]
+        [LoggerMessage(EventId = ApiEventIds.ResponseCacheSkippedForCookies, Level = LogLevel.Debug, Message = "Response caching disabled because the response sets cookies.")]
         public static partial void ResponseCacheSkippedForCookies(this ILogger logger);
 
         [LoggerMessage(EventId = ApiEventIds.ResponseCacheSkippedForExistingHeader, Level = LogLevel.Debug, Message = "Response cache headers skipped because cache-control already exists.")]
@@ -30,6 +30,9 @@ namespace Api.Logging
 
         [LoggerMessage(EventId = ApiEventIds.ResponseCacheApplied, Level = LogLevel.Debug, Message = "Response cache headers applied. MaxAgeSeconds: {MaxAgeSeconds}.")]
         public static partial void ResponseCacheApplied(this ILogger logger, int maxAgeSeconds);
+
+        [LoggerMessage(EventId = ApiEventIds.ResponseCacheDisabledForAuthenticatedRequest, Level = LogLevel.Debug, Message = "Response caching disabled for an authenticated request.")]
+        public static partial void ResponseCacheDisabledForAuthenticatedRequest(this ILogger logger);
 
         [LoggerMessage(EventId = ApiEventIds.UnhandledRequestException, Level = LogLevel.Error, Message = "An exception has occurred.")]
         public static partial void UnhandledRequestException(this ILogger logger, Exception exception);

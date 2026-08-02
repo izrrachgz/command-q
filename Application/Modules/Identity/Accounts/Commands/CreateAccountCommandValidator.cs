@@ -1,4 +1,4 @@
-using Public;
+﻿using Public;
 using FluentValidation;
 using Common.Extensions;
 using Application.Constants;
@@ -24,11 +24,17 @@ namespace Application.Modules.Identity.Accounts.Commands
                 .MaximumLength(ValidationLimits.MaxLength)
                 .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), messages.Get(nameof(FieldNames.Username)), ValidationLimits.MaxLength));
 
-            RuleFor(x => x.Password)
+            RuleFor(x => x.IdentityIssuer)
                 .NotEmpty()
-                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), messages.Get(nameof(FieldNames.Password))))
-                .MaximumLength(ValidationLimits.MaxLength)
-                .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), messages.Get(nameof(FieldNames.Password)), ValidationLimits.MaxLength));
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), nameof(CreateAccountCommand.IdentityIssuer)))
+                .MaximumLength(AccountIdentityConstants.IssuerMaxLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), nameof(CreateAccountCommand.IdentityIssuer), AccountIdentityConstants.IssuerMaxLength));
+
+            RuleFor(x => x.IdentitySubject)
+                .NotEmpty()
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), nameof(CreateAccountCommand.IdentitySubject)))
+                .MaximumLength(AccountIdentityConstants.SubjectMaxLength)
+                .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), nameof(CreateAccountCommand.IdentitySubject), AccountIdentityConstants.SubjectMaxLength));
         }
     }
 }

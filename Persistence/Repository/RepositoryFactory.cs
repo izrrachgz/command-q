@@ -1,3 +1,4 @@
+using Dapper;
 using Npgsql;
 using System.Data;
 using SqlKata.Compilers;
@@ -6,6 +7,7 @@ using System.Data.SQLite;
 using Common.Enumerations;
 using MySql.Data.MySqlClient;
 using Microsoft.Data.SqlClient;
+using Persistence.Repository.TypeHandlers;
 
 namespace Persistence.Repository
 {
@@ -27,6 +29,11 @@ namespace Persistence.Repository
 
         private static (IDbConnection Connection, Compiler Compiler) CreateConnection(DatabaseEngine engine, string connectionString)
         {
+            if (engine == DatabaseEngine.SqLite)
+            {
+                SqlMapper.AddTypeHandler(SqliteGuidTypeHandler.Instance);
+            }
+
             return engine switch
             {
                 DatabaseEngine.MsSql => (new SqlConnection(connectionString), new SqlServerCompiler()),

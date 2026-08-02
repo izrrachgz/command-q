@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using Api.Test.Infrastructure;
 using Microsoft.Net.Http.Headers;
 
@@ -29,6 +29,36 @@ namespace Api.Test.Modules.Identity
             using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Me_Should_Return_Forbidden_When_Access_Token_Does_Not_Have_Api_Scope()
+        {
+            using var client = factory.CreateClient();
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/Account/me");
+            request.Headers.Add(CommandQApiFactory.ApiClientHeaderName, CommandQApiFactory.ApiClientHeaderValue);
+            request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
+            request.Headers.Authorization = new("Bearer", CommandQApiFactory.CreateAccessToken(scope: null));
+
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Me_Should_Return_Unauthorized_When_Access_Token_Has_Wrong_Audience()
+        {
+            using var client = factory.CreateClient();
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/Account/me");
+            request.Headers.Add(CommandQApiFactory.ApiClientHeaderName, CommandQApiFactory.ApiClientHeaderValue);
+            request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
+            request.Headers.Authorization = new(
+                "Bearer",
+                CommandQApiFactory.CreateAccessToken(audience: "another_api"));
+
+            using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
     }
 }

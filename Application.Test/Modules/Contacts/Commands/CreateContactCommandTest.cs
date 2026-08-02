@@ -1,6 +1,6 @@
-using MediatR;
-using Application.Test.Constants;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using Application.Test.Infrastructure;
 using Application.Modules.Contacts.Commands;
 
 namespace Application.Test.Modules.Contacts.Commands
@@ -13,9 +13,11 @@ namespace Application.Test.Modules.Contacts.Commands
         [Fact]
         public async Task CreateContactCommand_Should_Create_Contact()
         {
+            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+
             var command = new CreateContactCommand()
             {
-                AccountId = TestValues.AccountId,
+                AccountId = account.Id,
                 Name = @"Test Contact",
             };
 

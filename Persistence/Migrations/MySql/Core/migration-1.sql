@@ -17,8 +17,6 @@ CREATE TABLE Account (
     Id CHAR(36) NOT NULL,
     Username VARCHAR(256) NOT NULL,
     Email VARCHAR(256) NOT NULL,
-    Password VARCHAR(256) NOT NULL,
-    Roles VARCHAR(512) NOT NULL,
     Created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
@@ -29,37 +27,24 @@ CREATE TABLE Account (
     INDEX IX_Account_Active (Deleted, Username, Email, Created)
 ) ENGINE=InnoDB;
 
-INSERT INTO Account
-(Id, Username, Email, Password, Roles)
-VALUES
-('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F',
- 'TurboDecoder',
- 'admin@local.com',
- 'e8424ea5339b85a750ab5f4c63bde5d5c62975792a3bed6ccb37c045207c6771',
- 'User');
-
 -- =========================
--- AccountSession
+-- AccountIdentity
 -- =========================
-CREATE TABLE AccountSession (
+CREATE TABLE AccountIdentity (
+    Id BIGINT NOT NULL AUTO_INCREMENT,
     AccountId CHAR(36) NOT NULL,
-    TokenVersion INT NOT NULL DEFAULT 0,
-    FailedLoginAttempts SMALLINT NOT NULL DEFAULT 0,
-    LockedUntilUtc DATETIME NULL,
+    Issuer VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+    Subject VARCHAR(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     Created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
-    CONSTRAINT FK_AccountSession_Account
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    PRIMARY KEY (Id),
+    CONSTRAINT FK_AccountIdentity_Account
         FOREIGN KEY (AccountId) REFERENCES Account(Id),
-    INDEX IX_AccountSession_Active (Deleted, AccountId),
-    INDEX IX_AccountSession_LockedUntilUtc (Deleted, LockedUntilUtc),
-    INDEX IX_AccountSession_FailedLoginAttempts (Deleted, FailedLoginAttempts)
+    INDEX IX_AccountIdentity_AccountId (Deleted, AccountId),
+    UNIQUE KEY UX_AccountIdentity_Issuer_Subject (Issuer, Subject, ActiveRecord)
 ) ENGINE=InnoDB;
-
-INSERT INTO AccountSession
-(AccountId, TokenVersion, FailedLoginAttempts, LockedUntilUtc)
-VALUES
-('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 0, 0, NULL);
 
 -- =========================
 -- AccountActivity

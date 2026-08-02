@@ -1,4 +1,4 @@
-using Api.Models;
+﻿using Api.Models;
 using Api.Logging;
 using Api.Modules;
 using Api.Constants;
@@ -9,8 +9,8 @@ using Common.Enumerations;
 using Application.Extensions;
 using Application.Modules.Health;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Api.Extensions
 {
@@ -21,7 +21,7 @@ namespace Api.Extensions
         /// controllers, rate limiting and caching.
         /// </summary>
         /// <remarks>This method sets up core infrastructure and application-specific services using
-        /// convention-based registration. It enables health checks, JWT authentication, localization, and multiple rate
+        /// convention-based registration. It enables health checks, bearer authentication, localization, and multiple rate
         /// limiting policies. Application services are registered based on naming conventions, and exception handling
         /// middleware is added to support robust error management.</remarks>
         /// <param name="builder">The ApplicationBuilder instance used to register services and configure the application's dependency
@@ -41,8 +41,8 @@ namespace Api.Extensions
 
             builder.Services.ValidateAppConfiguration(builder.Configuration);
 
-            // Add JWT authorization flow
-            builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
+            // Add resource-server authentication backed by the standalone identity server.
+            builder.Services.AddResourceServerAuthentication(builder.Configuration);
 
             // Add rate limiting policies
             builder.Services.AddRateLimitingPolicies(builder.Configuration);
@@ -114,8 +114,7 @@ namespace Api.Extensions
             _ = services.GetRequiredService<IOptions<ConcurrencyRateLimitingOptions>>().Value;
             _ = services.GetRequiredService<IOptions<CacheOptions>>().Value;
             _ = services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-            _ = services.GetRequiredService<IOptions<JwtOptions>>().Value;
-            _ = services.GetRequiredService<IOptions<AuthOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<BearerAuthenticationOptions>>().Value;
             _ = services.GetRequiredService<IOptions<List<ApiClient>>>().Value;
         }
 
@@ -211,18 +210,13 @@ namespace Api.Extensions
 
             logger.StartupSetting("Language", Language.English);
 
-            var jwt = configuration.GetSection(ConfigKeys.Jwt.Section).Get<JwtOptions>()!;
-            var auth = configuration.GetSection(ConfigKeys.Auth.Section).Get<AuthOptions>()!;
+            var authentication = configuration
+                .GetSection(ConfigKeys.Authentication.Section)
+                .Get<BearerAuthenticationOptions>()!;
 
-            logger.StartupSetting("JWT Issuer", jwt.Issuer);
-            logger.StartupSetting("JWT Audience", jwt.Audience);
-            logger.StartupSetting("JWT Minutes To Expire", jwt.MinutesToExpire);
-            logger.StartupSetting("JWT Clock Skew Minutes", jwt.ClockSkewMinutes);
-            logger.StartupSetting("Auth Max Failed Attempts", auth.MaxFailedAttempts);
-            logger.StartupSetting("Auth Lockout Minutes", auth.LockoutMinutes);
-            logger.StartupSetting("Auth Refresh Token Byte Size", auth.RefreshTokenByteSize);
-            logger.StartupSetting("Auth Refresh Cache Minutes", auth.RefreshCacheMinutes);
-            logger.StartupSetting("Auth Refresh Cache Cleanup Minutes", auth.RefreshCacheCleanupMinutes);
+            logger.StartupSetting("Authentication Authority", authentication.Authority);
+            logger.StartupSetting("Authentication Audience", authentication.Audience);
+            logger.StartupSetting("Authentication API Scope", authentication.ApiScope);
 
             RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ConfigKeys.RateLimiting.Type);
             logger.StartupSetting("Rate Limiting", rateLimiting);

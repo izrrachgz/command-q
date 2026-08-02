@@ -1,6 +1,6 @@
-using MediatR;
-using Application.Test.Constants;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using Application.Test.Infrastructure;
 using Application.Modules.Addresses.Queries;
 
 namespace Application.Test.Modules.Addresses.Queries
@@ -13,9 +13,11 @@ namespace Application.Test.Modules.Addresses.Queries
         [Fact]
         public async Task GetAddressByAccountIdQuery_Should_Return_Addresses()
         {
+            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+
             var query = new GetAddressByAccountIdQuery()
             {
-                AccountId = TestValues.AccountId
+                AccountId = account.Id
             };
 
             CancellationToken cancellationToken = default;

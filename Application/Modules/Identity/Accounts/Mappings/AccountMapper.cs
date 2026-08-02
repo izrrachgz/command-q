@@ -1,4 +1,4 @@
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Riok.Mapperly.Abstractions;
 using Application.Modules.Identity.Accounts.Dtos;
 
@@ -20,11 +20,5 @@ namespace Application.Modules.Identity.Accounts.Mappings
         [MapperIgnoreTarget(nameof(AccountModel.Addresses))]
         [MapperIgnoreTarget(nameof(AccountModel.Contacts))]
         public partial AccountModel Map(Account entity);
-
-        private static string[] MapRoles(string roles)
-            => roles?.Split([','], StringSplitOptions.RemoveEmptyEntries) ?? [];
-
-        private static string MapRoles(string[] roles)
-            => roles == null ? string.Empty : string.Join(',', roles);
     }
 }

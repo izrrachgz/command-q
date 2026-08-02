@@ -1,4 +1,4 @@
-using Api.Modules;
+﻿using Api.Modules;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,6 +43,7 @@ namespace Api.Test.Architecture
                 .ToHashSet();
 
             Assert.DoesNotContain("FrontApplication", referencedAssemblies);
+            Assert.DoesNotContain("IdentityServer", referencedAssemblies);
         }
     }
 }

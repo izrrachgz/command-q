@@ -16,11 +16,9 @@ WHERE Deleted IS NULL;
 -- Account
 -- =========================
 CREATE TABLE Account (
-    Id TEXT NOT NULL,
+    Id BLOB NOT NULL,
     Username TEXT NOT NULL,
     Email TEXT NOT NULL,
-    Password TEXT NOT NULL,
-    Roles TEXT NOT NULL,
     Created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Deleted TEXT NULL,
@@ -38,52 +36,34 @@ WHERE Deleted IS NULL;
 CREATE INDEX IX_Account_Active
 ON Account (Deleted, Username, Email, Created);
 
-INSERT INTO Account
-(Id, Username, Email, Password, Roles)
-VALUES
-('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F',
- 'TurboDecoder',
- 'admin@local.com',
- 'e8424ea5339b85a750ab5f4c63bde5d5c62975792a3bed6ccb37c045207c6771',
- 'User');
-
 -- =========================
--- AccountSession
+-- AccountIdentity
 -- =========================
-CREATE TABLE AccountSession (
-    AccountId TEXT NOT NULL,
-    TokenVersion INTEGER NOT NULL DEFAULT 0,
-    FailedLoginAttempts INTEGER NOT NULL DEFAULT 0,
-    LockedUntilUtc TEXT NULL,
+CREATE TABLE AccountIdentity (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    AccountId BLOB NOT NULL,
+    Issuer TEXT NOT NULL,
+    Subject TEXT NOT NULL,
     Created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Deleted TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
 
-CREATE INDEX IX_AccountSession_Active
-ON AccountSession (AccountId)
+CREATE INDEX IX_AccountIdentity_AccountId
+ON AccountIdentity (AccountId)
 WHERE Deleted IS NULL;
 
-CREATE INDEX IX_AccountSession_LockedUntilUtc
-ON AccountSession (LockedUntilUtc)
-WHERE LockedUntilUtc IS NOT NULL AND Deleted IS NULL;
-
-CREATE INDEX IX_AccountSession_FailedLoginAttempts
-ON AccountSession (FailedLoginAttempts)
-WHERE FailedLoginAttempts > 0 AND Deleted IS NULL;
-
-INSERT INTO AccountSession
-(AccountId, TokenVersion, FailedLoginAttempts, LockedUntilUtc)
-VALUES
-('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 0, 0, NULL);
+CREATE UNIQUE INDEX UX_AccountIdentity_Issuer_Subject
+ON AccountIdentity (Issuer, Subject)
+WHERE Deleted IS NULL;
 
 -- =========================
 -- AccountActivity
 -- =========================
 CREATE TABLE AccountActivity (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    AccountId TEXT NOT NULL,
+    AccountId BLOB NOT NULL,
     Module TEXT NOT NULL,
     Action TEXT NOT NULL,
     EntityType TEXT NULL,
@@ -116,7 +96,7 @@ WHERE Deleted IS NULL AND EntityType IS NOT NULL AND EntityId IS NOT NULL;
 -- =========================
 CREATE TABLE Address (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    AccountId TEXT NOT NULL,
+    AccountId BLOB NOT NULL,
     Name TEXT NOT NULL,
     Description TEXT NULL,
     Line1 TEXT NOT NULL,
@@ -152,7 +132,7 @@ WHERE Deleted IS NULL;
 -- =========================
 CREATE TABLE Contact (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    AccountId TEXT NOT NULL,
+    AccountId BLOB NOT NULL,
     Name TEXT NOT NULL,
     Description TEXT NULL,
     EmailAddress TEXT NULL,
@@ -176,7 +156,7 @@ WHERE Deleted IS NULL;
 -- =========================
 CREATE TABLE AccountFile (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    AccountId TEXT NOT NULL,
+    AccountId BLOB NOT NULL,
     FileName TEXT NOT NULL,
     Path TEXT NOT NULL,
     ContentType TEXT NULL,
@@ -242,7 +222,7 @@ WHERE Deleted IS NULL;
 -- =========================
 CREATE TABLE "Register" (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    AccountId TEXT NOT NULL,
+    AccountId BLOB NOT NULL,
     Action INTEGER NOT NULL,
     Created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,

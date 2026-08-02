@@ -12,7 +12,10 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\build.ps1`
   - `.\scripts\test.ps1`
   - `.\scripts\run-api.ps1`
+  - `.\scripts\run-identity-server.ps1`
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
+- `CommandQ.slnLaunch` provides the shared Visual Studio `Backend (IdentityServer + API)` profile. It starts IdentityServer before API using both HTTPS launch profiles.
+- Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
 
@@ -24,7 +27,8 @@ This file captures practical repository knowledge for coding agents working in t
   - `Domain/Modules/{Module}`
 - Module namespaces should match module folders, for example `Application.Modules.Identity.Accounts.Commands` and `Domain.Modules.Identity`.
 - Current modules include `Identity`, `Contacts`, `Addresses`, `Files` and `Health`; domain also has `Events` and `Registers`.
-- Identity owns the queryable account activity trail. Record account/user actions through `IAccountActivityRecorder` or `RecordAccountActivityCommand`; do not create per-account application log files as the source of truth.
+- The application Identity module owns profiles, external identity mapping and queryable business account activity. Record business actions through `IAccountActivityRecorder` or `RecordAccountActivityCommand`; do not create per-account application log files as the source of truth.
+- `IdentityServer` owns authentication users, password hashes, lockout, external logins, OAuth clients, scopes, grants and token issuance. Do not move these responsibilities back into `Api` or `Application`.
 - Existing module status and removal steps are documented in `docs/modules.md`.
 - Keep cross-cutting infrastructure at project root, such as `Api/Middleware`, `Api/Extensions`, `Common/System`, `Persistence/Repository` and general project logging.
 - Prefer module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
@@ -33,20 +37,30 @@ This file captures practical repository knowledge for coding agents working in t
 ## Projects
 
 ### Api
-- ASP.NET Core HTTP API with module controllers, middleware, auth services and app configuration.
+- ASP.NET Core HTTP API with module controllers, middleware, resource-server authentication and app configuration.
 - Run locally from `Api` with `dotnet run` or Visual Studio launch profiles.
-- JWT/Auth settings are configured through `Jwt` and `Auth` sections in `appsettings*.json`.
-- Current authenticated-account data is resolved from JWT claims through `Api/Extensions/ClaimsPrincipalExtensions.cs`.
-- Auth refresh flows use `IAccountSessionCache`/`AccountSessionCache` to avoid repeated account/session database reads.
+- Bearer validation settings are configured through the `Authentication` section in `appsettings*.json`.
+- The API validates IdentityServer discovery keys, audience, lifetime, `at+jwt` type and required API scope. It does not issue JWTs or handle refresh tokens.
+- Protocol claims are read through `Api/Extensions/ClaimsPrincipalExtensions.cs`; `ICurrentAccountAccessor` resolves `(iss, sub)` to the application profile through `GetAccountByIdentityQuery`.
+- `POST /Account/create` provisions an application profile for an authenticated identity. Credentials are never accepted or stored by this endpoint.
 - Generic cache mechanics live in `Common.Interfaces.ITypedCache<TEntry>` and `Common.System.TypedMemoryCache<TEntry>`; add specific cache adapters over this when new typed caches are needed.
-- Register account/session refresh caching through `services.AddAccountSessionCache()`.
-- `Auth:RefreshCacheMinutes` controls cache entry lifetime; `Auth:RefreshCacheCleanupMinutes` controls the hosted cleanup period.
-- `AccountSessionCacheCleanupService` periodically clears account/session cache entries. Keep this in API/auth infrastructure, not health checks.
-- Refresh tokens are accessed through `IRefreshTokenStore`; the default `InMemoryRefreshTokenStore` should be replaced with persistent/distributed storage before multi-instance deployments.
 - Rate limiting, cache, database and API client settings use constants under `Api/Constants/ConfigKeys.cs`.
 - Local secrets should use .NET user-secrets or environment variables. Keep real secrets out of `appsettings*.json`, `.env`, scripts and docs. See `docs/local-secrets.md`.
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development in `ExceptionHandlingMiddleware`.
+
+### IdentityServer
+- Standalone ASP.NET Core Identity and OpenIddict authorization-server host. It is independently deployable and connected to `Api` through standard OpenID Connect discovery, not a project reference.
+- Run locally with `.\scripts\run-identity-server.ps1`; the Development issuer is `https://localhost:7125/`.
+- OpenIddict uses an isolated SQL Server database named `command_q_identity` through EF Core stores.
+- ASP.NET Core Identity owns local users, password hashing, lockout, roles, claims and external login links.
+- OpenIddict owns clients, scopes, authorizations, access/refresh tokens and revocation. Access tokens are signed `at+jwt` tokens; authorization and refresh tokens remain encrypted.
+- Account endpoints live under `IdentityServer/Modules/Accounts`; authorization/token handlers and client/scope seeding live under `IdentityServer/Modules/OpenIddict`.
+- Google and Microsoft providers are registered only when complete `ExternalProviders` credentials are configured.
+- Authentication security events are stored in `IdentitySecurityEvent`; application business activity remains in `AccountActivity`.
+- EF migrations live under `IdentityServer/Persistence/Migrations`; restore the repository-local `dotnet-ef` tool before adding migrations.
+- Development applies pending EF migrations at startup. Non-development migration execution is opt-in through `Migrations:RunOnStartup`.
+- Development certificates are allowed only in Development. QA/Production require signing, encryption and Data Protection certificates plus shared persisted Data Protection keys.
 
 ### Application
 - CQRS use cases, validators, handlers, mappers, services and health checks, grouped by module under `Application/Modules`.
@@ -55,6 +69,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Validators use localized resources through `ValidationTextProvider`.
 - Shared validator limits live in `Application/Constants/ValidationLimits.cs`.
 - Register module-owned services explicitly through `AddApplicationModules()` and module-specific methods such as `AddIdentityModule()`.
+- Application accounts are business profiles. Keep passwords, auth lockout and protocol sessions out of Application.
 
 ### Domain
 - Domain entities and interfaces. Feature-owned entities live under `Domain/Modules/{Module}`.
@@ -64,6 +79,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `ISoftDeletableEntity`
 - `BaseEntity<TKey>` provides typed identity plus lifecycle timestamps.
 - `BaseEntity` remains the long-key default, while `Account` uses `BaseEntity<Guid>`.
+- `AccountIdentity` links an application `AccountId` to normalized issuer and subject values. Never identify an authenticated account by email or username.
 - Keep this project free from infrastructure implementation details.
 
 ### Common
@@ -156,6 +172,11 @@ This file captures practical repository knowledge for coding agents working in t
   - `dotnet test .\Api.Test\Api.Test.csproj`
   - `dotnet test .\Api.Test\Api.Test.csproj --filter FullyQualifiedName~Api.Test.Architecture.ApiArchitectureRulesTest`
 
+### IdentityServer.Test
+- xUnit tests for IdentityServer architecture and isolated ASP.NET Identity persistence behavior.
+- Uses EF Core InMemory only for focused identity-store tests; production IdentityServer remains SQL Server-backed.
+- Useful targeted command: `dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj`.
+
 ### Cli
 - Code-generation utility project with command/query templates.
 - Keep generated code consistent with existing CQRS, validator and localization patterns.
@@ -173,6 +194,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `Application/Logging/ApplicationEventIdRanges.cs`
   - `Common/Logging/CommonEventIdRanges.cs`
   - `Persistence/Logging/PersistenceEventIdRanges.cs`
+  - `IdentityServer/Logging/IdentityServerEventIdRanges.cs`
 - Add cross-cutting IDs to root `*EventIds.cs` files. Add module-owned IDs to module `Logging/*EventIds.cs` files.
 
 ## Coding Conventions

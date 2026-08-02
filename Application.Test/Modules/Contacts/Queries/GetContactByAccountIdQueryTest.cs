@@ -1,6 +1,6 @@
-using MediatR;
-using Application.Test.Constants;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using Application.Test.Infrastructure;
 using Application.Modules.Contacts.Queries;
 
 namespace Application.Test.Modules.Contacts.Queries
@@ -13,9 +13,11 @@ namespace Application.Test.Modules.Contacts.Queries
         [Fact]
         public async Task GetContactByAccountIdQuery_Should_Return_Contacts()
         {
+            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+
             var query = new GetContactByAccountIdQuery()
             {
-                AccountId = TestValues.AccountId
+                AccountId = account.Id
             };
 
             CancellationToken cancellationToken = default;

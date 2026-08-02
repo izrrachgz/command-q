@@ -1,6 +1,6 @@
-using MediatR;
-using Application.Test.Constants;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using Application.Test.Infrastructure;
 using Application.Modules.Identity.Accounts.Queries;
 
 namespace Application.Test.Modules.Identity.Accounts.Queries
@@ -13,10 +13,11 @@ namespace Application.Test.Modules.Identity.Accounts.Queries
         [Fact]
         public async Task GetAccountByUsernameQuery_Should_Return_Account()
         {
+            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+
             var query = new GetAccountByUsernameQuery()
             {
-                Username = TestValues.AccountUsername,
-                Password = TestValues.AccountPassword
+                Username = account.Username
             };
 
             CancellationToken cancellationToken = default;

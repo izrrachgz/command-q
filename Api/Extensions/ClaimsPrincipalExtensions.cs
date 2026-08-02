@@ -1,81 +1,56 @@
-using Api.Models;
+﻿using Api.Models;
 using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace Api.Extensions
 {
-    /// <summary>
-    /// Helpers for resolving authenticated account information from JWT claims.
-    /// </summary>
     public static class ClaimsPrincipalExtensions
     {
-        /// <summary>
-        /// Gets the account identifier from the JWT subject claim.
-        /// </summary>
-        public static Guid? GetAccountId(this ClaimsPrincipal user)
+        public static bool TryGetIdentityKey(
+            this ClaimsPrincipal user,
+            out string issuer,
+            out string subject)
         {
-            return user.TryGetAccountId(out var accountId) ? accountId : null;
+            issuer = user.FindFirstValue(AuthenticationClaimTypes.Issuer) ?? string.Empty;
+            subject = user.FindFirstValue(AuthenticationClaimTypes.Subject) ?? string.Empty;
+
+            return user.Identity?.IsAuthenticated == true &&
+                !string.IsNullOrWhiteSpace(issuer) &&
+                !string.IsNullOrWhiteSpace(subject);
         }
 
-        /// <summary>
-        /// Tries to get the account identifier from the JWT subject claim.
-        /// </summary>
-        public static bool TryGetAccountId(this ClaimsPrincipal user, out Guid accountId)
-        {
-            var accountIdValue = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
-
-            return Guid.TryParse(accountIdValue, out accountId);
-        }
-
-        /// <summary>
-        /// Gets the username from the JWT unique name claim.
-        /// </summary>
         public static string? GetUsername(this ClaimsPrincipal user)
         {
-            return user.FindFirstValue(JwtRegisteredClaimNames.UniqueName)
+            return user.FindFirstValue(AuthenticationClaimTypes.Name)
+                ?? user.FindFirstValue(AuthenticationClaimTypes.PreferredUsername)
                 ?? user.FindFirstValue(ClaimTypes.Name);
         }
 
-        /// <summary>
-        /// Gets the JWT identifier claim when present.
-        /// </summary>
+        public static string? GetEmail(this ClaimsPrincipal user)
+        {
+            return user.FindFirstValue(AuthenticationClaimTypes.Email)
+                ?? user.FindFirstValue(ClaimTypes.Email);
+        }
+
         public static string? GetJwtId(this ClaimsPrincipal user)
         {
-            return user.FindFirstValue(JwtRegisteredClaimNames.Jti);
+            return user.FindFirstValue(AuthenticationClaimTypes.JwtId);
         }
 
-        /// <summary>
-        /// Gets all role claims for the current user.
-        /// </summary>
         public static IReadOnlyList<string> GetRoles(this ClaimsPrincipal user)
         {
-            return [.. user.FindAll(ClaimTypes.Role).Select(claim => claim.Value)];
+            return user.FindAll(AuthenticationClaimTypes.Role)
+                .Concat(user.FindAll(ClaimTypes.Role))
+                .Select(claim => claim.Value)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
         }
 
-        /// <summary>
-        /// Checks whether the current user has the provided role.
-        /// </summary>
-        public static bool HasRole(this ClaimsPrincipal user, string role)
+        public static IReadOnlyList<string> GetScopes(this ClaimsPrincipal user)
         {
-            return user.GetRoles().Any(value => string.Equals(value, role, StringComparison.OrdinalIgnoreCase));
-        }
-
-        /// <summary>
-        /// Gets a current-user snapshot when the principal contains a valid account id.
-        /// </summary>
-        public static CurrentUser? GetCurrentUser(this ClaimsPrincipal user)
-        {
-            if (!user.TryGetAccountId(out var accountId))
-                return null;
-
-            return new()
-            {
-                AccountId = accountId,
-                Username = user.GetUsername(),
-                JwtId = user.GetJwtId(),
-                Roles = user.GetRoles(),
-                IsAuthenticated = user.Identity?.IsAuthenticated == true
-            };
+            return user.FindAll(AuthenticationClaimTypes.Scope)
+                .SelectMany(claim => claim.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
         }
     }
 }

@@ -1,6 +1,6 @@
 # CommandQ
 
-CommandQ is a .NET 10 backend starter solution intended to be reusable across multiple application types. It uses a modular-monolith shape: one deployable API and shared infrastructure, with feature code grouped by module.
+CommandQ is a .NET 10 backend starter solution intended to be reusable across multiple application types. It uses a modular-monolith shape for the application API and includes an optional, standalone OpenIddict authorization-server host.
 
 ## Prerequisites
 
@@ -21,15 +21,15 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
    ```powershell
    dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Engine" "MsSql"
    dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
-   dotnet user-secrets set --project .\Api\Api.csproj "Jwt:SecretKey" "replace-with-at-least-32-random-bytes"
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "https://localhost:4200"
+   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Server=localhost\SQLEXPRESS;Database=command_q_identity;Integrated Security=True;TrustServerCertificate=True;"
    ```
 
 3. Prepare the database.
 
-   Create an empty database matching `ConnectionStrings:Db`. In Development, the API invokes the migration runner on startup and applies only pending scripts. While version 1 is still being shaped, manually drop/recreate the development database when `migration-1.sql` changes.
+   Create empty application and identity databases. In Development, each host applies only its pending migrations. While version 1 is still being shaped, manually drop/recreate both development databases when either baseline migration changes.
 
 4. Build and test.
 
@@ -38,11 +38,14 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
    .\scripts\test.ps1
    ```
 
-5. Run the API.
+5. Run the identity server, then the API.
 
    ```powershell
+   .\scripts\run-identity-server.ps1
    .\scripts\run-api.ps1
    ```
+
+   In Visual Studio 2022 17.11 or later, select the shared `Backend (IdentityServer + API)` solution launch profile before pressing F5. It starts IdentityServer first and API second with their HTTPS project profiles.
 
 6. Optionally run the frontend placeholder.
 
@@ -52,15 +55,21 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
    .\scripts\run-front.ps1
    ```
 
-7. Add a new backend feature.
+   The frontend is not required by either backend host.
+
+7. Provision an application profile after the first identity login.
+
+   Obtain an authorization-code token containing `command_q_api`, `profile` and `email`, then call authenticated `POST /Account/create` once. IdentityServer owns credentials; the API stores the application profile linked by issuer and subject.
+
+8. Add a new backend feature.
 
    Add domain entities under `Domain/Modules/{Module}`, use cases under `Application/Modules/{Module}`, and controllers/endpoints under `Api/Modules/{Module}`. Register services in `Application/Modules/ApplicationModuleExtensions.cs` and API mappings in `Api/Modules/ApiModuleExtensions.cs`.
 
-8. Add a migration.
+9. Add a migration.
 
    Add `migration-X.sql` under `Persistence/Migrations/{Engine}/{Module}` for each supported engine you intend to keep. Migration IDs must be unique per engine and scripts must move forward only.
 
-9. Add localized validation text.
+10. Add localized validation text.
 
    Validators should use `ValidationTextProvider`. Add reusable validation templates to `Localization/Resources/ValidationText*.resx`, field display names to `Localization/Resources/FieldNames*.resx`, and operation messages to `Localization/Resources/Messages*.resx`.
 
@@ -96,8 +105,10 @@ Domain/
 Common/
 Localization/
 Persistence/
+IdentityServer/
 Application.Test/
 Api.Test/
+IdentityServer.Test/
 Cli/
 ```
 
@@ -113,7 +124,9 @@ Domain.Modules.Identity
 
 Existing modules are documented in `docs/modules.md`, including which modules are core, optional or sample-oriented and how to remove a module safely.
 
-Identity includes a queryable account activity trail for user/account actions. Use `IAccountActivityRecorder` or `RecordAccountActivityCommand` from the Identity module instead of writing per-account log files.
+Identity includes a queryable account activity trail for business account actions. Use `IAccountActivityRecorder` or `RecordAccountActivityCommand` instead of writing per-account log files. Authentication security events are stored by IdentityServer.
+
+`IdentityServer` owns users, credentials, lockout, external logins, OAuth clients, scopes, grants and tokens. The API Identity module owns application profiles and maps them through `AccountIdentity` using the validated token issuer and subject. See `IdentityServer/README.md`.
 
 ## Package Management
 
@@ -177,8 +190,9 @@ Update the `appsettings.json` file with the appropriate connection string for yo
    ```sh
    dotnet build .\CommandQ.sln
    ```
-3. Run the application:
+3. Run IdentityServer and then the API:
    ```sh
+   dotnet run --project .\IdentityServer\IdentityServer.csproj
    dotnet run --project .\Api\Api.csproj
    ```
 
@@ -188,8 +202,13 @@ Root helper scripts are also available:
 .\scripts\build.ps1
 .\scripts\test.ps1
 .\scripts\run-api.ps1
+.\scripts\run-identity-server.ps1
 .\scripts\run-front.ps1
 ```
+
+## Postman
+
+Import the backend collection and the appropriate environment from [`postman/`](postman/README.md). The Development environment is prepared for IdentityServer, API, authorization code with PKCE and the former `TurboDecoder` / `admin@local.com` account values. Passwords, API-client keys and issued tokens are intentionally not committed.
 
 ## Migrations
 
@@ -240,12 +259,16 @@ The persistence layer separates read and write entry points:
 
 ## Security Defaults
 
-- JWT and auth options are validated on startup.
+- IdentityServer uses ASP.NET Core Identity password hashing and lockout.
+- OpenIddict persists clients, scopes, grants and refresh tokens in `command_q_identity`.
+- Access tokens are signed `at+jwt` tokens; the API validates issuer discovery keys, audience, lifetime, type and required scope.
+- The API does not store passwords, issue JWTs or handle refresh tokens.
+- IdentityServer authentication endpoints are rate limited and security events are persisted separately from application activity.
+- Production signing, encryption and Data Protection certificates are required through deployment configuration.
 - API clients are validated on startup.
 - The API pipeline uses authentication before authorization.
 - Production exception responses avoid exposing unexpected exception details.
 - Security headers are added by `SecurityHeadersMiddleware`.
-- Refresh-token storage is behind `IRefreshTokenStore`; the default implementation is in-memory and should be replaced with persistent/distributed storage before multi-instance production deployments.
 
 ## Health Checks
 
@@ -302,11 +325,18 @@ Api.Test/
   Architecture/
   Modules/
     Common/
+
+IdentityServer.Test/
+  Architecture/
+  Modules/
+    Accounts/
 ```
 
 Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRulesTest.cs`. These tests check project dependency direction, CQRS repository usage, module namespace conventions, duplicate logging event IDs, and module logging event-id ranges. Application composition tests also resolve the real application service graph.
 
 API-layer rules and middleware tests live under `Api.Test`. These tests avoid booting the full API host unless startup/pipeline behavior is the explicit target, because full host tests may require configured database settings.
+
+`IdentityServer.Test` verifies authorization-server dependency boundaries plus password hashing, lockout, external-login persistence and security-event storage with an isolated EF store.
 
 ## Logging
 

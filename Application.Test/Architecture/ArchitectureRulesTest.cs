@@ -1,4 +1,4 @@
-using Api.Modules;
+﻿using Api.Modules;
 using Common.Cqrs;
 using Domain.Entities;
 using System.Reflection;
@@ -21,6 +21,21 @@ namespace Application.Test.Architecture
             Assert.DoesNotContain("Application", referencedAssemblies);
             Assert.DoesNotContain("Persistence", referencedAssemblies);
             Assert.DoesNotContain("Api", referencedAssemblies);
+        }
+
+        [Fact]
+        public void Application_Account_Should_Not_Own_Authentication_Credentials_Or_Sessions()
+        {
+            var accountType = DomainAssembly.GetType("Domain.Modules.Identity.Account");
+
+            Assert.NotNull(accountType);
+            Assert.Null(accountType.GetProperty("Password"));
+            Assert.DoesNotContain(
+                DomainAssembly.GetTypes(),
+                type => string.Equals(type.Name, "AccountSession", StringComparison.Ordinal));
+            Assert.DoesNotContain(
+                ApiAssembly.GetTypes(),
+                type => type.Name is "JwtTokenService" or "RefreshTokenService" or "AuthService");
         }
 
         [Fact]

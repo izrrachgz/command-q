@@ -1,4 +1,4 @@
-using Common.Cqrs;
+﻿using Common.Cqrs;
 using Common.Models.Response;
 
 namespace Application.Modules.Identity.Accounts.Commands
@@ -7,6 +7,7 @@ namespace Application.Modules.Identity.Accounts.Commands
     {
         public required string Email { get; set; }
         public required string Username { get; set; }
-        public required string Password { get; set; }
+        public required string IdentityIssuer { get; set; }
+        public required string IdentitySubject { get; set; }
     }
 }

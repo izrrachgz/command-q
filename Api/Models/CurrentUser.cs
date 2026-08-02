@@ -7,7 +7,13 @@ namespace Api.Models
     {
         public Guid AccountId { get; init; }
 
+        public string Issuer { get; init; } = string.Empty;
+
+        public string Subject { get; init; } = string.Empty;
+
         public string? Username { get; init; }
+
+        public string? Email { get; init; }
 
         public string? JwtId { get; init; }
 

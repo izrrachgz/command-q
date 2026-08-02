@@ -26,8 +26,6 @@ CREATE TABLE "Account"
     "Id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "Username" VARCHAR(256) NOT NULL,
     "Email" VARCHAR(256) NOT NULL,
-    "Password" VARCHAR(256) NOT NULL,
-    "Roles" VARCHAR(512) NOT NULL,
     "Created" TIMESTAMP NOT NULL DEFAULT NOW(),
     "Modified" TIMESTAMP NOT NULL DEFAULT NOW(),
     "Deleted" TIMESTAMP NULL,
@@ -45,48 +43,30 @@ WHERE "Deleted" IS NULL;
 CREATE INDEX "IX_Account_Active"
 ON "Account" ("Deleted", "Username", "Email", "Created");
 
-INSERT INTO "Account"
-("Id","Username","Email","Password","Roles")
-VALUES
-('3d6a4e33-5b5f-40ba-9e31-f21815b9d09f',
- 'TurboDecoder',
- 'admin@local.com',
- 'e8424ea5339b85a750ab5f4c63bde5d5c62975792a3bed6ccb37c045207c6771',
- 'User');
-
 -- =========================
--- Table: AccountSession
+-- Table: AccountIdentity
 -- =========================
 
-CREATE TABLE "AccountSession"
+CREATE TABLE "AccountIdentity"
 (
+    "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "AccountId" UUID NOT NULL,
-    "TokenVersion" INT NOT NULL DEFAULT 0,
-    "FailedLoginAttempts" SMALLINT NOT NULL DEFAULT 0,
-    "LockedUntilUtc" TIMESTAMP NULL,
+    "Issuer" VARCHAR(500) NOT NULL,
+    "Subject" VARCHAR(256) NOT NULL,
     "Created" TIMESTAMP NOT NULL DEFAULT NOW(),
     "Modified" TIMESTAMP NOT NULL DEFAULT NOW(),
     "Deleted" TIMESTAMP NULL,
-    CONSTRAINT "FK_AccountSession_Account"
+    CONSTRAINT "FK_AccountIdentity_Account"
         FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
 );
 
-CREATE INDEX "IX_AccountSession_Active"
-ON "AccountSession" ("AccountId")
+CREATE INDEX "IX_AccountIdentity_AccountId"
+ON "AccountIdentity" ("AccountId")
 WHERE "Deleted" IS NULL;
 
-CREATE INDEX "IX_AccountSession_LockedUntilUtc"
-ON "AccountSession" ("LockedUntilUtc")
-WHERE "LockedUntilUtc" IS NOT NULL AND "Deleted" IS NULL;
-
-CREATE INDEX "IX_AccountSession_FailedLoginAttempts"
-ON "AccountSession" ("FailedLoginAttempts")
-WHERE "FailedLoginAttempts" > 0 AND "Deleted" IS NULL;
-
-INSERT INTO "AccountSession"
-("AccountId","TokenVersion","FailedLoginAttempts","LockedUntilUtc")
-VALUES
-('3d6a4e33-5b5f-40ba-9e31-f21815b9d09f',0,0,NULL);
+CREATE UNIQUE INDEX "UX_AccountIdentity_Issuer_Subject"
+ON "AccountIdentity" ("Issuer", "Subject")
+WHERE "Deleted" IS NULL;
 
 -- =========================
 -- Table: AccountActivity

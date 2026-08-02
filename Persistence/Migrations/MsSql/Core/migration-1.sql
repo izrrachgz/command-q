@@ -20,42 +20,33 @@ CREATE TABLE dbo.Account
     [Id] UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     [Username] VARCHAR(256) NOT NULL,
     [Email] VARCHAR(256) NOT NULL,
-    [Password] VARCHAR(256) NOT NULL,
-    [Roles] VARCHAR(512) NOT NULL,
     [Created] DATETIME NOT NULL DEFAULT GETDATE(),
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
     CONSTRAINT PK_Account_Id PRIMARY KEY (Id)
 );
---Login lookup performance
+--Profile lookup performance
 CREATE UNIQUE INDEX UX_Account_Username ON dbo.Account (Username) WHERE Deleted IS NULL;
 CREATE UNIQUE INDEX UX_Account_Email ON dbo.Account (Email) WHERE Deleted IS NULL;
 --Active Account
 CREATE INDEX IX_Account_Active ON dbo.Account (Deleted) INCLUDE (Username, Email, Created);
 
--- Insert initial session record for the administrator account
-INSERT INTO dbo.Account (Id, Username, Email, [Password], Roles) VALUES ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 'TurboDecoder', 'admin@local.com', 'e8424ea5339b85a750ab5f4c63bde5d5c62975792a3bed6ccb37c045207c6771', 'User');
+-- Table: AccountIdentity
 
--- Table: AccountSession
-
-CREATE TABLE dbo.AccountSession
+CREATE TABLE dbo.AccountIdentity
 (
+    [Id] BIGINT IDENTITY(1,1) NOT NULL,
     [AccountId] UNIQUEIDENTIFIER NOT NULL,
-    [TokenVersion] INT NOT NULL DEFAULT 0,
-    [FailedLoginAttempts] SMALLINT NOT NULL DEFAULT 0,
-    [LockedUntilUtc] DATETIME NULL,
+    [Issuer] NVARCHAR(500) COLLATE Latin1_General_100_BIN2 NOT NULL,
+    [Subject] NVARCHAR(256) COLLATE Latin1_General_100_BIN2 NOT NULL,
     [Created] DATETIME NOT NULL DEFAULT GETDATE(),
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
-    CONSTRAINT FK_AccountSession_Account FOREIGN KEY ([AccountId]) REFERENCES Account(Id)
+    CONSTRAINT PK_AccountIdentity_Id PRIMARY KEY (Id),
+    CONSTRAINT FK_AccountIdentity_Account FOREIGN KEY ([AccountId]) REFERENCES Account(Id)
 );
---For faster performance
-CREATE INDEX IX_AccountSession_Active ON dbo.AccountSession (AccountId) WHERE Deleted IS NULL;
-CREATE INDEX IX_AccountSession_LockedUntilUtc ON dbo.AccountSession (LockedUntilUtc) WHERE LockedUntilUtc IS NOT NULL AND Deleted IS NULL;
-CREATE INDEX IX_AccountSession_FailedLoginAttempts ON dbo.AccountSession (FailedLoginAttempts) WHERE FailedLoginAttempts > 0 AND Deleted IS NULL;
-
--- Insert initial session record for the administrator account
-INSERT INTO dbo.AccountSession (AccountId, TokenVersion, FailedLoginAttempts, LockedUntilUtc) VALUES ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 0, 0, NULL);
+CREATE INDEX IX_AccountIdentity_AccountId ON dbo.AccountIdentity (AccountId) WHERE Deleted IS NULL;
+CREATE UNIQUE INDEX UX_AccountIdentity_Issuer_Subject ON dbo.AccountIdentity (Issuer, Subject) WHERE Deleted IS NULL;
 
 -- Table: AccountActivity
 CREATE TABLE dbo.AccountActivity

@@ -1,6 +1,5 @@
-using Public;
+﻿using Public;
 using Common.Cqrs;
-using Common.Hash;
 using SqlKata.Execution;
 using Common.Models.Response;
 using Persistence.Interfaces;
@@ -10,165 +9,131 @@ using Application.Modules.Identity.Logging;
 
 namespace Application.Modules.Identity.Accounts.Commands
 {
-    public class CreateAccountCommandHandler : ICommandHandler<CreateAccountCommand, BasicResponse>
+    public sealed class CreateAccountCommandHandler(
+        ITextProvider textProvider,
+        IWritableRepository repository,
+        ILogger<CreateAccountCommandHandler> logger)
+        : ICommandHandler<CreateAccountCommand, BasicResponse>
     {
-        private readonly ITextProvider _messages;
-        private readonly IWritableRepository _repository;
-        private readonly ILogger<CreateAccountCommandHandler> _logger;
+        private readonly string _messageAccountCreated = textProvider.Get(nameof(Messages.Created), nameof(Account));
+        private readonly string _messageAccountCannotCreate = textProvider.Get(nameof(Messages.Cannot_Create), nameof(Account));
+        private readonly string _messageDefaultContactName = textProvider.Get(nameof(Messages.Default_Contact_Name));
+        private readonly string _messageDefaultAddressName = textProvider.Get(nameof(Messages.Default_Address_Name));
 
-        private readonly string _message_account_created;
-        private readonly string _message_account_cannot_create;
-        private readonly string _message_default_contact_name;
-        private readonly string _message_default_address_name;
-        private static readonly string defaultAccountRoles = @"User";
-
-        public CreateAccountCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateAccountCommandHandler> logger)
+        public async Task<BasicResponse> Handle(
+            CreateAccountCommand request,
+            CancellationToken cancellationToken)
         {
-            _logger = logger;
-            _repository = repository;
-            _messages = textProvider;
-            _message_account_created = _messages.Get(nameof(Messages.Created), nameof(Account));
-            _message_account_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(Account));
-            _message_default_contact_name = _messages.Get(nameof(Messages.Default_Contact_Name));
-            _message_default_address_name = _messages.Get(nameof(Messages.Default_Address_Name));
-        }
-
-        /// <summary>
-        /// Handles the creation of a new user account based on the specified command.
-        /// </summary>
-        /// <remarks>If an account with the specified username or email already exists, the operation will
-        /// not create a new account and will return a failure response. The method ensures data integrity by performing
-        /// the operation within a transaction. If an error occurs during account creation, the transaction is rolled
-        /// back and a failure response is returned.</remarks>
-        /// <param name="request">The command containing the details required to create the account, including username, email, and password.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a BasicResponse indicating
-        /// whether the account was created successfully and an associated message.</returns>
-        public async Task<BasicResponse> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
-        {
-            bool accountExists = await AccountAlreadyExists(request, cancellationToken);
-
-            if (accountExists)
+            if (await AccountAlreadyExists(request, cancellationToken))
             {
-                _logger.AccountCreationDuplicate(request.Username);
-                return new(false, _message_account_cannot_create);
+                logger.AccountCreationDuplicate(request.Username);
+                return new(false, _messageAccountCannotCreate);
             }
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
+            var accountId = Guid.NewGuid();
 
-            // Create transaction to ensure data integrity
-            _repository.Db.Connection.Open();
-            using var transaction = _repository.Db.Connection.BeginTransaction();
+            repository.Db.Connection.Open();
+            using var transaction = repository.Db.Connection.BeginTransaction();
 
             try
             {
                 var account = new
                 {
-                    request.Username,
-                    request.Email,
-                    Password = Hash.ComputeSHA256(request.Password),
-                    Roles = defaultAccountRoles,
+                    Id = accountId,
+                    Username = request.Username.Trim(),
+                    Email = request.Email.Trim(),
                     Created = now,
                     Modified = now
                 };
 
-                // Insert new account record
-                int affected = await _repository.Db.Query($@"{nameof(Account)}")
+                var affected = await repository.Db.Query(nameof(Account))
                     .InsertAsync(account, transaction, cancellationToken: cancellationToken);
 
-                Account insertedAccount = await _repository.Db.Query($@"{nameof(Account)}")
-                    .Where($@"{nameof(Account.Username)}", request.Username)
-                    .Where($@"{nameof(Account.Email)}", request.Email)
-                    .WhereNull($@"{nameof(Account.Deleted)}")
-                    .OrderByDesc($@"{nameof(Account.Created)}")
-                    .Limit(1)
+                affected += await repository.Db.Query(nameof(AccountIdentity))
+                    .InsertAsync(new
+                    {
+                        AccountId = accountId,
+                        Issuer = request.IdentityIssuer,
+                        Subject = request.IdentitySubject,
+                        Created = now,
+                        Modified = now
+                    }, transaction, cancellationToken: cancellationToken);
+
+                affected += await repository.Db.Query(nameof(Contact))
+                    .InsertAsync(new
+                    {
+                        AccountId = accountId,
+                        Name = string.Format(_messageDefaultContactName, request.Username),
+                        EmailAddress = request.Email.Trim(),
+                        Created = now,
+                        Modified = now
+                    }, transaction, cancellationToken: cancellationToken);
+
+                affected += await repository.Db.Query(nameof(Address))
+                    .InsertAsync(new
+                    {
+                        AccountId = accountId,
+                        Name = string.Format(_messageDefaultAddressName, request.Username),
+                        Line1 = string.Empty,
+                        City = string.Empty,
+                        PostalCode = string.Empty,
+                        Country = string.Empty,
+                        EmailAddress = request.Email.Trim(),
+                        Created = now,
+                        Modified = now
+                    }, transaction, cancellationToken: cancellationToken);
+
+                var insertedAccount = await repository.Db.Query(nameof(Account))
+                    .Where(nameof(Account.Id), accountId)
+                    .WhereNull(nameof(Account.Deleted))
                     .FirstOrDefaultAsync<Account>(transaction, cancellationToken: cancellationToken);
 
-                if (insertedAccount == null || !Hash.CompareSHA256(account.Password, insertedAccount.Password))
+                if (insertedAccount is null || affected < 4)
                 {
                     transaction.Rollback();
-                    _logger.AccountCreationVerificationFailed(request.Username);
-
-                    return new(false, _message_account_cannot_create);
+                    logger.AccountCreationVerificationFailed(request.Username);
+                    return new(false, _messageAccountCannotCreate);
                 }
 
-                var contact = new
-                {
-                    AccountId = insertedAccount.Id,
-                    Name = string.Format(_message_default_contact_name, request.Username),
-                    EmailAddress = request.Email,
-                    Created = now,
-                    Modified = now
-                };
+                transaction.Commit();
+                logger.AccountCreated(accountId, request.Username);
 
-                // Insert new contact record
-                affected += await _repository.Db.Query($@"{nameof(Contact)}")
-                    .InsertAsync(contact, transaction, cancellationToken: cancellationToken);
-
-                var address = new
-                {
-                    AccountId = insertedAccount.Id,
-                    Name = string.Format(_message_default_address_name, request.Username),
-                    Line1 = string.Empty,
-                    City = string.Empty,
-                    PostalCode = string.Empty,
-                    Country = string.Empty,
-                    EmailAddress = request.Email,
-                    Created = now,
-                    Modified = now
-                };
-
-                affected += await _repository.Db.Query($@"{nameof(Address)}")
-                    .InsertAsync(address, transaction, cancellationToken: cancellationToken);
-
-                bool saved = affected >= 1;
-
-                string message = string.Empty;
-
-                if (saved)
-                {
-                    transaction.Commit();
-                    message = _message_account_created;
-                    _logger.AccountCreated(insertedAccount.Id, request.Username);
-                }
-                else
-                {
-                    transaction.Rollback();
-                    message = _message_account_cannot_create;
-                    _logger.AccountCreationAffectedNoRecords(request.Username);
-                }
-
-                return new(saved, message);
+                return new(true, _messageAccountCreated);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 transaction.Rollback();
+                logger.AccountCreationFailed(exception, request.Email, request.Username);
 
-                _logger.AccountCreationFailed(ex, request.Email, request.Username);
-
-                return new(false, _message_account_cannot_create);
+                return new(false, _messageAccountCannotCreate);
             }
             finally
             {
-                _repository.Db.Connection.Close();
+                repository.Db.Connection.Close();
             }
         }
 
-        /// <summary>
-        /// Determines whether an account with the specified username or email address already exists.
-        /// </summary>
-        /// <param name="request">The command containing the username and email address to check for existing accounts. Cannot be null.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to cancel the asynchronous operation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains <see langword="true"/> if an
-        /// account with the specified username or email address exists; otherwise, <see langword="false"/>.</returns>
-        public async Task<bool> AccountAlreadyExists(CreateAccountCommand request, CancellationToken cancellationToken)
+        internal async Task<bool> AccountAlreadyExists(
+            CreateAccountCommand request,
+            CancellationToken cancellationToken)
         {
-            return await _repository.Db.Query($@"{nameof(Account)}")
-                .WhereNull($@"{nameof(Account.Deleted)}")
-                .Where(
-                    q => q.Where($@"{nameof(Account.Username)}", request.Username)
-                        .OrWhere($@"{nameof(Account.Email)}", request.Email)
-                )
+            var identityExists = await repository.Db.Query(nameof(AccountIdentity))
+                .WhereNull(nameof(AccountIdentity.Deleted))
+                .Where(nameof(AccountIdentity.Issuer), request.IdentityIssuer)
+                .Where(nameof(AccountIdentity.Subject), request.IdentitySubject)
+                .ExistsAsync(cancellationToken: cancellationToken);
+
+            if (identityExists)
+            {
+                return true;
+            }
+
+            return await repository.Db.Query(nameof(Account))
+                .WhereNull(nameof(Account.Deleted))
+                .Where(query => query
+                    .Where(nameof(Account.Username), request.Username.Trim())
+                    .OrWhere(nameof(Account.Email), request.Email.Trim()))
                 .ExistsAsync(cancellationToken: cancellationToken);
         }
     }

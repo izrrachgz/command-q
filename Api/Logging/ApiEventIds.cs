@@ -13,6 +13,7 @@ namespace Api.Logging
         public const int ResponseCacheSkippedForCookies = ApiEventIdRanges.General + 32;
         public const int ResponseCacheSkippedForExistingHeader = ApiEventIdRanges.General + 33;
         public const int ResponseCacheApplied = ApiEventIdRanges.General + 34;
+        public const int ResponseCacheDisabledForAuthenticatedRequest = ApiEventIdRanges.General + 35;
         public const int UnhandledRequestException = ApiEventIdRanges.General + 40;
 
         public const int StartupSetting = ApiEventIdRanges.General + 50;

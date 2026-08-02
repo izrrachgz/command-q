@@ -1,5 +1,10 @@
 # Backend Modules
 
+The standalone `IdentityServer` project is not an API module. It owns users,
+credentials, lockout, external logins, OAuth clients, scopes, grants and tokens.
+The API validates its tokens through OpenID Connect discovery without taking a
+project reference to it.
+
 CommandQ currently keeps all existing backend modules in the starter. They are
 organized so a future project can keep, replace or remove them deliberately.
 
@@ -7,7 +12,7 @@ organized so a future project can keep, replace or remove them deliberately.
 
 | Module | Status | Purpose |
 | --- | --- | --- |
-| Identity | Core | Accounts, account sessions, account activity, JWT auth, refresh-token flow and auth-related API endpoints. |
+| Identity | Core | Application profiles, external identity mapping and queryable business account activity. Authentication belongs to `IdentityServer`. |
 | Health | Core | Health checks and operational diagnostics. |
 | Files | Optional | Authenticated file upload and account file metadata. |
 | Contacts | Sample | Example account-owned feature module. |
@@ -59,5 +64,6 @@ Use this checklist when removing a module.
 
 - Prefer removing entire modules instead of leaving half-empty folders.
 - Keep `Identity` and `Health` unless the replacement module is already in place.
-- Use Identity account activity as the queryable audit trail for account/user actions instead of per-account application log files.
+- Use Identity account activity as the queryable audit trail for business account actions instead of per-account application log files. IdentityServer keeps authentication security events in its own database.
+- Removing IdentityServer requires replacing the API `Authentication:Authority` with another standards-compatible issuer; do not move credentials back into the API.
 - Treat `Contacts`, `Addresses`, `Events` and `Registers` as examples until a product needs them.

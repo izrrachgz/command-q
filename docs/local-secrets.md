@@ -10,9 +10,6 @@ Run these commands from the repository root and replace the placeholder values:
 ```powershell
 dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Engine" "MsSql"
 dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
-dotnet user-secrets set --project .\Api\Api.csproj "Jwt:SecretKey" "replace-with-at-least-32-random-bytes"
-dotnet user-secrets set --project .\Api\Api.csproj "Jwt:Issuer" "localhost"
-dotnet user-secrets set --project .\Api\Api.csproj "Jwt:Audience" "localhost"
 dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
 dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
 dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "https://localhost:4200"
@@ -20,6 +17,41 @@ dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "https://l
 
 Development startup invokes the migration runner automatically. The runner reads
 `MigrationRecord` first and applies only pending migrations.
+
+## Standalone Identity Server
+
+The standalone `IdentityServer` project has its own `UserSecretsId` and database.
+It issues the access tokens accepted by `Api`; the projects remain independently
+deployable and communicate through OpenID Connect. For local development, the
+database name is `command_q_identity`.
+
+For local SQL Server Express, configure the connection with:
+
+```powershell
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Server=localhost\SQLEXPRESS;Database=command_q_identity;Integrated Security=True;TrustServerCertificate=True;"
+```
+
+For QA or Production, configure the database, public issuer and PKCS#12
+certificate files, persisted Data Protection keys and key-protection certificate
+through the deployment secret store. For example:
+
+```powershell
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Issuer" "https://identity.example.com/"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Signing:Path" "C:/secure-certs/signing.pfx"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Signing:Password" "replace-with-secret"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Encryption:Path" "C:/secure-certs/encryption.pfx"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Encryption:Password" "replace-with-secret"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "DataProtection:KeysPath" "C:/shared-secure-keys/commandq-identity"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "DataProtection:Certificate:Path" "C:/secure-certs/data-protection.pfx"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "DataProtection:Certificate:Password" "replace-with-secret"
+```
+
+Do not enable `OpenIddict:Certificates:UseDevelopmentCertificates` outside the
+Development environment.
+
+Google and Microsoft sign-in are activated only when both provider credentials
+are present. Store them as `ExternalProviders:Google:ClientId`/
+`ClientSecret` or `ExternalProviders:Microsoft:ClientId`/`ClientSecret`.
 
 ## Environment Variables
 
@@ -31,12 +63,14 @@ ASP.NET Core maps double underscores to configuration sections:
 
 ```text
 ConnectionStrings__Db -> ConnectionStrings:Db
-Jwt__SecretKey -> Jwt:SecretKey
+Authentication__Authority -> Authentication:Authority
 ApiClients__0__Id -> ApiClients:0:Id
+OpenIddict__Issuer -> OpenIddict:Issuer
 ```
 
 ## Resetting Pre-v1 Development Databases
 
 While the version 1 baseline is still changing, migration scripts are treated as
-forward-only bootstrap scripts. If `migration-1.sql` changes after you have
-already applied it locally, drop and recreate the development database manually.
+forward-only bootstrap scripts. If `migration-1.sql` or the initial IdentityServer
+EF migration changes after it has already been applied locally, drop and recreate
+the corresponding development database manually.

@@ -1,5 +1,5 @@
-using MediatR;
-using Api.Extensions;
+﻿using MediatR;
+using Api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Application.Modules.Contacts.Queries;
@@ -8,7 +8,9 @@ using Application.Modules.Contacts.Commands;
 namespace Api.Modules.Contacts
 {
     [ApiController, Authorize, Route(@"[controller]")]
-    public class ContactController(ISender mediator) : Controller
+    public class ContactController(
+        ISender mediator,
+        ICurrentAccountAccessor currentAccountAccessor) : Controller
     {
         private readonly ISender _mediator = mediator;
 
@@ -22,10 +24,12 @@ namespace Api.Modules.Contacts
         [HttpPost(@"create")]
         public async Task<IActionResult> Create([FromBody] CreateContactCommand request, CancellationToken cancellationToken = default)
         {
-            if (!User.TryGetAccountId(out var accountId))
-                return Unauthorized();
+            var currentAccount = await currentAccountAccessor.Get(cancellationToken);
 
-            request.AccountId = accountId;
+            if (currentAccount is null)
+                return Forbid();
+
+            request.AccountId = currentAccount.AccountId;
 
             var response = await _mediator.Send(request, cancellationToken);
 
@@ -43,12 +47,14 @@ namespace Api.Modules.Contacts
         [HttpGet]
         public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
         {
-            if (!User.TryGetAccountId(out var accountId))
-                return Unauthorized();
+            var currentAccount = await currentAccountAccessor.Get(cancellationToken);
+
+            if (currentAccount is null)
+                return Forbid();
 
             var query = new GetContactByAccountIdQuery
             {
-                AccountId = accountId
+                AccountId = currentAccount.AccountId
             };
 
             var response = await _mediator.Send(query, cancellationToken);

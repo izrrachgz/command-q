@@ -1,6 +1,6 @@
-using MediatR;
-using Application.Test.Constants;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
+using Application.Test.Infrastructure;
 using Application.Modules.Addresses.Commands;
 
 namespace Application.Test.Modules.Addresses.Commands
@@ -13,9 +13,11 @@ namespace Application.Test.Modules.Addresses.Commands
         [Fact]
         public async Task CreateAddressCommand_Should_Create_Address()
         {
+            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+
             var command = new CreateAddressCommand()
             {
-                AccountId = TestValues.AccountId,
+                AccountId = account.Id,
                 Name = @"Test Address",
                 Line1 = @"123 Test Street",
                 City = @"Test City",

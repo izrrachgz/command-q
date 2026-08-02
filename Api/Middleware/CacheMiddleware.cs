@@ -5,23 +5,31 @@ using Microsoft.Net.Http.Headers;
 namespace Api.Middleware
 {
     /// <summary>
-    /// Middleware that adds HTTP cache headers to successful GET and HEAD responses to enable client-side caching of
-    /// safe, idempotent requests.
+    /// Middleware that configures HTTP cache headers for successful GET and HEAD responses.
     /// </summary>
-    /// <remarks>Cache headers are only applied to responses with a 200 (OK) status code for GET and HEAD
-    /// requests. If the response contains cookies or already specifies cache-control headers, no additional cache
-    /// headers are added. The maximum cache duration can be configured via application settings and defaults to 10
-    /// seconds if not specified.</remarks>
+    /// <remarks>Authenticated responses and responses that set cookies are marked as no-store. Anonymous responses
+    /// receive public cache headers unless the endpoint already specified its own cache policy.</remarks>
     /// <param name="next">The delegate representing the next middleware component in the HTTP request processing pipeline.</param>
     /// <param name="configuration">The configuration instance used to retrieve cache-related settings, such as the maximum age for cached
     /// responses.</param>
     public sealed class CacheMiddleware(RequestDelegate next, IConfiguration cacheConfiguration, ILogger<CacheMiddleware> logger)
     {
-        public async Task Invoke(HttpContext context)
-        {
-            await next(context);
+        private readonly int maxAgeSeconds = cacheConfiguration.GetValue<int?>(ConfigKeys.Cache.MaxAgeSeconds)
+            ?? throw new InvalidOperationException($"{ConfigKeys.Cache.MaxAgeSeconds} is required.");
 
-            // Only apply cache headers for safe idempotent requests and successful responses
+        public Task Invoke(HttpContext context)
+        {
+            context.Response.OnStarting(() =>
+            {
+                ApplyCacheHeaders(context);
+                return Task.CompletedTask;
+            });
+
+            return next(context);
+        }
+
+        private void ApplyCacheHeaders(HttpContext context)
+        {
             if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
             {
                 logger.ResponseCacheSkippedForMethod(context.Request.Method);
@@ -34,30 +42,49 @@ namespace Api.Middleware
                 return;
             }
 
-            // Do not add cache headers if response sets cookies (sensitive) or already has cache-control set
-            if (context.Response.Headers.ContainsKey(HeaderNames.SetCookie))
-            {
-                logger.ResponseCacheSkippedForCookies();
-                return;
-            }
-
             if (context.Response.Headers.ContainsKey(HeaderNames.CacheControl))
             {
                 logger.ResponseCacheSkippedForExistingHeader();
                 return;
             }
 
-            int maxAge = cacheConfiguration.GetValue(ConfigKeys.Cache.MaxAgeSeconds, 10);
+            if (IsAuthenticatedRequest(context))
+            {
+                DisableCaching(context.Response);
+                logger.ResponseCacheDisabledForAuthenticatedRequest();
+                return;
+            }
+
+            if (context.Response.Headers.ContainsKey(HeaderNames.SetCookie))
+            {
+                DisableCaching(context.Response);
+                logger.ResponseCacheSkippedForCookies();
+                return;
+            }
 
             context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
             {
                 Public = true,
-                MaxAge = TimeSpan.FromSeconds(maxAge)
+                MaxAge = TimeSpan.FromSeconds(maxAgeSeconds)
             };
 
-            context.Response.Headers[HeaderNames.Vary] = new[] { HeaderNames.AcceptEncoding };
+            context.Response.Headers.Append(HeaderNames.Vary, HeaderNames.AcceptEncoding);
 
-            logger.ResponseCacheApplied(maxAge);
+            logger.ResponseCacheApplied(maxAgeSeconds);
+        }
+
+        private static bool IsAuthenticatedRequest(HttpContext context)
+        {
+            return context.User.Identity?.IsAuthenticated == true ||
+                context.Request.Headers.ContainsKey(HeaderNames.Authorization);
+        }
+
+        private static void DisableCaching(HttpResponse response)
+        {
+            response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
+            {
+                NoStore = true
+            };
         }
     }
 }
