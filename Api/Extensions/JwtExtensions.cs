@@ -66,8 +66,8 @@ namespace Api.Extensions
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = isProduction,
-                    ValidateAudience = isProduction,
+                    ValidateIssuer = !string.IsNullOrWhiteSpace(jwt.Issuer),
+                    ValidateAudience = !string.IsNullOrWhiteSpace(jwt.Audience),
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwt.Issuer,

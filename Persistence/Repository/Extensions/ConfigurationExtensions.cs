@@ -18,7 +18,10 @@ namespace Persistence.Repository.Extensions
         {
             string key = pathToKey ?? ConfigKeys.ConnectionStrings.Database;
 
-            return configuration.GetConnectionString(key) ?? string.Empty;
+            return configuration.GetConnectionString(key) ??
+                configuration[$"ConnectionStrings:{key}"] ??
+                configuration[key] ??
+                string.Empty;
         }
 
         /// <summary>
@@ -31,6 +34,14 @@ namespace Persistence.Repository.Extensions
             string key = pathToKey ?? ConfigKeys.ConnectionStrings.Engine;
 
             return configuration.GetValue<DatabaseEngine>(key);
+        }
+
+        /// <summary>
+        /// Gets the optional root folder that contains database engine migration folders.
+        /// </summary>
+        public static string? GetMigrationsRootPath(this IConfiguration configuration)
+        {
+            return configuration.GetValue<string?>(ConfigKeys.Migrations.Path);
         }
     }
 }

@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS `Register`;
 DROP TABLE IF EXISTS Place;
 DROP TABLE IF EXISTS Event;
 DROP TABLE IF EXISTS AccountFile;
+DROP TABLE IF EXISTS AccountActivity;
 DROP TABLE IF EXISTS Contact;
 DROP TABLE IF EXISTS Address;
 DROP TABLE IF EXISTS AccountSession;
@@ -77,6 +78,31 @@ INSERT INTO AccountSession
 (AccountId, TokenVersion, FailedLoginAttempts, LockedUntilUtc)
 VALUES
 ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 0, 0, NULL);
+
+-- =========================
+-- AccountActivity
+-- =========================
+CREATE TABLE AccountActivity (
+    Id BIGINT NOT NULL AUTO_INCREMENT,
+    AccountId CHAR(36) NOT NULL,
+    `Module` VARCHAR(128) NOT NULL,
+    `Action` VARCHAR(128) NOT NULL,
+    EntityType VARCHAR(128) NULL,
+    EntityId VARCHAR(128) NULL,
+    Message VARCHAR(1024) NOT NULL,
+    MetadataJson TEXT NULL,
+    IpAddress VARCHAR(64) NULL,
+    UserAgent VARCHAR(512) NULL,
+    CreatedUtc DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    Deleted DATETIME NULL,
+    PRIMARY KEY (Id),
+    FOREIGN KEY (AccountId) REFERENCES Account(Id),
+    INDEX IX_AccountActivity_AccountId_CreatedUtc (Deleted, AccountId, CreatedUtc),
+    INDEX IX_AccountActivity_Module_Action (Deleted, `Module`, `Action`, CreatedUtc),
+    INDEX IX_AccountActivity_Entity (Deleted, EntityType, EntityId)
+) ENGINE=InnoDB;
 
 -- =========================
 -- Address
@@ -236,9 +262,18 @@ CREATE TABLE RegisterPlace (
 -- =========================
 CREATE TABLE Migrations (
     Id BIGINT NOT NULL AUTO_INCREMENT,
+    MigrationId BIGINT NOT NULL,
+    `Module` VARCHAR(128) NOT NULL,
+    `Name` VARCHAR(256) NOT NULL,
+    Checksum VARCHAR(128) NOT NULL,
+    AppliedUtc DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     Deleted DATETIME NULL,
-    PRIMARY KEY (Id)
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    PRIMARY KEY (Id),
+    UNIQUE KEY UX_Migrations_MigrationId (MigrationId, ActiveRecord)
 ) ENGINE=InnoDB;
 
-INSERT INTO Migrations (Deleted) VALUES (NULL);
+INSERT INTO Migrations (MigrationId, `Module`, `Name`, Checksum, AppliedUtc, Deleted)
+VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', CURRENT_TIMESTAMP, NULL);

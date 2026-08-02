@@ -7,7 +7,7 @@ organized so a future project can keep, replace or remove them deliberately.
 
 | Module | Status | Purpose |
 | --- | --- | --- |
-| Identity | Core | Accounts, account sessions, JWT auth, refresh-token flow and auth-related API endpoints. |
+| Identity | Core | Accounts, account sessions, account activity, JWT auth, refresh-token flow and auth-related API endpoints. |
 | Health | Core | Health checks and operational diagnostics. |
 | Files | Optional | Authenticated file upload and account file metadata. |
 | Contacts | Sample | Example account-owned feature module. |
@@ -59,4 +59,5 @@ Use this checklist when removing a module.
 
 - Prefer removing entire modules instead of leaving half-empty folders.
 - Keep `Identity` and `Health` unless the replacement module is already in place.
+- Use Identity account activity as the queryable audit trail for account/user actions instead of per-account application log files.
 - Treat `Contacts`, `Addresses`, `Events` and `Registers` as examples until a product needs them.

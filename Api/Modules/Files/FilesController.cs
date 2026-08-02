@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Modules.Files
 {
-    [ApiController, Authorize, Route("[controller]")]
+    [ApiController, Authorize, Route(FilesApiRoutes.Controller)]
     public sealed class FilesController : ControllerBase
     {
         private readonly ISender _mediator;
@@ -27,7 +27,7 @@ namespace Api.Modules.Files
         /// <summary>
         /// Uploads a file to the server.
         /// </summary>
-        [HttpPost("upload"), Consumes("multipart/form-data")]
+        [HttpPost(FilesApiRoutes.Upload), Consumes(ContentTypes.MultipartFormData)]
         [EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Upload([FromForm] IFormFile file, CancellationToken cancellationToken)
         {

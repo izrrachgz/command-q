@@ -1,6 +1,7 @@
 using Api.Models;
 using Api.Logging;
 using System.Text;
+using Api.Constants;
 using Api.Middleware.Exceptions;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,12 @@ namespace Api.Middleware
     {
         public async Task Invoke(HttpContext context)
         {
+            if (context.Request.Path.StartsWithSegments(RouteConstants.HealthPrefix))
+            {
+                await next(context);
+                return;
+            }
+
             if (configuredClients.Value is null || configuredClients.Value.Count == 0)
             {
                 logger.ApiClientsNotConfigured();

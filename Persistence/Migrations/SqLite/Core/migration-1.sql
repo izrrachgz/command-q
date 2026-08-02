@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS "Register";
 DROP TABLE IF EXISTS Place;
 DROP TABLE IF EXISTS Event;
 DROP TABLE IF EXISTS AccountFile;
+DROP TABLE IF EXISTS AccountActivity;
 DROP TABLE IF EXISTS Contact;
 DROP TABLE IF EXISTS Address;
 DROP TABLE IF EXISTS AccountSession;
@@ -94,6 +95,39 @@ INSERT INTO AccountSession
 (AccountId, TokenVersion, FailedLoginAttempts, LockedUntilUtc)
 VALUES
 ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 0, 0, NULL);
+
+-- =========================
+-- AccountActivity
+-- =========================
+CREATE TABLE AccountActivity (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    AccountId TEXT NOT NULL,
+    Module TEXT NOT NULL,
+    Action TEXT NOT NULL,
+    EntityType TEXT NULL,
+    EntityId TEXT NULL,
+    Message TEXT NOT NULL,
+    MetadataJson TEXT NULL,
+    IpAddress TEXT NULL,
+    UserAgent TEXT NULL,
+    CreatedUtc TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Deleted TEXT NULL,
+    FOREIGN KEY (AccountId) REFERENCES Account(Id)
+);
+
+CREATE INDEX IX_AccountActivity_AccountId_CreatedUtc
+ON AccountActivity (AccountId, CreatedUtc)
+WHERE Deleted IS NULL;
+
+CREATE INDEX IX_AccountActivity_Module_Action
+ON AccountActivity (Module, Action, CreatedUtc)
+WHERE Deleted IS NULL;
+
+CREATE INDEX IX_AccountActivity_Entity
+ON AccountActivity (EntityType, EntityId)
+WHERE Deleted IS NULL AND EntityType IS NOT NULL AND EntityId IS NOT NULL;
 
 -- =========================
 -- Address
@@ -303,8 +337,19 @@ WHERE Deleted IS NULL;
 -- =========================
 CREATE TABLE Migrations (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    MigrationId INTEGER NOT NULL,
+    Module TEXT NOT NULL,
+    Name TEXT NOT NULL,
+    Checksum TEXT NOT NULL,
+    AppliedUtc TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Modified TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Deleted TEXT NULL
 );
 
-INSERT INTO Migrations (Deleted) VALUES (NULL);
+CREATE UNIQUE INDEX UX_Migrations_MigrationId
+ON Migrations (MigrationId)
+WHERE Deleted IS NULL;
+
+INSERT INTO Migrations (MigrationId, Module, Name, Checksum, AppliedUtc, Deleted)
+VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', CURRENT_TIMESTAMP, NULL);

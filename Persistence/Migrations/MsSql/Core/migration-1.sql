@@ -19,6 +19,9 @@ CREATE INDEX IX_HealthCheckLog_Created ON dbo.HealthCheckLog (Created) WHERE Del
 IF OBJECT_ID('dbo.AccountFile', 'U') IS NOT NULL
     DROP TABLE dbo.AccountFile;
 
+IF OBJECT_ID('dbo.AccountActivity', 'U') IS NOT NULL
+    DROP TABLE dbo.AccountActivity;
+
 IF OBJECT_ID('dbo.Account', 'U') IS NOT NULL
     DROP TABLE dbo.Account;
 
@@ -65,6 +68,30 @@ CREATE INDEX IX_AccountSession_FailedLoginAttempts ON dbo.AccountSession (Failed
 
 -- Insert initial session record for the administrator account
 INSERT INTO dbo.AccountSession (AccountId, TokenVersion, FailedLoginAttempts, LockedUntilUtc) VALUES ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 0, 0, NULL);
+
+-- Table: AccountActivity
+CREATE TABLE dbo.AccountActivity
+(
+    [Id] BIGINT IDENTITY(1,1) NOT NULL,
+    [AccountId] UNIQUEIDENTIFIER NOT NULL,
+    [Module] VARCHAR(128) NOT NULL,
+    [Action] VARCHAR(128) NOT NULL,
+    [EntityType] VARCHAR(128) NULL,
+    [EntityId] VARCHAR(128) NULL,
+    [Message] VARCHAR(1024) NOT NULL,
+    [MetadataJson] VARCHAR(MAX) NULL,
+    [IpAddress] VARCHAR(64) NULL,
+    [UserAgent] VARCHAR(512) NULL,
+    [CreatedUtc] DATETIME NOT NULL DEFAULT GETUTCDATE(),
+    [Created] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Deleted] DATETIME NULL,
+    CONSTRAINT PK_AccountActivity_Id PRIMARY KEY (Id),
+    CONSTRAINT FK_AccountActivity_Account FOREIGN KEY (AccountId) REFERENCES Account(Id)
+);
+CREATE INDEX IX_AccountActivity_AccountId_CreatedUtc ON dbo.AccountActivity (AccountId, CreatedUtc DESC) WHERE Deleted IS NULL;
+CREATE INDEX IX_AccountActivity_Module_Action ON dbo.AccountActivity (Module, Action, CreatedUtc DESC) WHERE Deleted IS NULL;
+CREATE INDEX IX_AccountActivity_Entity ON dbo.AccountActivity (EntityType, EntityId) WHERE Deleted IS NULL AND EntityType IS NOT NULL AND EntityId IS NOT NULL;
 
 -- Table: Address
 IF OBJECT_ID('dbo.Address', 'U') IS NOT NULL
@@ -260,10 +287,18 @@ IF OBJECT_ID('dbo.Migrations', 'U') IS NOT NULL
 CREATE TABLE dbo.Migrations
 (
     [Id] BIGINT IDENTITY(1,1) NOT NULL,
+    [MigrationId] BIGINT NOT NULL,
+    [Module] VARCHAR(128) NOT NULL,
+    [Name] VARCHAR(256) NOT NULL,
+    [Checksum] VARCHAR(128) NOT NULL,
+    [AppliedUtc] DATETIME NOT NULL DEFAULT GETUTCDATE(),
     [Created] DATETIME NOT NULL DEFAULT GETDATE(),
+    [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
     CONSTRAINT PK_Migrations_Id PRIMARY KEY (Id)
 );
+CREATE UNIQUE INDEX UX_Migrations_MigrationId ON dbo.Migrations (MigrationId) WHERE Deleted IS NULL;
 
 -- Always insert a new record when what is considered a migration ends
-INSERT INTO dbo.Migrations (Deleted) VALUES (NULL);
+INSERT INTO dbo.Migrations (MigrationId, [Module], [Name], [Checksum], AppliedUtc, Deleted)
+VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', GETUTCDATE(), NULL);

@@ -7,6 +7,10 @@ using Api.Enumerations;
 using Common.Constants;
 using Common.Enumerations;
 using Application.Extensions;
+using Application.Modules.Health;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace Api.Extensions
 {
@@ -35,24 +39,27 @@ namespace Api.Extensions
             // Register exception handler service
             builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
-            builder.Services.AddTransient<SecurityHeadersMiddleware>();
-
             builder.Services.ValidateAppConfiguration(builder.Configuration);
 
             // Add JWT authorization flow
             builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
 
             // Add rate limiting policies
-            builder.Services.AddFixedWindowRateLimit(builder.Configuration);
-            builder.Services.AddSlidingWindowRateLimit(builder.Configuration);
-            builder.Services.AddTokenBucketRateLimit(builder.Configuration);
-            builder.Services.AddConcurrencyRateLimit(builder.Configuration);
+            builder.Services.AddRateLimitingPolicies(builder.Configuration);
 
             // Add cache
             builder.Services.AddResponseCaching();
 
+            if (builder.Environment.IsDevelopment())
+            {
+                string dataProtectionPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys");
+
+                builder.Services.AddDataProtection()
+                    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath));
+            }
+
             // Add application services
-            builder.Services.ConfigureApplicationServices();
+            builder.Services.ConfigureApplicationServices(builder.Configuration);
 
             var clientsSection = builder.Configuration.GetSection(ConfigKeys.Api.Clients);
 
@@ -74,17 +81,42 @@ namespace Api.Extensions
                 {
                     options.AddDefaultPolicy(policy =>
                     {
-                        string clientsUris = clientsSection.Get<List<ApiClient>>()!
+                        var allowedOrigins = (clientsSection.Get<List<ApiClient>>() ?? [])
                             .Select(client => client.Uri.Trim().TrimEnd('/'))
-                            .Aggregate((current, next) => $"{current},{next}");
+                            .Where(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .ToArray();
 
-                        policy.WithOrigins(clientsUris.Split(','))
-                              .AllowAnyMethod()
-                              .AllowAnyHeader()
-                              .AllowCredentials();
+                        if (allowedOrigins.Length > 0)
+                        {
+                            policy.WithOrigins(allowedOrigins);
+                        }
+                        else
+                        {
+                            policy.SetIsOriginAllowed(_ => false);
+                        }
+
+                        policy.AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials();
                     });
                 });
             }
+        }
+
+        public static void ValidateStartupConfiguration(this WebApplication app)
+        {
+            var services = app.Services;
+
+            _ = services.GetRequiredService<IOptions<FixedRateLimitingOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<SlidingRateLimitingOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<TokenBucketRateLimitingOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<ConcurrencyRateLimitingOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<CacheOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<JwtOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<AuthOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<List<ApiClient>>>().Value;
         }
 
         /// <summary>
@@ -115,7 +147,17 @@ namespace Api.Extensions
                 options.SetDefaultCulture(Language.English);
             });
 
-            app.MapHealthChecks(@"/health/checks");
+            app.MapHealthChecks(RouteConstants.HealthLive, new HealthCheckOptions
+            {
+                Predicate = healthCheck => healthCheck.Tags.Contains(HealthCheckConstants.LiveTag)
+            });
+
+            app.MapHealthChecks(RouteConstants.HealthReady, new HealthCheckOptions
+            {
+                Predicate = healthCheck => healthCheck.Tags.Contains(HealthCheckConstants.ReadyTag)
+            });
+
+            app.MapHealthChecks(RouteConstants.HealthChecks);
 
             // Configure the HTTP request pipeline.
             if (env.IsDevelopment())

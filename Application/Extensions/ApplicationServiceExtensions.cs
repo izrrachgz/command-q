@@ -7,6 +7,7 @@ using Application.Modules;
 using Application.Interfaces;
 using Localization.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Persistence.Migrations.Extensions;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,7 @@ namespace Application.Extensions
         /// AutoMapper, MediatR, validation, localization, and health checks.
         /// </summary>
         /// <param name="services"></param>
-        public static void ConfigureApplicationServices(this IServiceCollection services)
+        public static void ConfigureApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             var applicationAssembly = typeof(ApplicationAssemblyMarker).Assembly;
 
@@ -54,7 +55,7 @@ namespace Application.Extensions
             services.AddTaskRunner();
 
             // Feature modules
-            services.AddApplicationModules();
+            services.AddApplicationModules(configuration);
 
             // Add localization services
             services.AddLocalizationServices();

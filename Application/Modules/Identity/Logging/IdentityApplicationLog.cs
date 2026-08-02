@@ -36,5 +36,11 @@ namespace Application.Modules.Identity.Logging
 
         [LoggerMessage(EventId = IdentityApplicationEventIds.AccountSessionChangeFailed, Level = LogLevel.Error, Message = "Error {Operation} account for Id: {AccountId}")]
         public static partial void AccountSessionChangeFailed(this ILogger logger, Exception exception, string operation, Guid accountId);
+
+        [LoggerMessage(EventId = IdentityApplicationEventIds.AccountActivityRecorded, Level = LogLevel.Information, Message = "Account activity recorded. AccountId: {AccountId}. Module: {Module}. Action: {Action}. EntityType: {EntityType}. EntityId: {EntityId}.")]
+        public static partial void AccountActivityRecorded(this ILogger logger, Guid accountId, string module, string action, string? entityType, string? entityId);
+
+        [LoggerMessage(EventId = IdentityApplicationEventIds.AccountActivityRecordFailed, Level = LogLevel.Error, Message = "Error recording account activity. AccountId: {AccountId}. Module: {Module}. Action: {Action}.")]
+        public static partial void AccountActivityRecordFailed(this ILogger logger, Exception exception, Guid accountId, string module, string action);
     }
 }

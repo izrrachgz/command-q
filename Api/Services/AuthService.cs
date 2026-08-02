@@ -11,6 +11,8 @@ using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Application.Modules.Identity.Accounts.Dtos;
 using Application.Modules.Identity.Accounts.Queries;
+using Application.Modules.Identity.AccountActivity;
+using Application.Modules.Identity.AccountActivity.Commands;
 using Application.Modules.Identity.AccountSessions.Dtos;
 using Application.Modules.Identity.AccountSessions.Queries;
 using Application.Modules.Identity.AccountSessions.Commands;
@@ -71,6 +73,7 @@ namespace Api.Services
             if (accountIsLocked.Success)
             {
                 _logger.LoginBlockedForLockedAccount(account.Id);
+                await RecordActivity(account.Id, AccountActivityConstants.Actions.LoginBlocked, AccountActivityConstants.Messages.LoginBlocked, cancellationToken);
                 throw new SecurityException(_message_account_locked);
             }
 
@@ -99,6 +102,7 @@ namespace Api.Services
                 {
                     session.LockedUntilUtc = DateTime.UtcNow.AddMinutes(_authOptions.LockoutMinutes);
                     _logger.AccountLocked(account.Id, session.LockedUntilUtc);
+                    await RecordActivity(account.Id, AccountActivityConstants.Actions.AccountLocked, AccountActivityConstants.Messages.AccountLocked, cancellationToken);
                 }
 
                 updateSessionCommand.FailedLoginAttempts = session.FailedLoginAttempts;
@@ -107,6 +111,7 @@ namespace Api.Services
                 await _mediator.Send(updateSessionCommand, cancellationToken);
 
                 _logger.LoginFailedForAccount(account.Id, session.FailedLoginAttempts);
+                await RecordActivity(account.Id, AccountActivityConstants.Actions.LoginFailed, AccountActivityConstants.Messages.LoginFailed, cancellationToken);
 
                 return null;
             }
@@ -126,6 +131,7 @@ namespace Api.Services
             _accountSessionCache.Set(account.Id, account, session);
 
             _logger.LoginSucceeded(account.Id);
+            await RecordActivity(account.Id, AccountActivityConstants.Actions.LoginSucceeded, AccountActivityConstants.Messages.LoginSucceeded, cancellationToken);
 
             return new LoginResponse(accessToken, expiresAt, refreshToken);
         }
@@ -190,6 +196,7 @@ namespace Api.Services
             _accountSessionCache.Set(token.AccountId, account, session);
 
             _logger.RefreshSucceeded(token.AccountId, session.TokenVersion);
+            await RecordActivity(token.AccountId, AccountActivityConstants.Actions.TokenRefreshed, AccountActivityConstants.Messages.TokenRefreshed, cancellationToken);
 
             return new LoginResponse(accessToken, expiresAt, newRefreshToken);
         }
@@ -204,6 +211,7 @@ namespace Api.Services
             {
                 _accountSessionCache.Remove(token.AccountId);
                 _logger.LogoutRevokedRefreshToken(token.AccountId);
+                await RecordActivity(token.AccountId, AccountActivityConstants.Actions.Logout, AccountActivityConstants.Messages.Logout);
             }
             else
             {
@@ -211,6 +219,16 @@ namespace Api.Services
             }
         }
 
+        private async Task RecordActivity(Guid accountId, string action, string message, CancellationToken cancellationToken = default)
+        {
+            await _mediator.Send(new RecordAccountActivityCommand
+            {
+                AccountId = accountId,
+                Module = AccountActivityConstants.Modules.Identity,
+                Action = action,
+                Message = message
+            }, cancellationToken);
+        }
     }
 
 }

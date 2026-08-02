@@ -19,6 +19,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `Domain/Modules/{Module}`
 - Module namespaces should match module folders, for example `Application.Modules.Identity.Accounts.Commands` and `Domain.Modules.Identity`.
 - Current modules include `Identity`, `Contacts`, `Addresses`, `Files` and `Health`; domain also has `Events` and `Registers`.
+- Identity owns the queryable account activity trail. Record account/user actions through `IAccountActivityRecorder` or `RecordAccountActivityCommand`; do not create per-account application log files as the source of truth.
 - Existing module status and removal steps are documented in `docs/modules.md`.
 - Keep cross-cutting infrastructure at project root, such as `Api/Middleware`, `Api/Extensions`, `Common/System`, `Persistence/Repository` and general project logging.
 - Prefer module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
@@ -96,11 +97,19 @@ This file captures practical repository knowledge for coding agents working in t
 - Migrations:
   - Scripts live under `Persistence/Migrations/{Engine}/{Module}`.
   - Add scripts as `migration-X.sql`.
+  - Startup migration execution is opt-in through `Migrations:RunOnStartup`.
+  - Keep startup migrations disabled for ordinary local host startup unless the configured database is reachable.
+  - Override the migration root with `Persistence:MigrationsPath` when source/publish path resolution is not enough.
   - `MigrationExtensions` scans scripts recursively from the folder matching the configured engine.
   - Scripts are ordered numerically.
   - Migration IDs must be unique per engine, even across module folders.
   - Migration failure and missing expected migration files stop startup.
-  - `Core/migration-1.sql` creates and seeds the `Migrations` table; later successful migrations are recorded by the runner.
+  - `Core/migration-1.sql` creates and seeds the `Migrations` table; later successful migrations are recorded by the runner with migration id, module, name, checksum and applied time.
+- Health checks:
+  - `/health/live` is the liveness endpoint.
+  - `/health/ready` is the dependency readiness endpoint.
+  - `/health/checks` returns the full registered check set.
+  - Background health publishing is opt-in through `HealthCheck:PublishOnStartup`.
 
 ### Localization
 - Resource project for multi-language text.
@@ -120,6 +129,7 @@ This file captures practical repository knowledge for coding agents working in t
 ### Application.Test
 - xUnit tests for application and shared helper behavior.
 - Tests mirror backend modules under `Application.Test/Modules`.
+- Application composition tests should use the real `ConfigureApplicationServices(configuration)` path.
 - Architecture rules live under `Application.Test/Architecture`. Keep these updated when adding modules, changing logging ranges, or adjusting dependency boundaries.
 - Uses `Xunit.DependencyInjection`.
 - Useful targeted examples:
@@ -161,6 +171,10 @@ This file captures practical repository knowledge for coding agents working in t
 - Use `rg`/`rg --files` for searches.
 - Use `apply_patch` for manual edits.
 - Avoid unrelated refactors and metadata churn.
+- Avoid hardcoded magic strings and numbers when a value is reused, user-facing, externally observable, or likely to change.
+- Keep constants near the owner of the behavior: API-wide constants under `Api/Constants`, module routes under `Api/Modules/{Module}`, module behavior limits under `Application/Modules/{Module}`, and persistence settings under `Persistence/Constant`.
+- Prefer configuration over constants for environment-specific or runtime-tunable values.
+- Do not over-abstract one-off SQL schema definitions, source-generated log message templates, or local test data unless reuse or consistency requires it.
 - Add focused tests when changing shared helpers, DI, repositories, command runners or user-facing behavior.
 - Do not expose write-capable persistence APIs to query handlers.
 - Keep command handlers using writable dependencies and query handlers using read-only dependencies.

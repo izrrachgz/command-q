@@ -1,5 +1,8 @@
 using Persistence.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace Persistence.Repository.Extensions
 {
@@ -13,8 +16,24 @@ namespace Persistence.Repository.Extensions
         /// </summary>
         public static void AddRepositories(this IServiceCollection services)
         {
-            services.AddScoped<IWritableRepository, WritableRepository>();
-            services.AddScoped<IReadOnlyRepository, ReadOnlyRepository>();
+            services.AddScoped<IWritableRepository>(serviceProvider =>
+            {
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                var logger = serviceProvider.GetRequiredService<ILogger<WritableRepository>>();
+                var environment = serviceProvider.GetService<IHostEnvironment>();
+                var engine = configuration.GetDatabaseEngine();
+                string migrationsPath = RepositoryFactory.GetMigrationsPath(engine, configuration.GetMigrationsRootPath(), environment?.ContentRootPath);
+
+                return new WritableRepository(configuration.GetDatabaseConnection(), engine, migrationsPath, logger);
+            });
+
+            services.AddScoped<IReadOnlyRepository>(serviceProvider =>
+            {
+                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                var logger = serviceProvider.GetRequiredService<ILogger<ReadOnlyRepository>>();
+
+                return new ReadOnlyRepository(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine(), logger);
+            });
         }
     }
 }

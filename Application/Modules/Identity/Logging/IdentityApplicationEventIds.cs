@@ -16,5 +16,8 @@ namespace Application.Modules.Identity.Logging
         public const int AccountSessionChanged = ApplicationEventIdRanges.Identity + 103;
         public const int AccountSessionAffectedNoRecords = ApplicationEventIdRanges.Identity + 104;
         public const int AccountSessionChangeFailed = ApplicationEventIdRanges.Identity + 105;
+
+        public const int AccountActivityRecorded = ApplicationEventIdRanges.Identity + 200;
+        public const int AccountActivityRecordFailed = ApplicationEventIdRanges.Identity + 201;
     }
 }

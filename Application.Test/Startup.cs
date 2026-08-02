@@ -5,6 +5,7 @@ using FluentValidation;
 using Common.Extensions;
 using Application.Constants;
 using Application.Interfaces;
+using Application.Extensions;
 using Localization.Extensions;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -29,55 +30,7 @@ namespace Application.Test
             //Configuration
             services.AddSingleton((IConfiguration)configuration);
 
-
-            // Add mapping profiles
-            applicationAssembly.ExportedTypes
-                .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith(@"Mapper"))
-                .ToList()
-                .ForEach(service =>
-                {
-                    var interfaces = service.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMapper<,>));
-
-                    foreach (var @interface in interfaces)
-                    {
-                        services.AddSingleton(@interface, service);
-                    }
-                });
-
-            //MediatR cqrs
-            services.AddMediatR(config => config.RegisterServicesFromAssembly(applicationAssembly));
-            services.AddValidatorsFromAssembly(applicationAssembly, ServiceLifetime.Singleton);
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
-
-            //Repositories
-            services.AddRepositories();
-
-            //Command Runners
-            services.AddCommandRunners();
-
-            //Task runner
-            services.AddTaskRunner();
-
-            //Add application services
-            applicationAssembly.ExportedTypes
-                .Where(x => !x.IsAbstract && !x.IsInterface && x.Name.EndsWith(@"Service"))
-                .ToList()
-                .ForEach(service =>
-                {
-                    var @interface = service.GetInterface(@"I" + service.Name);
-                    if (@interface != null)
-                    {
-                        services.AddTransient(@interface, service);
-                    }
-                    else
-                    {
-                        services.AddScoped(service);
-                    }
-                });
-
-
-            //Add localization services
-            services.AddLocalizationServices();
+            services.ConfigureApplicationServices(configuration);
 
             //Configure Serilog
             Log.Logger = new LoggerConfiguration()

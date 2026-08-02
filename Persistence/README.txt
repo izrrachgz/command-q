@@ -20,10 +20,13 @@ Database engines:
 - MigrationExtensions scans SQL migration scripts recursively from the folder matching the configured engine.
 - Migration IDs must be unique per engine, even when scripts live in different module folders.
 - Core/migration-1.sql creates the initial schema and seeds the Migrations table.
+- Migration records include MigrationId, Module, Name, Checksum and AppliedUtc.
+- Startup execution is controlled by Migrations:RunOnStartup in the API configuration.
 
 Configuration:
 - Main database connection string name: Db.
 - Selected engine key: ConnectionStrings:Engine.
+- Optional migrations root path: Persistence:MigrationsPath.
 - Use appsettings.json for local defaults and environment variables or deployment configuration outside local development.
 
 Notes:

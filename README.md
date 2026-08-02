@@ -57,6 +57,8 @@ Domain.Modules.Identity
 
 Existing modules are documented in `docs/modules.md`, including which modules are core, optional or sample-oriented and how to remove a module safely.
 
+Identity includes a queryable account activity trail for user/account actions. Use `IAccountActivityRecorder` or `RecordAccountActivityCommand` from the Identity module instead of writing per-account log files.
+
 ## Package Management
 
 NuGet versions are centrally managed in `Directory.Packages.props`. Project files should reference packages without inline versions:
@@ -128,13 +130,31 @@ Update the `appsettings.json` file with the appropriate connection string for yo
 
 For migrations, add a `migration-X.sql` script under `Persistence/Migrations/{Engine}/{Module}` for each database engine/module you intend to support. The configured engine is selected from `ConnectionStrings:Engine`, and the matching migration folder is scanned recursively.
 
+Startup migration execution is controlled by:
+
+```json
+"Migrations": {
+  "RunOnStartup": true
+}
+```
+
+Keep this disabled for ordinary local development when you only need the API host to boot. Enable it in environments where the configured database is reachable and migrations should be applied by the app.
+
+The migration root can be overridden when the default source/publish path resolution is not enough:
+
+```json
+"Persistence": {
+  "MigrationsPath": "C:/path/to/Persistence/Migrations"
+}
+```
+
 Migration execution is fail-fast:
 
 - scripts are ordered numerically
 - migration IDs must be unique per engine, even across module folders
 - missing expected scripts stop startup
 - failed scripts stop startup
-- successful migrations are recorded in the `Migrations` table
+- successful migrations are recorded in the `Migrations` table with migration id, module, name, checksum and applied time
 
 `Persistence/Migrations/{Engine}/Core/migration-1.sql` creates the initial schema and seeds the `Migrations` table.
 
@@ -146,6 +166,7 @@ The persistence layer separates read and write entry points:
 - `IWritableRepository` is intended for commands and migrations.
 - `ICommandRunner` executes raw commands and engine-specific bulk insert operations.
 - Repositories and command runners can use the configured connection through DI or be created manually with a connection string and database engine when a service needs a separate database target.
+- Repository instances dispose their underlying database connections when the DI scope is disposed.
 
 ## Security Defaults
 
@@ -155,6 +176,16 @@ The persistence layer separates read and write entry points:
 - Production exception responses avoid exposing unexpected exception details.
 - Security headers are added by `SecurityHeadersMiddleware`.
 - Refresh-token storage is behind `IRefreshTokenStore`; the default implementation is in-memory and should be replaced with persistent/distributed storage before multi-instance production deployments.
+
+## Health Checks
+
+The API exposes:
+
+- `/health/live` for process liveness
+- `/health/ready` for dependency readiness
+- `/health/checks` for the full registered health-check set
+
+Background health-check publishing is opt-in through `HealthCheck:PublishOnStartup`.
 
 ## Module Registration
 
@@ -179,6 +210,12 @@ Application/Modules/Identity/IdentityModuleExtensions.cs
 Api/Modules/Identity/IdentityApiModuleExtensions.cs
 ```
 
+Module-owned constants should stay close to the module that owns the behavior.
+For example, API route segments live under `Api/Modules/{Module}`, reusable
+HTTP/API constants live under `Api/Constants`, and module-specific limits or
+activity names live under `Application/Modules/{Module}`. Use configuration
+instead of constants for values that vary by environment or need runtime tuning.
+
 ## Tests
 
 Backend tests mirror the module layout:
@@ -197,7 +234,7 @@ Api.Test/
     Common/
 ```
 
-Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRulesTest.cs`. These tests check project dependency direction, CQRS repository usage, module namespace conventions, duplicate logging event IDs, and module logging event-id ranges.
+Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRulesTest.cs`. These tests check project dependency direction, CQRS repository usage, module namespace conventions, duplicate logging event IDs, and module logging event-id ranges. Application composition tests also resolve the real application service graph.
 
 API-layer rules and middleware tests live under `Api.Test`. These tests avoid booting the full API host unless startup/pipeline behavior is the explicit target, because full host tests may require configured database settings.
 

@@ -92,6 +92,43 @@ VALUES
 ('3d6a4e33-5b5f-40ba-9e31-f21815b9d09f',0,0,NULL);
 
 -- =========================
+-- Table: AccountActivity
+-- =========================
+DROP TABLE IF EXISTS "AccountActivity" CASCADE;
+
+CREATE TABLE "AccountActivity"
+(
+    "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "AccountId" UUID NOT NULL,
+    "Module" VARCHAR(128) NOT NULL,
+    "Action" VARCHAR(128) NOT NULL,
+    "EntityType" VARCHAR(128) NULL,
+    "EntityId" VARCHAR(128) NULL,
+    "Message" VARCHAR(1024) NOT NULL,
+    "MetadataJson" TEXT NULL,
+    "IpAddress" VARCHAR(64) NULL,
+    "UserAgent" VARCHAR(512) NULL,
+    "CreatedUtc" TIMESTAMP NOT NULL DEFAULT NOW(),
+    "Created" TIMESTAMP NOT NULL DEFAULT NOW(),
+    "Modified" TIMESTAMP NOT NULL DEFAULT NOW(),
+    "Deleted" TIMESTAMP NULL,
+    CONSTRAINT "FK_AccountActivity_Account"
+        FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
+);
+
+CREATE INDEX "IX_AccountActivity_AccountId_CreatedUtc"
+ON "AccountActivity" ("AccountId","CreatedUtc" DESC)
+WHERE "Deleted" IS NULL;
+
+CREATE INDEX "IX_AccountActivity_Module_Action"
+ON "AccountActivity" ("Module","Action","CreatedUtc" DESC)
+WHERE "Deleted" IS NULL;
+
+CREATE INDEX "IX_AccountActivity_Entity"
+ON "AccountActivity" ("EntityType","EntityId")
+WHERE "Deleted" IS NULL AND "EntityType" IS NOT NULL AND "EntityId" IS NOT NULL;
+
+-- =========================
 -- Table: Address
 -- =========================
 DROP TABLE IF EXISTS "Address" CASCADE;
@@ -330,8 +367,19 @@ DROP TABLE IF EXISTS "Migrations" CASCADE;
 CREATE TABLE "Migrations"
 (
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "MigrationId" BIGINT NOT NULL,
+    "Module" VARCHAR(128) NOT NULL,
+    "Name" VARCHAR(256) NOT NULL,
+    "Checksum" VARCHAR(128) NOT NULL,
+    "AppliedUtc" TIMESTAMP NOT NULL DEFAULT NOW(),
     "Created" TIMESTAMP NOT NULL DEFAULT NOW(),
+    "Modified" TIMESTAMP NOT NULL DEFAULT NOW(),
     "Deleted" TIMESTAMP NULL
 );
 
-INSERT INTO "Migrations" ("Deleted") VALUES (NULL);
+CREATE UNIQUE INDEX "UX_Migrations_MigrationId"
+ON "Migrations" ("MigrationId")
+WHERE "Deleted" IS NULL;
+
+INSERT INTO "Migrations" ("MigrationId","Module","Name","Checksum","AppliedUtc","Deleted")
+VALUES (1,'Core','migration-1','seeded-by-migration-1',NOW(),NULL);

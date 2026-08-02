@@ -1,7 +1,9 @@
 using Common.Extensions;
 using SqlKata.Execution;
 using Persistence.Logging;
+using System.Security.Cryptography;
 using Persistence.Interfaces;
+using System.Text;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,14 +73,14 @@ namespace Persistence.Migrations.Extensions
             try
             {
                 var queryLastMigration = repository.Db.Query($"{nameof(MigrationRecord)}")
-                .Select($"{nameof(MigrationRecord.Id)}")
+                .Select($"{nameof(MigrationRecord.MigrationId)}")
                 .WhereNull($@"{nameof(MigrationRecord.Deleted)}")
-                .OrderByDesc($"{nameof(MigrationRecord.Id)}")
+                .OrderByDesc($"{nameof(MigrationRecord.MigrationId)}")
                 .Limit(1);
 
                 var records = await queryLastMigration.GetAsync<MigrationRecord>();
 
-                lastMigrationId = records.FirstOrDefault()?.Id ?? 0;
+                lastMigrationId = records.FirstOrDefault()?.MigrationId ?? 0;
             }
             catch (Exception ex)
             {
@@ -122,10 +124,7 @@ namespace Persistence.Migrations.Extensions
 
                     if (x > 1)
                     {
-                        await repository.Db.Query(nameof(MigrationRecord)).InsertAsync(new
-                        {
-                            Deleted = (DateTime?)null
-                        });
+                        await repository.Db.Query(nameof(MigrationRecord)).InsertAsync(CreateMigrationRecord(filePath, x, content));
                     }
 
                     logger.MigrationApplied(filePath);
@@ -155,6 +154,23 @@ namespace Persistence.Migrations.Extensions
                 .Remove(MigrationFileExtension);
 
             return long.TryParse(migrationId, out long value) ? value : null;
+        }
+
+        private static object CreateMigrationRecord(string filePath, long migrationId, string content)
+        {
+            string module = Path.GetFileName(Path.GetDirectoryName(filePath)) ?? string.Empty;
+            string name = Path.GetFileNameWithoutExtension(filePath);
+            string checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content)));
+
+            return new
+            {
+                MigrationId = migrationId,
+                Module = module,
+                Name = name,
+                Checksum = checksum,
+                AppliedUtc = DateTime.UtcNow,
+                Deleted = (DateTime?)null
+            };
         }
     }
 }

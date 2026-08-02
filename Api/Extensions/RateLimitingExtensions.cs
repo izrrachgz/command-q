@@ -8,6 +8,17 @@ namespace Api.Extensions
     public static class RateLimitingExtensions
     {
         /// <summary>
+        /// Configures every supported rate limiting policy.
+        /// </summary>
+        public static void AddRateLimitingPolicies(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddFixedWindowRateLimit(configuration);
+            services.AddSlidingWindowRateLimit(configuration);
+            services.AddTokenBucketRateLimit(configuration);
+            services.AddConcurrencyRateLimit(configuration);
+        }
+
+        /// <summary>
         /// Configures a fixed window rate limiting policy for the application using the provided service collection.
         /// </summary>
         /// <remarks>This method registers a rate limiting policy named "fixed" that allows up to 4

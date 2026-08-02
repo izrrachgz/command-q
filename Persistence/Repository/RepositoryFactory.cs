@@ -18,11 +18,11 @@ namespace Persistence.Repository
             return new QueryFactory(connection, compiler);
         }
 
-        public static string GetMigrationsPath(DatabaseEngine engine)
+        public static string GetMigrationsPath(DatabaseEngine engine, string? configuredRootPath = null, string? contentRootPath = null)
         {
-            var path = $@"{Directory.GetParent(Directory.GetCurrentDirectory())}\{nameof(Persistence)}\{nameof(Migrations)}\";
+            string migrationsRootPath = ResolveMigrationsRootPath(configuredRootPath, contentRootPath);
 
-            return $@"{path}{engine}/";
+            return Path.Combine(migrationsRootPath, engine.ToString());
         }
 
         private static (IDbConnection Connection, Compiler Compiler) CreateConnection(DatabaseEngine engine, string connectionString)
@@ -35,6 +35,32 @@ namespace Persistence.Repository
                 DatabaseEngine.PgSql => (new NpgsqlConnection(connectionString), new PostgresCompiler()),
                 _ => (new NpgsqlConnection(connectionString), new PostgresCompiler())
             };
+        }
+
+        private static string ResolveMigrationsRootPath(string? configuredRootPath, string? contentRootPath)
+        {
+            if (!string.IsNullOrWhiteSpace(configuredRootPath))
+            {
+                return Path.GetFullPath(configuredRootPath, contentRootPath ?? Directory.GetCurrentDirectory());
+            }
+
+            string[] candidates =
+            [
+                Path.Combine(contentRootPath ?? string.Empty, nameof(Persistence), nameof(Migrations)),
+                Path.Combine(contentRootPath ?? string.Empty, "..", nameof(Persistence), nameof(Migrations)),
+                Path.Combine(AppContext.BaseDirectory, nameof(Persistence), nameof(Migrations)),
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", nameof(Persistence), nameof(Migrations)),
+                Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", nameof(Persistence), nameof(Migrations)),
+                Path.Combine(Directory.GetCurrentDirectory(), nameof(Persistence), nameof(Migrations)),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", nameof(Persistence), nameof(Migrations)),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", nameof(Persistence), nameof(Migrations)),
+                Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "..", nameof(Persistence), nameof(Migrations))
+            ];
+
+            return candidates
+                .Select(Path.GetFullPath)
+                .FirstOrDefault(Directory.Exists) ??
+                Path.GetFullPath(Path.Combine(contentRootPath ?? Directory.GetCurrentDirectory(), "..", nameof(Persistence), nameof(Migrations)));
         }
     }
 }

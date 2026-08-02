@@ -12,7 +12,7 @@ namespace Persistence.Repository
     /// <summary>
     /// SqlKata-backed repository that exposes only read operations to application query handlers.
     /// </summary>
-    public class ReadOnlyRepository : IReadOnlyRepository
+    public class ReadOnlyRepository : IReadOnlyRepository, IDisposable
     {
         private readonly QueryFactory _db;
 
@@ -65,6 +65,12 @@ namespace Persistence.Repository
         public async Task<bool> ExistsAsync(Query query, CancellationToken cancellationToken = default)
         {
             return await _db.ExistsAsync(query, cancellationToken: cancellationToken);
+        }
+
+        public void Dispose()
+        {
+            _db.Connection.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

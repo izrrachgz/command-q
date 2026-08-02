@@ -12,7 +12,7 @@ namespace Persistence.Repository
     /// <summary>
     /// SqlKata-backed repository that exposes read operations plus the write-capable query factory.
     /// </summary>
-    public class WritableRepository : IWritableRepository
+    public class WritableRepository : IWritableRepository, IDisposable
     {
         /// <summary>
         /// Database query entry point with write-capable SqlKata operations.
@@ -33,9 +33,17 @@ namespace Persistence.Repository
         /// Creates a writable repository for a specific connection string and database engine.
         /// </summary>
         public WritableRepository(string connectionString, DatabaseEngine engine, ILogger<WritableRepository> logger)
+            : this(connectionString, engine, RepositoryFactory.GetMigrationsPath(engine), logger)
+        {
+        }
+
+        /// <summary>
+        /// Creates a writable repository for a specific connection string, database engine and migration path.
+        /// </summary>
+        public WritableRepository(string connectionString, DatabaseEngine engine, string migrationsPath, ILogger<WritableRepository> logger)
         {
             Engine = engine;
-            MigrationsPath = RepositoryFactory.GetMigrationsPath(Engine);
+            MigrationsPath = migrationsPath;
             Db = RepositoryFactory.CreateQueryFactory(connectionString, Engine);
 
             logger.RepositoryCreated(nameof(WritableRepository), Engine);
@@ -77,6 +85,12 @@ namespace Persistence.Repository
         public async Task<bool> ExistsAsync(Query query, CancellationToken cancellationToken = default)
         {
             return await Db.ExistsAsync(query, cancellationToken: cancellationToken);
+        }
+
+        public void Dispose()
+        {
+            Db.Connection.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

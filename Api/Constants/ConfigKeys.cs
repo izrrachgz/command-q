@@ -53,6 +53,11 @@ namespace Api.Constants
             public const string Engine = @"ConnectionStrings:Engine";
         }
 
+        public static class Migrations
+        {
+            public const string RunOnStartup = @"Migrations:RunOnStartup";
+        }
+
         public static class HealthCheck
         {
             public const string Url = @"HealthCheck:UrlCheckInternetAccess";

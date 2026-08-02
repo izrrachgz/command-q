@@ -1,11 +1,16 @@
 using Public;
 using Common.Cqrs;
 using SqlKata.Execution;
+using System.Globalization;
+using System.Text.Json;
 using Common.Models.Response;
 using Persistence.Interfaces;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Files.Logging;
+using Application.Modules.Identity.AccountActivity;
+using Application.Modules.Identity.AccountActivity.Commands;
+using Application.Modules.Identity.AccountActivity.Services;
 
 namespace Application.Modules.Files.Commands
 {
@@ -13,18 +18,19 @@ namespace Application.Modules.Files.Commands
     {
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;
+        private readonly IAccountActivityRecorder _activityRecorder;
         private readonly ILogger<UploadFileCommandHandler> _logger;
 
-        private const int _buffer_size = 64 * 1024;
         private readonly string _message_file_created;
         private readonly string _message_file_cannot_create;
-        private static readonly string _fileStoragePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UploadedFiles");
+        private static readonly string _fileStoragePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileUploadConstants.StorageRootFolderName);
 
-        public UploadFileCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<UploadFileCommandHandler> logger)
+        public UploadFileCommandHandler(ITextProvider textProvider, IWritableRepository repository, IAccountActivityRecorder activityRecorder, ILogger<UploadFileCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
+            _activityRecorder = activityRecorder;
             _message_file_created = _messages.Get(nameof(Messages.Created), nameof(AccountFile));
             _message_file_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(AccountFile));
         }
@@ -46,7 +52,7 @@ namespace Application.Modules.Files.Commands
                 return new(false, _message_file_cannot_create);
             }
 
-            var tempFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.upload");
+            var tempFilePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}{FileUploadConstants.TempFileExtension}");
 
             _logger.FileUploadTempPathCreated(request.AccountId, safeFileName);
 
@@ -57,13 +63,13 @@ namespace Application.Modules.Files.Commands
                     Mode = FileMode.CreateNew,
                     Access = FileAccess.Write,
                     Share = FileShare.None,
-                    BufferSize = _buffer_size,
+                    BufferSize = FileUploadConstants.BufferSizeBytes,
                     Options = FileOptions.Asynchronous | FileOptions.SequentialScan
                 };
 
                 await using var tempStream = new FileStream(tempFilePath, options);
 
-                await request.FileData.CopyToAsync(tempStream, _buffer_size, cancellationToken);
+                await request.FileData.CopyToAsync(tempStream, FileUploadConstants.BufferSizeBytes, cancellationToken);
 
                 await tempStream.FlushAsync(cancellationToken);
             }
@@ -85,7 +91,11 @@ namespace Application.Modules.Files.Commands
 
             #region setup file storage destination path
 
-            string destination = Path.Combine(_fileStoragePath, now.Year.ToString(), now.Month.ToString("D2"), now.Day.ToString("D2"));
+            string destination = Path.Combine(
+                _fileStoragePath,
+                now.Year.ToString(CultureInfo.InvariantCulture),
+                now.Month.ToString(FileUploadConstants.DatePathSegmentFormat, CultureInfo.InvariantCulture),
+                now.Day.ToString(FileUploadConstants.DatePathSegmentFormat, CultureInfo.InvariantCulture));
 
             Directory.CreateDirectory(destination);
 
@@ -116,6 +126,22 @@ namespace Application.Modules.Files.Commands
                     .InsertGetIdAsync<long>(accountFile, cancellationToken: cancellationToken);
 
                 _logger.FileMetadataSaved(request.AccountId, accountFileId, safeFileName, accountFile.Size, request.ContentType);
+
+                await _activityRecorder.RecordAsync(new RecordAccountActivityCommand
+                {
+                    AccountId = request.AccountId,
+                    Module = AccountActivityConstants.Modules.Files,
+                    Action = AccountActivityConstants.Actions.FileUploaded,
+                    EntityType = nameof(AccountFile),
+                    EntityId = accountFileId.ToString(),
+                    Message = string.Format(CultureInfo.InvariantCulture, AccountActivityConstants.Messages.FileUploadedFormat, safeFileName),
+                    MetadataJson = JsonSerializer.Serialize(new
+                    {
+                        FileName = safeFileName,
+                        request.ContentType,
+                        accountFile.Size
+                    })
+                }, cancellationToken);
 
                 return new(true, _message_file_created);
             }
