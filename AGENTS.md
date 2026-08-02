@@ -8,6 +8,11 @@ This file captures practical repository knowledge for coding agents working in t
 - Restore: `dotnet restore`.
 - Build: `dotnet build .\CommandQ.sln`.
 - Tests: `dotnet test` or targeted tests with `--filter FullyQualifiedName~...`.
+- Helper scripts live under `scripts/`:
+  - `.\scripts\build.ps1`
+  - `.\scripts\test.ps1`
+  - `.\scripts\run-api.ps1`
+  - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
 
@@ -39,6 +44,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `AccountSessionCacheCleanupService` periodically clears account/session cache entries. Keep this in API/auth infrastructure, not health checks.
 - Refresh tokens are accessed through `IRefreshTokenStore`; the default `InMemoryRefreshTokenStore` should be replaced with persistent/distributed storage before multi-instance deployments.
 - Rate limiting, cache, database and API client settings use constants under `Api/Constants/ConfigKeys.cs`.
+- Local secrets should use .NET user-secrets or environment variables. Keep real secrets out of `appsettings*.json`, `.env`, scripts and docs. See `docs/local-secrets.md`.
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development in `ExceptionHandlingMiddleware`.
 
@@ -171,6 +177,7 @@ This file captures practical repository knowledge for coding agents working in t
 
 ## Coding Conventions
 - Prefer existing project patterns over new abstractions.
+- Follow `.editorconfig` for formatting, naming and analyzer preferences.
 - Use `rg`/`rg --files` for searches.
 - Use `apply_patch` for manual edits.
 - Avoid unrelated refactors and metadata churn.

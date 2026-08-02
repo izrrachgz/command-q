@@ -3,6 +3,9 @@ Bin/
 obj/
 Obj/
 .vs/
+.env
+.env.*
+!.env.example
 
 Application/bin/
 Application/Bin/

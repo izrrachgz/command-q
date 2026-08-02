@@ -8,6 +8,62 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
 - [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 - [.NET 10 Hosting Bundle](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 
+## Start A New Project From This Template
+
+1. Choose the backend modules you want to keep.
+
+   `Identity` and `Health` are core. `Files` is optional. `Contacts`, `Addresses`, `Events` and `Registers` are sample-oriented modules. See `docs/modules.md` before removing modules.
+
+2. Configure local backend secrets.
+
+   Prefer .NET user-secrets for local development. See `docs/local-secrets.md`.
+
+   ```powershell
+   dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Engine" "MsSql"
+   dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Api\Api.csproj "Jwt:SecretKey" "replace-with-at-least-32-random-bytes"
+   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
+   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
+   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "https://localhost:4200"
+   ```
+
+3. Prepare the database.
+
+   Create an empty database matching `ConnectionStrings:Db`. In Development, the API invokes the migration runner on startup and applies only pending scripts. While version 1 is still being shaped, manually drop/recreate the development database when `migration-1.sql` changes.
+
+4. Build and test.
+
+   ```powershell
+   .\scripts\build.ps1
+   .\scripts\test.ps1
+   ```
+
+5. Run the API.
+
+   ```powershell
+   .\scripts\run-api.ps1
+   ```
+
+6. Optionally run the frontend placeholder.
+
+   The backend does not require the frontend. If you keep `FrontApplication`, run:
+
+   ```powershell
+   .\scripts\run-front.ps1
+   ```
+
+7. Add a new backend feature.
+
+   Add domain entities under `Domain/Modules/{Module}`, use cases under `Application/Modules/{Module}`, and controllers/endpoints under `Api/Modules/{Module}`. Register services in `Application/Modules/ApplicationModuleExtensions.cs` and API mappings in `Api/Modules/ApiModuleExtensions.cs`.
+
+8. Add a migration.
+
+   Add `migration-X.sql` under `Persistence/Migrations/{Engine}/{Module}` for each supported engine you intend to keep. Migration IDs must be unique per engine and scripts must move forward only.
+
+9. Add localized validation text.
+
+   Validators should use `ValidationTextProvider`. Add reusable validation templates to `Localization/Resources/ValidationText*.resx`, field display names to `Localization/Resources/FieldNames*.resx`, and operation messages to `Localization/Resources/Messages*.resx`.
+
 ## Solution Layout
 
 ```text
@@ -125,6 +181,15 @@ Update the `appsettings.json` file with the appropriate connection string for yo
    ```sh
    dotnet run --project .\Api\Api.csproj
    ```
+
+Root helper scripts are also available:
+
+```powershell
+.\scripts\build.ps1
+.\scripts\test.ps1
+.\scripts\run-api.ps1
+.\scripts\run-front.ps1
+```
 
 ## Migrations
 
