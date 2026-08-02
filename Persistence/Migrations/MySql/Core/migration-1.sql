@@ -1,21 +1,3 @@
-﻿SET FOREIGN_KEY_CHECKS = 0;
-
-DROP TABLE IF EXISTS Migrations;
-DROP TABLE IF EXISTS RegisterPlace;
-DROP TABLE IF EXISTS RegisterEvent;
-DROP TABLE IF EXISTS `Register`;
-DROP TABLE IF EXISTS Place;
-DROP TABLE IF EXISTS Event;
-DROP TABLE IF EXISTS AccountFile;
-DROP TABLE IF EXISTS AccountActivity;
-DROP TABLE IF EXISTS Contact;
-DROP TABLE IF EXISTS Address;
-DROP TABLE IF EXISTS AccountSession;
-DROP TABLE IF EXISTS Account;
-DROP TABLE IF EXISTS HealthCheckLog;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- =========================
 -- HealthCheckLog
 -- =========================
@@ -258,9 +240,9 @@ CREATE TABLE RegisterPlace (
 ) ENGINE=InnoDB;
 
 -- =========================
--- Migrations
+-- MigrationRecord
 -- =========================
-CREATE TABLE Migrations (
+CREATE TABLE MigrationRecord (
     Id BIGINT NOT NULL AUTO_INCREMENT,
     MigrationId BIGINT NOT NULL,
     `Module` VARCHAR(128) NOT NULL,
@@ -272,8 +254,9 @@ CREATE TABLE Migrations (
     Deleted DATETIME NULL,
     ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
     PRIMARY KEY (Id),
-    UNIQUE KEY UX_Migrations_MigrationId (MigrationId, ActiveRecord)
+    UNIQUE KEY UX_MigrationRecord_MigrationId (MigrationId, ActiveRecord)
 ) ENGINE=InnoDB;
 
-INSERT INTO Migrations (MigrationId, `Module`, `Name`, Checksum, AppliedUtc, Deleted)
+INSERT INTO MigrationRecord (MigrationId, `Module`, `Name`, Checksum, AppliedUtc, Deleted)
 VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', CURRENT_TIMESTAMP, NULL);
+

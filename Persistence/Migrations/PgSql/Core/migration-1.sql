@@ -1,10 +1,9 @@
-﻿-- Enable UUID generation (if not already enabled)
+-- Enable UUID generation (if not already enabled)
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- =========================
 -- Table: HealthCheckLog
 -- =========================
-DROP TABLE IF EXISTS "HealthCheckLog" CASCADE;
 
 CREATE TABLE "HealthCheckLog"
 (
@@ -21,7 +20,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: Account
 -- =========================
-DROP TABLE IF EXISTS "Account" CASCADE;
 
 CREATE TABLE "Account"
 (
@@ -59,7 +57,6 @@ VALUES
 -- =========================
 -- Table: AccountSession
 -- =========================
-DROP TABLE IF EXISTS "AccountSession" CASCADE;
 
 CREATE TABLE "AccountSession"
 (
@@ -94,7 +91,6 @@ VALUES
 -- =========================
 -- Table: AccountActivity
 -- =========================
-DROP TABLE IF EXISTS "AccountActivity" CASCADE;
 
 CREATE TABLE "AccountActivity"
 (
@@ -131,7 +127,6 @@ WHERE "Deleted" IS NULL AND "EntityType" IS NOT NULL AND "EntityId" IS NOT NULL;
 -- =========================
 -- Table: Address
 -- =========================
-DROP TABLE IF EXISTS "Address" CASCADE;
 
 CREATE TABLE "Address"
 (
@@ -171,7 +166,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: Contact
 -- =========================
-DROP TABLE IF EXISTS "Contact" CASCADE;
 
 CREATE TABLE "Contact"
 (
@@ -199,7 +193,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: AccountFile
 -- =========================
-DROP TABLE IF EXISTS "AccountFile" CASCADE;
 
 CREATE TABLE "AccountFile"
 (
@@ -231,7 +224,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: Event
 -- =========================
-DROP TABLE IF EXISTS "Event" CASCADE;
 
 CREATE TABLE "Event"
 (
@@ -256,7 +248,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: Place
 -- =========================
-DROP TABLE IF EXISTS "Place" CASCADE;
 
 CREATE TABLE "Place"
 (
@@ -275,7 +266,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: Register
 -- =========================
-DROP TABLE IF EXISTS "Register" CASCADE;
 
 CREATE TABLE "Register"
 (
@@ -304,7 +294,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: RegisterEvent
 -- =========================
-DROP TABLE IF EXISTS "RegisterEvent" CASCADE;
 
 CREATE TABLE "RegisterEvent"
 (
@@ -333,7 +322,6 @@ WHERE "Deleted" IS NULL;
 -- =========================
 -- Table: RegisterPlace
 -- =========================
-DROP TABLE IF EXISTS "RegisterPlace" CASCADE;
 
 CREATE TABLE "RegisterPlace"
 (
@@ -360,11 +348,10 @@ ON "RegisterPlace" ("RegisterId","PlaceId")
 WHERE "Deleted" IS NULL;
 
 -- =========================
--- Table: Migrations
+-- Table: MigrationRecord
 -- =========================
-DROP TABLE IF EXISTS "Migrations" CASCADE;
 
-CREATE TABLE "Migrations"
+CREATE TABLE "MigrationRecord"
 (
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "MigrationId" BIGINT NOT NULL,
@@ -377,9 +364,10 @@ CREATE TABLE "Migrations"
     "Deleted" TIMESTAMP NULL
 );
 
-CREATE UNIQUE INDEX "UX_Migrations_MigrationId"
-ON "Migrations" ("MigrationId")
+CREATE UNIQUE INDEX "UX_MigrationRecord_MigrationId"
+ON "MigrationRecord" ("MigrationId")
 WHERE "Deleted" IS NULL;
 
-INSERT INTO "Migrations" ("MigrationId","Module","Name","Checksum","AppliedUtc","Deleted")
+INSERT INTO "MigrationRecord" ("MigrationId","Module","Name","Checksum","AppliedUtc","Deleted")
 VALUES (1,'Core','migration-1','seeded-by-migration-1',NOW(),NULL);
+

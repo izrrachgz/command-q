@@ -100,12 +100,14 @@ This file captures practical repository knowledge for coding agents working in t
   - Development startup invokes the migration runner by default.
   - Non-development startup migration execution is opt-in through `Migrations:RunOnStartup`.
   - The runner reads the database migration ledger first and only applies pending migrations.
+  - Migration scripts are forward-only and should not drop existing tables.
+  - Until version 1 is finalized, reset changed baseline schemas by manually dropping/recreating the development database.
   - Override the migration root with `Persistence:MigrationsPath` when source/publish path resolution is not enough.
   - `MigrationExtensions` scans scripts recursively from the folder matching the configured engine.
   - Scripts are ordered numerically.
   - Migration IDs must be unique per engine, even across module folders.
   - Migration failure and missing expected migration files stop startup.
-  - `Core/migration-1.sql` creates and seeds the `Migrations` table; later successful migrations are recorded by the runner with migration id, module, name, checksum and applied time.
+  - `Core/migration-1.sql` creates and seeds the `MigrationRecord` table; later successful migrations are recorded by the runner with migration id, module, name, checksum and applied time.
 - Health checks:
   - `/health/live` is the liveness endpoint.
   - `/health/ready` is the dependency readiness endpoint.

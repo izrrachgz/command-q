@@ -1,21 +1,3 @@
-﻿PRAGMA foreign_keys = OFF;
-
-DROP TABLE IF EXISTS Migrations;
-DROP TABLE IF EXISTS RegisterPlace;
-DROP TABLE IF EXISTS RegisterEvent;
-DROP TABLE IF EXISTS "Register";
-DROP TABLE IF EXISTS Place;
-DROP TABLE IF EXISTS Event;
-DROP TABLE IF EXISTS AccountFile;
-DROP TABLE IF EXISTS AccountActivity;
-DROP TABLE IF EXISTS Contact;
-DROP TABLE IF EXISTS Address;
-DROP TABLE IF EXISTS AccountSession;
-DROP TABLE IF EXISTS Account;
-DROP TABLE IF EXISTS HealthCheckLog;
-
-PRAGMA foreign_keys = ON;
-
 -- =========================
 -- HealthCheckLog
 -- =========================
@@ -333,9 +315,9 @@ ON RegisterPlace (PlaceId)
 WHERE Deleted IS NULL;
 
 -- =========================
--- Migrations
+-- MigrationRecord
 -- =========================
-CREATE TABLE Migrations (
+CREATE TABLE MigrationRecord (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
     MigrationId INTEGER NOT NULL,
     Module TEXT NOT NULL,
@@ -347,9 +329,10 @@ CREATE TABLE Migrations (
     Deleted TEXT NULL
 );
 
-CREATE UNIQUE INDEX UX_Migrations_MigrationId
-ON Migrations (MigrationId)
+CREATE UNIQUE INDEX UX_MigrationRecord_MigrationId
+ON MigrationRecord (MigrationId)
 WHERE Deleted IS NULL;
 
-INSERT INTO Migrations (MigrationId, Module, Name, Checksum, AppliedUtc, Deleted)
+INSERT INTO MigrationRecord (MigrationId, Module, Name, Checksum, AppliedUtc, Deleted)
 VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', CURRENT_TIMESTAMP, NULL);
+

@@ -1,8 +1,6 @@
-﻿-- SEQUENCE equivalent in SQL Server: Use IDENTITY instead of SEQUENCE
+-- SEQUENCE equivalent in SQL Server: Use IDENTITY instead of SEQUENCE
 
 -- Table: HealthCheckLog
-IF OBJECT_ID('dbo.HealthCheckLog', 'U') IS NOT NULL
-    DROP TABLE dbo.HealthCheckLog;
 
 CREATE TABLE dbo.HealthCheckLog
 (
@@ -16,14 +14,6 @@ CREATE TABLE dbo.HealthCheckLog
 CREATE INDEX IX_HealthCheckLog_Created ON dbo.HealthCheckLog (Created) WHERE Deleted IS NULL;
 
 -- Table: Account
-IF OBJECT_ID('dbo.AccountFile', 'U') IS NOT NULL
-    DROP TABLE dbo.AccountFile;
-
-IF OBJECT_ID('dbo.AccountActivity', 'U') IS NOT NULL
-    DROP TABLE dbo.AccountActivity;
-
-IF OBJECT_ID('dbo.Account', 'U') IS NOT NULL
-    DROP TABLE dbo.Account;
 
 CREATE TABLE dbo.Account
 (
@@ -47,8 +37,6 @@ CREATE INDEX IX_Account_Active ON dbo.Account (Deleted) INCLUDE (Username, Email
 INSERT INTO dbo.Account (Id, Username, Email, [Password], Roles) VALUES ('3D6A4E33-5B5F-40BA-9E31-F21815B9D09F', 'TurboDecoder', 'admin@local.com', 'e8424ea5339b85a750ab5f4c63bde5d5c62975792a3bed6ccb37c045207c6771', 'User');
 
 -- Table: AccountSession
-IF OBJECT_ID('dbo.AccountSession', 'U') IS NOT NULL
-    DROP TABLE dbo.AccountSession;
 
 CREATE TABLE dbo.AccountSession
 (
@@ -94,8 +82,6 @@ CREATE INDEX IX_AccountActivity_Module_Action ON dbo.AccountActivity (Module, Ac
 CREATE INDEX IX_AccountActivity_Entity ON dbo.AccountActivity (EntityType, EntityId) WHERE Deleted IS NULL AND EntityType IS NOT NULL AND EntityId IS NOT NULL;
 
 -- Table: Address
-IF OBJECT_ID('dbo.Address', 'U') IS NOT NULL
-    DROP TABLE dbo.Address;
 
 CREATE TABLE dbo.Address
 (
@@ -127,8 +113,6 @@ CREATE INDEX IX_Address_Location ON dbo.Address (Country, City, PostalCode) WHER
 CREATE INDEX IX_Address_Created ON dbo.Address (Created) WHERE Deleted IS NULL;
 
 -- Table: Contact
-IF OBJECT_ID('dbo.Contact', 'U') IS NOT NULL
-    DROP TABLE dbo.Contact;
 
 CREATE TABLE dbo.Contact
 (
@@ -150,8 +134,6 @@ CREATE INDEX IX_Contact_AccountId ON dbo.Contact (AccountId) WHERE Deleted IS NU
 CREATE INDEX IX_Contact_Email ON dbo.Contact (EmailAddress) WHERE Deleted IS NULL;
 
 -- Table: AccountFile
-IF OBJECT_ID('dbo.AccountFile', 'U') IS NOT NULL
-    DROP TABLE dbo.AccountFile;
 
 CREATE TABLE dbo.AccountFile
 (
@@ -175,8 +157,6 @@ CREATE INDEX IX_AccountFile_Created ON dbo.AccountFile (Created) WHERE Deleted I
 CREATE INDEX IX_AccountFile_FileName ON dbo.AccountFile (FileName) WHERE Deleted IS NULL;
 
 -- Table: Event
-IF OBJECT_ID('dbo.Event', 'U') IS NOT NULL
-    DROP TABLE dbo.Event;
 
 CREATE TABLE dbo.Event
 (
@@ -196,8 +176,6 @@ CREATE INDEX IX_Event_Start_End ON dbo.Event (Start, [End]) WHERE Deleted IS NUL
 CREATE INDEX IX_Event_Name ON dbo.Event (Name) WHERE Deleted IS NULL;
 
 -- Table: Place
-IF OBJECT_ID('dbo.Place', 'U') IS NOT NULL
-    DROP TABLE dbo.Place;
 
 CREATE TABLE dbo.Place
 (
@@ -213,8 +191,6 @@ CREATE TABLE dbo.Place
 CREATE INDEX IX_Place_Name ON dbo.Place (Name) WHERE Deleted IS NULL;
 
 -- Table: Register
-IF OBJECT_ID('dbo.Register', 'U') IS NOT NULL
-    DROP TABLE dbo.Register;
 
 CREATE TABLE dbo.Register
 (
@@ -235,8 +211,6 @@ CREATE INDEX IX_Register_Created ON dbo.Register (Created) WHERE Deleted IS NULL
 CREATE INDEX IX_Register_Action ON dbo.Register (Action, Created) WHERE Deleted IS NULL;
 
 -- Table: RegisterEvent
-IF OBJECT_ID('dbo.RegisterEvent', 'U') IS NOT NULL
-    DROP TABLE dbo.RegisterEvent;
 
 CREATE TABLE dbo.RegisterEvent
 (
@@ -258,8 +232,6 @@ CREATE INDEX IX_RegisterEvent_EventId ON dbo.RegisterEvent (EventId) WHERE Delet
 CREATE UNIQUE INDEX UX_RegisterEvent_Unique ON dbo.RegisterEvent (RegisterId, EventId) WHERE Deleted IS NULL;
 
 -- Table: RegisterPlace
-IF OBJECT_ID('dbo.RegisterPlace', 'U') IS NOT NULL
-    DROP TABLE dbo.RegisterPlace;
 
 CREATE TABLE dbo.RegisterPlace
 (
@@ -280,11 +252,9 @@ CREATE INDEX IX_RegisterPlace_PlaceId ON dbo.RegisterPlace (PlaceId) WHERE Delet
 --Prevent duplicate entries
 CREATE UNIQUE INDEX UX_RegisterPlace_Unique ON dbo.RegisterPlace (RegisterId, PlaceId) WHERE Deleted IS NULL;
 
--- Table: Migrations
-IF OBJECT_ID('dbo.Migrations', 'U') IS NOT NULL
-    DROP TABLE dbo.Migrations;
+-- Table: MigrationRecord
 
-CREATE TABLE dbo.Migrations
+CREATE TABLE dbo.MigrationRecord
 (
     [Id] BIGINT IDENTITY(1,1) NOT NULL,
     [MigrationId] BIGINT NOT NULL,
@@ -295,10 +265,11 @@ CREATE TABLE dbo.Migrations
     [Created] DATETIME NOT NULL DEFAULT GETDATE(),
     [Modified] DATETIME NOT NULL DEFAULT GETDATE(),
     [Deleted] DATETIME NULL,
-    CONSTRAINT PK_Migrations_Id PRIMARY KEY (Id)
+    CONSTRAINT PK_MigrationRecord_Id PRIMARY KEY (Id)
 );
-CREATE UNIQUE INDEX UX_Migrations_MigrationId ON dbo.Migrations (MigrationId) WHERE Deleted IS NULL;
+CREATE UNIQUE INDEX UX_MigrationRecord_MigrationId ON dbo.MigrationRecord (MigrationId) WHERE Deleted IS NULL;
 
 -- Always insert a new record when what is considered a migration ends
-INSERT INTO dbo.Migrations (MigrationId, [Module], [Name], [Checksum], AppliedUtc, Deleted)
+INSERT INTO dbo.MigrationRecord (MigrationId, [Module], [Name], [Checksum], AppliedUtc, Deleted)
 VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', GETUTCDATE(), NULL);
+

@@ -138,9 +138,11 @@ Startup migration execution is controlled by:
 }
 ```
 
-In Development, the app invokes the migration runner on startup so it can move the local database forward automatically. The runner reads the `Migrations` table first and only applies pending scripts, so an already-applied `migration-1.sql` is skipped and the next pending script starts at `migration-2.sql`.
+In Development, the app invokes the migration runner on startup so it can move the local database forward automatically. The runner reads the `MigrationRecord` table first and only applies pending scripts, so an already-applied `migration-1.sql` is skipped and the next pending script starts at `migration-2.sql`.
 
 Outside Development, enable `Migrations:RunOnStartup` only in environments where the configured database is reachable and migrations should be applied by the app.
+
+The v1 migration scripts are forward-only bootstrap scripts. They create schema for an empty database and do not drop existing tables. During pre-v1 development, drop/recreate the development database manually when the baseline schema changes.
 
 The migration root can be overridden when the default source/publish path resolution is not enough:
 
@@ -157,9 +159,9 @@ Migration execution is fail-fast:
 - migration IDs must be unique per engine, even across module folders
 - missing expected scripts stop startup
 - failed scripts stop startup
-- successful migrations are recorded in the `Migrations` table with migration id, module, name, checksum and applied time
+- successful migrations are recorded in the `MigrationRecord` table with migration id, module, name, checksum and applied time
 
-`Persistence/Migrations/{Engine}/Core/migration-1.sql` creates the initial schema and seeds the `Migrations` table.
+`Persistence/Migrations/{Engine}/Core/migration-1.sql` creates the initial schema and seeds the `MigrationRecord` table.
 
 ## Data Access
 

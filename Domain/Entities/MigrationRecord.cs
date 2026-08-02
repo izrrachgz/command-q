@@ -1,6 +1,6 @@
 namespace Domain.Entities
 {
-    public class Migrations : BaseEntity
+    public class MigrationRecord : BaseEntity
     {
         public long MigrationId { get; set; }
 

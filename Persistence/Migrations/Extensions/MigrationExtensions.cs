@@ -7,7 +7,7 @@ using System.Text;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using MigrationRecord = Domain.Entities.Migrations;
+using Domain.Entities;
 
 namespace Persistence.Migrations.Extensions
 {
@@ -155,53 +155,9 @@ namespace Persistence.Migrations.Extensions
             }
             catch (Exception migrationIdException)
             {
-                try
-                {
-                    long legacyLastMigrationId = await GetLegacyLastAppliedMigrationId(repository, includeDeletedFilter: true);
-
-                    if (legacyLastMigrationId > 0)
-                    {
-                        return legacyLastMigrationId;
-                    }
-                }
-                catch
-                {
-                    try
-                    {
-                        long legacyLastMigrationId = await GetLegacyLastAppliedMigrationId(repository, includeDeletedFilter: false);
-
-                        if (legacyLastMigrationId > 0)
-                        {
-                            return legacyLastMigrationId;
-                        }
-                    }
-                    catch
-                    {
-                        logger.LastMigrationReadFailed(migrationIdException);
-                        return 0;
-                    }
-                }
-
                 logger.LastMigrationReadFailed(migrationIdException);
                 return 0;
             }
-        }
-
-        private static async Task<long> GetLegacyLastAppliedMigrationId(IWritableRepository repository, bool includeDeletedFilter)
-        {
-            var query = repository.Db.Query($"{nameof(MigrationRecord)}")
-                .Select($"{nameof(MigrationRecord.Id)}")
-                .OrderByDesc($"{nameof(MigrationRecord.Id)}")
-                .Limit(1);
-
-            if (includeDeletedFilter)
-            {
-                query.WhereNull($@"{nameof(MigrationRecord.Deleted)}");
-            }
-
-            var records = await query.GetAsync<MigrationRecord>();
-
-            return records.FirstOrDefault()?.Id ?? 0;
         }
 
         private static object CreateMigrationRecord(string filePath, long migrationId, string content)
