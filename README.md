@@ -138,7 +138,9 @@ Startup migration execution is controlled by:
 }
 ```
 
-Keep this disabled for ordinary local development when you only need the API host to boot. Enable it in environments where the configured database is reachable and migrations should be applied by the app.
+In Development, the app invokes the migration runner on startup so it can move the local database forward automatically. The runner reads the `Migrations` table first and only applies pending scripts, so an already-applied `migration-1.sql` is skipped and the next pending script starts at `migration-2.sql`.
+
+Outside Development, enable `Migrations:RunOnStartup` only in environments where the configured database is reachable and migrations should be applied by the app.
 
 The migration root can be overridden when the default source/publish path resolution is not enough:
 
@@ -151,6 +153,7 @@ The migration root can be overridden when the default source/publish path resolu
 Migration execution is fail-fast:
 
 - scripts are ordered numerically
+- already-applied migrations are skipped based on the database migration ledger
 - migration IDs must be unique per engine, even across module folders
 - missing expected scripts stop startup
 - failed scripts stop startup

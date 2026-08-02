@@ -119,11 +119,22 @@ namespace Application.Modules.Files.Commands
                     FileName = safeFileName,
                     Path = Path.GetRelativePath(AppDomain.CurrentDomain.BaseDirectory, destination),
                     ContentType = request.ContentType,
-                    Size = request.FileData.CanSeek ? request.FileData.Length : 0
+                    Size = request.FileData.CanSeek ? request.FileData.Length : 0,
+                    Created = now,
+                    Modified = now
                 };
 
                 var accountFileId = await _repository.Db.Query($@"{nameof(AccountFile)}")
-                    .InsertGetIdAsync<long>(accountFile, cancellationToken: cancellationToken);
+                    .InsertGetIdAsync<long>(new
+                    {
+                        accountFile.AccountId,
+                        accountFile.FileName,
+                        accountFile.Path,
+                        accountFile.ContentType,
+                        accountFile.Size,
+                        accountFile.Created,
+                        accountFile.Modified
+                    }, cancellationToken: cancellationToken);
 
                 _logger.FileMetadataSaved(request.AccountId, accountFileId, safeFileName, accountFile.Size, request.ContentType);
 

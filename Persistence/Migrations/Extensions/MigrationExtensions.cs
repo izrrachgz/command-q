@@ -68,24 +68,7 @@ namespace Persistence.Migrations.Extensions
 
             long migrationCount = migrationFiles[^1].MigrationId!.Value;
 
-            long lastMigrationId = 0;
-
-            try
-            {
-                var queryLastMigration = repository.Db.Query($"{nameof(MigrationRecord)}")
-                .Select($"{nameof(MigrationRecord.MigrationId)}")
-                .WhereNull($@"{nameof(MigrationRecord.Deleted)}")
-                .OrderByDesc($"{nameof(MigrationRecord.MigrationId)}")
-                .Limit(1);
-
-                var records = await queryLastMigration.GetAsync<MigrationRecord>();
-
-                lastMigrationId = records.FirstOrDefault()?.MigrationId ?? 0;
-            }
-            catch (Exception ex)
-            {
-                logger.LastMigrationReadFailed(ex);
-            }
+            long lastMigrationId = await GetLastAppliedMigrationId(repository, logger);
 
             if (lastMigrationId >= migrationCount)
             {
@@ -154,6 +137,71 @@ namespace Persistence.Migrations.Extensions
                 .Remove(MigrationFileExtension);
 
             return long.TryParse(migrationId, out long value) ? value : null;
+        }
+
+        private static async Task<long> GetLastAppliedMigrationId(IWritableRepository repository, ILogger logger)
+        {
+            try
+            {
+                var queryLastMigration = repository.Db.Query($"{nameof(MigrationRecord)}")
+                    .Select($"{nameof(MigrationRecord.MigrationId)}")
+                    .WhereNull($@"{nameof(MigrationRecord.Deleted)}")
+                    .OrderByDesc($"{nameof(MigrationRecord.MigrationId)}")
+                    .Limit(1);
+
+                var records = await queryLastMigration.GetAsync<MigrationRecord>();
+
+                return records.FirstOrDefault()?.MigrationId ?? 0;
+            }
+            catch (Exception migrationIdException)
+            {
+                try
+                {
+                    long legacyLastMigrationId = await GetLegacyLastAppliedMigrationId(repository, includeDeletedFilter: true);
+
+                    if (legacyLastMigrationId > 0)
+                    {
+                        return legacyLastMigrationId;
+                    }
+                }
+                catch
+                {
+                    try
+                    {
+                        long legacyLastMigrationId = await GetLegacyLastAppliedMigrationId(repository, includeDeletedFilter: false);
+
+                        if (legacyLastMigrationId > 0)
+                        {
+                            return legacyLastMigrationId;
+                        }
+                    }
+                    catch
+                    {
+                        logger.LastMigrationReadFailed(migrationIdException);
+                        return 0;
+                    }
+                }
+
+                logger.LastMigrationReadFailed(migrationIdException);
+                return 0;
+            }
+        }
+
+        private static async Task<long> GetLegacyLastAppliedMigrationId(IWritableRepository repository, bool includeDeletedFilter)
+        {
+            var query = repository.Db.Query($"{nameof(MigrationRecord)}")
+                .Select($"{nameof(MigrationRecord.Id)}")
+                .OrderByDesc($"{nameof(MigrationRecord.Id)}")
+                .Limit(1);
+
+            if (includeDeletedFilter)
+            {
+                query.WhereNull($@"{nameof(MigrationRecord.Deleted)}");
+            }
+
+            var records = await query.GetAsync<MigrationRecord>();
+
+            return records.FirstOrDefault()?.Id ?? 0;
         }
 
         private static object CreateMigrationRecord(string filePath, long migrationId, string content)

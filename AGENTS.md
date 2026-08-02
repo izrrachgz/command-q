@@ -97,8 +97,9 @@ This file captures practical repository knowledge for coding agents working in t
 - Migrations:
   - Scripts live under `Persistence/Migrations/{Engine}/{Module}`.
   - Add scripts as `migration-X.sql`.
-  - Startup migration execution is opt-in through `Migrations:RunOnStartup`.
-  - Keep startup migrations disabled for ordinary local host startup unless the configured database is reachable.
+  - Development startup invokes the migration runner by default.
+  - Non-development startup migration execution is opt-in through `Migrations:RunOnStartup`.
+  - The runner reads the database migration ledger first and only applies pending migrations.
   - Override the migration root with `Persistence:MigrationsPath` when source/publish path resolution is not enough.
   - `MigrationExtensions` scans scripts recursively from the folder matching the configured engine.
   - Scripts are ordered numerically.

@@ -18,7 +18,7 @@ app.Logger.LogAppConfig(builder.Configuration, builder.Environment);
 
 // Run migrations before starting the application
 if (!app.Environment.IsEnvironment("Testing") &&
-    app.Configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))
+    (app.Environment.IsDevelopment() || app.Configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false)))
 {
     await app.RunApplicationMigrations();
 }

@@ -32,7 +32,21 @@ namespace Application.Modules.Identity.AccountActivity.Commands
             try
             {
                 await repository.Db.Query(nameof(Domain.Modules.Identity.AccountActivity))
-                    .InsertAsync(activity, cancellationToken: cancellationToken);
+                    .InsertAsync(new
+                    {
+                        activity.AccountId,
+                        activity.Module,
+                        activity.Action,
+                        activity.EntityType,
+                        activity.EntityId,
+                        activity.Message,
+                        activity.MetadataJson,
+                        activity.IpAddress,
+                        activity.UserAgent,
+                        activity.CreatedUtc,
+                        activity.Created,
+                        activity.Modified
+                    }, cancellationToken: cancellationToken);
 
                 logger.AccountActivityRecorded(request.AccountId, activity.Module, activity.Action, activity.EntityType, activity.EntityId);
 
