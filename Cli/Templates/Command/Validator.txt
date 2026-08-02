@@ -1,9 +1,0 @@
-﻿using FluentValidation;
-
-namespace Application.{{Namespace}}.Commands
-{
-    public class {{Name}}CommandValidator : AbstractValidator<{{Name}}Command>
-    {
-        public {{Name}}CommandValidator() { }
-    }
-}
