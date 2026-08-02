@@ -25,11 +25,18 @@ It issues the access tokens accepted by `Api`; the projects remain independently
 deployable and communicate through OpenID Connect. For local development, the
 database name is `command_q_identity`.
 
-For local SQL Server Express, configure the connection with:
+PostgreSQL is the default IdentityServer provider. Configure both the engine and
+connection in the IdentityServer secret store:
 
 ```powershell
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Server=localhost\SQLEXPRESS;Database=command_q_identity;Integrated Security=True;TrustServerCertificate=True;"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:Engine" "PgSql"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
 ```
+
+The supported engine values are `PgSql`, `MsSql`, `MySql` and `SqLite`. All use
+the `ConnectionStrings:IdentityDb` key, with a connection string appropriate for
+the selected EF Core provider. IdentityServer does not reuse the API's SqlKata
+connection or provider registration.
 
 For QA or Production, configure the database, public issuer and PKCS#12
 certificate files, persisted Data Protection keys and key-protection certificate
@@ -63,6 +70,8 @@ ASP.NET Core maps double underscores to configuration sections:
 
 ```text
 ConnectionStrings__Db -> ConnectionStrings:Db
+ConnectionStrings__Engine -> ConnectionStrings:Engine
+ConnectionStrings__IdentityDb -> ConnectionStrings:IdentityDb
 Authentication__Authority -> Authentication:Authority
 ApiClients__0__Id -> ApiClients:0:Id
 OpenIddict__Issuer -> OpenIddict:Issuer

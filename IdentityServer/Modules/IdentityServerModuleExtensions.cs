@@ -1,6 +1,7 @@
 ﻿using IdentityServer.Modules.Health;
 using IdentityServer.Modules.Accounts;
 using IdentityServer.Modules.OpenIddict;
+using IdentityServer.Persistence;
 
 namespace IdentityServer.Modules
 {
@@ -11,7 +12,8 @@ namespace IdentityServer.Modules
             IConfiguration configuration,
             IHostEnvironment environment)
         {
-            services.AddAccountsModule(configuration);
+            var identityBuilder = services.AddAccountsModule(configuration);
+            services.AddIdentityServerPersistence(configuration, identityBuilder);
             services.AddOpenIddictModule(configuration, environment);
             services.AddHealthModule();
 

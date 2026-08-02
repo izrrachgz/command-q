@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace IdentityServer.Persistence
 {
-    public sealed class IdentityServerDbContext(DbContextOptions<IdentityServerDbContext> options)
+    public abstract class IdentityServerDbContext(DbContextOptions options)
         : IdentityDbContext<IdentityUser, IdentityRole, Guid>(options)
     {
         public DbSet<IdentitySecurityEvent> SecurityEvents => Set<IdentitySecurityEvent>();

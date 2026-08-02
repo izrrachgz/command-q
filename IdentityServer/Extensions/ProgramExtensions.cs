@@ -37,6 +37,9 @@ namespace IdentityServer.Extensions
                 .Get<AuthorizationServerOptions>()!;
 
             logger.StartupSetting(nameof(environment.EnvironmentName), environment.EnvironmentName);
+            logger.StartupSetting(
+                "DatabaseEngine",
+                configuration[ConfigKeys.ConnectionStrings.Engine]);
             logger.StartupSetting(nameof(options.Issuer), options.Issuer);
             logger.StartupSetting(
                 nameof(options.AccessTokenMinutes),

@@ -24,7 +24,8 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "https://localhost:4200"
-   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Server=localhost\SQLEXPRESS;Database=command_q_identity;Integrated Security=True;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:Engine" "PgSql"
+   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
    ```
 
 3. Prepare the database.
@@ -145,6 +146,11 @@ This solution supports the following databases:
 - **MySQL**
 - **SqLite**
 
+The application uses SqlKata and defaults to SQL Server. IdentityServer uses EF
+Core and defaults to PostgreSQL. Both hosts use the same engine names and
+configuration pattern, but each process owns its connection string and database.
+IdentityServer keeps a separate EF migration set for every provider.
+
 ## Configuration
 Update the `appsettings.json` file with the appropriate connection string for your database. Example:
 
@@ -203,6 +209,7 @@ Root helper scripts are also available:
 .\scripts\test.ps1
 .\scripts\run-api.ps1
 .\scripts\run-identity-server.ps1
+.\scripts\add-identity-migration.ps1 -Name MigrationName
 .\scripts\run-front.ps1
 ```
 
@@ -246,6 +253,18 @@ Migration execution is fail-fast:
 - successful migrations are recorded in the `MigrationRecord` table with migration id, module, name, checksum and applied time
 
 `Persistence/Migrations/{Engine}/Core/migration-1.sql` creates the initial schema and seeds the `MigrationRecord` table.
+
+IdentityServer migrations are EF Core migrations stored under
+`IdentityServer/Persistence/Migrations/{Engine}`. Generate the same schema
+change for all supported providers with:
+
+```powershell
+.\scripts\add-identity-migration.ps1 -Name MigrationName
+```
+
+At runtime IdentityServer applies only pending migrations belonging to its
+configured provider. Do not create one shared EF migration snapshot across
+providers.
 
 ## Data Access
 
@@ -336,7 +355,10 @@ Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRu
 
 API-layer rules and middleware tests live under `Api.Test`. These tests avoid booting the full API host unless startup/pipeline behavior is the explicit target, because full host tests may require configured database settings.
 
-`IdentityServer.Test` verifies authorization-server dependency boundaries plus password hashing, lockout, external-login persistence and security-event storage with an isolated EF store.
+`IdentityServer.Test` verifies authorization-server dependency boundaries,
+provider selection, provider migration snapshots, SQLite migration execution,
+password hashing, lockout, external-login persistence and security-event
+storage.
 
 ## Logging
 

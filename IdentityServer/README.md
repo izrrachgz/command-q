@@ -12,7 +12,8 @@
 - signed `at+jwt` access tokens and encrypted authorization/refresh tokens
 - configurable clients, redirect URIs, permissions and the `command_q_api` resource scope
 - persisted security activity for registration, login, lockout, refresh and logout
-- SQL Server EF Core stores and a version-one migration
+- EF Core stores for PostgreSQL, SQL Server, MySQL and SQLite
+- provider-specific version-one migrations selected through configuration
 - persisted Data Protection keys for stable authentication cookies
 - health endpoints, security headers, rate limiting and source-generated logging
 
@@ -26,14 +27,40 @@ Trust the ASP.NET Core HTTPS development certificate once if needed:
 dotnet dev-certs https --trust
 ```
 
-Configure the SQL Server Express database and run the host:
+PostgreSQL is the default IdentityServer engine. Create an empty
+`command_q_identity` database, configure the local connection and run the host:
 
 ```powershell
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
+  "ConnectionStrings:Engine" `
+  "PgSql"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
   "ConnectionStrings:IdentityDb" `
-  "Server=localhost\SQLEXPRESS;Database=command_q_identity;Integrated Security=True;TrustServerCertificate=True;"
+  "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
 .\scripts\run-identity-server.ps1
 ```
+
+## Database Providers
+
+IdentityServer uses EF Core independently from the application's SqlKata
+persistence. Select exactly one provider per IdentityServer process through
+`ConnectionStrings:Engine`:
+
+| Engine | EF Core provider | Typical use |
+| --- | --- | --- |
+| `PgSql` | Npgsql | Default development and production choice |
+| `MsSql` | Microsoft SQL Server | SQL Server and Azure SQL deployments |
+| `MySql` | Oracle MySQL Connector/NET | MySQL deployments |
+| `SqLite` | Microsoft SQLite | Local, test or single-instance deployments |
+
+Every engine uses the same `ConnectionStrings:IdentityDb` key. Provider
+selection is explicit and validated during startup; connection strings are not
+inspected to guess an engine.
+
+The PostgreSQL and MySQL providers reuse the same underlying Npgsql and
+Connector/NET package families as application persistence. EF Core's SQLite
+provider uses `Microsoft.Data.Sqlite`; the application's SqlKata implementation
+continues to use `System.Data.SQLite` independently.
 
 The Development issuer is `https://localhost:7125/`. Important endpoints include:
 
@@ -59,6 +86,7 @@ Ending the browser session does not revoke an already issued refresh token. A cl
 QA and Production must supply these values from a deployment secret store:
 
 - `ConnectionStrings:IdentityDb`
+- `ConnectionStrings:Engine`
 - `OpenIddict:Issuer`
 - signing and encryption certificate paths/passwords
 - `DataProtection:KeysPath`
@@ -69,14 +97,20 @@ Development certificates are rejected outside Development. Data Protection keys 
 
 ## Migrations
 
-The initial migration contains ASP.NET Identity, OpenIddict and security-event tables. Restore the repository-local tool and add later migrations with:
+The initial migration contains ASP.NET Identity, OpenIddict and security-event
+tables. Each provider owns a migration set under
+`Persistence/Migrations/{Engine}`. Add every future model change to all four
+sets with one command:
 
 ```powershell
-dotnet tool restore
-dotnet tool run dotnet-ef migrations add MigrationName `
-  --project .\IdentityServer\IdentityServer.csproj `
-  --startup-project .\IdentityServer\IdentityServer.csproj `
-  --output-dir Persistence\Migrations
+.\scripts\add-identity-migration.ps1 -Name MigrationName
 ```
 
-Development applies pending migrations at startup. Outside Development, `Migrations:RunOnStartup` is opt-in. While version one is unfinished, manually recreate the development identity database after changing the initial migration.
+The script restores the repository-local EF tool, builds IdentityServer and
+scaffolds the same migration name for `PgSql`, `MsSql`, `MySql` and `SqLite`.
+Commit all four generated migration sets together.
+
+Development applies only pending migrations for the configured provider at
+startup. Outside Development, `Migrations:RunOnStartup` is opt-in. While version
+one is unfinished, manually recreate the selected development identity database
+after changing the initial migration.

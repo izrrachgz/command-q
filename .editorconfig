@@ -75,3 +75,6 @@ dotnet_naming_style.pascal_case.capitalization = pascal_case
 [Persistence/Migrations/**/*.sql]
 generated_code = true
 indent_size = 4
+
+[IdentityServer/Persistence/Migrations/**/*.cs]
+generated_code = true

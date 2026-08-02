@@ -1,6 +1,5 @@
 ﻿using IdentityServer.Constants;
 using OpenIddict.Abstractions;
-using IdentityServer.Persistence;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 
@@ -8,7 +7,7 @@ namespace IdentityServer.Modules.Accounts
 {
     internal static class AccountsModuleExtensions
     {
-        public static IServiceCollection AddAccountsModule(
+        public static IdentityBuilder AddAccountsModule(
             this IServiceCollection services,
             IConfiguration configuration)
         {
@@ -29,7 +28,7 @@ namespace IdentityServer.Modules.Accounts
             var identityOptions = identitySection.Get<IdentityConfigurationOptions>()
                 ?? throw new InvalidOperationException("Identity configuration is required.");
 
-            services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>(options =>
                 {
                     options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
                     options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
@@ -46,7 +45,6 @@ namespace IdentityServer.Modules.Accounts
                     options.SignIn.RequireConfirmedEmail = identityOptions.RequireConfirmedEmail;
                     options.User.RequireUniqueEmail = true;
                 })
-                .AddEntityFrameworkStores<IdentityServerDbContext>()
                 .AddDefaultTokenProviders();
 
             services.ConfigureApplicationCookie(options =>
@@ -94,7 +92,7 @@ namespace IdentityServer.Modules.Accounts
                         }));
             });
 
-            return services;
+            return identityBuilder;
         }
 
         private static void AddExternalProviders(IServiceCollection services, IConfiguration configuration)

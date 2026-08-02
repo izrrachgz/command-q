@@ -13,6 +13,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\test.ps1`
   - `.\scripts\run-api.ps1`
   - `.\scripts\run-identity-server.ps1`
+  - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
 - `CommandQ.slnLaunch` provides the shared Visual Studio `Backend (IdentityServer + API)` profile. It starts IdentityServer before API using both HTTPS launch profiles.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
@@ -52,13 +53,17 @@ This file captures practical repository knowledge for coding agents working in t
 ### IdentityServer
 - Standalone ASP.NET Core Identity and OpenIddict authorization-server host. It is independently deployable and connected to `Api` through standard OpenID Connect discovery, not a project reference.
 - Run locally with `.\scripts\run-identity-server.ps1`; the Development issuer is `https://localhost:7125/`.
-- OpenIddict uses an isolated SQL Server database named `command_q_identity` through EF Core stores.
+- OpenIddict uses an isolated database named `command_q_identity` through EF Core stores.
+- IdentityServer supports `PgSql`, `MsSql`, `MySql` and `SqLite` through `ConnectionStrings:Engine`; PostgreSQL is the default.
+- Keep IdentityServer on EF Core. Do not introduce SqlKata into this host or share the application's persistence registration.
+- The shared Identity/OpenIddict model lives in `IdentityServerDbContext`; provider-specific contexts under `IdentityServer/Persistence/Providers` select the EF provider and migration set.
 - ASP.NET Core Identity owns local users, password hashing, lockout, roles, claims and external login links.
 - OpenIddict owns clients, scopes, authorizations, access/refresh tokens and revocation. Access tokens are signed `at+jwt` tokens; authorization and refresh tokens remain encrypted.
 - Account endpoints live under `IdentityServer/Modules/Accounts`; authorization/token handlers and client/scope seeding live under `IdentityServer/Modules/OpenIddict`.
 - Google and Microsoft providers are registered only when complete `ExternalProviders` credentials are configured.
 - Authentication security events are stored in `IdentitySecurityEvent`; application business activity remains in `AccountActivity`.
-- EF migrations live under `IdentityServer/Persistence/Migrations`; restore the repository-local `dotnet-ef` tool before adding migrations.
+- EF migrations live under `IdentityServer/Persistence/Migrations/{Engine}`. Use `.\scripts\add-identity-migration.ps1 -Name MigrationName` so every model change is generated for all four providers.
+- Do not combine provider migrations into one snapshot. EF migration sets must remain aligned across `PgSql`, `MsSql`, `MySql` and `SqLite`.
 - Development applies pending EF migrations at startup. Non-development migration execution is opt-in through `Migrations:RunOnStartup`.
 - Development certificates are allowed only in Development. QA/Production require signing, encryption and Data Protection certificates plus shared persisted Data Protection keys.
 
@@ -174,7 +179,7 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### IdentityServer.Test
 - xUnit tests for IdentityServer architecture and isolated ASP.NET Identity persistence behavior.
-- Uses EF Core InMemory only for focused identity-store tests; production IdentityServer remains SQL Server-backed.
+- Uses EF Core InMemory for focused identity-store tests and relational SQLite for migration execution tests. Production persistence uses the provider selected through configuration.
 - Useful targeted command: `dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj`.
 
 ### Cli

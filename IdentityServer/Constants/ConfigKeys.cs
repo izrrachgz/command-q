@@ -4,6 +4,7 @@ namespace IdentityServer.Constants
     {
         public static class ConnectionStrings
         {
+            public const string Engine = "ConnectionStrings:Engine";
             public const string IdentityDb = "IdentityDb";
         }
 

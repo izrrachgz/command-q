@@ -100,11 +100,13 @@ namespace IdentityServer.Test.Modules.Accounts
 
             services.AddLogging();
             services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
-            services.AddDbContext<IdentityServerDbContext>(options =>
+            services.AddDbContext<TestIdentityServerDbContext>(options =>
             {
                 options.UseInMemoryDatabase(Guid.NewGuid().ToString());
                 options.UseOpenIddict();
             });
+            services.AddScoped<IdentityServerDbContext>(serviceProvider =>
+                serviceProvider.GetRequiredService<TestIdentityServerDbContext>());
             services.AddIdentityCore<CommandQIdentityUser>(options =>
                 {
                     options.Lockout.AllowedForNewUsers = true;
@@ -112,7 +114,7 @@ namespace IdentityServer.Test.Modules.Accounts
                     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 })
                 .AddRoles<CommandQIdentityRole>()
-                .AddEntityFrameworkStores<IdentityServerDbContext>();
+                .AddEntityFrameworkStores<TestIdentityServerDbContext>();
             services.AddScoped<IdentitySecurityEventRecorder>();
 
             return services.BuildServiceProvider();
@@ -141,12 +143,15 @@ namespace IdentityServer.Test.Modules.Accounts
             var services = new ServiceCollection();
 
             services.AddLogging();
-            services.AddDbContext<IdentityServerDbContext>(options =>
+            services.AddDbContext<TestIdentityServerDbContext>(options =>
             {
                 options.UseInMemoryDatabase(Guid.NewGuid().ToString());
                 options.UseOpenIddict();
             });
-            services.AddAccountsModule(configuration);
+            services.AddScoped<IdentityServerDbContext>(serviceProvider =>
+                serviceProvider.GetRequiredService<TestIdentityServerDbContext>());
+            services.AddAccountsModule(configuration)
+                .AddEntityFrameworkStores<TestIdentityServerDbContext>();
 
             return services.BuildServiceProvider();
         }
@@ -164,6 +169,12 @@ namespace IdentityServer.Test.Modules.Accounts
                 CreatedUtc = now,
                 ModifiedUtc = now
             };
+        }
+
+        private sealed class TestIdentityServerDbContext(
+            DbContextOptions<TestIdentityServerDbContext> options)
+            : IdentityServerDbContext(options)
+        {
         }
     }
 }

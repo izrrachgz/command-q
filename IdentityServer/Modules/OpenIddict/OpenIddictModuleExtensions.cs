@@ -1,8 +1,6 @@
 ﻿using OpenIddict.Server;
 using OpenIddict.Abstractions;
 using IdentityServer.Constants;
-using IdentityServer.Persistence;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography.X509Certificates;
 
 namespace IdentityServer.Modules.OpenIddict
@@ -15,24 +13,11 @@ namespace IdentityServer.Modules.OpenIddict
             IHostEnvironment environment)
         {
             var serverOptions = GetAndValidateOptions(configuration, environment);
-            string connectionString = GetConnectionString(configuration);
-
             services.AddOptions<AuthorizationServerOptions>()
                 .Bind(configuration.GetRequiredSection(ConfigKeys.OpenIddict.Section))
                 .ValidateOnStart();
 
-            services.AddDbContext<IdentityServerDbContext>(options =>
-            {
-                options.UseSqlServer(connectionString, sqlServer => sqlServer.EnableRetryOnFailure());
-                options.UseOpenIddict();
-            });
-
             services.AddOpenIddict()
-                .AddCore(options =>
-                {
-                    options.UseEntityFrameworkCore()
-                        .UseDbContext<IdentityServerDbContext>();
-                })
                 .AddServer(options => ConfigureServer(options, serverOptions, environment));
 
             return services;
@@ -152,17 +137,5 @@ namespace IdentityServer.Modules.OpenIddict
             return options;
         }
 
-        private static string GetConnectionString(IConfiguration configuration)
-        {
-            string connectionString = configuration.GetConnectionString(ConfigKeys.ConnectionStrings.IdentityDb)
-                ?? throw new InvalidOperationException("ConnectionStrings:IdentityDb is required.");
-
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new InvalidOperationException("ConnectionStrings:IdentityDb is required.");
-            }
-
-            return connectionString;
-        }
     }
 }
