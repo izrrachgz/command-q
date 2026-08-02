@@ -1,5 +1,6 @@
 using IdentityServer.Modules.Accounts;
 using IdentityServer.Persistence;
+using IdentityServer.Persistence.DesignTime;
 using IdentityServer.Persistence.Providers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;

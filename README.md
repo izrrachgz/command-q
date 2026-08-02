@@ -1,6 +1,10 @@
 # CommandQ
 
-CommandQ is a .NET 10 backend starter solution intended to be reusable across multiple application types. It uses a modular-monolith shape for the application API and includes an optional, standalone OpenIddict authorization-server host.
+CommandQ is a .NET 10 backend starter solution intended to be reusable across
+multiple application types. It uses a modular-monolith shape for the application
+API and includes a standalone OpenIddict authorization-server host. That host can
+be replaced by another standards-compatible issuer, but the API always requires
+a configured authority.
 
 ## Prerequisites
 
@@ -23,23 +27,26 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
    dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
    dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
-   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "https://localhost:4200"
+   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "http://localhost:4200"
+   dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Engine" "MsSql"
+   dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:Engine" "PgSql"
    dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
    ```
 
 3. Prepare the database.
 
-   Create empty application and identity databases. In Development, each host applies only its pending migrations. While version 1 is still being shaped, manually drop/recreate both development databases when either baseline migration changes.
+   Create empty application and identity databases. In Development, each host applies only its pending migrations. While version 1 is still being shaped, manually drop/recreate the affected development database when its baseline migration changes.
 
-4. Build and test.
+4. Build and run the database-independent test suites.
 
    ```powershell
    .\scripts\build.ps1
-   .\scripts\test.ps1
+   dotnet test .\Api.Test\Api.Test.csproj --no-build
+   dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj --no-build
    ```
 
-5. Run the identity server, then the API.
+5. Run the identity server, then the API in separate terminals.
 
    ```powershell
    .\scripts\run-identity-server.ps1
@@ -48,7 +55,11 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
 
    In Visual Studio 2022 17.11 or later, select the shared `Backend (IdentityServer + API)` solution launch profile before pressing F5. It starts IdentityServer first and API second with their HTTPS project profiles.
 
-6. Optionally run the frontend placeholder.
+   After the API has applied the application migrations, run the full suite with
+   `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own
+   `ConnectionStrings` user-secrets configured in step 2.
+
+6. Optionally run the frontend.
 
    The backend does not require the frontend. If you keep `FrontApplication`, run:
 
@@ -68,7 +79,7 @@ CommandQ is a .NET 10 backend starter solution intended to be reusable across mu
 
 9. Add a migration.
 
-   Add `migration-X.sql` under `Persistence/Migrations/{Engine}/{Module}` for each supported engine you intend to keep. Migration IDs must be unique per engine and scripts must move forward only.
+   For application persistence, add `migration-X.sql` under `Persistence/Migrations/{Engine}/{Module}` for each supported engine you intend to keep. Migration IDs must be unique per engine and scripts must move forward only. For IdentityServer, run `.\scripts\add-identity-migration.ps1 -Name MigrationName` to generate the EF migration for all four providers.
 
 10. Add localized validation text.
 
@@ -110,7 +121,7 @@ IdentityServer/
 Application.Test/
 Api.Test/
 IdentityServer.Test/
-Cli/
+FrontApplication/  (optional; not referenced by CommandQ.sln)
 ```
 
 Feature-owned code should live under the matching module folder. Cross-cutting infrastructure remains at project root, for example `Api/Middleware`, `Common/System`, `Persistence/Repository`, and root logging for general infrastructure events.
@@ -146,13 +157,19 @@ This solution supports the following databases:
 - **MySQL**
 - **SqLite**
 
-The application uses SqlKata and defaults to SQL Server. IdentityServer uses EF
-Core and defaults to PostgreSQL. Both hosts use the same engine names and
-configuration pattern, but each process owns its connection string and database.
-IdentityServer keeps a separate EF migration set for every provider.
+The application uses SqlKata. Its base and Development settings select SQL
+Server, while the QA and Production templates select PostgreSQL. IdentityServer
+uses EF Core and selects PostgreSQL in every committed environment. Both hosts
+use the same engine names and `ConnectionStrings:Engine` path, but the
+application reads `ConnectionStrings:Db` and IdentityServer reads
+`ConnectionStrings:IdentityDb`. IdentityServer keeps a separate EF migration
+set for every provider.
 
 ## Configuration
-Update the `appsettings.json` file with the appropriate connection string for your database. Example:
+Select the engine through configuration and supply the real connection string
+through user-secrets in Development or the deployment environment's secret
+store. Keep credentials out of committed `appsettings*.json` files. The
+following examples show the application `Db` connection format:
 
 ### **Microsoft SQL Server**
 ```json
@@ -196,22 +213,27 @@ Update the `appsettings.json` file with the appropriate connection string for yo
    ```sh
    dotnet build .\CommandQ.sln
    ```
-3. Run IdentityServer and then the API:
+3. Run IdentityServer and then the API in separate terminals:
    ```sh
-   dotnet run --project .\IdentityServer\IdentityServer.csproj
-   dotnet run --project .\Api\Api.csproj
+   dotnet run --project .\IdentityServer\IdentityServer.csproj --launch-profile https
+   dotnet run --project .\Api\Api.csproj --launch-profile https
    ```
 
 Root helper scripts are also available:
 
-```powershell
-.\scripts\build.ps1
-.\scripts\test.ps1
-.\scripts\run-api.ps1
-.\scripts\run-identity-server.ps1
-.\scripts\add-identity-migration.ps1 -Name MigrationName
-.\scripts\run-front.ps1
-```
+| Script | Defaults and options |
+| --- | --- |
+| `.\scripts\build.ps1` | Debug build; accepts `-Configuration` and `-NoRestore`. |
+| `.\scripts\test.ps1` | Tests `CommandQ.sln`; accepts `-Configuration`, `-Project`, `-Filter` and `-NoBuild`. The default includes database-backed `Application.Test` cases. |
+| `.\scripts\run-identity-server.ps1` | Development on `https://localhost:7125`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
+| `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
+| `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
+| `.\scripts\run-front.ps1` | Optional frontend runner; accepts `-Install`. |
+
+The backend run scripts bypass `launchSettings.json` deliberately so their
+`-Environment` and `-Urls` arguments are authoritative. Visual Studio uses the
+separate HTTPS launch profiles from `CommandQ.slnLaunch`. Use `Qa` when loading
+the committed `appsettings.Qa.json` files on case-sensitive hosts.
 
 ## Postman
 
@@ -221,7 +243,7 @@ Import the backend collection and the appropriate environment from [`postman/`](
 
 For migrations, add a `migration-X.sql` script under `Persistence/Migrations/{Engine}/{Module}` for each database engine/module you intend to support. The configured engine is selected from `ConnectionStrings:Engine`, and the matching migration folder is scanned recursively.
 
-Startup migration execution is controlled by:
+Outside Development, startup migration execution is enabled with:
 
 ```json
 "Migrations": {
@@ -229,11 +251,20 @@ Startup migration execution is controlled by:
 }
 ```
 
-In Development, the app invokes the migration runner on startup so it can move the local database forward automatically. The runner reads the `MigrationRecord` table first and only applies pending scripts, so an already-applied `migration-1.sql` is skipped and the next pending script starts at `migration-2.sql`.
+In Development, the app invokes the migration runner regardless of the toggle
+so it can move the local database forward automatically. The runner reads the
+`MigrationRecord` table first and only applies pending scripts, so an
+already-applied `migration-1.sql` is skipped and the next pending script starts
+at `migration-2.sql`.
 
 Outside Development, enable `Migrations:RunOnStartup` only in environments where the configured database is reachable and migrations should be applied by the app.
 
 The v1 migration scripts are forward-only bootstrap scripts. They create schema for an empty database and do not drop existing tables. During pre-v1 development, drop/recreate the development database manually when the baseline schema changes.
+
+If the IdentityServer database is recreated, newly registered users receive new
+subject identifiers. Reset stale development `AccountIdentity` mappings or the
+application database before provisioning those profiles again; never infer an
+identity link from email alone.
 
 The migration root can be overridden when the default source/publish path resolution is not enough:
 
@@ -266,6 +297,11 @@ At runtime IdentityServer applies only pending migrations belonging to its
 configured provider. Do not create one shared EF migration snapshot across
 providers.
 
+After migration handling, IdentityServer reconciles the default `User` role,
+configured API scope and configured OpenIddict clients on every startup. When
+startup migrations are disabled outside Development, the selected database must
+already contain the current schema before IdentityServer starts.
+
 ## Data Access
 
 The persistence layer separates read and write entry points:
@@ -291,13 +327,15 @@ The persistence layer separates read and write entry points:
 
 ## Health Checks
 
-The API exposes:
+Both backend hosts expose:
 
 - `/health/live` for process liveness
 - `/health/ready` for dependency readiness
 - `/health/checks` for the full registered health-check set
 
 Background health-check publishing is opt-in through `HealthCheck:PublishOnStartup`.
+This publishing setting belongs to the application API. IdentityServer does not
+run a background publisher; its readiness check validates its EF database.
 
 ## Module Registration
 
@@ -344,16 +382,24 @@ Api.Test/
   Architecture/
   Modules/
     Common/
+    Health/
+    Identity/
 
 IdentityServer.Test/
   Architecture/
   Modules/
     Accounts/
+  Persistence/
 ```
 
 Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRulesTest.cs`. These tests check project dependency direction, CQRS repository usage, module namespace conventions, duplicate logging event IDs, and module logging event-id ranges. Application composition tests also resolve the real application service graph.
 
 API-layer rules and middleware tests live under `Api.Test`. These tests avoid booting the full API host unless startup/pipeline behavior is the explicit target, because full host tests may require configured database settings.
+
+Some `Application.Test` module tests execute against the configured application
+database. They use the test project's own user-secrets and require the current
+application migrations to have been applied. Architecture and helper tests can
+still be run independently with `--filter` when no database is available.
 
 `IdentityServer.Test` verifies authorization-server dependency boundaries,
 provider selection, provider migration snapshots, SQLite migration execution,

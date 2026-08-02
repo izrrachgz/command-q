@@ -57,6 +57,15 @@ Every engine uses the same `ConnectionStrings:IdentityDb` key. Provider
 selection is explicit and validated during startup; connection strings are not
 inspected to guess an engine.
 
+Provider-specific `IdentityDb` examples:
+
+```text
+PgSql:  Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;
+MsSql:  Server=localhost;Database=command_q_identity;User ID=commandq;Password=change-me;TrustServerCertificate=True;
+MySql:  Server=localhost;Database=command_q_identity;User ID=commandq;Password=change-me;
+SqLite: Data Source=App_Data/command_q_identity.db
+```
+
 The PostgreSQL and MySQL providers reuse the same underlying Npgsql and
 Connector/NET package families as application persistence. EF Core's SQLite
 provider uses `Microsoft.Data.Sqlite`; the application's SqlKata implementation
@@ -69,13 +78,15 @@ The Development issuer is `https://localhost:7125/`. Important endpoints include
 - `POST /account/sign-out`
 - `GET /account/me`
 - `GET /account/security-activity`
+- `GET /account/external/{provider}`
+- `GET /account/external/{provider}/link`
 - `GET|POST /connect/authorize`
 - `POST /connect/token`
 - `GET|POST /connect/logout`
 - `POST /connect/revoke`
 - `GET|POST /connect/userinfo`
 - `GET /.well-known/openid-configuration`
-- `GET /health/live` and `GET /health/ready`
+- `GET /health/live`, `GET /health/ready` and `GET /health/checks`
 
 The local `command_q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command_q_api`. The JSON sign-in endpoint establishes the IdentityServer cookie before authorization.
 
@@ -83,14 +94,18 @@ Ending the browser session does not revoke an already issued refresh token. A cl
 
 ## Production Configuration
 
-QA and Production must supply these values from a deployment secret store:
+QA and Production must supply these settings through deployment configuration:
 
-- `ConnectionStrings:IdentityDb`
 - `ConnectionStrings:Engine`
 - `OpenIddict:Issuer`
-- signing and encryption certificate paths/passwords
-- `DataProtection:KeysPath`
-- Data Protection certificate path/password
+- client IDs, redirect URIs and flow choices under `OpenIddict:Clients`
+- signing, encryption and Data Protection certificate paths
+- `DataProtection:KeysPath` pointing to storage shared by every instance
+
+Supply these sensitive values through the deployment secret store:
+
+- `ConnectionStrings:IdentityDb`
+- signing, encryption and Data Protection certificate passwords
 - confidential client secrets and external provider credentials when enabled
 
 Development certificates are rejected outside Development. Data Protection keys must be in storage shared by every IdentityServer instance and protected with the configured certificate.
@@ -110,7 +125,19 @@ The script restores the repository-local EF tool, builds IdentityServer and
 scaffolds the same migration name for `PgSql`, `MsSql`, `MySql` and `SqLite`.
 Commit all four generated migration sets together.
 
+Provider-specific design-time factories live in separate files under
+`Persistence/DesignTime`. They use intentionally non-routable connection
+placeholders because EF requires configured provider options while scaffolding.
+They never read deployment secrets and are not used by runtime DI. Do not use
+these factories with `dotnet ef database update`; apply migrations through
+IdentityServer startup with the real configured connection instead.
+
 Development applies only pending migrations for the configured provider at
 startup. Outside Development, `Migrations:RunOnStartup` is opt-in. While version
 one is unfinished, manually recreate the selected development identity database
 after changing the initial migration.
+
+IdentityServer seeds after migration handling on every startup. The seeder
+creates or updates the default `User` role, API scope and configured OpenIddict
+clients. If non-Development startup migrations are disabled, deploy the current
+schema before starting the host or seeding will fail against missing tables.

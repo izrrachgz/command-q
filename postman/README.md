@@ -12,6 +12,11 @@ Import these files into Postman:
 
 Select `CommandQ - Development` as the active environment and start the Visual Studio `Backend (IdentityServer + API)` profile. Trust the local ASP.NET Core HTTPS certificate with `dotnet dev-certs https --trust` if needed.
 
+As a command-line alternative, run `.\scripts\run-identity-server.ps1` and
+`.\scripts\run-api.ps1` from separate terminals. Their default HTTPS URLs are
+the same `https://localhost:7125` and `https://localhost:7025` values committed
+in the Development environment.
+
 ## Local Secrets
 
 Set these values locally in the imported Development environment before sending authenticated requests:
@@ -47,6 +52,11 @@ The authorization request generates a fresh PKCE verifier/challenge and intentio
 Postman's cookie jar must remain enabled between sign-in and authorization. The application API folder validates the access token type, issuer, audience, scope and expiration before explicitly adding it as a bearer token. It also injects the configured API-client header and `Origin`. If the access token has expired, run `02 - OAuth 2.0 with PKCE / Refresh access token`; if the refresh token is unavailable or rejected, repeat the authorization-code flow.
 
 IdentityServer sign-in and API authorization are separate. Identity account endpoints use the IdentityServer cookie, while the application API requires a short-lived OAuth access token. After obtaining a valid access token, run `Provision application profile` once to create the application-owned `Account` and `AccountIdentity` records. Until that request succeeds, the `command_q` account tables are expected to be empty.
+
+If IdentityServer was reset while the application database was retained, the
+new user has a different token subject and the old `AccountIdentity` mapping is
+stale. Reset that development application profile before provisioning it again;
+do not relink it automatically by email.
 
 ## Other Environments
 

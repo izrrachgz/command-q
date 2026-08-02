@@ -1,4 +1,4 @@
-# Local Secrets
+# Configuration And Local Secrets
 
 Use .NET user-secrets for local backend secrets. Keep real secrets out of
 `appsettings*.json`, `.env`, scripts and docs.
@@ -12,11 +12,42 @@ dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Engine" "M
 dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
 dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
 dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
-dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "https://localhost:4200"
+dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "http://localhost:4200"
 ```
 
 Development startup invokes the migration runner automatically. The runner reads
 `MigrationRecord` first and applies only pending migrations.
+
+`Application.Test` has a separate user-secrets store. Its database-backed module
+tests require the same application database engine and connection, with the
+current application migrations already applied:
+
+```powershell
+dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Engine" "MsSql"
+dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+```
+
+## API Deployment Configuration
+
+The QA and Production API templates select `PgSql` but intentionally leave the
+database, authority and API-client values empty. Supply them through deployment
+configuration and a secret store as appropriate:
+
+```text
+ConnectionStrings__Engine
+ConnectionStrings__Db
+Authentication__Authority
+Authentication__Audience
+Authentication__ApiScope
+ApiClients__0__Name
+ApiClients__0__Id
+ApiClients__0__Uri
+Migrations__RunOnStartup
+```
+
+`ApiClients__0__Uri` is the allowed origin outside Development, while
+`ApiClients__0__Id` is the secret header value. Add additional clients by
+incrementing the array index.
 
 ## Standalone Identity Server
 
@@ -38,19 +69,32 @@ the `ConnectionStrings:IdentityDb` key, with a connection string appropriate for
 the selected EF Core provider. IdentityServer does not reuse the API's SqlKata
 connection or provider registration.
 
-For QA or Production, configure the database, public issuer and PKCS#12
-certificate files, persisted Data Protection keys and key-protection certificate
-through the deployment secret store. For example:
+User-secrets are for local Development. QA and Production should provide the
+database, public issuer, PKCS#12 certificates and shared Data Protection storage
+through their deployment configuration and secret store. Typical environment
+variable names are:
 
-```powershell
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Issuer" "https://identity.example.com/"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Signing:Path" "C:/secure-certs/signing.pfx"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Signing:Password" "replace-with-secret"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Encryption:Path" "C:/secure-certs/encryption.pfx"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "OpenIddict:Certificates:Encryption:Password" "replace-with-secret"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "DataProtection:KeysPath" "C:/shared-secure-keys/commandq-identity"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "DataProtection:Certificate:Path" "C:/secure-certs/data-protection.pfx"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "DataProtection:Certificate:Password" "replace-with-secret"
+```text
+ConnectionStrings__Engine
+ConnectionStrings__IdentityDb
+OpenIddict__Issuer
+OpenIddict__Clients__0__ClientId
+OpenIddict__Clients__0__DisplayName
+OpenIddict__Clients__0__ClientSecret
+OpenIddict__Clients__0__AllowClientCredentials
+OpenIddict__Clients__0__RedirectUris__0
+OpenIddict__Clients__0__PostLogoutRedirectUris__0
+OpenIddict__Certificates__Signing__Path
+OpenIddict__Certificates__Signing__Password
+OpenIddict__Certificates__Encryption__Path
+OpenIddict__Certificates__Encryption__Password
+DataProtection__KeysPath
+DataProtection__Certificate__Path
+DataProtection__Certificate__Password
+ExternalProviders__Google__ClientId
+ExternalProviders__Google__ClientSecret
+ExternalProviders__Microsoft__ClientId
+ExternalProviders__Microsoft__ClientSecret
 ```
 
 Do not enable `OpenIddict:Certificates:UseDevelopmentCertificates` outside the
@@ -63,7 +107,7 @@ are present. Store them as `ExternalProviders:Google:ClientId`/
 ## Environment Variables
 
 `.env.example` documents equivalent environment variable names for deployment
-systems or local tools that load `.env` files. The API does not read `.env`
+systems or local tools that load `.env` files. Neither backend host reads `.env`
 files by itself.
 
 ASP.NET Core maps double underscores to configuration sections:
@@ -83,3 +127,9 @@ While the version 1 baseline is still changing, migration scripts are treated as
 forward-only bootstrap scripts. If `migration-1.sql` or the initial IdentityServer
 EF migration changes after it has already been applied locally, drop and recreate
 the corresponding development database manually.
+
+Recreating the IdentityServer database gives newly registered users new `sub`
+values. Existing application `AccountIdentity` rows will still point to the old
+subjects. During pre-v1 development, reset the corresponding application profile
+or application database before provisioning it again with `POST /Account/create`.
+Do not reconnect identities automatically by email.

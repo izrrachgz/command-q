@@ -16,6 +16,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
 - `CommandQ.slnLaunch` provides the shared Visual Studio `Backend (IdentityServer + API)` profile. It starts IdentityServer before API using both HTTPS launch profiles.
+- The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
@@ -40,6 +41,7 @@ This file captures practical repository knowledge for coding agents working in t
 ### Api
 - ASP.NET Core HTTP API with module controllers, middleware, resource-server authentication and app configuration.
 - Run locally from `Api` with `dotnet run` or Visual Studio launch profiles.
+- Base/Development application settings select `MsSql`; QA/Production templates select `PgSql`. Runtime configuration may override either through `ConnectionStrings:Engine`.
 - Bearer validation settings are configured through the `Authentication` section in `appsettings*.json`.
 - The API validates IdentityServer discovery keys, audience, lifetime, `at+jwt` type and required API scope. It does not issue JWTs or handle refresh tokens.
 - Protocol claims are read through `Api/Extensions/ClaimsPrincipalExtensions.cs`; `ICurrentAccountAccessor` resolves `(iss, sub)` to the application profile through `GetAccountByIdentityQuery`.
@@ -64,7 +66,9 @@ This file captures practical repository knowledge for coding agents working in t
 - Authentication security events are stored in `IdentitySecurityEvent`; application business activity remains in `AccountActivity`.
 - EF migrations live under `IdentityServer/Persistence/Migrations/{Engine}`. Use `.\scripts\add-identity-migration.ps1 -Name MigrationName` so every model change is generated for all four providers.
 - Do not combine provider migrations into one snapshot. EF migration sets must remain aligned across `PgSql`, `MsSql`, `MySql` and `SqLite`.
+- Provider design-time factories live as separate files under `IdentityServer/Persistence/DesignTime` and use non-routable placeholder connections for scaffolding only. Apply database migrations through configured IdentityServer startup, not `dotnet ef database update`.
 - Development applies pending EF migrations at startup. Non-development migration execution is opt-in through `Migrations:RunOnStartup`.
+- After migration handling, every IdentityServer startup reconciles the default role, API scope and configured OpenIddict clients. A current schema is therefore required even when startup migrations are disabled.
 - Development certificates are allowed only in Development. QA/Production require signing, encryption and Data Protection certificates plus shared persisted Data Protection keys.
 
 ### Application
@@ -124,7 +128,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Migrations:
   - Scripts live under `Persistence/Migrations/{Engine}/{Module}`.
   - Add scripts as `migration-X.sql`.
-  - Development startup invokes the migration runner by default.
+  - Development startup always invokes the migration runner, regardless of `Migrations:RunOnStartup`.
   - Non-development startup migration execution is opt-in through `Migrations:RunOnStartup`.
   - The runner reads the database migration ledger first and only applies pending migrations.
   - Migration scripts are forward-only and should not drop existing tables.
@@ -159,6 +163,7 @@ This file captures practical repository knowledge for coding agents working in t
 ### Application.Test
 - xUnit tests for application and shared helper behavior.
 - Tests mirror backend modules under `Application.Test/Modules`.
+- Database-backed module tests read `ConnectionStrings` from the test project's own user-secrets store and require the current application schema. They do not reuse `Api` user-secrets automatically.
 - Application composition tests should use the real `ConfigureApplicationServices(configuration)` path.
 - Architecture rules live under `Application.Test/Architecture`. Keep these updated when adding modules, changing logging ranges, or adjusting dependency boundaries.
 - Uses `Xunit.DependencyInjection`.
@@ -182,12 +187,8 @@ This file captures practical repository knowledge for coding agents working in t
 - Uses EF Core InMemory for focused identity-store tests and relational SQLite for migration execution tests. Production persistence uses the provider selected through configuration.
 - Useful targeted command: `dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj`.
 
-### Cli
-- Code-generation utility project with command/query templates.
-- Keep generated code consistent with existing CQRS, validator and localization patterns.
-
 ### FrontApplication
-- Frontend project placeholder/readme area. It is not part of the current backend modularization work. Check its own README and ask/confirm before changing frontend code unless the user explicitly requests it.
+- Optional Angular frontend project. It is not referenced by `CommandQ.sln` and is not part of the current backend modularization work. Check its own README and ask/confirm before changing frontend code unless the user explicitly requests it.
 
 ## Logging
 - Use source-generated logging with `LoggerMessage`.
