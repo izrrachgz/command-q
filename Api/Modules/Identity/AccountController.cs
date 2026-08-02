@@ -14,7 +14,7 @@ using Application.Modules.Identity.AccountActivity.Queries;
 
 namespace Api.Modules.Identity
 {
-    [ApiController, Route(IdentityApiRoutes.Controller)]
+    [ApiController, Route(@"[controller]")]
     public class AccountController : Controller
     {
         private readonly ISender _mediator;
@@ -41,7 +41,7 @@ namespace Api.Modules.Identity
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
         /// <returns>An <see cref="IActionResult"/> that represents the result of the authentication attempt. Returns 200 OK with
         /// authentication details if successful; otherwise, returns 401 Unauthorized.</returns>
-        [HttpPost(IdentityApiRoutes.SignIn), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
+        [HttpPost(@"sign-in"), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
         {
             var result = await _authService.Login(request.Username, request.Password, cancellationToken);
@@ -74,7 +74,7 @@ namespace Api.Modules.Identity
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the login operation.</param>
         /// <returns>An <see cref="IActionResult"/> that contains the new access token if the refresh token is valid; otherwise,
         /// an unauthorized result.</returns>
-        [HttpPost(IdentityApiRoutes.Refresh)]
+        [HttpPost(@"refresh")]
         public async Task<IActionResult> Refresh(CancellationToken cancellationToken = default)
         {
             // read the refresh token from the HTTP-only cookie set during login.
@@ -116,7 +116,7 @@ namespace Api.Modules.Identity
         /// </summary>
         /// <param name="request">The logout request containing the refresh token to be invalidated. Cannot be null.</param>
         /// <returns>A 204 No Content response if the logout operation succeeds.</returns>
-        [HttpPost(IdentityApiRoutes.Logout)]
+        [HttpPost(@"logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
         {
             var refreshToken = Request.Cookies[_cookieName];
@@ -146,7 +146,7 @@ namespace Api.Modules.Identity
         /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
         /// <returns>An <see cref="IActionResult"/> that represents the result of the account creation operation. Returns a
         /// BadRequest result if the creation fails, or an Ok result with the response data if successful.</returns>
-        [HttpPost(IdentityApiRoutes.Create), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
+        [HttpPost(@"create"), EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Create([FromBody] CreateAccountCommand request, CancellationToken cancellationToken = default)
         {
             var response = await _mediator.Send(request, cancellationToken);
@@ -157,7 +157,7 @@ namespace Api.Modules.Identity
         /// <summary>
         /// Gets the authenticated account information.
         /// </summary>
-        [Authorize, HttpGet(IdentityApiRoutes.Me)]
+        [Authorize, HttpGet(@"me")]
         public async Task<IActionResult> Me(CancellationToken cancellationToken = default)
         {
             if (!User.TryGetAccountId(out var accountId))
@@ -176,7 +176,7 @@ namespace Api.Modules.Identity
         /// <summary>
         /// Gets activity recorded for the authenticated account.
         /// </summary>
-        [Authorize, HttpGet(IdentityApiRoutes.Activity)]
+        [Authorize, HttpGet(@"activity")]
         public async Task<IActionResult> Activity([FromQuery] SearchCriteria searchCriteria, [FromQuery] string? module = null, [FromQuery] string? action = null, CancellationToken cancellationToken = default)
         {
             if (!User.TryGetAccountId(out var accountId))

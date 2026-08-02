@@ -1,13 +1,13 @@
+using System.Text;
+using Domain.Entities;
 using Common.Extensions;
 using SqlKata.Execution;
 using Persistence.Logging;
-using System.Security.Cryptography;
 using Persistence.Interfaces;
-using System.Text;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Domain.Entities;
 
 namespace Persistence.Migrations.Extensions
 {
