@@ -14,6 +14,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\run-api.ps1`
   - `.\scripts\run-identity-server.ps1`
   - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
+  - `.\scripts\test-email-integration.ps1`
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
 - `CommandQ.slnLaunch` provides the shared Visual Studio `Backend (IdentityServer + API)` profile. It starts IdentityServer before API using both HTTPS launch profiles.
 - The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
@@ -187,6 +188,33 @@ This file captures practical repository knowledge for coding agents working in t
 - Uses EF Core InMemory for focused identity-store tests and relational SQLite for migration execution tests. Production persistence uses the provider selected through configuration.
 - Useful targeted command: `dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj`.
 
+### Email
+- Standalone .NET 10 SMTP delivery library backed by MailKit and MimeKit. It has no dependency on API, Application or IdentityServer.
+- Public abstractions and message models live under `Email/Abstractions` and `Email/Models`; MailKit transport details stay internal under `Email/Services`.
+- `Email/appsettings.json` is copied to `Email/appsettings.json` in the output as library defaults. `services.AddEmailServices(configuration)` layers consuming-host configuration over that file and validates the merged `Email` section on startup.
+- Email delivery is disabled by default. Disabled configuration may remain incomplete; when `Email:Enabled` is `true`, SMTP, sender, authentication and delivery-policy settings are validated.
+- Supported SMTP authentication types are `Anonymous`, `Login`, `Plain` and `OAuth`. Only the selected authentication section is consumed. OAuth expects an already-issued access token and does not acquire, refresh or persist tokens.
+- Authenticated modes require `StartTls` or `SslOnConnect`; do not weaken this validation or bypass certificate validation.
+- `IEmailSender` returns `EmailSendResult`/`EmailBatchResult` with message IDs and SMTP responses. `EmailDeliveryException` exposes failure classification and messages accepted before a partial batch failure.
+- `IEmailSender.SendAsync(IEnumerable<EmailMessage>)` validates the full batch and configured delivery limits, opens one connection, authenticates once, sends sequentially, disconnects once and disposes the SMTP client.
+- File, byte and copied-stream attachments are supported. HTML messages may include `EmailInlineResource` items referenced through `cid:` URLs. Caller-owned streams are copied and are never retained or disposed by the library.
+- HTML template overloads read already-rendered files verbatim. Rendering, substitutions and localization belong to the caller.
+- Do not add automatic SMTP retries to the sender. Durable retries, deduplication and dead-letter handling belong in an application-owned outbox/worker layer because a failed batch can be partially delivered.
+- Keep SMTP credentials in the consuming host's user-secrets or deployment secret store. Do not add them to the Email project or committed settings.
+- The Email project is not currently referenced by API or IdentityServer; do not couple it to a host until a concrete workflow needs delivery.
+- Detailed configuration, API examples and batch semantics are documented in `Email/README.md`.
+
+### Email.Test
+- Isolated xUnit tests for dependency boundaries, logging ranges, options and policy validation, MIME construction, structured failures and SMTP connection lifecycle.
+- Uses an in-memory fake transport and never contacts a real SMTP endpoint.
+- Useful targeted command: `dotnet test .\Email.Test\Email.Test.csproj`.
+
+### Email.IntegrationTest
+- Opt-in xUnit tests against a developer-owned smtp4dev instance. The committed setting disables the test so normal solution and CI runs do not require an SMTP service.
+- Local defaults are SMTP `localhost:25` and HTTP API `http://localhost:5000`; override them through the `Smtp4Dev` configuration section or environment variables.
+- The test verifies SMTP acceptance, plain and HTML bodies, an attachment and a CID resource through smtp4dev's API, then deletes the test message.
+- Useful targeted command: `.\scripts\test-email-integration.ps1`.
+
 ### FrontApplication
 - Optional Angular frontend project. It is not referenced by `CommandQ.sln` and is not part of the current backend modularization work. Check its own README and ask/confirm before changing frontend code unless the user explicitly requests it.
 
@@ -201,6 +229,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `Common/Logging/CommonEventIdRanges.cs`
   - `Persistence/Logging/PersistenceEventIdRanges.cs`
   - `IdentityServer/Logging/IdentityServerEventIdRanges.cs`
+  - `Email/Logging/EmailEventIdRanges.cs`
 - Add cross-cutting IDs to root `*EventIds.cs` files. Add module-owned IDs to module `Logging/*EventIds.cs` files.
 
 ## Coding Conventions

@@ -104,6 +104,27 @@ Google and Microsoft sign-in are activated only when both provider credentials
 are present. Store them as `ExternalProviders:Google:ClientId`/
 `ClientSecret` or `ExternalProviders:Microsoft:ClientId`/`ClientSecret`.
 
+## Email Delivery
+
+The standalone `Email` project is not currently referenced by a host and is
+disabled by default. When a host adopts it, put that host's SMTP credentials or
+OAuth access token in the host's user-secrets store, not in
+`Email/appsettings.json` or a class-library secret store. For example:
+
+```powershell
+dotnet user-secrets set --project .\Api\Api.csproj "Email:Enabled" "true"
+dotnet user-secrets set --project .\Api\Api.csproj "Email:Smtp:Host" "smtp.example.com"
+dotnet user-secrets set --project .\Api\Api.csproj "Email:Authentication:Type" "Login"
+dotnet user-secrets set --project .\Api\Api.csproj "Email:Authentication:Login:Username" "smtp-user"
+dotnet user-secrets set --project .\Api\Api.csproj "Email:Authentication:Login:Password" "change-me"
+dotnet user-secrets set --project .\Api\Api.csproj "Email:Sender:Address" "no-reply@example.com"
+```
+
+The host still needs an explicit project reference and
+`services.AddEmailServices(configuration)` registration. OAuth tokens are
+ready-to-use values and should be supplied through the deployment secret store;
+the Email library does not acquire, refresh or persist them.
+
 ## Environment Variables
 
 `.env.example` documents equivalent environment variable names for deployment

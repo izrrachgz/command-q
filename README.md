@@ -43,6 +43,8 @@ a configured authority.
    ```powershell
    .\scripts\build.ps1
    dotnet test .\Api.Test\Api.Test.csproj --no-build
+   dotnet test .\Email.Test\Email.Test.csproj --no-build
+   dotnet test .\Email.IntegrationTest\Email.IntegrationTest.csproj --no-build
    dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj --no-build
    ```
 
@@ -118,9 +120,12 @@ Common/
 Localization/
 Persistence/
 IdentityServer/
+Email/
 Application.Test/
 Api.Test/
 IdentityServer.Test/
+Email.Test/
+Email.IntegrationTest/
 FrontApplication/  (optional; not referenced by CommandQ.sln)
 ```
 
@@ -337,6 +342,29 @@ Background health-check publishing is opt-in through `HealthCheck:PublishOnStart
 This publishing setting belongs to the application API. IdentityServer does not
 run a background publisher; its readiness check validates its EF database.
 
+## Email Delivery
+
+The standalone `Email` project provides reusable MailKit/MimeKit SMTP delivery.
+It is disabled by default and includes validated delivery policies, structured
+SMTP acceptance results, classified failures, text and HTML overloads,
+file-path and in-memory attachments, CID resources, verbatim rendered HTML
+templates, and batch delivery over one connection and authentication session.
+SMTP authentication can be selected as anonymous, LOGIN, PLAIN or
+caller-supplied OAuth 2.0 bearer authentication.
+
+The project is intentionally not referenced by API or IdentityServer yet. Add a
+project reference from the host that owns a concrete email workflow, register
+`services.AddEmailServices(configuration)` and keep SMTP credentials in that
+host's secret store. See `Email/README.md` for configuration and usage.
+
+The opt-in `Email.IntegrationTest` project exercises the real SMTP and HTTP
+interfaces of a local smtp4dev instance. With smtp4dev SMTP on port `25` and its
+web UI/API on port `5000`, run:
+
+```powershell
+.\scripts\test-email-integration.ps1
+```
+
 ## Module Registration
 
 Application modules are registered through:
@@ -390,6 +418,15 @@ IdentityServer.Test/
   Modules/
     Accounts/
   Persistence/
+
+Email.Test/
+  Architecture/
+  Configuration/
+  Services/
+
+Email.IntegrationTest/
+  Configuration/
+  Services/
 ```
 
 Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRulesTest.cs`. These tests check project dependency direction, CQRS repository usage, module namespace conventions, duplicate logging event IDs, and module logging event-id ranges. Application composition tests also resolve the real application service graph.
@@ -405,6 +442,13 @@ still be run independently with `--filter` when no database is available.
 provider selection, provider migration snapshots, SQLite migration execution,
 password hashing, lockout, external-login persistence and security-event
 storage.
+
+`Email.Test` verifies project dependency and logging rules, configuration
+validation, MIME message construction, policy limits, structured delivery
+results, attachment and template handling, and one-connection batch delivery
+through an in-memory SMTP transport. `Email.IntegrationTest` is skipped by
+default and verifies complete MIME delivery against a locally running smtp4dev
+instance when explicitly enabled.
 
 ## Logging
 
@@ -422,6 +466,10 @@ The `Common` project includes reusable helpers:
 - `HttpCall` for JSON, form and string HTTP calls.
 - `FileUploader` for multipart file uploads.
 - `TaskRunner` for bounded-concurrency asynchronous work.
+
+The separate `Email` project contains SMTP-specific abstractions, MIME message
+construction and MailKit transport implementation so those dependencies do not
+expand the general-purpose `Common` project.
 
 ## Cqrs
 
