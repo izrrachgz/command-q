@@ -6,10 +6,8 @@ using Common.Extensions;
 using Application.Modules;
 using Application.Interfaces;
 using Localization.Extensions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using Persistence.Migrations.Extensions;
 using Persistence.Repository.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Repository.Command.Extensions;
 
@@ -59,17 +57,6 @@ namespace Application.Extensions
 
             // Add localization services
             services.AddLocalizationServices();
-        }
-
-        /// <summary>
-        /// Runs database migrations on application startup to ensure the database schema is up to date with the application's
-        /// </summary>
-        /// <param name="host"></param>
-        /// <returns></returns>
-        public static async Task RunApplicationMigrations(this IHost host)
-        {
-            // Run database migrations on startup
-            await host.RunMigrations();
         }
     }
 }

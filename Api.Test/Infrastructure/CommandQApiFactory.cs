@@ -56,7 +56,6 @@ namespace Api.Test.Infrastructure
                     ["ConnectionStrings:Engine"] = "SqLite",
                     ["ConnectionStrings:Db"] = "Data Source=:memory:",
                     ["Migrations:RunOnStartup"] = "false",
-                    ["Persistence:MigrationsPath"] = "",
                     ["ApiClients:0:Name"] = ApiClientHeaderName,
                     ["ApiClients:0:Id"] = ApiClientHeaderValue,
                     ["ApiClients:0:Uri"] = ApiClientOrigin,

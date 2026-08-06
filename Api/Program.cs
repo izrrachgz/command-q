@@ -1,6 +1,6 @@
-using Api.Extensions;
 using Api.Constants;
-using Application.Extensions;
+using Api.Extensions;
+using Application.Migrations.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +17,7 @@ app.ConfigurePipeline(builder.Configuration, builder.Environment);
 app.Logger.LogAppConfig(builder.Configuration, builder.Environment);
 
 // Run migrations before starting the application
-if (!app.Environment.IsEnvironment("Testing") &&
-    (app.Environment.IsDevelopment() || app.Configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false)))
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))
 {
     await app.RunApplicationMigrations();
 }

@@ -15,8 +15,9 @@ dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-wi
 dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "http://localhost:4200"
 ```
 
-Development startup invokes the migration runner automatically. The runner reads
-`MigrationRecord` first and applies only pending migrations.
+Development startup invokes the application migration runner automatically. The
+`Application.Migrations` project reads `MigrationRecord` first and applies only
+pending embedded scripts through the configured Persistence repository.
 
 `Application.Test` has a separate user-secrets store. Its database-backed module
 tests require the same application database engine and connection, with the

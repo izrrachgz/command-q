@@ -11,10 +11,5 @@ namespace Persistence.Interfaces
         /// Database query entry point with write-capable SqlKata operations.
         /// </summary>
         QueryFactory Db { get; }
-
-        /// <summary>
-        /// Folder containing SQL migration scripts for the repository engine.
-        /// </summary>
-        string MigrationsPath { get; }
     }
 }

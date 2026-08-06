@@ -25,25 +25,11 @@ namespace Persistence.Repository
         public DatabaseEngine Engine { get; }
 
         /// <summary>
-        /// Folder containing SQL migration scripts for the repository engine.
-        /// </summary>
-        public string MigrationsPath { get; }
-
-        /// <summary>
         /// Creates a writable repository for a specific connection string and database engine.
         /// </summary>
         public WritableRepository(string connectionString, DatabaseEngine engine, ILogger<WritableRepository> logger)
-            : this(connectionString, engine, RepositoryFactory.GetMigrationsPath(engine), logger)
-        {
-        }
-
-        /// <summary>
-        /// Creates a writable repository for a specific connection string, database engine and migration path.
-        /// </summary>
-        public WritableRepository(string connectionString, DatabaseEngine engine, string migrationsPath, ILogger<WritableRepository> logger)
         {
             Engine = engine;
-            MigrationsPath = migrationsPath;
             Db = RepositoryFactory.CreateQueryFactory(connectionString, Engine);
 
             logger.RepositoryCreated(nameof(WritableRepository), Engine);

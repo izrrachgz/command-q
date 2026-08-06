@@ -42,6 +42,7 @@ a configured authority.
 
    ```powershell
    .\scripts\build.ps1
+   dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj --no-build
    dotnet test .\Api.Test\Api.Test.csproj --no-build
    dotnet test .\Email.Test\Email.Test.csproj --no-build
    dotnet test .\Email.IntegrationTest\Email.IntegrationTest.csproj --no-build
@@ -81,7 +82,7 @@ a configured authority.
 
 9. Add a migration.
 
-   For application persistence, add `migration-X.sql` under `Persistence/Migrations/{Engine}/{Module}` for each supported engine you intend to keep. Migration IDs must be unique per engine and scripts must move forward only. For IdentityServer, run `.\scripts\add-identity-migration.ps1 -Name MigrationName` to generate the EF migration for all four providers.
+   For application persistence, add `migration-X.sql` under `Application.Migrations/Migrations/{Engine}/{Module}` for each supported engine you intend to keep. Migration IDs must be unique per engine and scripts must move forward only. The project embeds these scripts in its assembly, so no runtime migration-files path is required. For IdentityServer, run `.\scripts\add-identity-migration.ps1 -Name MigrationName` to generate the EF migration for all four providers.
 
 10. Add localized validation text.
 
@@ -119,9 +120,11 @@ Domain/
 Common/
 Localization/
 Persistence/
+Application.Migrations/
 IdentityServer/
 Email/
 Application.Test/
+Application.Migrations.Test/
 Api.Test/
 IdentityServer.Test/
 Email.Test/
@@ -130,6 +133,11 @@ FrontApplication/  (optional; not referenced by CommandQ.sln)
 ```
 
 Feature-owned code should live under the matching module folder. Cross-cutting infrastructure remains at project root, for example `Api/Middleware`, `Common/System`, `Persistence/Repository`, and root logging for general infrastructure events.
+
+The Visual Studio solution view groups projects into `Hosts`, `Core`,
+`Infrastructure` and `Tests`. These are solution folders only; the physical
+project directories, namespaces, project references and build behavior remain
+unchanged.
 
 Module namespaces match the folder shape:
 
@@ -246,7 +254,12 @@ Import the backend collection and the appropriate environment from [`postman/`](
 
 ## Migrations
 
-For migrations, add a `migration-X.sql` script under `Persistence/Migrations/{Engine}/{Module}` for each database engine/module you intend to support. The configured engine is selected from `ConnectionStrings:Engine`, and the matching migration folder is scanned recursively.
+Application schema ownership lives in `Application.Migrations`, separate from the
+generic database access in `Persistence`. Add a `migration-X.sql` script under
+`Application.Migrations/Migrations/{Engine}/{Module}` for each database
+engine/module you intend to support. The scripts are embedded in the migration
+assembly at build time. At runtime, the configured `ConnectionStrings:Engine`
+selects the matching embedded script set.
 
 Outside Development, startup migration execution is enabled with:
 
@@ -271,24 +284,20 @@ subject identifiers. Reset stale development `AccountIdentity` mappings or the
 application database before provisioning those profiles again; never infer an
 identity link from email alone.
 
-The migration root can be overridden when the default source/publish path resolution is not enough:
-
-```json
-"Persistence": {
-  "MigrationsPath": "C:/path/to/Persistence/Migrations"
-}
-```
-
 Migration execution is fail-fast:
 
 - scripts are ordered numerically
 - already-applied migrations are skipped based on the database migration ledger
 - migration IDs must be unique per engine, even across module folders
 - missing expected scripts stop startup
+- a database ledger ahead of the deployed script assembly stops startup
 - failed scripts stop startup
 - successful migrations are recorded in the `MigrationRecord` table with migration id, module, name, checksum and applied time
 
-`Persistence/Migrations/{Engine}/Core/migration-1.sql` creates the initial schema and seeds the `MigrationRecord` table.
+`Application.Migrations/Migrations/{Engine}/Core/migration-1.sql` creates the
+initial schema and seeds the `MigrationRecord` table. The migration ledger model
+and runner also live in `Application.Migrations`; neither belongs to the domain
+model or reusable persistence library.
 
 IdentityServer migrations are EF Core migrations stored under
 `IdentityServer/Persistence/Migrations/{Engine}`. Generate the same schema
@@ -312,7 +321,7 @@ already contain the current schema before IdentityServer starts.
 The persistence layer separates read and write entry points:
 
 - `IReadOnlyRepository` is intended for queries and does not expose the write-capable SqlKata `QueryFactory`.
-- `IWritableRepository` is intended for commands and migrations.
+- `IWritableRepository` is intended for write-capable consumers, including application commands and the separate application migration runner.
 - `ICommandRunner` executes raw commands and engine-specific bulk insert operations.
 - Repositories and command runners can use the configured connection through DI or be created manually with a connection string and database engine when a service needs a separate database target.
 - Repository instances dispose their underlying database connections when the DI scope is disposed.

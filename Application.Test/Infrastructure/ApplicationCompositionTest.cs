@@ -20,12 +20,5 @@ namespace Application.Test.Infrastructure
             _ = serviceProvider.GetRequiredService<IAccountActivityRecorder>();
         }
 
-        [Fact]
-        public void Writable_Repository_Should_Resolve_Existing_Migration_Path()
-        {
-            var repository = serviceProvider.GetRequiredService<IWritableRepository>();
-
-            Assert.True(Directory.Exists(repository.MigrationsPath), repository.MigrationsPath);
-        }
     }
 }

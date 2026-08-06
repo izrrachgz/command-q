@@ -42,7 +42,7 @@ Use this checklist when removing a module.
    - update architecture tests if the module was listed as an allowed namespace or logging range
 
 5. Remove migrations:
-   - remove module scripts under `Persistence/Migrations/{Engine}/{Module}`
+   - remove module scripts under `Application.Migrations/Migrations/{Engine}/{Module}`
    - keep migration IDs unique per engine
    - do not renumber existing applied migrations
 
@@ -57,6 +57,7 @@ Use this checklist when removing a module.
 
 8. Verify:
    - `dotnet build .\CommandQ.sln`
+   - `dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj`
    - `dotnet test .\Api.Test\Api.Test.csproj`
    - `dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Architecture.ArchitectureRulesTest`
 

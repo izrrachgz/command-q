@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\Application.Migrations\Application.Migrations.csproj" />
   </ItemGroup>
 
   <ItemGroup>

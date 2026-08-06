@@ -1,5 +1,4 @@
 using Persistence.Interfaces;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,11 +19,9 @@ namespace Persistence.Repository.Extensions
             {
                 var configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 var logger = serviceProvider.GetRequiredService<ILogger<WritableRepository>>();
-                var environment = serviceProvider.GetService<IHostEnvironment>();
                 var engine = configuration.GetDatabaseEngine();
-                string migrationsPath = RepositoryFactory.GetMigrationsPath(engine, configuration.GetMigrationsRootPath(), environment?.ContentRootPath);
 
-                return new WritableRepository(configuration.GetDatabaseConnection(), engine, migrationsPath, logger);
+                return new WritableRepository(configuration.GetDatabaseConnection(), engine, logger);
             });
 
             services.AddScoped<IReadOnlyRepository>(serviceProvider =>

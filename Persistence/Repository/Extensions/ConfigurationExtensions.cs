@@ -36,12 +36,5 @@ namespace Persistence.Repository.Extensions
             return configuration.GetValue<DatabaseEngine>(key);
         }
 
-        /// <summary>
-        /// Gets the optional root folder that contains database engine migration folders.
-        /// </summary>
-        public static string? GetMigrationsRootPath(this IConfiguration configuration)
-        {
-            return configuration.GetValue<string?>(ConfigKeys.Migrations.Path);
-        }
     }
 }

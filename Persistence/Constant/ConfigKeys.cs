@@ -21,15 +21,5 @@ namespace Persistence.Constant
             public const string Engine = @"ConnectionStrings:Engine";
         }
 
-        /// <summary>
-        /// Migration configuration keys.
-        /// </summary>
-        public static class Migrations
-        {
-            /// <summary>
-            /// Optional root path that contains engine migration folders.
-            /// </summary>
-            public const string Path = @"Persistence:MigrationsPath";
-        }
     }
 }

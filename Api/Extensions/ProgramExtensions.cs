@@ -9,6 +9,7 @@ using Common.Enumerations;
 using Application.Extensions;
 using Application.Modules.Health;
 using Microsoft.Extensions.Options;
+using Application.Migrations.Extensions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -60,6 +61,9 @@ namespace Api.Extensions
 
             // Add application services
             builder.Services.ConfigureApplicationServices(builder.Configuration);
+
+            // Add application-owned database migrations
+            builder.Services.AddApplicationMigrations();
 
             var clientsSection = builder.Configuration.GetSection(ConfigKeys.Api.Clients);
 

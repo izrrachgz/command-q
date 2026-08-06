@@ -109,7 +109,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Keep this project stable because it is widely referenced.
 
 ### Persistence
-- SqlKata-backed repositories, database command runners and SQL migrations.
+- Reusable SqlKata-backed repositories and database command runners. It does not own an application schema or migration lifecycle.
 - Persistence-facing abstractions live under `Persistence.Interfaces`, including:
   - `IReadOnlyRepository`
   - `IWritableRepository`
@@ -120,31 +120,34 @@ This file captures practical repository knowledge for coding agents working in t
   - selected engine path: `ConnectionStrings:Engine`
 - Repositories:
   - `IReadOnlyRepository` is intended for query handlers and does not expose write-capable SqlKata APIs.
-  - `IWritableRepository` is intended for commands/migrations and exposes `QueryFactory Db`.
+  - `IWritableRepository` is intended for write-capable consumers and exposes `QueryFactory Db`.
   - `ReadOnlyRepository` and `WritableRepository` can be resolved from DI using configured settings or manually created with a connection string and `DatabaseEngine`.
 - Command runners:
   - `ICommandRunner` executes raw commands and engine-specific bulk inserts.
   - `AddCommandRunners` registers all concrete runners and resolves the default `ICommandRunner` from `ConnectionStrings:Engine`.
   - Concrete runners can be constructed manually with a connection string when a service needs a separate runtime database target.
-- Migrations:
-  - Scripts live under `Persistence/Migrations/{Engine}/{Module}`.
-  - Add scripts as `migration-X.sql`.
-  - Development startup always invokes the migration runner, regardless of `Migrations:RunOnStartup`.
-  - Non-development startup migration execution is opt-in through `Migrations:RunOnStartup`.
-  - The runner reads the database migration ledger first and only applies pending migrations.
-  - Migration scripts are forward-only and should not drop existing tables.
-  - Until version 1 is finalized, reset changed baseline schemas by manually dropping/recreating the development database.
-  - Override the migration root with `Persistence:MigrationsPath` when source/publish path resolution is not enough.
-  - `MigrationExtensions` scans scripts recursively from the folder matching the configured engine.
-  - Scripts are ordered numerically.
-  - Migration IDs must be unique per engine, even across module folders.
-  - Migration failure and missing expected migration files stop startup.
-  - `Core/migration-1.sql` creates and seeds the `MigrationRecord` table; later successful migrations are recorded by the runner with migration id, module, name, checksum and applied time.
 - Health checks:
   - `/health/live` is the liveness endpoint.
   - `/health/ready` is the dependency readiness endpoint.
   - `/health/checks` returns the full registered check set.
   - Background health publishing is opt-in through `HealthCheck:PublishOnStartup`.
+
+### Application.Migrations
+- Standalone application-schema migration library. It references `Persistence` and `Common`, but not `Application`, `Domain` or `Api`.
+- Owns the application SQL scripts, `MigrationRecord` ledger model, embedded script discovery, validation, runner and migration-specific logging.
+- Scripts live under `Application.Migrations/Migrations/{Engine}/{Module}` and are embedded in the assembly.
+- Add scripts as `migration-X.sql` for every supported application engine.
+- `AddApplicationMigrations()` registers migration services; the API composition root calls it and invokes `RunApplicationMigrations()` according to its startup policy.
+- Development startup always invokes the migration runner, regardless of `Migrations:RunOnStartup`.
+- Non-development startup migration execution is opt-in through `Migrations:RunOnStartup`.
+- The runner reads the database migration ledger first and only applies pending migrations.
+- Scripts are ordered numerically and migration IDs must be unique per engine, even across module folders.
+- Migration scripts are forward-only and should not drop existing tables.
+- Migration failure, missing expected scripts, a ledger ahead of the deployed assembly and duplicate or non-contiguous IDs stop startup.
+- `Core/migration-1.sql` creates and seeds `MigrationRecord`; later successful migrations are recorded with migration id, module, name, checksum and applied time.
+- Until version 1 is finalized, reset changed baseline schemas by manually dropping/recreating the development database.
+- There is no runtime migration path setting; embedded resources make source and publish directory layouts irrelevant.
+- Detailed ownership and authoring guidance lives in `Application.Migrations/README.md`.
 
 ### Localization
 - Resource project for multi-language text.
@@ -182,6 +185,11 @@ This file captures practical repository knowledge for coding agents working in t
 - Useful targeted examples:
   - `dotnet test .\Api.Test\Api.Test.csproj`
   - `dotnet test .\Api.Test\Api.Test.csproj --filter FullyQualifiedName~Api.Test.Architecture.ApiArchitectureRulesTest`
+
+### Application.Migrations.Test
+- Isolated xUnit tests for migration dependency boundaries, logging range ownership, embedded script discovery and runner behavior.
+- Uses an in-memory SQLite repository to verify that the baseline runs once and an already-applied migration is skipped on the next invocation.
+- Useful targeted command: `dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj`.
 
 ### IdentityServer.Test
 - xUnit tests for IdentityServer architecture and isolated ASP.NET Identity persistence behavior.
@@ -230,6 +238,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `Persistence/Logging/PersistenceEventIdRanges.cs`
   - `IdentityServer/Logging/IdentityServerEventIdRanges.cs`
   - `Email/Logging/EmailEventIdRanges.cs`
+  - `Application.Migrations/Logging/ApplicationMigrationsEventIdRanges.cs`
 - Add cross-cutting IDs to root `*EventIds.cs` files. Add module-owned IDs to module `Logging/*EventIds.cs` files.
 
 ## Coding Conventions

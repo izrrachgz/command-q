@@ -15,6 +15,7 @@ range when the log message belongs to a feature module.
 | Persistence | 400000-400999 | Add module/shared-area ranges only when needed |
 | IdentityServer | 500000-500999 | OpenIddict: 501000-501999, Health: 502000-502999, Accounts: 503000-503999 |
 | Email | 600000-600999 | Add module/shared-area ranges only when needed |
+| Application.Migrations | 700000-700999 | Add module ranges only when migration ownership needs them |
 
 ## Rules
 

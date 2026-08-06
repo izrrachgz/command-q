@@ -1,0 +1,43 @@
+# Application Migrations
+
+`Application.Migrations` owns the SQL schema history for the CommandQ
+application database. It is separate from `Persistence` so the persistence
+library remains reusable by consumers with unrelated schemas.
+
+## Responsibilities
+
+- Store provider-specific application SQL under `Migrations/{Engine}/{Module}`.
+- Embed migration scripts in the assembly so deployments do not depend on source
+  or content-file paths.
+- Select the script set matching the configured repository engine.
+- Validate migration IDs and ordering before execution.
+- Reject a database ledger newer than the scripts in the deployed assembly.
+- Read and update the `MigrationRecord` ledger.
+- Apply pending scripts through `Persistence.Interfaces.IWritableRepository`.
+- Expose registration and host execution through
+  `AddApplicationMigrations()` and `RunApplicationMigrations()`.
+
+The API is the composition host. It registers this project and decides whether
+startup migrations run. Development always invokes the runner; other
+environments use `Migrations:RunOnStartup`.
+
+## Adding A Migration
+
+Add the same numbered schema change for every supported application engine:
+
+```text
+Migrations/MsSql/{Module}/migration-X.sql
+Migrations/MySql/{Module}/migration-X.sql
+Migrations/PgSql/{Module}/migration-X.sql
+Migrations/SqLite/{Module}/migration-X.sql
+```
+
+Migration IDs are global within each engine, including scripts in different
+module folders. Keep them contiguous and forward-only, and never renumber a
+migration that may already be applied. The version 1 baseline creates and seeds
+`MigrationRecord`; while that baseline is still changing, recreate the local
+development database manually.
+
+`Application.Migrations` must not reference `Application`, `Domain` or `Api`.
+It may use `Common` database engine definitions and reusable capabilities from
+`Persistence`.
