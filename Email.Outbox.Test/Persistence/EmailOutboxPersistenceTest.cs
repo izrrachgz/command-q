@@ -1,0 +1,107 @@
+using Email.Outbox.Models;
+using Email.Outbox.Abstractions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Email.Outbox.Persistence.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Email.Outbox.Test.Persistence
+{
+    public sealed class EmailOutboxPersistenceTest
+    {
+        [Fact]
+        public async Task SqLite_Store_Should_Migrate_Deduplicate_Claim_And_Complete()
+        {
+            string testRoot = Path.Combine(Path.GetTempPath(), $"commandq-outbox-{Guid.NewGuid():N}");
+            Directory.CreateDirectory(testRoot);
+            string databasePath = Path.Combine(testRoot, "outbox.db");
+
+            try
+            {
+                var settings = new HostApplicationBuilderSettings
+                {
+                    ContentRootPath = testRoot,
+                    EnvironmentName = Environments.Development
+                };
+                var builder = Host.CreateApplicationBuilder(settings);
+                builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["EmailOutbox:Persistence:Engine"] = "SqLite",
+                    ["EmailOutbox:Persistence:ConnectionString"] = $"Data Source={databasePath};Version=3;Foreign Keys=True;",
+                    ["EmailOutbox:Persistence:RunMigrationsOnStartup"] = "true"
+                });
+                builder.Services.AddEmailOutboxPersistence(builder.Configuration);
+
+                using var host = builder.Build();
+                await host.RunEmailOutboxMigrations(TestContext.Current.CancellationToken);
+                var store = host.Services.GetRequiredService<IEmailOutboxStore>();
+                DateTime utcNow = DateTime.UtcNow;
+                var record = new EmailOutboxRecord(
+                    Guid.NewGuid(),
+                    "{\"message\":\"test\"}",
+                    "order-100-email",
+                    "account-1",
+                    "correlation-1",
+                    0,
+                    utcNow,
+                    utcNow);
+
+                var first = await store.EnqueueAsync(record, TestContext.Current.CancellationToken);
+                var duplicate = await store.EnqueueAsync(
+                    record with { Id = Guid.NewGuid() },
+                    TestContext.Current.CancellationToken);
+
+                Assert.False(first.WasDuplicate);
+                Assert.True(duplicate.WasDuplicate);
+                Assert.Equal(first.Id, duplicate.Id);
+
+                var claimed = await store.ClaimPendingAsync(
+                    new EmailOutboxClaimRequest(
+                        10,
+                        "worker-one",
+                        TimeSpan.FromMinutes(5),
+                        utcNow.AddSeconds(1)),
+                    TestContext.Current.CancellationToken);
+                var claimedRecord = Assert.Single(claimed);
+
+                var secondClaim = await store.ClaimPendingAsync(
+                    new EmailOutboxClaimRequest(
+                        10,
+                        "worker-two",
+                        TimeSpan.FromMinutes(5),
+                        utcNow.AddSeconds(2)),
+                    TestContext.Current.CancellationToken);
+                Assert.Empty(secondClaim);
+
+                bool markedSent = await store.MarkSentAsync(
+                    new EmailOutboxSentUpdate(
+                        claimedRecord.Id,
+                        claimedRecord.LockId,
+                        1,
+                        "message-id",
+                        "Accepted",
+                        utcNow.AddSeconds(3)),
+                    TestContext.Current.CancellationToken);
+                Assert.True(markedSent);
+
+                var afterCompletion = await store.ClaimPendingAsync(
+                    new EmailOutboxClaimRequest(
+                        10,
+                        "worker-three",
+                        TimeSpan.FromMinutes(5),
+                        utcNow.AddMinutes(10)),
+                    TestContext.Current.CancellationToken);
+                Assert.Empty(afterCompletion);
+
+                await host.RunEmailOutboxMigrations(TestContext.Current.CancellationToken);
+            }
+            finally
+            {
+                if (Directory.Exists(testRoot))
+                {
+                    Directory.Delete(testRoot, recursive: true);
+                }
+            }
+        }
+    }
+}

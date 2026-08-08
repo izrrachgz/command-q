@@ -13,5 +13,24 @@
         "DebugTarget": "https"
       }
     ]
+  },
+  {
+    "Name": "Backend + Email Worker",
+    "Projects": [
+      {
+        "Path": "IdentityServer\\IdentityServer.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "Api\\Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "Email.Worker\\Email.Worker.csproj",
+        "Action": "Start"
+      }
+    ]
   }
 ]

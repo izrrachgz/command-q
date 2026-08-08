@@ -19,6 +19,8 @@ namespace Email.Services
 
         Task<string> SendAsync(MimeMessage message, CancellationToken cancellationToken);
 
+        Task NoOpAsync(CancellationToken cancellationToken);
+
         Task DisconnectAsync(bool quit, CancellationToken cancellationToken);
     }
 }

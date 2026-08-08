@@ -58,6 +58,33 @@ namespace Email.Models
             return new EmailAttachment(fileName, buffer.ToArray(), contentType);
         }
 
+        /// <summary>
+        /// Copies the attachment content to a writable destination stream.
+        /// </summary>
+        public async Task CopyContentToAsync(
+            Stream destination,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(destination);
+
+            if (!destination.CanWrite)
+            {
+                throw new ArgumentException("The destination stream must be writable.", nameof(destination));
+            }
+
+            if (FilePath is not null)
+            {
+                await using var source = File.OpenRead(FilePath);
+                await source.CopyToAsync(destination, cancellationToken);
+                return;
+            }
+
+            if (Content.HasValue)
+            {
+                await destination.WriteAsync(Content.Value, cancellationToken);
+            }
+        }
+
         internal long GetLength()
         {
             return FilePath is null

@@ -51,6 +51,14 @@ namespace Email.Services
             await _client.DisconnectAsync(quit, cancellationToken);
         }
 
+        public async Task NoOpAsync(CancellationToken cancellationToken)
+        {
+            if (_client != null && _client.IsConnected)
+            {
+                await _client.NoOpAsync(cancellationToken); // Ensure the connection is alive
+            }
+        }
+
         public void Dispose()
         {
             _client.Dispose();

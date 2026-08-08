@@ -273,6 +273,11 @@ connectivity, transient SMTP, permanent SMTP, protocol and unknown failures.
 Do not blindly retry in the catch block: a durable outbox/worker must use the
 accepted-message details for deduplication and retry decisions.
 
+The solution provides that durable workflow through `Email.Outbox`,
+`Email.Outbox.Persistence` and the standalone `Email.Worker`. File and in-memory
+content can be snapshotted through `CopyContentToAsync` before it is persisted.
+See `Email.Outbox/README.md` for enqueueing and delivery semantics.
+
 Structured email log fields contain endpoint and batch counts only. Recipients,
 subjects, bodies, attachment names and credentials are intentionally excluded;
 transport exception details remain subject to the SMTP provider's messages.

@@ -107,10 +107,10 @@ are present. Store them as `ExternalProviders:Google:ClientId`/
 
 ## Email Delivery
 
-The standalone `Email` project is not currently referenced by a host and is
-disabled by default. When a host adopts it, put that host's SMTP credentials or
-OAuth access token in the host's user-secrets store, not in
-`Email/appsettings.json` or a class-library secret store. For example:
+The standalone `Email` project is consumed by `Email.Worker` and remains
+disabled by default. Put SMTP credentials or an OAuth access token in the
+consuming host's user-secrets store, not in `Email/appsettings.json` or a
+class-library secret store. For example:
 
 ```powershell
 dotnet user-secrets set --project .\Api\Api.csproj "Email:Enabled" "true"
@@ -125,6 +125,30 @@ The host still needs an explicit project reference and
 `services.AddEmailServices(configuration)` registration. OAuth tokens are
 ready-to-use values and should be supplied through the deployment secret store;
 the Email library does not acquire, refresh or persist them.
+
+## Email Outbox Worker
+
+`Email.Worker` has a separate user-secrets store. Development requires no
+database secret because its dedicated outbox uses SQLite by default and is
+prepared for anonymous smtp4dev delivery on `localhost:25`.
+
+For a real SMTP endpoint, configure secrets on the worker project:
+
+```powershell
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Enabled" "true"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Smtp:Host" "smtp.example.com"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Authentication:Type" "Login"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Authentication:Login:Username" "smtp-user"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Authentication:Login:Password" "change-me"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Sender:Address" "no-reply@example.com"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailOutbox:Worker:Enabled" "true"
+```
+
+To replace SQLite, set `EmailOutbox:Persistence:Engine` and
+`EmailOutbox:Persistence:ConnectionString` in the same worker secret store.
+Supported values are `SqLite`, `MsSql`, `PgSql` and `MySql`. QA and Production
+keep polling and startup migrations disabled until deployment configuration
+enables them explicitly.
 
 ## Environment Variables
 

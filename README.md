@@ -45,6 +45,7 @@ a configured authority.
    dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj --no-build
    dotnet test .\Api.Test\Api.Test.csproj --no-build
    dotnet test .\Email.Test\Email.Test.csproj --no-build
+   dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj --no-build
    dotnet test .\Email.IntegrationTest\Email.IntegrationTest.csproj --no-build
    dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj --no-build
    ```
@@ -123,12 +124,16 @@ Persistence/
 Application.Migrations/
 IdentityServer/
 Email/
+Email.Outbox/
+Email.Outbox.Persistence/
+Email.Worker/
 Application.Test/
 Application.Migrations.Test/
 Api.Test/
 IdentityServer.Test/
 Email.Test/
 Email.IntegrationTest/
+Email.Outbox.Test/
 FrontApplication/  (optional; not referenced by CommandQ.sln)
 ```
 
@@ -240,6 +245,7 @@ Root helper scripts are also available:
 | `.\scripts\test.ps1` | Tests `CommandQ.sln`; accepts `-Configuration`, `-Project`, `-Filter` and `-NoBuild`. The default includes database-backed `Application.Test` cases. |
 | `.\scripts\run-identity-server.ps1` | Development on `https://localhost:7125`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
+| `.\scripts\run-email-worker.ps1` | Development email outbox worker with dedicated SQLite persistence; accepts `-Environment` and `-NoBuild`. |
 | `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
 | `.\scripts\run-front.ps1` | Optional frontend runner; accepts `-Install`. |
 
@@ -361,10 +367,23 @@ templates, and batch delivery over one connection and authentication session.
 SMTP authentication can be selected as anonymous, LOGIN, PLAIN or
 caller-supplied OAuth 2.0 bearer authentication.
 
-The project is intentionally not referenced by API or IdentityServer yet. Add a
-project reference from the host that owns a concrete email workflow, register
-`services.AddEmailServices(configuration)` and keep SMTP credentials in that
-host's secret store. See `Email/README.md` for configuration and usage.
+The project is intentionally not referenced by API or IdentityServer. Immediate
+delivery consumers can register `services.AddEmailServices(configuration)`.
+Durable delivery uses `Email.Outbox`, its dedicated persistence adapter and the
+standalone `Email.Worker` host. SQLite is the outbox default, while MsSql, PgSql
+and MySql remain configurable. See `Email/README.md`, `Email.Outbox/README.md`
+and `Email.Worker/README.md`.
+
+Development is prepared for smtp4dev on `localhost:25` and stores the outbox in
+a dedicated SQLite file. Start the worker separately:
+
+```powershell
+.\scripts\run-email-worker.ps1
+```
+
+The API and Application do not reference the outbox yet. A concrete workflow
+should reference `Email.Outbox`, enqueue a fully prepared `EmailMessage` through
+`IEmailOutbox`, and leave transport and retries to the worker.
 
 The opt-in `Email.IntegrationTest` project exercises the real SMTP and HTTP
 interfaces of a local smtp4dev instance. With smtp4dev SMTP on port `25` and its
@@ -436,6 +455,12 @@ Email.Test/
 Email.IntegrationTest/
   Configuration/
   Services/
+
+Email.Outbox.Test/
+  Architecture/
+  Persistence/
+  Serialization/
+  Services/
 ```
 
 Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRulesTest.cs`. These tests check project dependency direction, CQRS repository usage, module namespace conventions, duplicate logging event IDs, and module logging event-id ranges. Application composition tests also resolve the real application service graph.
@@ -458,6 +483,10 @@ results, attachment and template handling, and one-connection batch delivery
 through an in-memory SMTP transport. `Email.IntegrationTest` is skipped by
 default and verifies complete MIME delivery against a locally running smtp4dev
 instance when explicitly enabled.
+
+`Email.Outbox.Test` verifies durable message snapshots, batching, retry/release
+behavior, architecture boundaries and the dedicated SQLite migration and store
+lifecycle.
 
 ## Logging
 

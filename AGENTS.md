@@ -13,10 +13,11 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\test.ps1`
   - `.\scripts\run-api.ps1`
   - `.\scripts\run-identity-server.ps1`
+  - `.\scripts\run-email-worker.ps1`
   - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
   - `.\scripts\test-email-integration.ps1`
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
-- `CommandQ.slnLaunch` provides the shared Visual Studio `Backend (IdentityServer + API)` profile. It starts IdentityServer before API using both HTTPS launch profiles.
+- `CommandQ.slnLaunch` provides `Backend (IdentityServer + API)` and the optional `Backend + Email Worker` profile. The latter also starts the standalone email queue worker.
 - The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
@@ -207,10 +208,40 @@ This file captures practical repository knowledge for coding agents working in t
 - `IEmailSender.SendAsync(IEnumerable<EmailMessage>)` validates the full batch and configured delivery limits, opens one connection, authenticates once, sends sequentially, disconnects once and disposes the SMTP client.
 - File, byte and copied-stream attachments are supported. HTML messages may include `EmailInlineResource` items referenced through `cid:` URLs. Caller-owned streams are copied and are never retained or disposed by the library.
 - HTML template overloads read already-rendered files verbatim. Rendering, substitutions and localization belong to the caller.
-- Do not add automatic SMTP retries to the sender. Durable retries, deduplication and dead-letter handling belong in an application-owned outbox/worker layer because a failed batch can be partially delivered.
+- Do not add automatic SMTP retries to the sender. `Email.Outbox` and `Email.Worker` own durable retries, deduplication and dead-letter handling because a failed SMTP batch can be partially delivered.
 - Keep SMTP credentials in the consuming host's user-secrets or deployment secret store. Do not add them to the Email project or committed settings.
-- The Email project is not currently referenced by API or IdentityServer; do not couple it to a host until a concrete workflow needs delivery.
+- The Email project is consumed by `Email.Worker` but remains independent of API and IdentityServer. Add other host references only for concrete immediate-delivery workflows.
 - Detailed configuration, API examples and batch semantics are documented in `Email/README.md`.
+
+### Email.Outbox
+- Transport-independent durable queue contracts and delivery workflow. References `Email`, but not Persistence, API, Application or IdentityServer.
+- `IEmailOutbox` snapshots fully prepared messages and returns an enqueue result with the durable record ID and duplicate status.
+- Idempotency keys are optional but strongly recommended for business-triggered messages.
+- File attachments and inline resources are copied into the payload at enqueue time; queued delivery does not depend on temporary files.
+- `IEmailOutboxProcessor` sends a claimed batch through one `IEmailSender` batch call, handles partial acceptance, schedules exponential retries and dead-letters permanent or exhausted failures.
+- Delivery is at least once. A crash between SMTP acceptance and the database update can produce a duplicate; message workflows must tolerate this.
+- Complete bodies and attachments are stored in the outbox database. Treat that database according to the sensitivity of its content.
+- Configuration uses the `EmailOutbox` section. See `Email.Outbox/README.md`.
+
+### Email.Outbox.Persistence
+- SqlKata implementation of `IEmailOutboxStore` using the reusable `Persistence` project through an adapter boundary.
+- Owns its schema, embedded provider scripts, `EmailOutboxMigrationRecord` ledger and migration runner. It does not use `Application.Migrations` or the application database ledger.
+- Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; SQLite is the committed default.
+- Configuration lives under `EmailOutbox:Persistence`, including `Engine`, `ConnectionString` and `RunMigrationsOnStartup`.
+- SQLite relative paths resolve against the consuming host content root, and the database directory is created when needed.
+- Queue claims use conditional updates, unique lock IDs and expiring leases so multiple workers can share one store.
+- Configure the lease longer than the maximum expected SMTP batch duration.
+- In multi-instance deployments, apply migrations through one deployment step or one designated instance.
+- See `Email.Outbox.Persistence/README.md`.
+
+### Email.Worker
+- Standalone .NET 10 worker host composing Email transport, outbox workflow and outbox persistence.
+- Development uses smtp4dev at `localhost:25`, enables polling and uses the dedicated SQLite outbox database.
+- Base, QA and Production settings disable delivery and polling. QA/Production also disable startup migrations until explicitly enabled.
+- Worker settings live under `EmailOutbox:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`.
+- Run with `.\scripts\run-email-worker.ps1`. It is not required for API or IdentityServer startup.
+- OAuth token acquisition and refresh remain external to the worker.
+- See `Email.Worker/README.md`.
 
 ### Email.Test
 - Isolated xUnit tests for dependency boundaries, logging ranges, options and policy validation, MIME construction, structured failures and SMTP connection lifecycle.
@@ -222,6 +253,11 @@ This file captures practical repository knowledge for coding agents working in t
 - Local defaults are SMTP `localhost:25` and HTTP API `http://localhost:5000`; override them through the `Smtp4Dev` configuration section or environment variables.
 - The test verifies SMTP acceptance, plain and HTML bodies, an attachment and a CID resource through smtp4dev's API, then deletes the test message.
 - Useful targeted command: `.\scripts\test-email-integration.ps1`.
+
+### Email.Outbox.Test
+- Isolated xUnit coverage for dependency boundaries, event ID ranges, message snapshots, batch workflow and dedicated SQLite persistence.
+- The SQLite test applies migrations, verifies idempotent enqueueing, exclusive leases, sent completion and a second no-op migration pass.
+- Useful targeted command: `dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj`.
 
 ### FrontApplication
 - Optional Angular frontend project. It is not referenced by `CommandQ.sln` and is not part of the current backend modularization work. Check its own README and ask/confirm before changing frontend code unless the user explicitly requests it.
@@ -239,6 +275,9 @@ This file captures practical repository knowledge for coding agents working in t
   - `IdentityServer/Logging/IdentityServerEventIdRanges.cs`
   - `Email/Logging/EmailEventIdRanges.cs`
   - `Application.Migrations/Logging/ApplicationMigrationsEventIdRanges.cs`
+  - `Email.Outbox/Logging/EmailOutboxEventIdRanges.cs`
+  - `Email.Outbox.Persistence/Logging/EmailOutboxPersistenceEventIdRanges.cs`
+  - `Email.Worker/Logging/EmailWorkerEventIdRanges.cs`
 - Add cross-cutting IDs to root `*EventIds.cs` files. Add module-owned IDs to module `Logging/*EventIds.cs` files.
 
 ## Coding Conventions

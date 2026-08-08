@@ -48,6 +48,9 @@ IdentityServer/Logs/*
 IdentityServer/App_Data/
 IdentityServer/Data/
 
+Email.Worker/Logs/*
+Email.Worker/App_Data/
+
 IdentityServer.Test/bin/
 IdentityServer.Test/Bin/
 IdentityServer.Test/obj/

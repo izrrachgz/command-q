@@ -88,6 +88,8 @@ namespace Email.Services
                     _logger.SmtpAuthenticated();
                 }
 
+                await transport.NoOpAsync(cancellationToken);
+
                 foreach (var source in batch)
                 {
                     cancellationToken.ThrowIfCancellationRequested();

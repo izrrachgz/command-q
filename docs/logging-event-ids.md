@@ -16,6 +16,9 @@ range when the log message belongs to a feature module.
 | IdentityServer | 500000-500999 | OpenIddict: 501000-501999, Health: 502000-502999, Accounts: 503000-503999 |
 | Email | 600000-600999 | Add module/shared-area ranges only when needed |
 | Application.Migrations | 700000-700999 | Add module ranges only when migration ownership needs them |
+| Email.Outbox | 800000-800999 | Add module ranges only when queue workflow ownership needs them |
+| Email.Outbox.Persistence | 900000-900999 | Add module ranges only when storage ownership needs them |
+| Email.Worker | 1000000-1000999 | Add module ranges only when worker ownership needs them |
 
 ## Rules
 
