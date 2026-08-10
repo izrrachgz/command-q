@@ -8,12 +8,14 @@ builder.ConfigureLogging();
 builder.ConfigureServices();
 
 var app = builder.Build();
+IConfigurationSection identityServerConfiguration = app.Configuration
+    .GetRequiredSection(ConfigKeys.Section);
 
 app.ConfigurePipeline();
-app.Logger.LogAppConfig(app.Configuration, app.Environment);
+app.Logger.LogAppConfig(identityServerConfiguration, app.Environment);
 
 if (app.Environment.IsDevelopment() ||
-    app.Configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))
+    identityServerConfiguration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))
 {
     await app.RunIdentityServerMigrations();
 }

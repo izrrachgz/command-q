@@ -19,6 +19,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
 - `CommandQ.slnLaunch` provides `Backend (IdentityServer + API)` and the optional `Backend + Email Worker` profile. The latter also starts the standalone email queue worker.
 - The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
+- Custom executable settings are namespaced by host: `Api`, `IdentityServer` and `EmailWorker`. Framework-owned `Logging`, `Serilog` and `AllowedHosts` sections remain top-level. Hosts pass explicit subsections to reusable libraries; do not make a library depend on a host prefix.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
@@ -30,7 +31,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `Application/Modules/{Module}`
   - `Domain/Modules/{Module}`
 - Module namespaces should match module folders, for example `Application.Modules.Identity.Accounts.Commands` and `Domain.Modules.Identity`.
-- Current modules include `Identity`, `Contacts`, `Addresses`, `Files` and `Health`; domain also has `Events` and `Registers`.
+- Current modules include `Identity`, `Contacts`, `Addresses`, `Files`, `Health` and `Notifications`; domain also has `Events` and `Registers`.
 - The application Identity module owns profiles, external identity mapping and queryable business account activity. Record business actions through `IAccountActivityRecorder` or `RecordAccountActivityCommand`; do not create per-account application log files as the source of truth.
 - `IdentityServer` owns authentication users, password hashes, lockout, external logins, OAuth clients, scopes, grants and token issuance. Do not move these responsibilities back into `Api` or `Application`.
 - Existing module status and removal steps are documented in `docs/modules.md`.
@@ -43,22 +44,24 @@ This file captures practical repository knowledge for coding agents working in t
 ### Api
 - ASP.NET Core HTTP API with module controllers, middleware, resource-server authentication and app configuration.
 - Run locally from `Api` with `dotnet run` or Visual Studio launch profiles.
-- Base/Development application settings select `MsSql`; QA/Production templates select `PgSql`. Runtime configuration may override either through `ConnectionStrings:Engine`.
+- Runtime application database selection lives under `Api:ConnectionStrings`; the engine key is `Api:ConnectionStrings:Engine`.
 - Bearer validation settings are configured through the `Authentication` section in `appsettings*.json`.
 - The API validates IdentityServer discovery keys, audience, lifetime, `at+jwt` type and required API scope. It does not issue JWTs or handle refresh tokens.
 - Protocol claims are read through `Api/Extensions/ClaimsPrincipalExtensions.cs`; `ICurrentAccountAccessor` resolves `(iss, sub)` to the application profile through `GetAccountByIdentityQuery`.
 - `POST /Account/create` provisions an application profile for an authenticated identity. Credentials are never accepted or stored by this endpoint.
 - Generic cache mechanics live in `Common.Interfaces.ITypedCache<TEntry>` and `Common.System.TypedMemoryCache<TEntry>`; add specific cache adapters over this when new typed caches are needed.
-- Rate limiting, cache, database and API client settings use constants under `Api/Constants/ConfigKeys.cs`.
+- API-owned settings live under the `Api` section. Rate limiting, cache, database and API client child paths use constants under `Api/Constants/ConfigKeys.cs`.
 - Local secrets should use .NET user-secrets or environment variables. Keep real secrets out of `appsettings*.json`, `.env`, scripts and docs. See `docs/local-secrets.md`.
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development in `ExceptionHandlingMiddleware`.
+- The API is an email outbox producer: it registers `AddEmailOutboxProducer()` and `Email.Outbox.Persistence`, but does not register `IEmailOutboxProcessor`, run the email worker or own SMTP delivery.
+- Development outbox persistence targets the same local MsSql `command_q` database as the application. Base and non-development templates leave the connection empty so deployment configuration is required. `Email.Worker` is the designated outbox migrator; API persistence options contain no migration lifecycle flag.
 
 ### IdentityServer
 - Standalone ASP.NET Core Identity and OpenIddict authorization-server host. It is independently deployable and connected to `Api` through standard OpenID Connect discovery, not a project reference.
 - Run locally with `.\scripts\run-identity-server.ps1`; the Development issuer is `https://localhost:7125/`.
 - OpenIddict uses an isolated database named `command_q_identity` through EF Core stores.
-- IdentityServer supports `PgSql`, `MsSql`, `MySql` and `SqLite` through `ConnectionStrings:Engine`; PostgreSQL is the default.
+- IdentityServer supports `PgSql`, `MsSql`, `MySql` and `SqLite` through `IdentityServer:ConnectionStrings:Engine`.
 - Keep IdentityServer on EF Core. Do not introduce SqlKata into this host or share the application's persistence registration.
 - The shared Identity/OpenIddict model lives in `IdentityServerDbContext`; provider-specific contexts under `IdentityServer/Persistence/Providers` select the EF provider and migration set.
 - ASP.NET Core Identity owns local users, password hashing, lockout, roles, claims and external login links.
@@ -69,18 +72,22 @@ This file captures practical repository knowledge for coding agents working in t
 - EF migrations live under `IdentityServer/Persistence/Migrations/{Engine}`. Use `.\scripts\add-identity-migration.ps1 -Name MigrationName` so every model change is generated for all four providers.
 - Do not combine provider migrations into one snapshot. EF migration sets must remain aligned across `PgSql`, `MsSql`, `MySql` and `SqLite`.
 - Provider design-time factories live as separate files under `IdentityServer/Persistence/DesignTime` and use non-routable placeholder connections for scaffolding only. Apply database migrations through configured IdentityServer startup, not `dotnet ef database update`.
-- Development applies pending EF migrations at startup. Non-development migration execution is opt-in through `Migrations:RunOnStartup`.
+- Development applies pending EF migrations at startup. Non-development migration execution is opt-in through `IdentityServer:Migrations:RunOnStartup`.
 - After migration handling, every IdentityServer startup reconciles the default role, API scope and configured OpenIddict clients. A current schema is therefore required even when startup migrations are disabled.
 - Development certificates are allowed only in Development. QA/Production require signing, encryption and Data Protection certificates plus shared persisted Data Protection keys.
 
 ### Application
 - CQRS use cases, validators, handlers, mappers, services and health checks, grouped by module under `Application/Modules`.
-- Depends on `Domain`, `Common` and `Localization`.
+- Depends on `Domain`, `Common`, `Localization`, `Persistence` and the reusable `Email`/`Email.Outbox` contracts.
 - Keep application logic decoupled from direct I/O. Use injected interfaces such as repositories, text providers and services.
 - Validators use localized resources through `ValidationTextProvider`.
 - Shared validator limits live in `Application/Constants/ValidationLimits.cs`.
-- Register module-owned services explicitly through `AddApplicationModules()` and module-specific methods such as `AddIdentityModule()`.
+- Register module-owned services explicitly through `AddApplicationModules(configuration)` and module-specific methods such as `AddIdentityModule()`.
 - Application accounts are business profiles. Keep passwords, auth lockout and protocol sessions out of Application.
+- `Application.Modules.Notifications` owns `QueueEmailCommand` and `IApplicationEmailService`. Queueing is the default; do not add an immediate-send switch to the command.
+- Notification overloads converge on `ApplicationEmailRequest`, which carries a prepared `EmailMessage` plus optional idempotency, account and correlation metadata.
+- The Notifications module must not reference `Email.Outbox.Persistence` or `Email.Worker`. Producer hosts select the outbox store; the worker owns SMTP delivery and retries.
+- Do not expose a generic notification endpoint without explicit authorization and abuse controls.
 
 ### Domain
 - Domain entities and interfaces. Feature-owned entities live under `Domain/Modules/{Module}`.
@@ -118,20 +125,21 @@ This file captures practical repository knowledge for coding agents working in t
 - Supported engines: `MsSql`, `PgSql`, `MySql`, `SqLite`.
 - Configuration keys:
   - main connection string name: `Db`
-  - selected engine path: `ConnectionStrings:Engine`
+  - selected engine path relative to the supplied section: `ConnectionStrings:Engine`
 - Repositories:
   - `IReadOnlyRepository` is intended for query handlers and does not expose write-capable SqlKata APIs.
   - `IWritableRepository` is intended for write-capable consumers and exposes `QueryFactory Db`.
   - `ReadOnlyRepository` and `WritableRepository` can be resolved from DI using configured settings or manually created with a connection string and `DatabaseEngine`.
 - Command runners:
   - `ICommandRunner` executes raw commands and engine-specific bulk inserts.
-  - `AddCommandRunners` registers all concrete runners and resolves the default `ICommandRunner` from `ConnectionStrings:Engine`.
+  - `AddRepositories(configuration)` and `AddCommandRunners(configuration)` capture an explicitly supplied host or test configuration section; they do not resolve the global root configuration from DI.
+  - `AddCommandRunners` registers all concrete runners and resolves the default `ICommandRunner` from the supplied section's `ConnectionStrings:Engine`.
   - Concrete runners can be constructed manually with a connection string when a service needs a separate runtime database target.
 - Health checks:
   - `/health/live` is the liveness endpoint.
   - `/health/ready` is the dependency readiness endpoint.
   - `/health/checks` returns the full registered check set.
-  - Background health publishing is opt-in through `HealthCheck:PublishOnStartup`.
+  - Background health publishing is opt-in through the host-relative `HealthCheck:PublishOnStartup` key (`Api:HealthCheck:PublishOnStartup` in the API host).
 
 ### Application.Migrations
 - Standalone application-schema migration library. It references `Persistence` and `Common`, but not `Application`, `Domain` or `Api`.
@@ -139,8 +147,8 @@ This file captures practical repository knowledge for coding agents working in t
 - Scripts live under `Application.Migrations/Migrations/{Engine}/{Module}` and are embedded in the assembly.
 - Add scripts as `migration-X.sql` for every supported application engine.
 - `AddApplicationMigrations()` registers migration services; the API composition root calls it and invokes `RunApplicationMigrations()` according to its startup policy.
-- Development startup always invokes the migration runner, regardless of `Migrations:RunOnStartup`.
-- Non-development startup migration execution is opt-in through `Migrations:RunOnStartup`.
+- Development startup always invokes the migration runner, regardless of `Api:Migrations:RunOnStartup`.
+- Non-development startup migration execution is opt-in through `Api:Migrations:RunOnStartup`.
 - The runner reads the database migration ledger first and only applies pending migrations.
 - Scripts are ordered numerically and migration IDs must be unique per engine, even across module folders.
 - Migration scripts are forward-only and should not drop existing tables.
@@ -222,12 +230,14 @@ This file captures practical repository knowledge for coding agents working in t
 - Delivery is at least once. A crash between SMTP acceptance and the database update can produce a duplicate; message workflows must tolerate this.
 - Complete bodies and attachments are stored in the outbox database. Treat that database according to the sensitivity of its content.
 - Configuration uses the `EmailOutbox` section. See `Email.Outbox/README.md`.
+- Application workflows normally enqueue through the Notifications module. A producer host must register both the outbox core and an `IEmailOutboxStore` implementation before executing those commands.
+- Producer-only hosts use `AddEmailOutboxProducer(configuration)`. Consumer hosts use `AddEmailOutbox(configuration)` or explicitly add `AddEmailOutboxProcessor()` and must also register `IEmailSender`.
 
 ### Email.Outbox.Persistence
 - SqlKata implementation of `IEmailOutboxStore` using the reusable `Persistence` project through an adapter boundary.
 - Owns its schema, embedded provider scripts, `EmailOutboxMigrationRecord` ledger and migration runner. It does not use `Application.Migrations` or the application database ledger.
-- Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; SQLite is the committed default.
-- Configuration lives under `EmailOutbox:Persistence`, including `Engine`, `ConnectionString` and `RunMigrationsOnStartup`.
+- Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; the worker's Development settings target local MsSql `command_q`.
+- Reusable persistence options contain only `Engine` and `ConnectionString`. The CommandQ worker supplies them from `EmailWorker:EmailOutbox:Persistence`.
 - SQLite relative paths resolve against the consuming host content root, and the database directory is created when needed.
 - Queue claims use conditional updates, unique lock IDs and expiring leases so multiple workers can share one store.
 - Configure the lease longer than the maximum expected SMTP batch duration.
@@ -236,10 +246,11 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### Email.Worker
 - Standalone .NET 10 worker host composing Email transport, outbox workflow and outbox persistence.
-- Development uses smtp4dev at `localhost:25`, enables polling and uses the dedicated SQLite outbox database.
-- Base, QA and Production settings disable delivery and polling. QA/Production also disable startup migrations until explicitly enabled.
-- Worker settings live under `EmailOutbox:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`.
+- Development uses smtp4dev at `localhost:25`, enables polling and uses the independently migrated outbox schema in local MsSql `command_q`.
+- Base, QA and Production settings disable delivery and polling and leave the outbox connection empty. QA/Production also disable startup migrations until explicitly enabled.
+- Worker settings live under `EmailWorker:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`. Startup migration policy lives separately under `EmailWorker:Migrations:RunOnStartup`.
 - Run with `.\scripts\run-email-worker.ps1`. It is not required for API or IdentityServer startup.
+- The `Email.Worker` Visual Studio launch profile and run script set `DOTNET_ENVIRONMENT=Development`, allowing the generic host to load the worker project's user-secrets. Do not load user-secrets explicitly outside Development.
 - OAuth token acquisition and refresh remain external to the worker.
 - See `Email.Worker/README.md`.
 
@@ -283,6 +294,7 @@ This file captures practical repository knowledge for coding agents working in t
 ## Coding Conventions
 - Prefer existing project patterns over new abstractions.
 - Follow `.editorconfig` for formatting, naming and analyzer preferences.
+- Keep method, constructor and primary-constructor declarations on one line when the complete declaration is at most 140 characters. Wrap parameters only when the declaration exceeds that limit or readability genuinely requires it.
 - Use `rg`/`rg --files` for searches.
 - Use `apply_patch` for manual edits.
 - Avoid unrelated refactors and metadata churn.

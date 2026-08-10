@@ -30,9 +30,7 @@ namespace Email.Services
             _logger = logger;
         }
 
-        public async Task<EmailSendResult> SendAsync(
-            EmailMessage message,
-            CancellationToken cancellationToken = default)
+        public async Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(message);
 
@@ -40,9 +38,7 @@ namespace Email.Services
             return batchResult.Messages[0];
         }
 
-        public async Task<EmailBatchResult> SendAsync(
-            IEnumerable<EmailMessage> messages,
-            CancellationToken cancellationToken = default)
+        public async Task<EmailBatchResult> SendAsync(IEnumerable<EmailMessage> messages, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(messages);
 
@@ -309,9 +305,7 @@ namespace Email.Services
             };
         }
 
-        private static async Task<string> ReadHtmlTemplate(
-            string htmlTemplateFilePath,
-            CancellationToken cancellationToken)
+        private static async Task<string> ReadHtmlTemplate(string htmlTemplateFilePath, CancellationToken cancellationToken)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(htmlTemplateFilePath);
 

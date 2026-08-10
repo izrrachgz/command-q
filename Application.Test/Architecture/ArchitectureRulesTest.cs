@@ -47,6 +47,17 @@ namespace Application.Test.Architecture
         }
 
         [Fact]
+        public void Application_Notifications_Should_Use_Email_Contracts_Without_Owning_Delivery_Infrastructure()
+        {
+            var referencedAssemblies = ApplicationAssembly.GetReferencedAssemblies().Select(assembly => assembly.Name).ToHashSet();
+
+            Assert.Contains("Email", referencedAssemblies);
+            Assert.Contains("Email.Outbox", referencedAssemblies);
+            Assert.DoesNotContain("Email.Outbox.Persistence", referencedAssemblies);
+            Assert.DoesNotContain("Email.Worker", referencedAssemblies);
+        }
+
+        [Fact]
         public void Persistence_Should_Not_Reference_Application_Or_Api()
         {
             var referencedAssemblies = PersistenceAssembly.GetReferencedAssemblies().Select(assembly => assembly.Name).ToHashSet();
@@ -171,7 +182,8 @@ namespace Application.Test.Architecture
                 "Application.Modules.Contacts",
                 "Application.Modules.Addresses",
                 "Application.Modules.Files",
-                "Application.Modules.Health");
+                "Application.Modules.Health",
+                "Application.Modules.Notifications");
         }
 
         private static bool IsAllowedDomainModuleNamespace(string @namespace)
@@ -227,6 +239,7 @@ namespace Application.Test.Architecture
                 var value when value.StartsWith("Application.Modules.Files", StringComparison.Ordinal) => IsInRange(eventId, 203000),
                 var value when value.StartsWith("Application.Modules.Contacts", StringComparison.Ordinal) => IsInRange(eventId, 204000),
                 var value when value.StartsWith("Application.Modules.Addresses", StringComparison.Ordinal) => IsInRange(eventId, 205000),
+                var value when value.StartsWith("Application.Modules.Notifications", StringComparison.Ordinal) => IsInRange(eventId, 206000),
                 _ => false
             };
         }

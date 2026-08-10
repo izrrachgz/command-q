@@ -44,10 +44,10 @@ namespace Application.Extensions
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
 
             // Repositories
-            services.AddRepositories();
+            services.AddRepositories(configuration);
 
             // Command runners
-            services.AddCommandRunners();
+            services.AddCommandRunners(configuration);
 
             // Task runner
             services.AddTaskRunner();

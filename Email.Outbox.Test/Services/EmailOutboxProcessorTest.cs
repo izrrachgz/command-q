@@ -99,10 +99,7 @@ namespace Email.Outbox.Test.Services
             Assert.Empty(store.ReleasedRecords);
         }
 
-        private static EmailOutboxProcessor CreateProcessor(
-            IEmailOutboxStore store,
-            IEmailSender sender,
-            IEmailOutboxSerializer serializer)
+        private static EmailOutboxProcessor CreateProcessor(IEmailOutboxStore store, IEmailSender sender, IEmailOutboxSerializer serializer)
         {
             return new EmailOutboxProcessor(
                 store,
@@ -122,9 +119,7 @@ namespace Email.Outbox.Test.Services
             return new EmailOutboxClaimRequest(10, "test-worker", TimeSpan.FromMinutes(1), DateTime.UtcNow);
         }
 
-        private static async Task<ClaimedEmailOutboxRecord> CreateClaimedRecord(
-            IEmailOutboxSerializer serializer,
-            string recipient)
+        private static async Task<ClaimedEmailOutboxRecord> CreateClaimedRecord(IEmailOutboxSerializer serializer, string recipient)
         {
             string payload = await serializer.SerializeAsync(
                 new EmailMessage

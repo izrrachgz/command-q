@@ -6,23 +6,17 @@ using Email.Outbox.Serialization;
 
 namespace Email.Outbox.Services
 {
-    internal sealed class EmailOutboxService(
-        IEmailOutboxStore store,
-        IEmailOutboxSerializer serializer)
+    internal sealed class EmailOutboxService(IEmailOutboxStore store, IEmailOutboxSerializer serializer)
         : IEmailOutbox
     {
-        public Task<EmailOutboxEnqueueResult> EnqueueAsync(
-            EmailMessage message,
-            CancellationToken cancellationToken = default)
+        public Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             return EnqueueAsync(
                 new EmailOutboxRequest { Message = message },
                 cancellationToken);
         }
 
-        public async Task<EmailOutboxEnqueueResult> EnqueueAsync(
-            EmailOutboxRequest request,
-            CancellationToken cancellationToken = default)
+        public async Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailOutboxRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Message);

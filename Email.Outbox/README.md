@@ -6,11 +6,11 @@ Application or IdentityServer.
 
 ## Enqueueing
 
-Register the outbox core and one `IEmailOutboxStore` implementation, then inject
-`IEmailOutbox`:
+Register the producer services and one `IEmailOutboxStore` implementation, then
+inject `IEmailOutbox`:
 
 ```csharp
-services.AddEmailOutbox(configuration);
+services.AddEmailOutboxProducer(configuration.GetRequiredSection("Api:EmailOutbox"));
 
 var result = await emailOutbox.EnqueueAsync(new EmailOutboxRequest
 {
@@ -24,16 +24,31 @@ var result = await emailOutbox.EnqueueAsync(new EmailOutboxRequest
 `EmailOutboxEnqueueResult` returns the durable record ID and indicates whether
 the idempotency key resolved to an existing record.
 
+Within CommandQ, application use cases should normally use
+`QueueEmailCommand` or `IApplicationEmailService` from
+`Application.Modules.Notifications`. That module validates prepared messages
+and maps application metadata into this transport-independent contract. A
+producer host still owns registration of the outbox core and persistence
+adapter.
+
 File attachments and inline resources are read and copied into the serialized
 payload before enqueueing. The worker therefore does not depend on temporary
 source files remaining available. The default payload limit is 64 MiB and is
 configured through `EmailOutbox:MaxPayloadBytes`.
+The reusable extension also accepts an `IConfigurationSection`, allowing each
+host to choose its own prefix without teaching the outbox library about host
+names.
 
 ## Delivery Semantics
 
 `IEmailOutboxProcessor` claims a leased batch and sends all valid messages
 through the collection overload of `IEmailSender`. This opens one SMTP
 connection and authenticates once per claimed batch.
+
+Consumer hosts such as `Email.Worker` pass their owned outbox section to
+`AddEmailOutbox(section)`, which combines producer registration with
+`AddEmailOutboxProcessor()`. Producer-only
+hosts must not register the processor because it requires `IEmailSender`.
 
 The workflow provides:
 

@@ -8,11 +8,13 @@ Use .NET user-secrets for local backend secrets. Keep real secrets out of
 Run these commands from the repository root and replace the placeholder values:
 
 ```powershell
-dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Engine" "MsSql"
-dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
-dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
-dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
-dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "http://localhost:4200"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Engine" "MsSql"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:Engine" "MsSql"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
 ```
 
 Development startup invokes the application migration runner automatically. The
@@ -30,24 +32,26 @@ dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "Co
 
 ## API Deployment Configuration
 
-The QA and Production API templates select `PgSql` but intentionally leave the
-database, authority and API-client values empty. Supply them through deployment
+The QA and Production API templates intentionally leave the database,
+authority and API-client values empty. Supply them through deployment
 configuration and a secret store as appropriate:
 
 ```text
-ConnectionStrings__Engine
-ConnectionStrings__Db
-Authentication__Authority
-Authentication__Audience
-Authentication__ApiScope
-ApiClients__0__Name
-ApiClients__0__Id
-ApiClients__0__Uri
-Migrations__RunOnStartup
+Api__ConnectionStrings__Engine
+Api__ConnectionStrings__Db
+Api__Authentication__Authority
+Api__Authentication__Audience
+Api__Authentication__ApiScope
+Api__EmailOutbox__Persistence__Engine
+Api__EmailOutbox__Persistence__ConnectionString
+Api__ApiClients__0__Name
+Api__ApiClients__0__Id
+Api__ApiClients__0__Uri
+Api__Migrations__RunOnStartup
 ```
 
-`ApiClients__0__Uri` is the allowed origin outside Development, while
-`ApiClients__0__Id` is the secret header value. Add additional clients by
+`Api__ApiClients__0__Uri` is the allowed origin outside Development, while
+`Api__ApiClients__0__Id` is the secret header value. Add additional clients by
 incrementing the array index.
 
 ## Standalone Identity Server
@@ -57,16 +61,16 @@ It issues the access tokens accepted by `Api`; the projects remain independently
 deployable and communicate through OpenID Connect. For local development, the
 database name is `command_q_identity`.
 
-PostgreSQL is the default IdentityServer provider. Configure both the engine and
-connection in the IdentityServer secret store:
+Configure the IdentityServer engine and connection independently from the API.
+This example selects PostgreSQL:
 
 ```powershell
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:Engine" "PgSql"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
 ```
 
 The supported engine values are `PgSql`, `MsSql`, `MySql` and `SqLite`. All use
-the `ConnectionStrings:IdentityDb` key, with a connection string appropriate for
+the `IdentityServer:ConnectionStrings:IdentityDb` key, with a connection string appropriate for
 the selected EF Core provider. IdentityServer does not reuse the API's SqlKata
 connection or provider registration.
 
@@ -76,34 +80,34 @@ through their deployment configuration and secret store. Typical environment
 variable names are:
 
 ```text
-ConnectionStrings__Engine
-ConnectionStrings__IdentityDb
-OpenIddict__Issuer
-OpenIddict__Clients__0__ClientId
-OpenIddict__Clients__0__DisplayName
-OpenIddict__Clients__0__ClientSecret
-OpenIddict__Clients__0__AllowClientCredentials
-OpenIddict__Clients__0__RedirectUris__0
-OpenIddict__Clients__0__PostLogoutRedirectUris__0
-OpenIddict__Certificates__Signing__Path
-OpenIddict__Certificates__Signing__Password
-OpenIddict__Certificates__Encryption__Path
-OpenIddict__Certificates__Encryption__Password
-DataProtection__KeysPath
-DataProtection__Certificate__Path
-DataProtection__Certificate__Password
-ExternalProviders__Google__ClientId
-ExternalProviders__Google__ClientSecret
-ExternalProviders__Microsoft__ClientId
-ExternalProviders__Microsoft__ClientSecret
+IdentityServer__ConnectionStrings__Engine
+IdentityServer__ConnectionStrings__IdentityDb
+IdentityServer__OpenIddict__Issuer
+IdentityServer__OpenIddict__Clients__0__ClientId
+IdentityServer__OpenIddict__Clients__0__DisplayName
+IdentityServer__OpenIddict__Clients__0__ClientSecret
+IdentityServer__OpenIddict__Clients__0__AllowClientCredentials
+IdentityServer__OpenIddict__Clients__0__RedirectUris__0
+IdentityServer__OpenIddict__Clients__0__PostLogoutRedirectUris__0
+IdentityServer__OpenIddict__Certificates__Signing__Path
+IdentityServer__OpenIddict__Certificates__Signing__Password
+IdentityServer__OpenIddict__Certificates__Encryption__Path
+IdentityServer__OpenIddict__Certificates__Encryption__Password
+IdentityServer__DataProtection__KeysPath
+IdentityServer__DataProtection__Certificate__Path
+IdentityServer__DataProtection__Certificate__Password
+IdentityServer__ExternalProviders__Google__ClientId
+IdentityServer__ExternalProviders__Google__ClientSecret
+IdentityServer__ExternalProviders__Microsoft__ClientId
+IdentityServer__ExternalProviders__Microsoft__ClientSecret
 ```
 
-Do not enable `OpenIddict:Certificates:UseDevelopmentCertificates` outside the
+Do not enable `IdentityServer:OpenIddict:Certificates:UseDevelopmentCertificates` outside the
 Development environment.
 
 Google and Microsoft sign-in are activated only when both provider credentials
-are present. Store them as `ExternalProviders:Google:ClientId`/
-`ClientSecret` or `ExternalProviders:Microsoft:ClientId`/`ClientSecret`.
+are present. Store them under `IdentityServer:ExternalProviders:Google` or
+`IdentityServer:ExternalProviders:Microsoft`.
 
 ## Email Delivery
 
@@ -112,59 +116,58 @@ disabled by default. Put SMTP credentials or an OAuth access token in the
 consuming host's user-secrets store, not in `Email/appsettings.json` or a
 class-library secret store. For example:
 
-```powershell
-dotnet user-secrets set --project .\Api\Api.csproj "Email:Enabled" "true"
-dotnet user-secrets set --project .\Api\Api.csproj "Email:Smtp:Host" "smtp.example.com"
-dotnet user-secrets set --project .\Api\Api.csproj "Email:Authentication:Type" "Login"
-dotnet user-secrets set --project .\Api\Api.csproj "Email:Authentication:Login:Username" "smtp-user"
-dotnet user-secrets set --project .\Api\Api.csproj "Email:Authentication:Login:Password" "change-me"
-dotnet user-secrets set --project .\Api\Api.csproj "Email:Sender:Address" "no-reply@example.com"
-```
-
-The host still needs an explicit project reference and
-`services.AddEmailServices(configuration)` registration. OAuth tokens are
+The worker passes `EmailWorker:Email` directly to the reusable Email library.
+Another host can choose a different section by calling the
+`AddEmailServices(IConfigurationSection)` overload. OAuth tokens are
 ready-to-use values and should be supplied through the deployment secret store;
 the Email library does not acquire, refresh or persist them.
 
 ## Email Outbox Worker
 
-`Email.Worker` has a separate user-secrets store. Development requires no
-database secret because its dedicated outbox uses SQLite by default and is
-prepared for anonymous smtp4dev delivery on `localhost:25`.
+`Email.Worker` has a separate user-secrets store. Development defaults to the
+local `localhost\SQLEXPRESS` `command_q` database through Windows trusted
+authentication and is prepared for anonymous smtp4dev delivery on
+`localhost:25`.
+
+The Visual Studio `Email.Worker` launch profile and
+`.\scripts\run-email-worker.ps1` both set `DOTNET_ENVIRONMENT=Development`.
+User-secrets are intentionally unavailable when the worker runs under another
+environment.
 
 For a real SMTP endpoint, configure secrets on the worker project:
 
 ```powershell
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Enabled" "true"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Smtp:Host" "smtp.example.com"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Authentication:Type" "Login"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Authentication:Login:Username" "smtp-user"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Authentication:Login:Password" "change-me"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "Email:Sender:Address" "no-reply@example.com"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailOutbox:Worker:Enabled" "true"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Enabled" "true"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Smtp:Host" "smtp.example.com"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Authentication:Type" "Login"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Authentication:Login:Username" "smtp-user"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Authentication:Login:Password" "change-me"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Sender:Address" "no-reply@example.com"
+dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Worker:Enabled" "true"
 ```
 
-To replace SQLite, set `EmailOutbox:Persistence:Engine` and
-`EmailOutbox:Persistence:ConnectionString` in the same worker secret store.
+To select another database, set `EmailWorker:EmailOutbox:Persistence:Engine` and
+`EmailWorker:EmailOutbox:Persistence:ConnectionString` in the same worker secret store.
 Supported values are `SqLite`, `MsSql`, `PgSql` and `MySql`. QA and Production
 keep polling and startup migrations disabled until deployment configuration
-enables them explicitly.
+enables `EmailWorker:Worker:Enabled` and `EmailWorker:Migrations:RunOnStartup`
+explicitly. Migration policy belongs to the worker, not persistence options.
 
 ## Environment Variables
 
 `.env.example` documents equivalent environment variable names for deployment
-systems or local tools that load `.env` files. Neither backend host reads `.env`
-files by itself.
+systems or local tools that load `.env` files. The backend hosts do not read
+`.env` files by themselves.
 
 ASP.NET Core maps double underscores to configuration sections:
 
 ```text
-ConnectionStrings__Db -> ConnectionStrings:Db
-ConnectionStrings__Engine -> ConnectionStrings:Engine
-ConnectionStrings__IdentityDb -> ConnectionStrings:IdentityDb
-Authentication__Authority -> Authentication:Authority
-ApiClients__0__Id -> ApiClients:0:Id
-OpenIddict__Issuer -> OpenIddict:Issuer
+Api__ConnectionStrings__Db -> Api:ConnectionStrings:Db
+Api__Authentication__Authority -> Api:Authentication:Authority
+Api__ApiClients__0__Id -> Api:ApiClients:0:Id
+IdentityServer__ConnectionStrings__IdentityDb -> IdentityServer:ConnectionStrings:IdentityDb
+IdentityServer__OpenIddict__Issuer -> IdentityServer:OpenIddict:Issuer
+EmailWorker__Worker__Enabled -> EmailWorker:Worker:Enabled
 ```
 
 ## Resetting Pre-v1 Development Databases

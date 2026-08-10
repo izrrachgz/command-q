@@ -14,9 +14,7 @@ namespace Email.Extensions
     /// </summary>
     public static class EmailServiceCollectionExtensions
     {
-        public static IServiceCollection AddEmailServices(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        public static IServiceCollection AddEmailServices(this IServiceCollection services, IConfiguration configuration)
         {
             ArgumentNullException.ThrowIfNull(configuration);
 
@@ -33,9 +31,7 @@ namespace Email.Extensions
                 EmailConstants.ConfigurationSection));
         }
 
-        public static IServiceCollection AddEmailServices(
-            this IServiceCollection services,
-            IConfigurationSection section)
+        public static IServiceCollection AddEmailServices(this IServiceCollection services, IConfigurationSection section)
         {
             ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(section);
@@ -47,9 +43,7 @@ namespace Email.Extensions
             return AddEmailCore(services);
         }
 
-        public static IServiceCollection AddEmailServices(
-            this IServiceCollection services,
-            Action<EmailOptions> configure)
+        public static IServiceCollection AddEmailServices(this IServiceCollection services, Action<EmailOptions> configure)
         {
             ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(configure);

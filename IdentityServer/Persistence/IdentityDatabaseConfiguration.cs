@@ -2,14 +2,11 @@ using IdentityServer.Constants;
 
 namespace IdentityServer.Persistence
 {
-    internal sealed record IdentityDatabaseSettings(
-        IdentityDatabaseEngine Engine,
-        string ConnectionString);
+    internal sealed record IdentityDatabaseSettings(IdentityDatabaseEngine Engine, string ConnectionString);
 
     internal static class IdentityDatabaseConfiguration
     {
-        public static IdentityDatabaseSettings GetIdentityDatabaseSettings(
-            this IConfiguration configuration)
+        public static IdentityDatabaseSettings GetIdentityDatabaseSettings(this IConfiguration configuration)
         {
             string? configuredEngine = configuration[ConfigKeys.ConnectionStrings.Engine];
 
@@ -23,11 +20,11 @@ namespace IdentityServer.Persistence
             }
 
             string connectionString = configuration.GetConnectionString(ConfigKeys.ConnectionStrings.IdentityDb)
-                ?? throw new InvalidOperationException("ConnectionStrings:IdentityDb is required.");
+                ?? throw new InvalidOperationException("IdentityServer:ConnectionStrings:IdentityDb is required.");
 
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                throw new InvalidOperationException("ConnectionStrings:IdentityDb is required.");
+                throw new InvalidOperationException("IdentityServer:ConnectionStrings:IdentityDb is required.");
             }
 
             return new IdentityDatabaseSettings(engine, connectionString);

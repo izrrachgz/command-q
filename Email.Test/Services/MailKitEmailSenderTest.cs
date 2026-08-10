@@ -25,6 +25,7 @@ namespace Email.Test.Services
 
             Assert.Equal(1, transport.ConnectCount);
             Assert.Equal(1, transport.AuthenticateCount);
+            Assert.Equal(1, transport.NoOpCount);
             Assert.Equal(EmailAuthenticationType.Login, transport.AuthenticationType);
             Assert.Equal(2, transport.SendCount);
             Assert.Equal(1, transport.DisconnectCount);
@@ -311,6 +312,7 @@ namespace Email.Test.Services
             public int? FailOnSendNumber { get; init; }
             public int ConnectCount { get; private set; }
             public int AuthenticateCount { get; private set; }
+            public int NoOpCount { get; private set; }
             public int SendCount { get; private set; }
             public int DisconnectCount { get; private set; }
             public int DisposeCount { get; private set; }
@@ -318,11 +320,7 @@ namespace Email.Test.Services
             public EmailAuthenticationType? AuthenticationType { get; private set; }
             public List<DeliveredMessage> Messages { get; } = new();
 
-            public Task ConnectAsync(
-                string host,
-                int port,
-                EmailSecurityMode securityMode,
-                CancellationToken cancellationToken)
+            public Task ConnectAsync(string host, int port, EmailSecurityMode securityMode, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 ConnectCount++;
@@ -331,9 +329,7 @@ namespace Email.Test.Services
                 return Task.CompletedTask;
             }
 
-            public Task AuthenticateAsync(
-                EmailAuthenticationOptions authentication,
-                CancellationToken cancellationToken)
+            public Task AuthenticateAsync(EmailAuthenticationOptions authentication, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 AuthenticateCount++;
@@ -375,6 +371,14 @@ namespace Email.Test.Services
                         .ToArray()));
 
                 return Task.FromResult("250 Message accepted");
+            }
+
+            public Task NoOpAsync(CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                NoOpCount++;
+
+                return Task.CompletedTask;
             }
 
             private static IReadOnlyCollection<string> GetAddresses(InternetAddressList addresses)

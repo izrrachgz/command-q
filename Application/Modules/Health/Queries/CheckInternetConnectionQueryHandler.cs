@@ -2,7 +2,7 @@ using Common.Cqrs;
 using Common.Extensions;
 using Common.Transfer.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using Application.Modules.Health.Logging;
@@ -11,15 +11,17 @@ namespace Application.Modules.Health.Queries
 {
     public class CheckInternetConnectionQueryHandler : IQueryHandler<CheckInternetConnectionQuery, HealthCheckResult>, IHealthCheck
     {
-        private readonly IConfiguration _configuration;
+        private readonly HealthCheckConfigurationOptions _options;
         private readonly ILogger<CheckInternetConnectionQueryHandler> _logger;
         private readonly string UnhealthyMessage = @"Application is unable to access internet.";
         private readonly string HealthyMessage = @"Application is able to access internet.";
 
-        public CheckInternetConnectionQueryHandler(IConfiguration configuration, ILogger<CheckInternetConnectionQueryHandler> logger)
+        public CheckInternetConnectionQueryHandler(
+            IOptions<HealthCheckConfigurationOptions> options,
+            ILogger<CheckInternetConnectionQueryHandler> logger)
         {
             _logger = logger;
-            _configuration = configuration;
+            _options = options.Value;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -29,7 +31,7 @@ namespace Application.Modules.Health.Queries
 
         public async Task<HealthCheckResult> Handle(CheckInternetConnectionQuery request, CancellationToken cancellationToken)
         {
-            string? urlCheckInternetAccess = _configuration.GetValue<string>(@"HealthCheck:UrlCheckInternetAccess");
+            string urlCheckInternetAccess = _options.UrlCheckInternetAccess;
 
             if (string.IsNullOrEmpty(urlCheckInternetAccess) || !urlCheckInternetAccess.IsUri())
                 return HealthCheckResult.Unhealthy(UnhealthyMessage);

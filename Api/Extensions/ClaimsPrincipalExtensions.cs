@@ -1,14 +1,11 @@
-﻿using Api.Models;
+using Api.Models;
 using System.Security.Claims;
 
 namespace Api.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static bool TryGetIdentityKey(
-            this ClaimsPrincipal user,
-            out string issuer,
-            out string subject)
+        public static bool TryGetIdentityKey(this ClaimsPrincipal user, out string issuer, out string subject)
         {
             issuer = user.FindFirstValue(AuthenticationClaimTypes.Issuer) ?? string.Empty;
             subject = user.FindFirstValue(AuthenticationClaimTypes.Subject) ?? string.Empty;

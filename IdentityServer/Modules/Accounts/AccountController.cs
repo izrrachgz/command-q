@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using IdentityServer.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -20,9 +20,7 @@ namespace IdentityServer.Modules.Accounts
     {
         [AllowAnonymous, HttpPost(AccountConstants.Routes.Register)]
         [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
-        public async Task<IActionResult> Register(
-            RegisterAccountRequest request,
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> Register(RegisterAccountRequest request, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
             var user = new IdentityUser
@@ -59,9 +57,7 @@ namespace IdentityServer.Modules.Accounts
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.SignIn)]
         [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
-        public async Task<IActionResult> SignIn(
-            SignInRequest request,
-            CancellationToken cancellationToken)
+        public async Task<IActionResult> SignIn(SignInRequest request, CancellationToken cancellationToken)
         {
             var user = await FindUser(request.UsernameOrEmail);
 

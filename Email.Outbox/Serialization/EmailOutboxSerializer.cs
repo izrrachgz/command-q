@@ -11,9 +11,7 @@ namespace Email.Outbox.Serialization
     {
         private readonly EmailOutboxOptions _options = options.Value;
 
-        public async Task<string> SerializeAsync(
-            EmailMessage message,
-            CancellationToken cancellationToken = default)
+        public async Task<string> SerializeAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(message);
 

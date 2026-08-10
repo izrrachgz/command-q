@@ -13,15 +13,21 @@ namespace Email.Outbox.Persistence.Extensions
 {
     public static class EmailOutboxPersistenceExtensions
     {
-        public static IServiceCollection AddEmailOutboxPersistence(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        public static IServiceCollection AddEmailOutboxPersistence(this IServiceCollection services, IConfiguration configuration)
         {
-            ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(configuration);
 
+            return services.AddEmailOutboxPersistence(configuration.GetSection(
+                EmailOutboxPersistenceConstants.ConfigurationSection));
+        }
+
+        public static IServiceCollection AddEmailOutboxPersistence(this IServiceCollection services, IConfigurationSection section)
+        {
+            ArgumentNullException.ThrowIfNull(services);
+            ArgumentNullException.ThrowIfNull(section);
+
             services.AddOptions<EmailOutboxPersistenceOptions>()
-                .Bind(configuration.GetSection(EmailOutboxPersistenceConstants.ConfigurationSection))
+                .Bind(section)
                 .ValidateOnStart();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<
                 IValidateOptions<EmailOutboxPersistenceOptions>,
@@ -34,19 +40,8 @@ namespace Email.Outbox.Persistence.Extensions
             return services;
         }
 
-        public static async Task RunEmailOutboxMigrations(
-            this IHost host,
-            CancellationToken cancellationToken = default)
+        public static async Task RunEmailOutboxMigrations(this IHost host, CancellationToken cancellationToken = default)
         {
-            var options = host.Services
-                .GetRequiredService<IOptions<EmailOutboxPersistenceOptions>>()
-                .Value;
-
-            if (!options.RunMigrationsOnStartup)
-            {
-                return;
-            }
-
             var runner = host.Services.GetRequiredService<EmailOutboxMigrationRunner>();
             await runner.RunAsync(cancellationToken);
         }

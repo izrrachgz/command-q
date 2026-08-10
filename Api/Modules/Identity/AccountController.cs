@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Api.Constants;
 using Api.Extensions;
 using Api.Interfaces;
@@ -13,9 +13,7 @@ using Application.Modules.Identity.AccountActivity.Queries;
 namespace Api.Modules.Identity
 {
     [ApiController, Route("[controller]")]
-    public sealed class AccountController(
-        ISender mediator,
-        ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
+    public sealed class AccountController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
         [Authorize, HttpPost("create")]
         [EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]

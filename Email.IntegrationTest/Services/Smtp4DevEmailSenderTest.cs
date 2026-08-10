@@ -162,10 +162,7 @@ namespace Email.IntegrationTest.Services
             return document.RootElement.Clone();
         }
 
-        private static bool ContainsPropertyValue(
-            JsonElement element,
-            string propertyName,
-            string expectedValue)
+        private static bool ContainsPropertyValue(JsonElement element, string propertyName, string expectedValue)
         {
             if (element.ValueKind == JsonValueKind.Object)
             {

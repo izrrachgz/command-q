@@ -3,6 +3,7 @@ using Application.Modules.Health;
 using Application.Modules.Contacts;
 using Application.Modules.Identity;
 using Application.Modules.Addresses;
+using Application.Modules.Notifications;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
@@ -17,6 +18,7 @@ namespace Application.Modules
             services.AddContactsModule();
             services.AddAddressesModule();
             services.AddFilesModule();
+            services.AddNotificationsModule();
 
             return services;
         }

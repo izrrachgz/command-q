@@ -1,4 +1,4 @@
-﻿using Public;
+using Public;
 using MediatR;
 using Api.Constants;
 using Api.Interfaces;
@@ -19,10 +19,7 @@ namespace Api.Modules.Files
         private readonly ITextProvider _messages;
         private readonly ICurrentAccountAccessor _currentAccountAccessor;
 
-        public FilesController(
-            ISender mediator,
-            ITextProvider messages,
-            ICurrentAccountAccessor currentAccountAccessor)
+        public FilesController(ISender mediator, ITextProvider messages, ICurrentAccountAccessor currentAccountAccessor)
         {
             _mediator = mediator;
             _messages = messages;

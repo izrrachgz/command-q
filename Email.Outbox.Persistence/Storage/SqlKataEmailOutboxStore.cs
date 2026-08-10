@@ -8,14 +8,10 @@ using Email.Outbox.Persistence.Constants;
 
 namespace Email.Outbox.Persistence.Storage
 {
-    internal sealed class SqlKataEmailOutboxStore(
-        EmailOutboxRepositoryFactory repositoryFactory,
-        ILogger<SqlKataEmailOutboxStore> logger)
+    internal sealed class SqlKataEmailOutboxStore(EmailOutboxRepositoryFactory repositoryFactory, ILogger<SqlKataEmailOutboxStore> logger)
         : IEmailOutboxStore
     {
-        public async Task<EmailOutboxEnqueueResult> EnqueueAsync(
-            EmailOutboxRecord record,
-            CancellationToken cancellationToken = default)
+        public async Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailOutboxRecord record, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(record);
 
@@ -142,9 +138,7 @@ namespace Email.Outbox.Persistence.Storage
             return claimed;
         }
 
-        public async Task<bool> MarkSentAsync(
-            EmailOutboxSentUpdate update,
-            CancellationToken cancellationToken = default)
+        public async Task<bool> MarkSentAsync(EmailOutboxSentUpdate update, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(update);
 
@@ -174,9 +168,7 @@ namespace Email.Outbox.Persistence.Storage
             return affected == 1;
         }
 
-        public async Task<bool> MarkFailedAsync(
-            EmailOutboxFailedUpdate update,
-            CancellationToken cancellationToken = default)
+        public async Task<bool> MarkFailedAsync(EmailOutboxFailedUpdate update, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(update);
 
@@ -258,10 +250,7 @@ namespace Email.Outbox.Persistence.Storage
             return records.FirstOrDefault();
         }
 
-        private static Query LockedRecordQuery(
-            QueryFactory database,
-            Guid id,
-            string lockId)
+        private static Query LockedRecordQuery(QueryFactory database, Guid id, string lockId)
         {
             return database.Query(EmailOutboxPersistenceConstants.OutboxTable)
                 .Where(nameof(EmailOutboxStorageRecord.Id), id.ToString("D"))

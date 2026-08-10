@@ -45,5 +45,18 @@ namespace Api.Test.Architecture
             Assert.DoesNotContain("FrontApplication", referencedAssemblies);
             Assert.DoesNotContain("IdentityServer", referencedAssemblies);
         }
+
+        [Fact]
+        public void Api_Should_Compose_Email_Outbox_Without_Owning_Email_Delivery()
+        {
+            var referencedAssemblies = ApiAssembly.GetReferencedAssemblies()
+                .Select(assembly => assembly.Name)
+                .Where(name => name is not null)
+                .ToHashSet();
+
+            Assert.Contains("Email.Outbox", referencedAssemblies);
+            Assert.Contains("Email.Outbox.Persistence", referencedAssemblies);
+            Assert.DoesNotContain("Email.Worker", referencedAssemblies);
+        }
     }
 }

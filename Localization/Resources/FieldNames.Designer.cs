@@ -77,6 +77,15 @@ namespace Public {
                 return ResourceManager.GetString("Account_Id", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Account Reference.
+        /// </summary>
+        public static string Account_Reference {
+            get {
+                return ResourceManager.GetString("Account_Reference", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Busca una cadena traducida similar a Address Line.
@@ -104,6 +113,15 @@ namespace Public {
                 return ResourceManager.GetString("Country", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Correlation Id.
+        /// </summary>
+        public static string Correlation_Id {
+            get {
+                return ResourceManager.GetString("Correlation_Id", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Busca una cadena traducida similar a Email Address.
@@ -111,6 +129,42 @@ namespace Public {
         public static string Email_Address {
             get {
                 return ResourceManager.GetString("Email_Address", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Email Body.
+        /// </summary>
+        public static string Email_Body {
+            get {
+                return ResourceManager.GetString("Email_Body", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Email Message.
+        /// </summary>
+        public static string Email_Message {
+            get {
+                return ResourceManager.GetString("Email_Message", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Email Recipients.
+        /// </summary>
+        public static string Email_Recipients {
+            get {
+                return ResourceManager.GetString("Email_Recipients", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Email Subject.
+        /// </summary>
+        public static string Email_Subject {
+            get {
+                return ResourceManager.GetString("Email_Subject", resourceCulture);
             }
         }
         
@@ -129,6 +183,15 @@ namespace Public {
         public static string File_Name {
             get {
                 return ResourceManager.GetString("File_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Idempotency Key.
+        /// </summary>
+        public static string Idempotency_Key {
+            get {
+                return ResourceManager.GetString("Idempotency_Key", resourceCulture);
             }
         }
         

@@ -18,5 +18,14 @@ namespace Email.Worker.Logging
 
         [LoggerMessage(EventId = EmailWorkerEventIds.Stopped, Level = LogLevel.Information, Message = "Email outbox worker {WorkerId} stopped.")]
         public static partial void Stopped(this ILogger logger, string workerId);
+
+        [LoggerMessage(EventId = EmailWorkerEventIds.StartupConfiguration, Level = LogLevel.Information, Message = "Email worker starting. Environment: {Environment}. Database engine: {DatabaseEngine}. Migrations on startup: {RunMigrationsOnStartup}. Polling enabled: {WorkerEnabled}. SMTP delivery enabled: {EmailEnabled}.")]
+        public static partial void StartupConfiguration(
+            this ILogger logger,
+            string environment,
+            string databaseEngine,
+            bool runMigrationsOnStartup,
+            bool workerEnabled,
+            bool emailEnabled);
     }
 }

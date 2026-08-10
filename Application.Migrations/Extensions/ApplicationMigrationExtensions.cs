@@ -19,9 +19,7 @@ namespace Application.Migrations.Extensions
             return services;
         }
 
-        public static async Task RunApplicationMigrations(
-            this IHost host,
-            CancellationToken cancellationToken = default)
+        public static async Task RunApplicationMigrations(this IHost host, CancellationToken cancellationToken = default)
         {
             using var scope = host.Services.CreateScope();
             var runner = scope.ServiceProvider.GetRequiredService<ApplicationMigrationRunner>();

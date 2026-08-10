@@ -14,6 +14,7 @@ organized so a future project can keep, replace or remove them deliberately.
 | --- | --- | --- |
 | Identity | Core | Application profiles, external identity mapping and queryable business account activity. Authentication belongs to `IdentityServer`. |
 | Health | Core | Health checks and operational diagnostics. |
+| Notifications | Optional infrastructure | Application commands and services for validated durable email enqueueing. SMTP delivery and persistence remain outside Application. |
 | Files | Optional | Authenticated file upload and account file metadata. |
 | Contacts | Sample | Example account-owned feature module. |
 | Addresses | Sample | Example account-owned feature module. |
@@ -66,5 +67,6 @@ Use this checklist when removing a module.
 - Prefer removing entire modules instead of leaving half-empty folders.
 - Keep `Identity` and `Health` unless the replacement module is already in place.
 - Use Identity account activity as the queryable audit trail for business account actions instead of per-account application log files. IdentityServer keeps authentication security events in its own database.
+- The Notifications module references only the reusable email and outbox contracts. Producer hosts select and register `IEmailOutboxStore`; `Email.Worker` owns delivery and retries.
 - Removing IdentityServer requires replacing the API `Authentication:Authority` with another standards-compatible issuer; do not move credentials back into the API.
 - Treat `Contacts`, `Addresses`, `Events` and `Registers` as examples until a product needs them.

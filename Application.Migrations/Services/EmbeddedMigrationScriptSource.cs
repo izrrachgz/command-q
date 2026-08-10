@@ -48,9 +48,7 @@ namespace Application.Migrations.Services
                 .ToArray();
         }
 
-        private static (long MigrationId, string Module, string Name) ParseMetadata(
-            string resourcePrefix,
-            string resourceName)
+        private static (long MigrationId, string Module, string Name) ParseMetadata(string resourcePrefix, string resourceName)
         {
             string relativeName = resourceName[resourcePrefix.Length..];
             string[] segments = relativeName.Split('.', StringSplitOptions.RemoveEmptyEntries);

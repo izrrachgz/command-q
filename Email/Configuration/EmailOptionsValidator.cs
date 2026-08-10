@@ -61,9 +61,7 @@ namespace Email.Configuration
                 : ValidateOptionsResult.Fail(errors);
         }
 
-        private static void ValidateDeliveryPolicy(
-            EmailDeliveryPolicyOptions policy,
-            ICollection<string> errors)
+        private static void ValidateDeliveryPolicy(EmailDeliveryPolicyOptions policy, ICollection<string> errors)
         {
             if (policy.MaxRecipients <= 0)
             {
@@ -96,9 +94,7 @@ namespace Email.Configuration
             }
         }
 
-        private static void ValidateAuthentication(
-            EmailAuthenticationOptions authentication,
-            ICollection<string> errors)
+        private static void ValidateAuthentication(EmailAuthenticationOptions authentication, ICollection<string> errors)
         {
             switch (authentication.Type)
             {

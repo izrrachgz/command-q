@@ -1,4 +1,4 @@
-﻿using IdentityServer.Constants;
+using IdentityServer.Constants;
 using OpenIddict.Abstractions;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
@@ -7,22 +7,20 @@ namespace IdentityServer.Modules.Accounts
 {
     internal static class AccountsModuleExtensions
     {
-        public static IdentityBuilder AddAccountsModule(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        public static IdentityBuilder AddAccountsModule(this IServiceCollection services, IConfiguration configuration)
         {
             var identitySection = configuration.GetRequiredSection(ConfigKeys.Identity.Section);
 
             services.AddOptions<IdentityConfigurationOptions>()
                 .Bind(identitySection)
-                .Validate(options => options.RequiredPasswordLength >= 8, "Identity:RequiredPasswordLength must be at least eight.")
-                .Validate(options => options.MaxFailedAccessAttempts > 0, "Identity:MaxFailedAccessAttempts must be greater than zero.")
-                .Validate(options => options.LockoutMinutes > 0, "Identity:LockoutMinutes must be greater than zero.")
-                .Validate(options => options.CookieHours > 0, "Identity:CookieHours must be greater than zero.")
-                .Validate(options => !string.IsNullOrWhiteSpace(options.CookieName), "Identity:CookieName is required.")
-                .Validate(options => options.AuthenticationPermitLimit > 0, "Identity:AuthenticationPermitLimit must be greater than zero.")
-                .Validate(options => options.AuthenticationWindowSeconds > 0, "Identity:AuthenticationWindowSeconds must be greater than zero.")
-                .Validate(options => options.AuthenticationQueueLimit >= 0, "Identity:AuthenticationQueueLimit cannot be negative.")
+                .Validate(options => options.RequiredPasswordLength >= 8, "IdentityServer:Identity:RequiredPasswordLength must be at least eight.")
+                .Validate(options => options.MaxFailedAccessAttempts > 0, "IdentityServer:Identity:MaxFailedAccessAttempts must be greater than zero.")
+                .Validate(options => options.LockoutMinutes > 0, "IdentityServer:Identity:LockoutMinutes must be greater than zero.")
+                .Validate(options => options.CookieHours > 0, "IdentityServer:Identity:CookieHours must be greater than zero.")
+                .Validate(options => !string.IsNullOrWhiteSpace(options.CookieName), "IdentityServer:Identity:CookieName is required.")
+                .Validate(options => options.AuthenticationPermitLimit > 0, "IdentityServer:Identity:AuthenticationPermitLimit must be greater than zero.")
+                .Validate(options => options.AuthenticationWindowSeconds > 0, "IdentityServer:Identity:AuthenticationWindowSeconds must be greater than zero.")
+                .Validate(options => options.AuthenticationQueueLimit >= 0, "IdentityServer:Identity:AuthenticationQueueLimit cannot be negative.")
                 .ValidateOnStart();
 
             var identityOptions = identitySection.Get<IdentityConfigurationOptions>()

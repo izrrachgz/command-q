@@ -23,6 +23,16 @@ Delivery is disabled by default so a host cannot accidentally contact a
 placeholder endpoint. Sending while disabled throws `EmailDeliveryException`
 with the `Disabled` classification and performs no network work.
 
+Hosts that namespace their settings can pass an exact section instead:
+
+```csharp
+services.AddEmailServices(
+    configuration.GetRequiredSection("EmailWorker:Email"));
+```
+
+This keeps the reusable library independent of the host's chosen prefix. The
+CommandQ worker uses this form.
+
 Configuration can also be supplied directly for tests or programmatic hosts:
 
 ```csharp
@@ -103,6 +113,10 @@ Email__DeliveryPolicy__MaxAttachmentBytes
 Email__DeliveryPolicy__MaxTotalAttachmentBytes
 Email__DeliveryPolicy__AllowedSenderDomains__0
 ```
+
+Those names apply when `Email` is at the configuration root. The CommandQ
+worker owns the section under `EmailWorker:Email`, so its equivalents start with
+`EmailWorker__Email__`, for example `EmailWorker__Email__Smtp__Host`.
 
 `StartTls` is the secure default. Use `SslOnConnect` for implicit TLS endpoints
 and `None` only for deliberately unsecured anonymous local test relays.

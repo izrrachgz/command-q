@@ -86,9 +86,7 @@ namespace Email.Outbox.Persistence.Migrations
             }
         }
 
-        private async Task<long> GetLastAppliedMigrationId(
-            IWritableRepository repository,
-            CancellationToken cancellationToken)
+        private async Task<long> GetLastAppliedMigrationId(IWritableRepository repository, CancellationToken cancellationToken)
         {
             try
             {

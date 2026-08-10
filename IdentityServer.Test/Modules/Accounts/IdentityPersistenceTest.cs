@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using OpenIddict.Abstractions;
 using IdentityServer.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -171,8 +171,7 @@ namespace IdentityServer.Test.Modules.Accounts
             };
         }
 
-        private sealed class TestIdentityServerDbContext(
-            DbContextOptions<TestIdentityServerDbContext> options)
+        private sealed class TestIdentityServerDbContext(DbContextOptions<TestIdentityServerDbContext> options)
             : IdentityServerDbContext(options)
         {
         }

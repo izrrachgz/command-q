@@ -1,5 +1,6 @@
 using Common.Enumerations;
 using Persistence.Interfaces;
+using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,18 +15,21 @@ namespace Persistence.Repository.Command.Extensions
         /// <summary>
         /// Registers all concrete command runners and maps <see cref="ICommandRunner"/> to the configured database engine.
         /// </summary>
-        public static void AddCommandRunners(this IServiceCollection services)
+        public static void AddCommandRunners(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddScoped<PgSqlCommandRunner>();
-            services.AddScoped<MsSqlCommandRunner>();
-            services.AddScoped<MySqlCommandRunner>();
-            services.AddScoped<SqLiteCommandRunner>();
+            ArgumentNullException.ThrowIfNull(configuration);
+
+            string connectionString = configuration.GetDatabaseConnection();
+            DatabaseEngine engine = configuration.GetDatabaseEngine();
+
+            services.AddScoped(serviceProvider => new PgSqlCommandRunner(connectionString, serviceProvider.GetRequiredService<ILogger<PgSqlCommandRunner>>()));
+            services.AddScoped(serviceProvider => new MsSqlCommandRunner(connectionString, serviceProvider.GetRequiredService<ILogger<MsSqlCommandRunner>>()));
+            services.AddScoped(serviceProvider => new MySqlCommandRunner(connectionString, serviceProvider.GetRequiredService<ILogger<MySqlCommandRunner>>()));
+            services.AddScoped(serviceProvider => new SqLiteCommandRunner(connectionString, serviceProvider.GetRequiredService<ILogger<SqLiteCommandRunner>>()));
 
             services.AddScoped<ICommandRunner>(serviceProvider =>
             {
-                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-
-                return configuration.GetDatabaseEngine() switch
+                return engine switch
                 {
                     DatabaseEngine.MsSql => serviceProvider.GetRequiredService<MsSqlCommandRunner>(),
                     DatabaseEngine.MySql => serviceProvider.GetRequiredService<MySqlCommandRunner>(),

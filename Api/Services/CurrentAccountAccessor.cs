@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Api.Models;
 using Api.Extensions;
 using Api.Interfaces;
@@ -6,9 +6,7 @@ using Application.Modules.Identity.Accounts.Queries;
 
 namespace Api.Services
 {
-    internal sealed class CurrentAccountAccessor(
-        IHttpContextAccessor httpContextAccessor,
-        ISender sender) : ICurrentAccountAccessor
+    internal sealed class CurrentAccountAccessor(IHttpContextAccessor httpContextAccessor, ISender sender) : ICurrentAccountAccessor
     {
         private Task<CurrentUser?>? _currentAccount;
 

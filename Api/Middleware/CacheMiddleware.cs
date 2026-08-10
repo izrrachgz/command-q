@@ -1,6 +1,7 @@
 using Api.Logging;
-using Api.Constants;
+using Api.Models;
 using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Options;
 
 namespace Api.Middleware
 {
@@ -10,12 +11,10 @@ namespace Api.Middleware
     /// <remarks>Authenticated responses and responses that set cookies are marked as no-store. Anonymous responses
     /// receive public cache headers unless the endpoint already specified its own cache policy.</remarks>
     /// <param name="next">The delegate representing the next middleware component in the HTTP request processing pipeline.</param>
-    /// <param name="configuration">The configuration instance used to retrieve cache-related settings, such as the maximum age for cached
-    /// responses.</param>
-    public sealed class CacheMiddleware(RequestDelegate next, IConfiguration cacheConfiguration, ILogger<CacheMiddleware> logger)
+    /// <param name="cacheOptions">Validated cache settings owned by the API host.</param>
+    public sealed class CacheMiddleware(RequestDelegate next, IOptions<CacheOptions> cacheOptions, ILogger<CacheMiddleware> logger)
     {
-        private readonly int maxAgeSeconds = cacheConfiguration.GetValue<int?>(ConfigKeys.Cache.MaxAgeSeconds)
-            ?? throw new InvalidOperationException($"{ConfigKeys.Cache.MaxAgeSeconds} is required.");
+        private readonly int maxAgeSeconds = cacheOptions.Value.MaxAgeSeconds;
 
         public Task Invoke(HttpContext context)
         {

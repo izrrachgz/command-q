@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Application.Modules.Identity.Accounts.Dtos;
 using Application.Modules.Identity.Accounts.Queries;
 using Application.Modules.Identity.Accounts.Commands;
@@ -7,9 +7,7 @@ namespace Application.Test.Infrastructure
 {
     internal static class TestAccountFactory
     {
-        public static async Task<AccountModel> Create(
-            ISender sender,
-            CancellationToken cancellationToken = default)
+        public static async Task<AccountModel> Create(ISender sender, CancellationToken cancellationToken = default)
         {
             var suffix = Guid.NewGuid().ToString("N");
             var username = $"TestUsername{suffix}";

@@ -6,10 +6,7 @@ namespace Email.Services
 {
     internal sealed class EmailMessageValidator
     {
-        public void Validate(
-            EmailMessage message,
-            EmailSenderOptions defaultSender,
-            EmailDeliveryPolicyOptions policy)
+        public void Validate(EmailMessage message, EmailSenderOptions defaultSender, EmailDeliveryPolicyOptions policy)
         {
             ArgumentNullException.ThrowIfNull(message);
 

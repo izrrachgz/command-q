@@ -1,4 +1,4 @@
-﻿using OpenIddict.Server;
+using OpenIddict.Server;
 using OpenIddict.Abstractions;
 using IdentityServer.Constants;
 using System.Security.Cryptography.X509Certificates;
@@ -76,9 +76,7 @@ namespace IdentityServer.Modules.OpenIddict
             options.AddEncryptionCertificate(LoadCertificate(certificates.Encryption, environment));
         }
 
-        private static X509Certificate2 LoadCertificate(
-            CertificateFileOptions certificate,
-            IHostEnvironment environment)
+        private static X509Certificate2 LoadCertificate(CertificateFileOptions certificate, IHostEnvironment environment)
         {
             string path = Path.IsPathRooted(certificate.Path)
                 ? certificate.Path
@@ -87,9 +85,7 @@ namespace IdentityServer.Modules.OpenIddict
             return X509CertificateLoader.LoadPkcs12FromFile(path, certificate.Password);
         }
 
-        private static AuthorizationServerOptions GetAndValidateOptions(
-            IConfiguration configuration,
-            IHostEnvironment environment)
+        private static AuthorizationServerOptions GetAndValidateOptions(IConfiguration configuration, IHostEnvironment environment)
         {
             var options = configuration
                 .GetRequiredSection(ConfigKeys.OpenIddict.Section)
@@ -99,7 +95,7 @@ namespace IdentityServer.Modules.OpenIddict
             if (!Uri.TryCreate(options.Issuer, UriKind.Absolute, out var issuer) ||
                 !string.Equals(issuer.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("OpenIddict:Issuer must be an absolute HTTPS URI.");
+                throw new InvalidOperationException("IdentityServer:OpenIddict:Issuer must be an absolute HTTPS URI.");
             }
 
             if (options.AccessTokenMinutes <= 0 || options.RefreshTokenDays <= 0)
@@ -109,7 +105,7 @@ namespace IdentityServer.Modules.OpenIddict
 
             if (string.IsNullOrWhiteSpace(options.ApiScope))
             {
-                throw new InvalidOperationException("OpenIddict:ApiScope is required.");
+                throw new InvalidOperationException("IdentityServer:OpenIddict:ApiScope is required.");
             }
 
             if (options.Clients.Any(client =>

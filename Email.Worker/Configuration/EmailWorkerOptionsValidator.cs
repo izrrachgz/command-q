@@ -10,22 +10,22 @@ namespace Email.Worker.Configuration
 
             if (options.BatchSize <= 0)
             {
-                failures.Add("EmailOutbox:Worker:BatchSize must be greater than zero.");
+                failures.Add("EmailWorker:Worker:BatchSize must be greater than zero.");
             }
 
             if (options.PollIntervalSeconds <= 0)
             {
-                failures.Add("EmailOutbox:Worker:PollIntervalSeconds must be greater than zero.");
+                failures.Add("EmailWorker:Worker:PollIntervalSeconds must be greater than zero.");
             }
 
             if (options.LeaseSeconds <= 0)
             {
-                failures.Add("EmailOutbox:Worker:LeaseSeconds must be greater than zero.");
+                failures.Add("EmailWorker:Worker:LeaseSeconds must be greater than zero.");
             }
 
             if (options.ErrorDelaySeconds <= 0)
             {
-                failures.Add("EmailOutbox:Worker:ErrorDelaySeconds must be greater than zero.");
+                failures.Add("EmailWorker:Worker:ErrorDelaySeconds must be greater than zero.");
             }
 
             return failures.Count == 0

@@ -10,9 +10,7 @@ namespace Email.Services
         private readonly SmtpClient _client;
         private readonly MailKitAuthenticationMechanismFactory _authenticationFactory;
 
-        public MailKitSmtpTransport(
-            EmailSmtpOptions options,
-            MailKitAuthenticationMechanismFactory authenticationFactory)
+        public MailKitSmtpTransport(EmailSmtpOptions options, MailKitAuthenticationMechanismFactory authenticationFactory)
         {
             _authenticationFactory = authenticationFactory;
             _client = new SmtpClient
@@ -24,18 +22,12 @@ namespace Email.Services
 
         public bool IsConnected => _client.IsConnected;
 
-        public async Task ConnectAsync(
-            string host,
-            int port,
-            EmailSecurityMode securityMode,
-            CancellationToken cancellationToken)
+        public async Task ConnectAsync(string host, int port, EmailSecurityMode securityMode, CancellationToken cancellationToken)
         {
             await _client.ConnectAsync(host, port, ToSecureSocketOptions(securityMode), cancellationToken);
         }
 
-        public async Task AuthenticateAsync(
-            EmailAuthenticationOptions authentication,
-            CancellationToken cancellationToken)
+        public async Task AuthenticateAsync(EmailAuthenticationOptions authentication, CancellationToken cancellationToken)
         {
             var mechanism = _authenticationFactory.Create(authentication);
             await _client.AuthenticateAsync(mechanism, cancellationToken);

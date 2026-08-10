@@ -1,8 +1,9 @@
 using Api.Middleware;
+using Api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Api.Test.Modules.Common.Middleware
@@ -74,14 +75,10 @@ namespace Api.Test.Modules.Common.Middleware
 
         private static CacheMiddleware CreateMiddleware(RequestDelegate next)
         {
-            var configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["CacheSettings:MaxAgeSeconds"] = MaxAgeSeconds.ToString()
-                })
-                .Build();
-
-            return new CacheMiddleware(next, configuration, NullLogger<CacheMiddleware>.Instance);
+            return new CacheMiddleware(
+                next,
+                Options.Create(new CacheOptions { MaxAgeSeconds = MaxAgeSeconds }),
+                NullLogger<CacheMiddleware>.Instance);
         }
 
         private sealed class CapturingResponseFeature : IHttpResponseFeature

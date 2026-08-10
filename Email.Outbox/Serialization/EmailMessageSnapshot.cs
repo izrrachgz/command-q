@@ -14,14 +14,7 @@ namespace Email.Outbox.Serialization
 
     internal sealed record EmailAddressSnapshot(string Address, string? Name);
 
-    internal sealed record EmailContentSnapshot(
-        string FileName,
-        string? ContentType,
-        byte[] Content);
+    internal sealed record EmailContentSnapshot(string FileName, string? ContentType, byte[] Content);
 
-    internal sealed record EmailInlineContentSnapshot(
-        string FileName,
-        string ContentId,
-        string? ContentType,
-        byte[] Content);
+    internal sealed record EmailInlineContentSnapshot(string FileName, string ContentId, string? ContentType, byte[] Content);
 }

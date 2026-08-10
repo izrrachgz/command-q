@@ -7,10 +7,7 @@ namespace Email.Services
 {
     internal sealed class MimeMessageFactory
     {
-        public MimeMessage Create(
-            EmailMessage source,
-            EmailSenderOptions defaultSender,
-            CancellationToken cancellationToken)
+        public MimeMessage Create(EmailMessage source, EmailSenderOptions defaultSender, CancellationToken cancellationToken)
         {
             var message = new MimeMessage
             {
@@ -47,10 +44,7 @@ namespace Email.Services
             return message;
         }
 
-        private static MimeEntity AddAttachment(
-            BodyBuilder body,
-            EmailAttachment attachment,
-            CancellationToken cancellationToken)
+        private static MimeEntity AddAttachment(BodyBuilder body, EmailAttachment attachment, CancellationToken cancellationToken)
         {
             MimeEntity entity;
 
@@ -79,10 +73,7 @@ namespace Email.Services
             return entity;
         }
 
-        private static MimeEntity AddInlineResource(
-            BodyBuilder body,
-            EmailInlineResource resource,
-            CancellationToken cancellationToken)
+        private static MimeEntity AddInlineResource(BodyBuilder body, EmailInlineResource resource, CancellationToken cancellationToken)
         {
             MimeEntity entity;
 

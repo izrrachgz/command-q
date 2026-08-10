@@ -10,7 +10,7 @@ range when the log message belongs to a feature module.
 | Project | General Range | Module Ranges |
 | --- | ---: | --- |
 | Api | 100000-100999 | Identity: 101000-101999, Health: 102000-102999 |
-| Application | 200000-200999 | Health: 201000-201999, Identity: 202000-202999, Files: 203000-203999, Contacts: 204000-204999, Addresses: 205000-205999 |
+| Application | 200000-200999 | Health: 201000-201999, Identity: 202000-202999, Files: 203000-203999, Contacts: 204000-204999, Addresses: 205000-205999, Notifications: 206000-206999 |
 | Common | 300000-300999 | Add module/shared-area ranges only when needed |
 | Persistence | 400000-400999 | Add module/shared-area ranges only when needed |
 | IdentityServer | 500000-500999 | OpenIddict: 501000-501999, Health: 502000-502999, Accounts: 503000-503999 |

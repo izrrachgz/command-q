@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using IdentityServer.Logging;
 using IdentityServer.Modules;
 using IdentityServer.Constants;
@@ -11,10 +11,13 @@ namespace IdentityServer.Extensions
     {
         public static void ConfigureServices(this IHostApplicationBuilder builder)
         {
+            IConfigurationSection identityServerConfiguration = builder.Configuration
+                .GetRequiredSection(ConfigKeys.Section);
+
             builder.Services.AddControllers();
             builder.Services.AddAuthorization();
-            builder.Services.AddIdentityServerDataProtection(builder.Configuration, builder.Environment);
-            builder.Services.AddIdentityServerModules(builder.Configuration, builder.Environment);
+            builder.Services.AddIdentityServerDataProtection(identityServerConfiguration, builder.Environment);
+            builder.Services.AddIdentityServerModules(identityServerConfiguration, builder.Environment);
         }
 
         public static void ConfigurePipeline(this WebApplication app)
@@ -27,10 +30,7 @@ namespace IdentityServer.Extensions
             app.MapIdentityServerModules();
         }
 
-        public static void LogAppConfig(
-            this ILogger logger,
-            IConfiguration configuration,
-            IHostEnvironment environment)
+        public static void LogAppConfig(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
         {
             var options = configuration
                 .GetRequiredSection(ConfigKeys.OpenIddict.Section)
@@ -47,6 +47,10 @@ namespace IdentityServer.Extensions
             logger.StartupSetting(
                 nameof(options.RefreshTokenDays),
                 options.RefreshTokenDays.ToString(CultureInfo.InvariantCulture));
+            logger.StartupSetting(
+                "MigrationsOnStartup",
+                (environment.IsDevelopment() ||
+                    configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false)).ToString(CultureInfo.InvariantCulture));
 
             if (environment.IsDevelopment())
             {

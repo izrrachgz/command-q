@@ -9,15 +9,16 @@ builder.ConfigureLogging();
 builder.ConfigureServices();
 
 var app = builder.Build();
+IConfigurationSection apiConfiguration = app.Configuration.GetRequiredSection(ConfigKeys.Section);
 
 app.ValidateStartupConfiguration();
 
-app.ConfigurePipeline(builder.Configuration, builder.Environment);
+app.ConfigurePipeline(apiConfiguration, builder.Environment);
 
-app.Logger.LogAppConfig(builder.Configuration, builder.Environment);
+app.Logger.LogAppConfig(apiConfiguration, builder.Environment);
 
 // Run migrations before starting the application
-if (app.Environment.IsDevelopment() || app.Configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))
+if (app.Environment.IsDevelopment() || apiConfiguration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))
 {
     await app.RunApplicationMigrations();
 }

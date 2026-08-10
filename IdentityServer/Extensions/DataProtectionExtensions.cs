@@ -18,7 +18,7 @@ namespace IdentityServer.Extensions
 
             if (string.IsNullOrWhiteSpace(options.ApplicationName))
             {
-                throw new InvalidOperationException("DataProtection:ApplicationName is required.");
+                throw new InvalidOperationException("IdentityServer:DataProtection:ApplicationName is required.");
             }
 
             var keysPath = options.KeysPath;
@@ -27,7 +27,7 @@ namespace IdentityServer.Extensions
             {
                 if (!environment.IsDevelopment())
                 {
-                    throw new InvalidOperationException("DataProtection:KeysPath is required outside Development.");
+                    throw new InvalidOperationException("IdentityServer:DataProtection:KeysPath is required outside Development.");
                 }
 
                 keysPath = Path.Combine(environment.ContentRootPath, "App_Data", "DataProtectionKeys");
@@ -45,7 +45,7 @@ namespace IdentityServer.Extensions
             {
                 if (string.IsNullOrWhiteSpace(options.Certificate.Path))
                 {
-                    throw new InvalidOperationException("DataProtection:Certificate:Path is required outside Development.");
+                    throw new InvalidOperationException("IdentityServer:DataProtection:Certificate:Path is required outside Development.");
                 }
 
                 var certificatePath = Path.IsPathRooted(options.Certificate.Path)

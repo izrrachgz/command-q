@@ -5,11 +5,7 @@ namespace Email.Models
     /// </summary>
     public sealed record EmailInlineResource
     {
-        public EmailInlineResource(
-            string filePath,
-            string contentId,
-            string? fileName = null,
-            string? contentType = null)
+        public EmailInlineResource(string filePath, string contentId, string? fileName = null, string? contentType = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
             ArgumentException.ThrowIfNullOrWhiteSpace(contentId);
@@ -22,11 +18,7 @@ namespace Email.Models
             ContentType = contentType;
         }
 
-        private EmailInlineResource(
-            string fileName,
-            string contentId,
-            ReadOnlyMemory<byte> content,
-            string? contentType)
+        private EmailInlineResource(string fileName, string contentId, ReadOnlyMemory<byte> content, string? contentType)
         {
             FileName = fileName;
             ContentId = contentId;
@@ -77,9 +69,7 @@ namespace Email.Models
         /// <summary>
         /// Copies the inline resource content to a writable destination stream.
         /// </summary>
-        public async Task CopyContentToAsync(
-            Stream destination,
-            CancellationToken cancellationToken = default)
+        public async Task CopyContentToAsync(Stream destination, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(destination);
 

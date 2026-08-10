@@ -1,4 +1,4 @@
-﻿using Public;
+using Public;
 using Common.Cqrs;
 using Application.Interfaces;
 using Common.Models.Response;
@@ -17,9 +17,7 @@ namespace Application.Modules.Identity.Accounts.Queries
         private readonly string _messageRecordFound = textProvider.Get(nameof(Messages.Record_Found));
         private readonly string _messageRecordNotFound = textProvider.Get(nameof(Messages.Record_Not_Found));
 
-        public async Task<DetailResponse<AccountModel>> Handle(
-            GetAccountByIdentityQuery request,
-            CancellationToken cancellationToken)
+        public async Task<DetailResponse<AccountModel>> Handle(GetAccountByIdentityQuery request, CancellationToken cancellationToken)
         {
             var query = repository.Query($"{nameof(AccountIdentity)} as identity")
                 .Join($"{nameof(Account)} as account", "account.Id", "identity.AccountId")

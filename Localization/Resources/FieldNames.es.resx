@@ -18,6 +18,9 @@
   <data name="Account_Id" xml:space="preserve">
     <value>Id de cuenta</value>
   </data>
+  <data name="Account_Reference" xml:space="preserve">
+    <value>Referencia de cuenta</value>
+  </data>
   <data name="Address_Line" xml:space="preserve">
     <value>Línea de dirección</value>
   </data>
@@ -27,14 +30,32 @@
   <data name="Country" xml:space="preserve">
     <value>País</value>
   </data>
+  <data name="Correlation_Id" xml:space="preserve">
+    <value>Id de correlación</value>
+  </data>
   <data name="Email_Address" xml:space="preserve">
     <value>Dirección de correo electrónico</value>
+  </data>
+  <data name="Email_Body" xml:space="preserve">
+    <value>Cuerpo del correo electrónico</value>
+  </data>
+  <data name="Email_Message" xml:space="preserve">
+    <value>Mensaje de correo electrónico</value>
+  </data>
+  <data name="Email_Recipients" xml:space="preserve">
+    <value>Destinatarios del correo electrónico</value>
+  </data>
+  <data name="Email_Subject" xml:space="preserve">
+    <value>Asunto del correo electrónico</value>
   </data>
   <data name="File_Data" xml:space="preserve">
     <value>Datos del archivo</value>
   </data>
   <data name="File_Name" xml:space="preserve">
     <value>Nombre de archivo</value>
+  </data>
+  <data name="Idempotency_Key" xml:space="preserve">
+    <value>Clave de idempotencia</value>
   </data>
   <data name="Lock_Duration" xml:space="preserve">
     <value>Duración del bloqueo</value>

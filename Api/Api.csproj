@@ -24,6 +24,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Application.Migrations\Application.Migrations.csproj" />
+    <ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />
+    <ProjectReference Include="..\Email.Outbox.Persistence\Email.Outbox.Persistence.csproj" />
   </ItemGroup>
 
   <ItemGroup>

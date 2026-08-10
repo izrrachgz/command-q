@@ -23,15 +23,15 @@ a configured authority.
    Prefer .NET user-secrets for local development. See `docs/local-secrets.md`.
 
    ```powershell
-   dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Engine" "MsSql"
-   dotnet user-secrets set --project .\Api\Api.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
-   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Name" "Local Development"
-   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Id" "replace-with-local-client-secret"
-   dotnet user-secrets set --project .\Api\Api.csproj "ApiClients:0:Uri" "http://localhost:4200"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Engine" "MsSql"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Engine" "MsSql"
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
-   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:Engine" "PgSql"
-   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
+   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
+   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
    ```
 
 3. Prepare the database.
@@ -175,12 +175,11 @@ This solution supports the following databases:
 - **MySQL**
 - **SqLite**
 
-The application uses SqlKata. Its base and Development settings select SQL
-Server, while the QA and Production templates select PostgreSQL. IdentityServer
-uses EF Core and selects PostgreSQL in every committed environment. Both hosts
-use the same engine names and `ConnectionStrings:Engine` path, but the
-application reads `ConnectionStrings:Db` and IdentityServer reads
-`ConnectionStrings:IdentityDb`. IdentityServer keeps a separate EF migration
+The application uses SqlKata and IdentityServer uses EF Core. Each host selects
+its engine independently through `Api:ConnectionStrings:Engine` or
+`IdentityServer:ConnectionStrings:Engine`. The API reads
+`Api:ConnectionStrings:Db`; IdentityServer reads
+`IdentityServer:ConnectionStrings:IdentityDb` and keeps a separate EF migration
 set for every provider.
 
 ## Configuration
@@ -189,35 +188,51 @@ through user-secrets in Development or the deployment environment's secret
 store. Keep credentials out of committed `appsettings*.json` files. The
 following examples show the application `Db` connection format:
 
+Custom settings are grouped by executable host: `Api`, `IdentityServer` and
+`EmailWorker`. Framework-owned sections such as `Logging`, `Serilog` and
+`AllowedHosts` remain at the document root. Reusable libraries receive an
+explicit subsection from their composition root, so they do not depend on a
+host name. This also keeps environment variables unambiguous, for example
+`Api__Migrations__RunOnStartup` and
+`EmailWorker__Migrations__RunOnStartup` control different processes.
+
 ### **Microsoft SQL Server**
 ```json
-"ConnectionStrings": {
-  "Engine" : "MsSql",
-  "Db": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+"Api": {
+  "ConnectionStrings": {
+    "Engine" : "MsSql",
+    "Db": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+  }
 }
 ```
 
 ### **PostgreSQL**
 ```json
-"ConnectionStrings": {
-  "Engine" : "PgSql",
-  "Db": "Host=YOUR_HOST;Port=5432;Database=YOUR_DATABASE;Username=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+"Api": {
+  "ConnectionStrings": {
+    "Engine" : "PgSql",
+    "Db": "Host=YOUR_HOST;Port=5432;Database=YOUR_DATABASE;Username=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+  }
 }
 ```
 
 ### **MySQL**
 ```json
-"ConnectionStrings": {
-  "Engine" : "MySql",
-  "Db": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+"Api": {
+  "ConnectionStrings": {
+    "Engine" : "MySql",
+    "Db": "Server=YOUR_SERVER_NAME;Database=YOUR_DATABASE_NAME;User ID=YOUR_USERNAME;Password=YOUR_PASSWORD;"
+  }
 }
 ```
 
 ### **SqLite**
 ```json
-"ConnectionStrings": {
-  "Engine" : "SqLite",
-  "Db": "Data Source={path_to_file};Version={version_number};"
+"Api": {
+  "ConnectionStrings": {
+    "Engine" : "SqLite",
+    "Db": "Data Source={path_to_file};Version={version_number};"
+  }
 }
 ```
 
@@ -245,7 +260,7 @@ Root helper scripts are also available:
 | `.\scripts\test.ps1` | Tests `CommandQ.sln`; accepts `-Configuration`, `-Project`, `-Filter` and `-NoBuild`. The default includes database-backed `Application.Test` cases. |
 | `.\scripts\run-identity-server.ps1` | Development on `https://localhost:7125`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
-| `.\scripts\run-email-worker.ps1` | Development email outbox worker with dedicated SQLite persistence; accepts `-Environment` and `-NoBuild`. |
+| `.\scripts\run-email-worker.ps1` | Development email outbox worker using the independently migrated outbox schema in local MsSql `command_q`; accepts `-Environment` and `-NoBuild`. |
 | `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
 | `.\scripts\run-front.ps1` | Optional frontend runner; accepts `-Install`. |
 
@@ -264,14 +279,16 @@ Application schema ownership lives in `Application.Migrations`, separate from th
 generic database access in `Persistence`. Add a `migration-X.sql` script under
 `Application.Migrations/Migrations/{Engine}/{Module}` for each database
 engine/module you intend to support. The scripts are embedded in the migration
-assembly at build time. At runtime, the configured `ConnectionStrings:Engine`
+assembly at build time. At runtime, the configured `Api:ConnectionStrings:Engine`
 selects the matching embedded script set.
 
 Outside Development, startup migration execution is enabled with:
 
 ```json
-"Migrations": {
-  "RunOnStartup": true
+"Api": {
+  "Migrations": {
+    "RunOnStartup": true
+  }
 }
 ```
 
@@ -281,7 +298,7 @@ so it can move the local database forward automatically. The runner reads the
 already-applied `migration-1.sql` is skipped and the next pending script starts
 at `migration-2.sql`.
 
-Outside Development, enable `Migrations:RunOnStartup` only in environments where the configured database is reachable and migrations should be applied by the app.
+Outside Development, enable `Api:Migrations:RunOnStartup` only in environments where the configured database is reachable and migrations should be applied by the app.
 
 The v1 migration scripts are forward-only bootstrap scripts. They create schema for an empty database and do not drop existing tables. During pre-v1 development, drop/recreate the development database manually when the baseline schema changes.
 
@@ -353,7 +370,7 @@ Both backend hosts expose:
 - `/health/ready` for dependency readiness
 - `/health/checks` for the full registered health-check set
 
-Background health-check publishing is opt-in through `HealthCheck:PublishOnStartup`.
+Background health-check publishing is opt-in through `Api:HealthCheck:PublishOnStartup`.
 This publishing setting belongs to the application API. IdentityServer does not
 run a background publisher; its readiness check validates its EF database.
 
@@ -370,20 +387,30 @@ caller-supplied OAuth 2.0 bearer authentication.
 The project is intentionally not referenced by API or IdentityServer. Immediate
 delivery consumers can register `services.AddEmailServices(configuration)`.
 Durable delivery uses `Email.Outbox`, its dedicated persistence adapter and the
-standalone `Email.Worker` host. SQLite is the outbox default, while MsSql, PgSql
-and MySql remain configurable. See `Email/README.md`, `Email.Outbox/README.md`
+standalone `Email.Worker` host. Development targets local MsSql `command_q`,
+while PgSql, MySql and SqLite remain configurable and non-development hosts
+must supply a connection. See `Email/README.md`, `Email.Outbox/README.md`
 and `Email.Worker/README.md`.
 
-Development is prepared for smtp4dev on `localhost:25` and stores the outbox in
-a dedicated SQLite file. Start the worker separately:
+Development is prepared for smtp4dev on `localhost:25` and stores the independently
+migrated outbox schema in the local MsSql `command_q` database. Start the worker separately:
 
 ```powershell
 .\scripts\run-email-worker.ps1
 ```
 
-The API and Application do not reference the outbox yet. A concrete workflow
-should reference `Email.Outbox`, enqueue a fully prepared `EmailMessage` through
-`IEmailOutbox`, and leave transport and retries to the worker.
+The Application `Notifications` module references the reusable email and
+outbox contracts and provides `QueueEmailCommand` plus
+`IApplicationEmailService`. The service offers
+prepared-message, text, HTML, attachment and verbatim-template overloads; all
+paths converge on one durable `EmailOutboxRequest` carrying optional
+idempotency, account and correlation metadata. Delivery and retries remain the
+worker's responsibility.
+
+The module does not select storage. The API composition root registers the
+outbox core and persistence adapter against the configured email outbox store,
+while the worker owns schema migration and delivery. No generic email API
+endpoint is exposed by default.
 
 The opt-in `Email.IntegrationTest` project exercises the real SMTP and HTTP
 interfaces of a local smtp4dev instance. With smtp4dev SMTP on port `25` and its
@@ -398,7 +425,7 @@ web UI/API on port `5000`, run:
 Application modules are registered through:
 
 ```csharp
-services.AddApplicationModules();
+services.AddApplicationModules(configuration);
 ```
 
 API endpoints are mapped through:

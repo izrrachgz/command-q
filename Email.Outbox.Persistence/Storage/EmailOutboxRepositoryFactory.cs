@@ -35,9 +35,7 @@ namespace Email.Outbox.Persistence.Storage
 
         public DatabaseEngine Engine => _engine;
 
-        private static string ResolveConnectionString(
-            EmailOutboxPersistenceOptions options,
-            string contentRootPath)
+        private static string ResolveConnectionString(EmailOutboxPersistenceOptions options, string contentRootPath)
         {
             if (options.Engine != DatabaseEngine.SqLite)
             {

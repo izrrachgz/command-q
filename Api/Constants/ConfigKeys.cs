@@ -2,6 +2,9 @@ namespace Api.Constants
 {
     internal static class ConfigKeys
     {
+        public const string Section = "Api";
+        public const string Language = "Language";
+
         public static class Api
         {
             public const string Clients = @"ApiClients";
@@ -41,6 +44,13 @@ namespace Api.Constants
         public static class Migrations
         {
             public const string RunOnStartup = @"Migrations:RunOnStartup";
+        }
+
+        public static class EmailOutbox
+        {
+            public const string Section = "EmailOutbox";
+            public const string PersistenceSection = "Persistence";
+            public const string Engine = "EmailOutbox:Persistence:Engine";
         }
 
         public static class HealthCheck

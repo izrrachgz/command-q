@@ -27,15 +27,15 @@ Trust the ASP.NET Core HTTPS development certificate once if needed:
 dotnet dev-certs https --trust
 ```
 
-PostgreSQL is the default IdentityServer engine. Create an empty
-`command_q_identity` database, configure the local connection and run the host:
+Create an empty `command_q_identity` database, select an engine, configure the
+local connection and run the host. This example uses PostgreSQL:
 
 ```powershell
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
-  "ConnectionStrings:Engine" `
+  "IdentityServer:ConnectionStrings:Engine" `
   "PgSql"
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
-  "ConnectionStrings:IdentityDb" `
+  "IdentityServer:ConnectionStrings:IdentityDb" `
   "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
 .\scripts\run-identity-server.ps1
 ```
@@ -44,16 +44,16 @@ dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
 
 IdentityServer uses EF Core independently from the application's SqlKata
 persistence. Select exactly one provider per IdentityServer process through
-`ConnectionStrings:Engine`:
+`IdentityServer:ConnectionStrings:Engine`:
 
 | Engine | EF Core provider | Typical use |
 | --- | --- | --- |
-| `PgSql` | Npgsql | Default development and production choice |
+| `PgSql` | Npgsql | Common production choice |
 | `MsSql` | Microsoft SQL Server | SQL Server and Azure SQL deployments |
 | `MySql` | Oracle MySQL Connector/NET | MySQL deployments |
 | `SqLite` | Microsoft SQLite | Local, test or single-instance deployments |
 
-Every engine uses the same `ConnectionStrings:IdentityDb` key. Provider
+Every engine uses the same `IdentityServer:ConnectionStrings:IdentityDb` key. Provider
 selection is explicit and validated during startup; connection strings are not
 inspected to guess an engine.
 
@@ -96,15 +96,15 @@ Ending the browser session does not revoke an already issued refresh token. A cl
 
 QA and Production must supply these settings through deployment configuration:
 
-- `ConnectionStrings:Engine`
-- `OpenIddict:Issuer`
-- client IDs, redirect URIs and flow choices under `OpenIddict:Clients`
+- `IdentityServer:ConnectionStrings:Engine`
+- `IdentityServer:OpenIddict:Issuer`
+- client IDs, redirect URIs and flow choices under `IdentityServer:OpenIddict:Clients`
 - signing, encryption and Data Protection certificate paths
-- `DataProtection:KeysPath` pointing to storage shared by every instance
+- `IdentityServer:DataProtection:KeysPath` pointing to storage shared by every instance
 
 Supply these sensitive values through the deployment secret store:
 
-- `ConnectionStrings:IdentityDb`
+- `IdentityServer:ConnectionStrings:IdentityDb`
 - signing, encryption and Data Protection certificate passwords
 - confidential client secrets and external provider credentials when enabled
 
@@ -133,7 +133,7 @@ these factories with `dotnet ef database update`; apply migrations through
 IdentityServer startup with the real configured connection instead.
 
 Development applies only pending migrations for the configured provider at
-startup. Outside Development, `Migrations:RunOnStartup` is opt-in. While version
+startup. Outside Development, `IdentityServer:Migrations:RunOnStartup` is opt-in. While version
 one is unfinished, manually recreate the selected development identity database
 after changing the initial migration.
 

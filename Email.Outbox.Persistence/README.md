@@ -6,30 +6,34 @@ and does not alter the application database migrations.
 
 ## Configuration
 
-SQLite is the committed default and requires no external database server:
+The CommandQ worker's Development settings use local MsSql `command_q`, sharing
+the physical application database while retaining an independent schema and
+migration ledger. A consuming host can pass this section directly:
 
 ```json
 {
   "EmailOutbox": {
     "Persistence": {
-      "Engine": "SqLite",
-      "ConnectionString": "Data Source=App_Data/command_q_email_outbox.db;Version=3;Foreign Keys=True;Journal Mode=WAL;Busy Timeout=5000;Synchronous=Normal;",
-      "RunMigrationsOnStartup": true
+      "Engine": "MsSql",
+      "ConnectionString": "Server=localhost\\SQLEXPRESS;Database=command_q;Trusted_Connection=True;TrustServerCertificate=True;"
     }
   }
 }
 ```
 
-`MsSql`, `PgSql` and `MySql` are also supported. Supply a provider-appropriate
-connection string and select the matching engine. Keep non-SQLite credentials
-in the consuming host's secret store.
+`SqLite`, `PgSql` and `MySql` are also supported. Supply a provider-appropriate
+connection string and select the matching engine. Keep database credentials in
+the consuming host's secret store.
 
 The adapter stores provider scripts as embedded resources under
 `Migrations/{Engine}`. Its private `EmailOutboxMigrationRecord` ledger makes
 execution forward-only and skips already-applied migrations.
 
-Startup migration execution is enabled for Development and disabled in the
-committed QA/Production worker settings. In a multi-instance deployment, run
+`RunEmailOutboxMigrations` applies pending migrations when the consuming host
+calls it. Startup policy is intentionally not part of persistence options. The
+CommandQ worker owns that decision through
+`EmailWorker:Migrations:RunOnStartup`: Development enables it and the committed
+QA/Production settings disable it. In a multi-instance deployment, run
 migrations in one deployment step or one designated instance before enabling
 the workers.
 

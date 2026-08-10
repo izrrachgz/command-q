@@ -13,23 +13,25 @@ namespace Persistence.Repository.Extensions
         /// <summary>
         /// Registers read-only and writable repositories using the configured database connection and engine.
         /// </summary>
-        public static void AddRepositories(this IServiceCollection services)
+        public static void AddRepositories(this IServiceCollection services, IConfiguration configuration)
         {
+            ArgumentNullException.ThrowIfNull(configuration);
+
+            string connectionString = configuration.GetDatabaseConnection();
+            var engine = configuration.GetDatabaseEngine();
+
             services.AddScoped<IWritableRepository>(serviceProvider =>
             {
-                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 var logger = serviceProvider.GetRequiredService<ILogger<WritableRepository>>();
-                var engine = configuration.GetDatabaseEngine();
 
-                return new WritableRepository(configuration.GetDatabaseConnection(), engine, logger);
+                return new WritableRepository(connectionString, engine, logger);
             });
 
             services.AddScoped<IReadOnlyRepository>(serviceProvider =>
             {
-                var configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 var logger = serviceProvider.GetRequiredService<ILogger<ReadOnlyRepository>>();
 
-                return new ReadOnlyRepository(configuration.GetDatabaseConnection(), configuration.GetDatabaseEngine(), logger);
+                return new ReadOnlyRepository(connectionString, engine, logger);
             });
         }
     }

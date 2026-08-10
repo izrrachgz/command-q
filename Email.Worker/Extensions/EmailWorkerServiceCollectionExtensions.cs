@@ -8,17 +8,24 @@ namespace Email.Worker.Extensions
 {
     internal static class EmailWorkerServiceCollectionExtensions
     {
-        public static IServiceCollection AddEmailOutboxWorker(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        public static IServiceCollection AddEmailOutboxWorker(this IServiceCollection services, IConfigurationSection section)
         {
             services.AddOptions<EmailWorkerOptions>()
-                .Bind(configuration.GetSection(EmailWorkerConstants.ConfigurationSection))
+                .Bind(section)
                 .ValidateOnStart();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailWorkerOptions>, EmailWorkerOptionsValidator>());
             services.TryAddSingleton(TimeProvider.System);
             services.AddHostedService<EmailOutboxBackgroundService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddEmailWorkerMigrations(this IServiceCollection services, IConfigurationSection section)
+        {
+            services.AddOptions<EmailWorkerMigrationOptions>()
+                .Bind(section)
+                .ValidateOnStart();
 
             return services;
         }

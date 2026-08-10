@@ -1,4 +1,4 @@
-﻿using OpenIddict.Abstractions;
+using OpenIddict.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using IdentityServer.Modules.Accounts;
@@ -62,10 +62,7 @@ namespace IdentityServer.Modules.OpenIddict
             }
         }
 
-        private async Task SeedClient(
-            OpenIddictClientOptions client,
-            string apiScope,
-            CancellationToken cancellationToken)
+        private async Task SeedClient(OpenIddictClientOptions client, string apiScope, CancellationToken cancellationToken)
         {
             var descriptor = new OpenIddictApplicationDescriptor
             {

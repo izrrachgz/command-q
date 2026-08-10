@@ -26,11 +26,11 @@ namespace Email.Outbox.Test.Persistence
                 var builder = Host.CreateApplicationBuilder(settings);
                 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["EmailOutbox:Persistence:Engine"] = "SqLite",
-                    ["EmailOutbox:Persistence:ConnectionString"] = $"Data Source={databasePath};Version=3;Foreign Keys=True;",
-                    ["EmailOutbox:Persistence:RunMigrationsOnStartup"] = "true"
+                    ["TestHost:OutboxPersistence:Engine"] = "SqLite",
+                    ["TestHost:OutboxPersistence:ConnectionString"] = $"Data Source={databasePath};Version=3;Foreign Keys=True;"
                 });
-                builder.Services.AddEmailOutboxPersistence(builder.Configuration);
+                builder.Services.AddEmailOutboxPersistence(
+                    builder.Configuration.GetRequiredSection("TestHost:OutboxPersistence"));
 
                 using var host = builder.Build();
                 await host.RunEmailOutboxMigrations(TestContext.Current.CancellationToken);

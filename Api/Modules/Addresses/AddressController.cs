@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -8,9 +8,7 @@ using Application.Modules.Addresses.Commands;
 namespace Api.Modules.Addresses
 {
     [ApiController, Authorize, Route(@"[controller]")]
-    public class AddressController(
-        ISender mediator,
-        ICurrentAccountAccessor currentAccountAccessor) : Controller
+    public class AddressController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : Controller
     {
         private readonly ISender _mediator = mediator;
 

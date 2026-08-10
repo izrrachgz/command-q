@@ -8,5 +8,6 @@ namespace Application.Logging
         public const int Files = 203000;
         public const int Contacts = 204000;
         public const int Addresses = 205000;
+        public const int Notifications = 206000;
     }
 }

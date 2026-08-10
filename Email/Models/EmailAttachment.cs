@@ -28,10 +28,7 @@ namespace Email.Models
         public string? ContentType { get; }
         internal ReadOnlyMemory<byte>? Content { get; }
 
-        public static EmailAttachment FromBytes(
-            string fileName,
-            ReadOnlyMemory<byte> content,
-            string? contentType = null)
+        public static EmailAttachment FromBytes(string fileName, ReadOnlyMemory<byte> content, string? contentType = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
 
@@ -61,9 +58,7 @@ namespace Email.Models
         /// <summary>
         /// Copies the attachment content to a writable destination stream.
         /// </summary>
-        public async Task CopyContentToAsync(
-            Stream destination,
-            CancellationToken cancellationToken = default)
+        public async Task CopyContentToAsync(Stream destination, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(destination);
 

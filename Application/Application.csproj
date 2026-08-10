@@ -18,6 +18,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Common\Common.csproj" />
 		<ProjectReference Include="..\Domain\Domain.csproj" />
+		<ProjectReference Include="..\Email\Email.csproj" />
+		<ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />
 		<ProjectReference Include="..\Localization\Localization.csproj" />
 		<ProjectReference Include="..\Persistence\Persistence.csproj" />
 	</ItemGroup>

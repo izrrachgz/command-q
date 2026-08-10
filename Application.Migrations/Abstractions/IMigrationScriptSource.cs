@@ -8,8 +8,6 @@ namespace Application.Migrations.Abstractions
     /// </summary>
     internal interface IMigrationScriptSource
     {
-        Task<IReadOnlyList<MigrationScript>> GetScriptsAsync(
-            DatabaseEngine engine,
-            CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<MigrationScript>> GetScriptsAsync(DatabaseEngine engine, CancellationToken cancellationToken = default);
     }
 }

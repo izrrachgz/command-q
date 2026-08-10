@@ -14,6 +14,16 @@ namespace Application.Modules.Health.Extensions
 
         public static IServiceCollection ConfigureAppHealthChecks(this IServiceCollection services, IConfiguration configuration)
         {
+            IConfigurationSection healthCheckSection = configuration.GetSection(
+                HealthCheckConstants.ConfigurationSection);
+
+            services.AddOptions<HealthCheckConfigurationOptions>()
+                .Bind(healthCheckSection)
+                .Validate(options =>
+                    Uri.TryCreate(options.UrlCheckInternetAccess, UriKind.Absolute, out _),
+                    "HealthCheck:UrlCheckInternetAccess must be an absolute URI.")
+                .ValidateOnStart();
+
             services.AddHealthChecks()
                 .AddCheck(HealthCheckConstants.ApplicationRunningName, () => HealthCheckResult.Healthy(HealthCheckConstants.ApplicationRunningMessage), tags: [HealthCheckConstants.LiveTag])
                 .AddTypeActivatedCheck<SaveLocalStorageDataCommandHandler>(@"Can Write On Local Storage", failureStatus: HealthStatus.Unhealthy, tags: [HealthCheckConstants.ReadyTag])
@@ -28,7 +38,7 @@ namespace Application.Modules.Health.Extensions
                 options.Predicate = healthCheck => healthCheck.Name.Contains(@"Can");
             });
 
-            if (configuration.GetValue(HealthCheckConstants.PublishOnStartupConfigKey, false))
+            if (healthCheckSection.GetValue(nameof(HealthCheckConfigurationOptions.PublishOnStartup), false))
             {
                 services.AddSingleton<IHealthCheckPublisher, HealthCheckPublisher>();
             }

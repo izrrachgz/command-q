@@ -2,6 +2,8 @@ namespace IdentityServer.Constants
 {
     internal static class ConfigKeys
     {
+        public const string Section = "IdentityServer";
+
         public static class ConnectionStrings
         {
             public const string Engine = "ConnectionStrings:Engine";

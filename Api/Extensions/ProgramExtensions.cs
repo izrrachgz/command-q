@@ -7,9 +7,11 @@ using Api.Enumerations;
 using Common.Constants;
 using Common.Enumerations;
 using Application.Extensions;
+using Email.Outbox.Extensions;
 using Application.Modules.Health;
 using Microsoft.Extensions.Options;
 using Application.Migrations.Extensions;
+using Email.Outbox.Persistence.Extensions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -29,6 +31,8 @@ namespace Api.Extensions
         /// injection container.</param>
         public static void ConfigureServices(this IHostApplicationBuilder builder)
         {
+            IConfigurationSection apiConfiguration = builder.Configuration.GetRequiredSection(ConfigKeys.Section);
+
             // Add controllers
             builder.Services.AddControllers();
 
@@ -40,13 +44,13 @@ namespace Api.Extensions
             // Register exception handler service
             builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
-            builder.Services.ValidateAppConfiguration(builder.Configuration);
+            builder.Services.ValidateAppConfiguration(apiConfiguration);
 
             // Add resource-server authentication backed by the standalone identity server.
-            builder.Services.AddResourceServerAuthentication(builder.Configuration);
+            builder.Services.AddResourceServerAuthentication(apiConfiguration);
 
             // Add rate limiting policies
-            builder.Services.AddRateLimitingPolicies(builder.Configuration);
+            builder.Services.AddRateLimitingPolicies(apiConfiguration);
 
             // Add cache
             builder.Services.AddResponseCaching();
@@ -60,12 +64,19 @@ namespace Api.Extensions
             }
 
             // Add application services
-            builder.Services.ConfigureApplicationServices(builder.Configuration);
+            builder.Services.ConfigureApplicationServices(apiConfiguration);
+
+            // Add durable notification queue services. The worker owns delivery and schema migration.
+            IConfigurationSection outboxConfiguration = apiConfiguration
+                .GetRequiredSection(ConfigKeys.EmailOutbox.Section);
+            builder.Services.AddEmailOutboxProducer(outboxConfiguration);
+            builder.Services.AddEmailOutboxPersistence(
+                outboxConfiguration.GetRequiredSection(ConfigKeys.EmailOutbox.PersistenceSection));
 
             // Add application-owned database migrations
             builder.Services.AddApplicationMigrations();
 
-            var clientsSection = builder.Configuration.GetSection(ConfigKeys.Api.Clients);
+            var clientsSection = apiConfiguration.GetSection(ConfigKeys.Api.Clients);
 
             //Register api clients
             builder.Services.AddOptions<List<ApiClient>>()
@@ -120,6 +131,7 @@ namespace Api.Extensions
             _ = services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             _ = services.GetRequiredService<IOptions<BearerAuthenticationOptions>>().Value;
             _ = services.GetRequiredService<IOptions<List<ApiClient>>>().Value;
+            _ = services.GetRequiredService<IOptions<ApiHostOptions>>().Value;
         }
 
         /// <summary>
@@ -144,10 +156,12 @@ namespace Api.Extensions
             app.UseRequestLocalization(options =>
             {
                 string[] supportedCultures = [Language.English, Language.Spanish];
+                string defaultCulture = configuration.GetValue<string>(ConfigKeys.Language)
+                    ?? Language.English;
 
                 options.AddSupportedCultures(supportedCultures);
                 options.AddSupportedUICultures(supportedCultures);
-                options.SetDefaultCulture(Language.English);
+                options.SetDefaultCulture(defaultCulture);
             });
 
             app.MapHealthChecks(RouteConstants.HealthLive, new HealthCheckOptions
@@ -212,7 +226,9 @@ namespace Api.Extensions
             if (environment.IsDevelopment())
                 logger.RunningInDevelopment();
 
-            logger.StartupSetting("Language", Language.English);
+            logger.StartupSetting(
+                "Language",
+                configuration.GetValue<string>(ConfigKeys.Language) ?? Language.English);
 
             var authentication = configuration
                 .GetSection(ConfigKeys.Authentication.Section)
@@ -227,6 +243,14 @@ namespace Api.Extensions
 
             DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(ConfigKeys.Database.Engine);
             logger.StartupSetting("Database Engine", databaseEngine);
+
+            logger.StartupSetting(
+                "Application Migrations On Startup",
+                environment.IsDevelopment() || configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false));
+
+            DatabaseEngine? outboxEngine = configuration.GetValue<DatabaseEngine?>(ConfigKeys.EmailOutbox.Engine);
+            logger.StartupSetting("Email Outbox Engine", outboxEngine);
+            logger.StartupSetting("Email Outbox Migrator", "EmailWorker");
 
             string? healthCheckInternetUrl = configuration.GetValue<string?>(ConfigKeys.HealthCheck.Url);
             logger.StartupSetting("Health Check URL", healthCheckInternetUrl);
@@ -259,13 +283,20 @@ namespace Api.Extensions
 
             services.AddOptions<CacheOptions>()
                 .Bind(configuration.GetSection(ConfigKeys.Cache.Section))
-                .Validate(options => options.MaxAgeSeconds >= 0, "CacheSettings:MaxAgeSeconds cannot be negative.")
+                .Validate(options => options.MaxAgeSeconds >= 0, "Api:CacheSettings:MaxAgeSeconds cannot be negative.")
                 .ValidateOnStart();
 
             services.AddOptions<DatabaseOptions>()
                 .Bind(configuration.GetSection(ConfigKeys.Database.Section))
-                .Validate(options => Enum.IsDefined(options.Engine), "ConnectionStrings:Engine must be a supported database engine.")
-                .Validate(options => !string.IsNullOrWhiteSpace(options.Db), "ConnectionStrings:Db is required.")
+                .Validate(options => Enum.IsDefined(options.Engine), "Api:ConnectionStrings:Engine must be a supported database engine.")
+                .Validate(options => !string.IsNullOrWhiteSpace(options.Db), "Api:ConnectionStrings:Db is required.")
+                .ValidateOnStart();
+
+            services.AddOptions<ApiHostOptions>()
+                .Configure(options => options.Language = configuration.GetValue<string>(ConfigKeys.Language) ?? string.Empty)
+                .Validate(options =>
+                    options.Language is Language.English or Language.Spanish,
+                    "Language must be en-US or es-ES.")
                 .ValidateOnStart();
         }
 
@@ -276,15 +307,15 @@ namespace Api.Extensions
                 options.QueueLimit >= 0;
         }
 
-        private sealed class CacheOptions
-        {
-            public int MaxAgeSeconds { get; init; }
-        }
-
         private sealed class DatabaseOptions
         {
             public string Db { get; init; } = string.Empty;
             public DatabaseEngine Engine { get; init; }
+        }
+
+        private sealed class ApiHostOptions
+        {
+            public string Language { get; set; } = string.Empty;
         }
     }
 }

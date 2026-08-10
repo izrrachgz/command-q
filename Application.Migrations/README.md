@@ -19,7 +19,7 @@ library remains reusable by consumers with unrelated schemas.
 
 The API is the composition host. It registers this project and decides whether
 startup migrations run. Development always invokes the runner; other
-environments use `Migrations:RunOnStartup`.
+environments use the API host policy at `Api:Migrations:RunOnStartup`.
 
 ## Adding A Migration
 

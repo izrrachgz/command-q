@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore;
 using System.Security.Claims;
 using OpenIddict.Abstractions;
 using Microsoft.AspNetCore.Mvc;
@@ -149,9 +149,7 @@ namespace IdentityServer.Modules.OpenIddict
             });
         }
 
-        private async Task<IActionResult> CreateClientCredentialsPrincipal(
-            OpenIddictRequest request,
-            CancellationToken cancellationToken)
+        private async Task<IActionResult> CreateClientCredentialsPrincipal(OpenIddictRequest request, CancellationToken cancellationToken)
         {
             var application = await applicationManager.FindByClientIdAsync(request.ClientId!, cancellationToken);
 
@@ -207,9 +205,7 @@ namespace IdentityServer.Modules.OpenIddict
             return principal;
         }
 
-        private async Task<IReadOnlyList<string>> ResolveResources(
-            IEnumerable<string> scopes,
-            CancellationToken cancellationToken)
+        private async Task<IReadOnlyList<string>> ResolveResources(IEnumerable<string> scopes, CancellationToken cancellationToken)
         {
             return await scopeManager.ListResourcesAsync(scopes.ToImmutableArray(), cancellationToken).ToListAsync(cancellationToken);
         }

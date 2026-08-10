@@ -18,6 +18,9 @@
   <data name="Account_Id" xml:space="preserve">
     <value>Account Id</value>
   </data>
+  <data name="Account_Reference" xml:space="preserve">
+    <value>Account Reference</value>
+  </data>
   <data name="Address_Line" xml:space="preserve">
     <value>Address Line</value>
   </data>
@@ -27,14 +30,32 @@
   <data name="Country" xml:space="preserve">
     <value>Country</value>
   </data>
+  <data name="Correlation_Id" xml:space="preserve">
+    <value>Correlation Id</value>
+  </data>
   <data name="Email_Address" xml:space="preserve">
     <value>Email Address</value>
+  </data>
+  <data name="Email_Body" xml:space="preserve">
+    <value>Email Body</value>
+  </data>
+  <data name="Email_Message" xml:space="preserve">
+    <value>Email Message</value>
+  </data>
+  <data name="Email_Recipients" xml:space="preserve">
+    <value>Email Recipients</value>
+  </data>
+  <data name="Email_Subject" xml:space="preserve">
+    <value>Email Subject</value>
   </data>
   <data name="File_Data" xml:space="preserve">
     <value>File Data</value>
   </data>
   <data name="File_Name" xml:space="preserve">
     <value>File Name</value>
+  </data>
+  <data name="Idempotency_Key" xml:space="preserve">
+    <value>Idempotency Key</value>
   </data>
   <data name="Lock_Duration" xml:space="preserve">
     <value>Lock Duration</value>

@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.IdentityModel.Tokens;
@@ -32,36 +32,39 @@ namespace Api.Test.Infrastructure
             {
                 configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["Authentication:Authority"] = IdentityIssuer,
-                    ["Authentication:Audience"] = ApiAudience,
-                    ["Authentication:ApiScope"] = ApiScope,
-                    ["Authentication:RequireHttpsMetadata"] = "true",
-                    ["Authentication:ClockSkewSeconds"] = "60",
-                    ["RateLimiting:Type"] = "None",
-                    ["RateLimiting:FixedWindow:PermitLimit"] = "4",
-                    ["RateLimiting:FixedWindow:WindowSeconds"] = "16",
-                    ["RateLimiting:FixedWindow:QueueLimit"] = "2",
-                    ["RateLimiting:Sliding:PermitLimit"] = "100",
-                    ["RateLimiting:Sliding:WindowSeconds"] = "16",
-                    ["RateLimiting:Sliding:QueueLimit"] = "8",
-                    ["RateLimiting:Sliding:SegmentsPerWindow"] = "4",
-                    ["RateLimiting:TokenBucket:PermitLimit"] = "4",
-                    ["RateLimiting:TokenBucket:WindowSeconds"] = "16",
-                    ["RateLimiting:TokenBucket:QueueLimit"] = "2",
-                    ["RateLimiting:TokenBucket:TokenLimit"] = "4",
-                    ["RateLimiting:TokenBucket:TokensPerPeriod"] = "4",
-                    ["RateLimiting:Concurrency:PermitLimit"] = "4",
-                    ["RateLimiting:Concurrency:WindowSeconds"] = "16",
-                    ["RateLimiting:Concurrency:QueueLimit"] = "2",
-                    ["ConnectionStrings:Engine"] = "SqLite",
-                    ["ConnectionStrings:Db"] = "Data Source=:memory:",
-                    ["Migrations:RunOnStartup"] = "false",
-                    ["ApiClients:0:Name"] = ApiClientHeaderName,
-                    ["ApiClients:0:Id"] = ApiClientHeaderValue,
-                    ["ApiClients:0:Uri"] = ApiClientOrigin,
-                    ["HealthCheck:UrlCheckInternetAccess"] = "https://example.com/",
-                    ["HealthCheck:PublishOnStartup"] = "false",
-                    ["CacheSettings:MaxAgeSeconds"] = "10"
+                    ["Api:Language"] = "en-US",
+                    ["Api:Authentication:Authority"] = IdentityIssuer,
+                    ["Api:Authentication:Audience"] = ApiAudience,
+                    ["Api:Authentication:ApiScope"] = ApiScope,
+                    ["Api:Authentication:RequireHttpsMetadata"] = "true",
+                    ["Api:Authentication:ClockSkewSeconds"] = "60",
+                    ["Api:RateLimiting:Type"] = "None",
+                    ["Api:RateLimiting:FixedWindow:PermitLimit"] = "4",
+                    ["Api:RateLimiting:FixedWindow:WindowSeconds"] = "16",
+                    ["Api:RateLimiting:FixedWindow:QueueLimit"] = "2",
+                    ["Api:RateLimiting:Sliding:PermitLimit"] = "100",
+                    ["Api:RateLimiting:Sliding:WindowSeconds"] = "16",
+                    ["Api:RateLimiting:Sliding:QueueLimit"] = "8",
+                    ["Api:RateLimiting:Sliding:SegmentsPerWindow"] = "4",
+                    ["Api:RateLimiting:TokenBucket:PermitLimit"] = "4",
+                    ["Api:RateLimiting:TokenBucket:WindowSeconds"] = "16",
+                    ["Api:RateLimiting:TokenBucket:QueueLimit"] = "2",
+                    ["Api:RateLimiting:TokenBucket:TokenLimit"] = "4",
+                    ["Api:RateLimiting:TokenBucket:TokensPerPeriod"] = "4",
+                    ["Api:RateLimiting:Concurrency:PermitLimit"] = "4",
+                    ["Api:RateLimiting:Concurrency:WindowSeconds"] = "16",
+                    ["Api:RateLimiting:Concurrency:QueueLimit"] = "2",
+                    ["Api:ConnectionStrings:Engine"] = "SqLite",
+                    ["Api:ConnectionStrings:Db"] = "Data Source=:memory:",
+                    ["Api:Migrations:RunOnStartup"] = "false",
+                    ["Api:EmailOutbox:Persistence:Engine"] = "SqLite",
+                    ["Api:EmailOutbox:Persistence:ConnectionString"] = "Data Source=:memory:",
+                    ["Api:ApiClients:0:Name"] = ApiClientHeaderName,
+                    ["Api:ApiClients:0:Id"] = ApiClientHeaderValue,
+                    ["Api:ApiClients:0:Uri"] = ApiClientOrigin,
+                    ["Api:HealthCheck:UrlCheckInternetAccess"] = "https://example.com/",
+                    ["Api:HealthCheck:PublishOnStartup"] = "false",
+                    ["Api:CacheSettings:MaxAgeSeconds"] = "10"
                 });
             });
 
@@ -82,9 +85,7 @@ namespace Api.Test.Infrastructure
             });
         }
 
-        public static string CreateAccessToken(
-            string? scope = ApiScope,
-            string audience = ApiAudience)
+        public static string CreateAccessToken(string? scope = ApiScope, string audience = ApiAudience)
         {
             var claims = new List<Claim>
             {

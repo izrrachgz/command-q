@@ -12,20 +12,49 @@ namespace Email.Outbox.Extensions
 {
     public static class EmailOutboxServiceCollectionExtensions
     {
-        public static IServiceCollection AddEmailOutbox(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        public static IServiceCollection AddEmailOutbox(this IServiceCollection services, IConfiguration configuration)
         {
-            ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(configuration);
 
+            return services.AddEmailOutbox(configuration.GetSection(
+                EmailOutboxConstants.ConfigurationSection));
+        }
+
+        public static IServiceCollection AddEmailOutbox(this IServiceCollection services, IConfigurationSection section)
+        {
+            return services
+                .AddEmailOutboxProducer(section)
+                .AddEmailOutboxProcessor();
+        }
+
+        public static IServiceCollection AddEmailOutboxProducer(this IServiceCollection services, IConfiguration configuration)
+        {
+            ArgumentNullException.ThrowIfNull(configuration);
+
+            return services.AddEmailOutboxProducer(configuration.GetSection(
+                EmailOutboxConstants.ConfigurationSection));
+        }
+
+        public static IServiceCollection AddEmailOutboxProducer(this IServiceCollection services, IConfigurationSection section)
+        {
+            ArgumentNullException.ThrowIfNull(services);
+            ArgumentNullException.ThrowIfNull(section);
+
             services.AddOptions<EmailOutboxOptions>()
-                .Bind(configuration.GetSection(EmailOutboxConstants.ConfigurationSection))
+                .Bind(section)
                 .ValidateOnStart();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailOutboxOptions>, EmailOutboxOptionsValidator>());
             services.TryAddSingleton<IEmailOutboxSerializer, EmailOutboxSerializer>();
             services.TryAddSingleton<IEmailOutbox, EmailOutboxService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddEmailOutboxProcessor(this IServiceCollection services)
+        {
+            ArgumentNullException.ThrowIfNull(services);
+
             services.TryAddSingleton<IEmailOutboxProcessor, EmailOutboxProcessor>();
 
             return services;

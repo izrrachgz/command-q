@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Api.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -8,9 +8,7 @@ using Application.Modules.Contacts.Commands;
 namespace Api.Modules.Contacts
 {
     [ApiController, Authorize, Route(@"[controller]")]
-    public class ContactController(
-        ISender mediator,
-        ICurrentAccountAccessor currentAccountAccessor) : Controller
+    public class ContactController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : Controller
     {
         private readonly ISender _mediator = mediator;
 

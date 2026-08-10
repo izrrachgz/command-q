@@ -1,4 +1,4 @@
-﻿using Public;
+using Public;
 using Common.Cqrs;
 using SqlKata.Execution;
 using Common.Models.Response;
@@ -20,9 +20,7 @@ namespace Application.Modules.Identity.Accounts.Commands
         private readonly string _messageDefaultContactName = textProvider.Get(nameof(Messages.Default_Contact_Name));
         private readonly string _messageDefaultAddressName = textProvider.Get(nameof(Messages.Default_Address_Name));
 
-        public async Task<BasicResponse> Handle(
-            CreateAccountCommand request,
-            CancellationToken cancellationToken)
+        public async Task<BasicResponse> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
         {
             if (await AccountAlreadyExists(request, cancellationToken))
             {
@@ -114,9 +112,7 @@ namespace Application.Modules.Identity.Accounts.Commands
             }
         }
 
-        internal async Task<bool> AccountAlreadyExists(
-            CreateAccountCommand request,
-            CancellationToken cancellationToken)
+        internal async Task<bool> AccountAlreadyExists(CreateAccountCommand request, CancellationToken cancellationToken)
         {
             var identityExists = await repository.Db.Query(nameof(AccountIdentity))
                 .WhereNull(nameof(AccountIdentity.Deleted))
