@@ -1,12 +1,12 @@
-﻿using IdentityServer.Persistence;
+using IdentityServer.Persistence;
 using IdentityServer.Modules.Accounts.Logging;
 
 namespace IdentityServer.Modules.Accounts
 {
-    public sealed class IdentitySecurityEventRecorder(
+    internal sealed class IdentitySecurityEventRecorder(
         IdentityServerDbContext database,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<IdentitySecurityEventRecorder> logger)
+        ILogger<IdentitySecurityEventRecorder> logger) : IIdentitySecurityEventRecorder
     {
         public async Task Record(
             string action,

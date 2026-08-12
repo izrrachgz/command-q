@@ -12,7 +12,7 @@ namespace Api.Middleware
     /// <summary>
     /// Checks if the api keys for the client are present in the request
     /// </summary>
-    public sealed class CheckApiClientMiddleware(RequestDelegate next, IHostEnvironment environment, IOptions<List<ApiClientOptions>> configuredClients, ILogger<CheckApiClientMiddleware> logger)
+    internal sealed class CheckApiClientMiddleware(RequestDelegate next, IHostEnvironment environment, IOptions<List<ApiClientOptions>> configuredClients, ILogger<CheckApiClientMiddleware> logger)
     {
         public async Task Invoke(HttpContext context)
         {

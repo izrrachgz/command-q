@@ -37,6 +37,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Existing module status and removal steps are documented in `docs/modules.md`.
 - Keep cross-cutting infrastructure at project root, such as `Api/Middleware`, `Api/Extensions`, `Common/System`, `Persistence/Repository` and general project logging.
 - Prefer explicit module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`; those extensions explicitly register MediatR handlers, validators, mappers and module services. Do not use application-wide exported-type scanning for these services. Keep commands, queries and contracts public for API/test boundaries, while module implementation classes remain internal to the Application assembly. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
+- Host implementation types should be internal by default. Keep API and IdentityServer controllers public for framework discovery, but seal concrete controllers. Keep host configuration models, middleware, persistence helpers and concrete services internal unless another project consumes them through an intentional contract.
 - The frontend is intentionally separate/optional right now. Do not change `FrontApplication` unless the user explicitly asks for frontend work.
 
 ## Projects

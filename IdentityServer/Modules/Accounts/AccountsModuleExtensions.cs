@@ -75,7 +75,7 @@ namespace IdentityServer.Modules.Accounts
             AddExternalProviders(services, configuration);
 
             services.AddHttpContextAccessor();
-            services.AddScoped<IdentitySecurityEventRecorder>();
+            services.AddScoped<IIdentitySecurityEventRecorder, IdentitySecurityEventRecorder>();
             services.AddRateLimiter(options =>
             {
                 options.AddPolicy(AccountConstants.AuthenticationRateLimitPolicy, context =>

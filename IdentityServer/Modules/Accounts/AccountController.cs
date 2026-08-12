@@ -15,7 +15,7 @@ namespace IdentityServer.Modules.Accounts
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
         IdentityServerDbContext database,
-        IdentitySecurityEventRecorder securityEvents,
+        IIdentitySecurityEventRecorder securityEvents,
         ILogger<AccountController> logger) : ControllerBase
     {
         [AllowAnonymous, HttpPost(AccountConstants.Routes.Register)]

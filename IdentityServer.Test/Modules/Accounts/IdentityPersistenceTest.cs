@@ -57,7 +57,7 @@ namespace IdentityServer.Test.Modules.Accounts
         public async Task SecurityEventRecorder_Should_Persist_Queryable_Event()
         {
             await using var services = CreateServices();
-            var recorder = services.GetRequiredService<IdentitySecurityEventRecorder>();
+            var recorder = services.GetRequiredService<IIdentitySecurityEventRecorder>();
             var database = services.GetRequiredService<IdentityServerDbContext>();
             var userId = Guid.NewGuid();
 
@@ -115,7 +115,7 @@ namespace IdentityServer.Test.Modules.Accounts
                 })
                 .AddRoles<CommandQIdentityRole>()
                 .AddEntityFrameworkStores<TestIdentityServerDbContext>();
-            services.AddScoped<IdentitySecurityEventRecorder>();
+            services.AddScoped<IIdentitySecurityEventRecorder, IdentitySecurityEventRecorder>();
 
             return services.BuildServiceProvider();
         }

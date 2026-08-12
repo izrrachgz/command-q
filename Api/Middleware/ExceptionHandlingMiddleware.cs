@@ -12,7 +12,7 @@ using Localization.Abstractions;
 
 namespace Api.Middleware
 {
-    public class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger, ITextProvider messages, IHostEnvironment environment) : IMiddleware
+    internal sealed class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger, ITextProvider messages, IHostEnvironment environment) : IMiddleware
     {
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {

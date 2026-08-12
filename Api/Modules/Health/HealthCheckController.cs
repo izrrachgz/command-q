@@ -9,7 +9,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace Api.Modules.Health
 {
     [ApiController, Authorize, Route(@"[controller]")]
-    public class HealthCheckController(ISender mediator, ILogger<HealthCheckController> logger) : ControllerBase
+    public sealed class HealthCheckController(ISender mediator, ILogger<HealthCheckController> logger) : ControllerBase
     {
         private readonly ISender _mediator = mediator;
 

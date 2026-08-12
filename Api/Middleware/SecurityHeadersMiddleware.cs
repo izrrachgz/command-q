@@ -1,6 +1,6 @@
 namespace Api.Middleware
 {
-    public sealed class SecurityHeadersMiddleware(RequestDelegate next)
+    internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
     {
         public async Task Invoke(HttpContext context)
         {

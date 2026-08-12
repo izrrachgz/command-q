@@ -12,7 +12,7 @@ namespace Api.Middleware
     /// receive public cache headers unless the endpoint already specified its own cache policy.</remarks>
     /// <param name="next">The delegate representing the next middleware component in the HTTP request processing pipeline.</param>
     /// <param name="cacheOptions">Validated cache settings owned by the API host.</param>
-    public sealed class CacheMiddleware(RequestDelegate next, IOptionsMonitor<CacheOptions> cacheOptions, ILogger<CacheMiddleware> logger)
+    internal sealed class CacheMiddleware(RequestDelegate next, IOptionsMonitor<CacheOptions> cacheOptions, ILogger<CacheMiddleware> logger)
     {
         public Task Invoke(HttpContext context)
         {

@@ -19,7 +19,7 @@ namespace IdentityServer.Modules.OpenIddict
         SignInManager<CommandQIdentityUser> signInManager,
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictScopeManager scopeManager,
-        IdentitySecurityEventRecorder securityEvents) : ControllerBase
+        IIdentitySecurityEventRecorder securityEvents) : ControllerBase
     {
         private const string LoginPrompt = "login";
         private const string NonePrompt = "none";

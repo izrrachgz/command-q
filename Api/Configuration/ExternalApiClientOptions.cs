@@ -3,7 +3,7 @@ namespace Api.Configuration
     /// <summary>
     /// Configuration for all named HTTP clients used to call external services.
     /// </summary>
-    public sealed class ExternalApiClientsOptions
+    internal sealed class ExternalApiClientsOptions
     {
         /// <summary>
         /// Gets the named external client configurations.
@@ -14,7 +14,7 @@ namespace Api.Configuration
     /// <summary>
     /// Connection settings for one external HTTP service.
     /// </summary>
-    public sealed class ExternalApiClientOptions
+    internal sealed class ExternalApiClientOptions
     {
         /// <summary>
         /// Gets the absolute base URL used by the client.

@@ -38,7 +38,7 @@ namespace Api.Extensions
         /// <param name="builder">The endpoint convention builder to which the rate limiting policy will be applied.</param>
         /// <param name="limiting">The rate limiting strategy to be applied, which determines the policy used for rate limiting.</param>
         /// <returns>The updated endpoint convention builder with the applied rate limiting policy.</returns>
-        public static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, RateLimiting limiting) where TBuilder : IEndpointConventionBuilder
+        internal static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, RateLimiting limiting) where TBuilder : IEndpointConventionBuilder
         {
             switch (limiting)
             {
