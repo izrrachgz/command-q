@@ -4,6 +4,8 @@ using System.Globalization;
 using Localization.Providers;
 using Localization.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Localization.Extensions
 {
@@ -36,6 +38,38 @@ namespace Localization.Extensions
                 var localizationOptions = serviceProvider.GetRequiredService<LocalizationOptions>();
 
                 return new ValidationTextProvider(ResolveCulture(CultureInfo.CurrentUICulture, localizationOptions), CreateFallbackCulture(localizationOptions));
+            });
+
+            return services;
+        }
+
+        /// <summary>
+        /// Registers localization providers bound to reloadable configuration.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        /// <param name="configuration">The configuration section containing localization settings.</param>
+        /// <returns>The supplied service collection.</returns>
+        public static IServiceCollection AddLocalizationServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddOptions<LocalizationOptions>()
+                .Bind(configuration)
+                .Validate(options => options.SupportedCultures.Length > 0, "Localization:SupportedCultures must contain at least one culture.")
+                .Validate(options => !string.IsNullOrWhiteSpace(options.FallbackCulture), "Localization:FallbackCulture is required.")
+                .ValidateOnStart();
+
+            services.AddScoped<ITextProvider>(serviceProvider =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptionsMonitor<LocalizationOptions>>().CurrentValue;
+                var primaryCulture = ResolveCulture(CultureInfo.CurrentUICulture, options);
+
+                return new CompositeTextProvider(CreateProviders(primaryCulture, options));
+            });
+
+            services.AddScoped(serviceProvider =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptionsMonitor<LocalizationOptions>>().CurrentValue;
+
+                return new ValidationTextProvider(ResolveCulture(CultureInfo.CurrentUICulture, options), CreateFallbackCulture(options));
             });
 
             return services;

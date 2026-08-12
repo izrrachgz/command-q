@@ -56,7 +56,7 @@ namespace Application.Extensions
             services.AddApplicationModules(configuration);
 
             // Add localization services
-            services.AddLocalizationServices();
+            services.AddLocalizationServices(configuration.GetSection("Localization"));
         }
     }
 }

@@ -166,6 +166,19 @@ NuGet versions are centrally managed in `Directory.Packages.props`. Project file
 <PackageReference Include="MediatR" />
 ```
 
+## Runtime Configuration Reload
+
+The API reloads JSON and environment configuration for operational settings when
+the configuration provider supports reload-on-change. Cache response headers,
+rate-limit policies, feature flags, health-check publishing and localization use
+the current values for new work. External API clients created through
+`IExternalApiClientFactory` also use the current endpoint and timeout.
+
+Database providers, migrations, dependency-injection registrations, identity
+certificates and other infrastructure topology remain startup-bound. Memory
+cache size and SMTP retry policies should be treated as startup or deployment
+settings until a dedicated lifecycle manager is introduced.
+
 ## Database Support
 
 This solution supports the following databases:

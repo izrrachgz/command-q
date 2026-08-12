@@ -51,6 +51,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `POST /Account/create` provisions an application profile for an authenticated identity. Credentials are never accepted or stored by this endpoint.
 - Generic cache mechanics live in `Common.Abstractions.ITypedCache<TEntry>` and `Common.System.TypedMemoryCache<TEntry>`; add specific cache adapters over this when new typed caches are needed.
 - API-owned settings live under the `Api` section. Rate limiting, cache, database and API client child paths use constants under `Api/Constants/ConfigKeys.cs`.
+- Operational API settings use `IOptionsMonitor` where runtime reload is safe: response cache headers, rate-limit policies, feature flags, localization and health publishing. External clients should be created through `IExternalApiClientFactory` so endpoint and timeout changes apply to new clients.
 - Local secrets should use .NET user-secrets or environment variables. Keep real secrets out of `appsettings*.json`, `.env`, scripts and docs. See `docs/local-secrets.md`.
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development in `ExceptionHandlingMiddleware`.

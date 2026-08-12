@@ -12,10 +12,8 @@ namespace Api.Middleware
     /// receive public cache headers unless the endpoint already specified its own cache policy.</remarks>
     /// <param name="next">The delegate representing the next middleware component in the HTTP request processing pipeline.</param>
     /// <param name="cacheOptions">Validated cache settings owned by the API host.</param>
-    public sealed class CacheMiddleware(RequestDelegate next, IOptions<CacheOptions> cacheOptions, ILogger<CacheMiddleware> logger)
+    public sealed class CacheMiddleware(RequestDelegate next, IOptionsMonitor<CacheOptions> cacheOptions, ILogger<CacheMiddleware> logger)
     {
-        private readonly int maxAgeSeconds = cacheOptions.Value.MaxAgeSeconds;
-
         public Task Invoke(HttpContext context)
         {
             context.Response.OnStarting(() =>
@@ -64,12 +62,12 @@ namespace Api.Middleware
             context.Response.GetTypedHeaders().CacheControl = new CacheControlHeaderValue
             {
                 Public = true,
-                MaxAge = TimeSpan.FromSeconds(maxAgeSeconds)
+                MaxAge = TimeSpan.FromSeconds(cacheOptions.CurrentValue.MaxAgeSeconds)
             };
 
             context.Response.Headers.Append(HeaderNames.Vary, HeaderNames.AcceptEncoding);
 
-            logger.ResponseCacheApplied(maxAgeSeconds);
+            logger.ResponseCacheApplied(cacheOptions.CurrentValue.MaxAgeSeconds);
         }
 
         private static bool IsAuthenticatedRequest(HttpContext context)

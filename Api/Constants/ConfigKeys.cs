@@ -8,6 +8,17 @@ namespace Api.Constants
         public static class Api
         {
             public const string Clients = @"ApiClients";
+            public const string ExternalClients = @"ExternalApiClients";
+        }
+
+        public static class Features
+        {
+            public const string Section = @"Features";
+        }
+
+        public static class Localization
+        {
+            public const string Section = @"Localization";
         }
 
         public static class Authentication

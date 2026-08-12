@@ -5,6 +5,8 @@ using Api.Middleware;
 using Api.Enumerations;
 using Common.Constants;
 using Api.Configuration;
+using Api.Abstractions;
+using Api.Services;
 using Common.Enumerations;
 using Application.Extensions;
 using Email.Outbox.Extensions;
@@ -45,6 +47,9 @@ namespace Api.Extensions
             builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
             builder.Services.ValidateApplicationConfiguration(apiConfiguration);
+            builder.Services.AddSingleton<IFeatureFlags, FeatureFlags>();
+            builder.Services.AddHttpClient();
+            builder.Services.AddSingleton<IExternalApiClientFactory, ExternalApiClientFactory>();
 
             // Add resource-server authentication backed by the standalone identity server.
             builder.Services.AddResourceServerAuthentication(apiConfiguration);
@@ -284,6 +289,16 @@ namespace Api.Extensions
             services.AddOptions<CacheOptions>()
                 .Bind(configuration.GetSection(ConfigKeys.Cache.Section))
                 .Validate(options => options.MaxAgeSeconds >= 0, "Api:CacheSettings:MaxAgeSeconds cannot be negative.")
+                .ValidateOnStart();
+
+            services.AddOptions<FeatureFlagOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.Features.Section));
+
+            services.AddOptions<ExternalApiClientsOptions>()
+                .Bind(configuration.GetSection(ConfigKeys.Api.ExternalClients))
+                .Validate(options => options.Clients.Values.All(client =>
+                    Uri.TryCreate(client.BaseUrl, UriKind.Absolute, out _) && client.TimeoutSeconds > 0),
+                    "Every external API client requires an absolute BaseUrl and a positive TimeoutSeconds.")
                 .ValidateOnStart();
 
             services.AddOptions<DatabaseOptions>()

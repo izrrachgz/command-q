@@ -10,8 +10,6 @@ namespace Application.Modules.Health.Extensions
 {
     public static class HealthCheckServiceExtensions
     {
-        private const int SecondsDelayToRun = 1;
-        private const int DaysToRunHealthCheck = 1;
 
         public static IServiceCollection ConfigureAppHealthChecks(this IServiceCollection services, IConfiguration configuration)
         {
@@ -23,6 +21,8 @@ namespace Application.Modules.Health.Extensions
                 .Validate(options =>
                     Uri.TryCreate(options.UrlCheckInternetAccess, UriKind.Absolute, out _),
                     "HealthCheck:UrlCheckInternetAccess must be an absolute URI.")
+                .Validate(options => options.PublishIntervalSeconds > 0,
+                    "HealthCheck:PublishIntervalSeconds must be greater than zero.")
                 .ValidateOnStart();
 
             services.AddHealthChecks()
@@ -32,17 +32,8 @@ namespace Application.Modules.Health.Extensions
                 .AddTypeActivatedCheck<SaveDatabaseDataCommandHandler>(@"Can Write On Database", failureStatus: HealthStatus.Unhealthy, tags: [HealthCheckConstants.ReadyTag])
                 .AddTypeActivatedCheck<GetDatabaseDataQueryHandler>(@"Can Read From Database", failureStatus: HealthStatus.Unhealthy, tags: [HealthCheckConstants.ReadyTag]);
 
-            services.Configure<HealthCheckPublisherOptions>(options =>
-            {
-                options.Delay = TimeSpan.FromSeconds(SecondsDelayToRun);
-                options.Period = TimeSpan.FromDays(DaysToRunHealthCheck);
-                options.Predicate = healthCheck => healthCheck.Name.Contains(@"Can");
-            });
-
-            if (healthCheckSection.GetValue(nameof(HealthCheckConfigurationOptions.PublishOnStartup), false))
-            {
-                services.AddSingleton<IHealthCheckPublisher, HealthCheckPublisher>();
-            }
+            services.AddSingleton<HealthCheckPublisher>();
+            services.AddHostedService<DynamicHealthCheckPublisherService>();
 
             return services;
         }

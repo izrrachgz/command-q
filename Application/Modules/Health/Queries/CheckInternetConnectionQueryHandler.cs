@@ -12,17 +12,17 @@ namespace Application.Modules.Health.Queries
 {
     public class CheckInternetConnectionQueryHandler : IQueryHandler<CheckInternetConnectionQuery, HealthCheckResult>, IHealthCheck
     {
-        private readonly HealthCheckConfigurationOptions _options;
+        private readonly IOptionsMonitor<HealthCheckConfigurationOptions> _options;
         private readonly ILogger<CheckInternetConnectionQueryHandler> _logger;
         private readonly string UnhealthyMessage = @"Application is unable to access internet.";
         private readonly string HealthyMessage = @"Application is able to access internet.";
 
         public CheckInternetConnectionQueryHandler(
-            IOptions<HealthCheckConfigurationOptions> options,
+            IOptionsMonitor<HealthCheckConfigurationOptions> options,
             ILogger<CheckInternetConnectionQueryHandler> logger)
         {
             _logger = logger;
-            _options = options.Value;
+            _options = options;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -32,7 +32,7 @@ namespace Application.Modules.Health.Queries
 
         public async Task<HealthCheckResult> Handle(CheckInternetConnectionQuery request, CancellationToken cancellationToken)
         {
-            string urlCheckInternetAccess = _options.UrlCheckInternetAccess;
+            string urlCheckInternetAccess = _options.CurrentValue.UrlCheckInternetAccess;
 
             if (string.IsNullOrEmpty(urlCheckInternetAccess) || !urlCheckInternetAccess.IsUri())
                 return HealthCheckResult.Unhealthy(UnhealthyMessage);

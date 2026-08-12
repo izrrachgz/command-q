@@ -77,8 +77,26 @@ namespace Api.Test.Modules.Common.Middleware
         {
             return new CacheMiddleware(
                 next,
-                Options.Create(new CacheOptions { MaxAgeSeconds = MaxAgeSeconds }),
+                new TestOptionsMonitor<CacheOptions>(new CacheOptions { MaxAgeSeconds = MaxAgeSeconds }),
                 NullLogger<CacheMiddleware>.Instance);
+        }
+
+        private sealed class TestOptionsMonitor<T>(T value) : IOptionsMonitor<T>
+        {
+            public T CurrentValue => value;
+
+            public T Get(string? name) => value;
+
+            public IDisposable OnChange(Action<T, string?> listener) => Disposable.Instance;
+
+            private sealed class Disposable : IDisposable
+            {
+                public static readonly Disposable Instance = new();
+
+                public void Dispose()
+                {
+                }
+            }
         }
 
         private sealed class CapturingResponseFeature : IHttpResponseFeature

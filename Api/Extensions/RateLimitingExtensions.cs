@@ -2,6 +2,7 @@ using Api.Configuration;
 using Api.Constants;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace Api.Extensions
 {
@@ -28,15 +29,21 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. Must not be null.</param>
         public static void AddFixedWindowRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.FixedOptions).Get<FixedRateLimitingOptions>()!;
-
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddFixedWindowLimiter(policyName: ConfigKeys.RateLimiting.FixedPolicyName, options =>
+                configureOptions.AddPolicy(ConfigKeys.RateLimiting.FixedPolicyName, context =>
                 {
-                    options.PermitLimit = rateOptions.PermitLimit;
-                    options.Window = TimeSpan.FromSeconds(rateOptions.WindowSeconds);
-                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    options.QueueLimit = rateOptions.QueueLimit;
+                    var rateOptions = context.RequestServices
+                        .GetRequiredService<IOptionsMonitor<FixedRateLimitingOptions>>().CurrentValue;
+
+                    string partitionKey = $"{GetPartitionKey(context)}:{rateOptions.PermitLimit}:{rateOptions.WindowSeconds}:{rateOptions.QueueLimit}";
+
+                    return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = rateOptions.PermitLimit,
+                        Window = TimeSpan.FromSeconds(rateOptions.WindowSeconds),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = rateOptions.QueueLimit
+                    });
                 })
             );
         }
@@ -53,16 +60,22 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve the sliding window rate limiting options. This parameter cannot be
         public static void AddSlidingWindowRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.SlidingOptions).Get<SlidingRateLimitingOptions>()!;
-
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddSlidingWindowLimiter(policyName: ConfigKeys.RateLimiting.SlidingPolicyName, options =>
+                configureOptions.AddPolicy(ConfigKeys.RateLimiting.SlidingPolicyName, context =>
                 {
-                    options.PermitLimit = rateOptions.PermitLimit;
-                    options.Window = TimeSpan.FromSeconds(rateOptions.WindowSeconds);
-                    options.SegmentsPerWindow = rateOptions.SegmentsPerWindow;
-                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    options.QueueLimit = rateOptions.QueueLimit;
+                    var rateOptions = context.RequestServices
+                        .GetRequiredService<IOptionsMonitor<SlidingRateLimitingOptions>>().CurrentValue;
+
+                    string partitionKey = $"{GetPartitionKey(context)}:{rateOptions.PermitLimit}:{rateOptions.WindowSeconds}:{rateOptions.QueueLimit}:{rateOptions.SegmentsPerWindow}";
+
+                    return RateLimitPartition.GetSlidingWindowLimiter(partitionKey, _ => new SlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = rateOptions.PermitLimit,
+                        Window = TimeSpan.FromSeconds(rateOptions.WindowSeconds),
+                        SegmentsPerWindow = rateOptions.SegmentsPerWindow,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = rateOptions.QueueLimit
+                    });
                 })
             );
         }
@@ -78,16 +91,23 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. This parameter must not be null.</param>
         public static void AddTokenBucketRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.TokenBucketOptions).Get<TokenBucketRateLimitingOptions>()!;
-
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddTokenBucketLimiter(policyName: ConfigKeys.RateLimiting.TokenBucketPolicyName, options =>
+                configureOptions.AddPolicy(ConfigKeys.RateLimiting.TokenBucketPolicyName, context =>
                 {
-                    options.TokenLimit = rateOptions.TokenLimit;
-                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    options.QueueLimit = rateOptions.QueueLimit;
-                    options.ReplenishmentPeriod = TimeSpan.FromSeconds(rateOptions.WindowSeconds);
-                    options.TokensPerPeriod = rateOptions.TokensPerPeriod;
+                    var rateOptions = context.RequestServices
+                        .GetRequiredService<IOptionsMonitor<TokenBucketRateLimitingOptions>>().CurrentValue;
+
+                    string partitionKey = $"{GetPartitionKey(context)}:{rateOptions.TokenLimit}:{rateOptions.WindowSeconds}:{rateOptions.QueueLimit}:{rateOptions.TokensPerPeriod}";
+
+                    return RateLimitPartition.GetTokenBucketLimiter(partitionKey, _ => new TokenBucketRateLimiterOptions
+                    {
+                        TokenLimit = rateOptions.TokenLimit,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = rateOptions.QueueLimit,
+                        ReplenishmentPeriod = TimeSpan.FromSeconds(rateOptions.WindowSeconds),
+                        TokensPerPeriod = rateOptions.TokensPerPeriod,
+                        AutoReplenishment = true
+                    });
                 })
             );
         }
@@ -104,16 +124,27 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration from which to retrieve rate limiting options. This parameter must not be null.</param>
         public static void AddConcurrencyRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
-            var rateOptions = configuration.GetSection(ConfigKeys.RateLimiting.ConcurrencyOptions).Get<ConcurrencyRateLimitingOptions>()!;
-
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddConcurrencyLimiter(policyName: ConfigKeys.RateLimiting.ConcurrencyPolicyName, options =>
+                configureOptions.AddPolicy(ConfigKeys.RateLimiting.ConcurrencyPolicyName, context =>
                 {
-                    options.PermitLimit = rateOptions.PermitLimit;
-                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                    options.QueueLimit = rateOptions.QueueLimit;
+                    var rateOptions = context.RequestServices
+                        .GetRequiredService<IOptionsMonitor<ConcurrencyRateLimitingOptions>>().CurrentValue;
+
+                    string partitionKey = $"{GetPartitionKey(context)}:{rateOptions.PermitLimit}:{rateOptions.QueueLimit}";
+
+                    return RateLimitPartition.GetConcurrencyLimiter(partitionKey, _ => new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = rateOptions.PermitLimit,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = rateOptions.QueueLimit
+                    });
                 })
             );
+        }
+
+        private static string GetPartitionKey(HttpContext context)
+        {
+            return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         }
     }
 }
