@@ -11,6 +11,7 @@ using Common.Enumerations;
 using Application.Extensions;
 using Email.Outbox.Extensions;
 using Application.Modules.Health;
+using Localization.Configuration;
 using Microsoft.Extensions.Options;
 using Application.Migrations.Extensions;
 using Email.Outbox.Persistence.Extensions;
@@ -50,6 +51,7 @@ namespace Api.Extensions
             builder.Services.AddSingleton<IFeatureFlags, FeatureFlags>();
             builder.Services.AddHttpClient();
             builder.Services.AddSingleton<IExternalApiClientFactory, ExternalApiClientFactory>();
+            builder.Services.AddHostedService<RuntimeConfigurationChangeMonitor>();
 
             // Add resource-server authentication backed by the standalone identity server.
             builder.Services.AddResourceServerAuthentication(apiConfiguration);
@@ -136,7 +138,6 @@ namespace Api.Extensions
             _ = services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             _ = services.GetRequiredService<IOptions<BearerAuthenticationOptions>>().Value;
             _ = services.GetRequiredService<IOptions<List<ApiClientOptions>>>().Value;
-            _ = services.GetRequiredService<IOptions<ApiHostOptions>>().Value;
         }
 
         /// <summary>
@@ -160,9 +161,10 @@ namespace Api.Extensions
             // Configure localization
             app.UseRequestLocalization(options =>
             {
-                string[] supportedCultures = [Language.English, Language.Spanish];
-                string defaultCulture = configuration.GetValue<string>(ConfigKeys.Language)
-                    ?? Language.English;
+                var localization = configuration.GetSection(ConfigKeys.Localization.Section)
+                    .Get<LocalizationOptions>() ?? new LocalizationOptions();
+                string[] supportedCultures = localization.SupportedCultures;
+                string defaultCulture = localization.DefaultCulture;
 
                 options.AddSupportedCultures(supportedCultures);
                 options.AddSupportedUICultures(supportedCultures);
@@ -232,8 +234,9 @@ namespace Api.Extensions
                 logger.RunningInDevelopment();
 
             logger.StartupSetting(
-                "Language",
-                configuration.GetValue<string>(ConfigKeys.Language) ?? Language.English);
+                "Localization Default Culture",
+                configuration.GetSection(ConfigKeys.Localization.Section)
+                    .GetValue<string>(nameof(LocalizationOptions.DefaultCulture)) ?? "en-US");
 
             var authentication = configuration
                 .GetSection(ConfigKeys.Authentication.Section)
@@ -307,12 +310,6 @@ namespace Api.Extensions
                 .Validate(options => !string.IsNullOrWhiteSpace(options.Db), "Api:ConnectionStrings:Db is required.")
                 .ValidateOnStart();
 
-            services.AddOptions<ApiHostOptions>()
-                .Configure(options => options.Language = configuration.GetValue<string>(ConfigKeys.Language) ?? string.Empty)
-                .Validate(options =>
-                    options.Language is Language.English or Language.Spanish,
-                    "Language must be en-US or es-ES.")
-                .ValidateOnStart();
         }
 
         private static bool IsValidRateLimit(RateLimitingOptions options)

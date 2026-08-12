@@ -3,8 +3,6 @@ namespace Api.Constants
     internal static class ConfigKeys
     {
         public const string Section = "Api";
-        public const string Language = "Language";
-
         public static class Api
         {
             public const string Clients = @"ApiClients";

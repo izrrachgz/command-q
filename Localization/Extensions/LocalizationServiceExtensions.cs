@@ -54,6 +54,7 @@ namespace Localization.Extensions
             services.AddOptions<LocalizationOptions>()
                 .Bind(configuration)
                 .Validate(options => options.SupportedCultures.Length > 0, "Localization:SupportedCultures must contain at least one culture.")
+                .Validate(options => !string.IsNullOrWhiteSpace(options.DefaultCulture) && options.SupportedCultures.Contains(options.DefaultCulture, StringComparer.OrdinalIgnoreCase), "Localization:DefaultCulture must be one of the supported cultures.")
                 .Validate(options => !string.IsNullOrWhiteSpace(options.FallbackCulture), "Localization:FallbackCulture is required.")
                 .ValidateOnStart();
 

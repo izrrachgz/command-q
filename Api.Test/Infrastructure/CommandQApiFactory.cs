@@ -32,7 +32,7 @@ namespace Api.Test.Infrastructure
             {
                 configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    ["Api:Language"] = "en-US",
+                    ["Api:Localization:DefaultCulture"] = "en-US",
                     ["Api:Authentication:Authority"] = IdentityIssuer,
                     ["Api:Authentication:Audience"] = ApiAudience,
                     ["Api:Authentication:ApiScope"] = ApiScope,

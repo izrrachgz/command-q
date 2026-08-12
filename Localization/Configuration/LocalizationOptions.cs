@@ -8,6 +8,11 @@ namespace Localization.Configuration
     public sealed class LocalizationOptions
     {
         /// <summary>
+        /// Culture used for requests that do not provide an explicit culture.
+        /// </summary>
+        public string DefaultCulture { get; set; } = "en-US";
+
+        /// <summary>
         /// Culture used when the current UI culture does not resolve a value.
         /// </summary>
         public string FallbackCulture { get; set; } = "en-US";

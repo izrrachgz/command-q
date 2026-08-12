@@ -27,3 +27,6 @@ range when the log message belongs to a feature module.
 - Add cross-cutting IDs to the project root `Logging/*EventIds.cs` file.
 - Keep each range to 1000 IDs.
 - Within a module range, group related log events by hundreds when useful.
+- API event `100060` records reloads of operational configuration. Its details are
+  limited to non-sensitive summaries and must never include credentials, tokens or
+  connection strings.
