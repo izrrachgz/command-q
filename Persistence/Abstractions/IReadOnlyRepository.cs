@@ -1,4 +1,5 @@
 using SqlKata;
+using SqlKata.Execution;
 using Common.Enumerations;
 
 namespace Persistence.Abstractions
@@ -32,6 +33,15 @@ namespace Persistence.Abstractions
         /// <param name="query">SqlKata query to execute.</param>
         /// <param name="cancellationToken">Token used while executing the query.</param>
         Task<IEnumerable<T>> GetAsync<T>(Query query, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes a SqlKata paginated query and returns its records and metadata.
+        /// </summary>
+        /// <param name="query">SqlKata query to execute.</param>
+        /// <param name="page">One-based page number.</param>
+        /// <param name="perPage">Maximum number of records per page.</param>
+        /// <param name="cancellationToken">Token used while executing the query.</param>
+        Task<PaginationResult<T>> PaginateAsync<T>(Query query, int page, int perPage, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Executes a query and returns whether any matching row exists.

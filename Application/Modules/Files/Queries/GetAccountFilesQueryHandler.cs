@@ -28,17 +28,11 @@ namespace Application.Modules.Files.Queries
             var criteria = request.SearchCriteria ?? new();
             var baseQuery = BuildQuery(request, _repository.Engine);
 
-            var total = await _repository.FirstOrDefaultAsync<int>(baseQuery.Clone().AsCount(), cancellationToken);
-
             ApplySorting(baseQuery, criteria.SortBy, criteria.AscendingSort);
 
-            var records = await _repository.GetAsync<AccountFile>(
-                baseQuery
-                    .Limit(criteria.Size)
-                    .Offset(criteria.CalculatedOffset),
-                cancellationToken);
+            var page = await _repository.PaginateAsync<AccountFile>(baseQuery, criteria.Page, criteria.Size, cancellationToken);
 
-            return new(records.Select(_mapper.Map), total, criteria.Page, criteria.Size);
+            return new(page.List.Select(record => _mapper.Map(record)), page.Count, page.Page, page.PerPage);
         }
 
         private static Query BuildQuery(GetAccountFilesQuery request, DatabaseEngine engine)

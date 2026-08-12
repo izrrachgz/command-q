@@ -16,17 +16,11 @@ namespace Application.Modules.Identity.AccountActivity.Queries
             var criteria = request.SearchCriteria ?? new();
             var baseQuery = BuildQuery(request, repository.Engine);
 
-            var total = await repository.FirstOrDefaultAsync<int>(baseQuery.Clone().AsCount(), cancellationToken);
-
             ApplySorting(baseQuery, criteria.SortBy, criteria.AscendingSort);
 
-            var records = await repository.GetAsync<Domain.Modules.Identity.AccountActivity>(
-                baseQuery
-                    .Limit(criteria.Size)
-                    .Offset(criteria.CalculatedOffset),
-                cancellationToken);
+            var page = await repository.PaginateAsync<Domain.Modules.Identity.AccountActivity>(baseQuery, criteria.Page, criteria.Size, cancellationToken);
 
-            return new(records.Select(mapper.Map), total, criteria.Page, criteria.Size);
+            return new(page.List.Select(record => mapper.Map(record)), page.Count, page.Page, page.PerPage);
         }
 
         private static Query BuildQuery(GetAccountActivityQuery request, DatabaseEngine engine)

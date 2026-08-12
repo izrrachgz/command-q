@@ -63,6 +63,14 @@ namespace Persistence.Repository
         }
 
         /// <summary>
+        /// Executes a SqlKata paginated query and returns its records and metadata.
+        /// </summary>
+        public async Task<PaginationResult<T>> PaginateAsync<T>(Query query, int page, int perPage, CancellationToken cancellationToken = default)
+        {
+            return await _db.PaginateAsync<T>(query, page, perPage, cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
         /// Executes a query and returns whether any matching row exists.
         /// </summary>
         public async Task<bool> ExistsAsync(Query query, CancellationToken cancellationToken = default)
