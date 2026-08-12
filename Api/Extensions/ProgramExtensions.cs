@@ -1,10 +1,10 @@
-using Api.Configuration;
 using Api.Logging;
 using Api.Modules;
 using Api.Constants;
 using Api.Middleware;
 using Api.Enumerations;
 using Common.Constants;
+using Api.Configuration;
 using Common.Enumerations;
 using Application.Extensions;
 using Email.Outbox.Extensions;

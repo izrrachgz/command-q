@@ -1,8 +1,8 @@
 using Public;
 using Common.Cqrs;
+using System.Text.Json;
 using SqlKata.Execution;
 using System.Globalization;
-using System.Text.Json;
 using Common.Models.Response;
 using Persistence.Abstractions;
 using Localization.Abstractions;
