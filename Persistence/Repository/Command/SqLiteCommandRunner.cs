@@ -16,8 +16,11 @@ namespace Persistence.Repository.Command
     /// <summary>
     /// Executes commands and bulk inserts against SQLite.
     /// </summary>
-    public class SqLiteCommandRunner : ICommandRunner
+    public sealed class SqLiteCommandRunner : ICommandRunner
     {
+        /// <summary>
+        /// Gets the logger used by this command runner.
+        /// </summary>
         public ILogger Logger { get; set; }
 
         private string ConnectionString { get; }
@@ -39,6 +42,9 @@ namespace Persistence.Repository.Command
         public SqLiteCommandRunner(IConfiguration configuration, ILogger<SqLiteCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
+        /// <summary>
+        /// Opens a SQLite connection.
+        /// </summary>
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
         {
             var connection = new SQLiteConnection(ConnectionString);
@@ -48,6 +54,9 @@ namespace Persistence.Repository.Command
             return connection;
         }
 
+        /// <summary>
+        /// Executes a batch of SQLite commands concurrently.
+        /// </summary>
         public async Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
             var tasks = commands
@@ -73,6 +82,9 @@ namespace Persistence.Repository.Command
             return [];
         }
 
+        /// <summary>
+        /// Executes a SQLite query and maps its rows to the requested type.
+        /// </summary>
         public async Task<List<object>> Execute(string query, Type type, Dictionary<string, object?>? parameters, CancellationToken cancellationToken = default)
         {
             List<object> results = [];
@@ -115,6 +127,9 @@ namespace Persistence.Repository.Command
             return results;
         }
 
+        /// <summary>
+        /// Inserts rows into a SQLite table in a transaction.
+        /// </summary>
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
             Logger.SavingRecords(rows.Length);

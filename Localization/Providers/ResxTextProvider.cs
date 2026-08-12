@@ -7,7 +7,7 @@ namespace Localization.Providers
     /// <summary>
     /// Resolves operation messages from embedded .resx resources.
     /// </summary>
-    public class ResxTextProvider : ITextProvider
+    public sealed class ResxTextProvider : ITextProvider
     {
         private readonly CultureInfo _primaryCulture;
 

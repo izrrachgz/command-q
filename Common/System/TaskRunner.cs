@@ -8,7 +8,7 @@ namespace Common.System
     /// <summary>
     /// Runs asynchronous operations with bounded concurrency and isolated state per execution.
     /// </summary>
-    public class TaskRunner : ITaskRunner
+    public sealed class TaskRunner : ITaskRunner
     {
         private readonly ILogger<TaskRunner> _logger;
 

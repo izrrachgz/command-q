@@ -18,8 +18,11 @@ namespace Persistence.Repository.Command
     /// <summary>
     /// Executes commands and bulk inserts against MySQL.
     /// </summary>
-    public class MySqlCommandRunner : ICommandRunner
+    public sealed class MySqlCommandRunner : ICommandRunner
     {
+        /// <summary>
+        /// Gets the logger used by this command runner.
+        /// </summary>
         public ILogger Logger { get; set; }
 
         private const char CharacterSeparator = '\x1F';
@@ -51,6 +54,9 @@ namespace Persistence.Repository.Command
         public MySqlCommandRunner(IConfiguration configuration, ILogger<MySqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
+        /// <summary>
+        /// Opens a MySQL connection.
+        /// </summary>
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
         {
             var connection = new MySqlConnection(ConnectionString);
@@ -60,6 +66,9 @@ namespace Persistence.Repository.Command
             return connection;
         }
 
+        /// <summary>
+        /// Executes a batch of MySQL commands concurrently.
+        /// </summary>
         public async Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
             var tasks = commands
@@ -85,6 +94,9 @@ namespace Persistence.Repository.Command
             return [];
         }
 
+        /// <summary>
+        /// Executes a MySQL query and maps its rows to the requested type.
+        /// </summary>
         public async Task<List<object>> Execute(string query, Type type, Dictionary<string, object?>? parameters, CancellationToken cancellationToken = default)
         {
             List<object> results = [];
@@ -127,6 +139,9 @@ namespace Persistence.Repository.Command
             return results;
         }
 
+        /// <summary>
+        /// Inserts rows into a MySQL table using a transaction.
+        /// </summary>
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
             Logger.SavingRecords(rows.Length);
@@ -203,6 +218,9 @@ namespace Persistence.Repository.Command
 
         /// <summary>
         /// Inserts rows using MySQL local-file bulk loading.
+        /// </summary>
+        /// <summary>
+        /// Inserts rows into MySQL using the local-file bulk-loading mechanism.
         /// </summary>
         public async Task<BasicResponse> BulkInsertLocalFile(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {

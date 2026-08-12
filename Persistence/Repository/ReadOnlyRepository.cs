@@ -12,10 +12,13 @@ namespace Persistence.Repository
     /// <summary>
     /// SqlKata-backed repository that exposes only read operations to application query handlers.
     /// </summary>
-    public class ReadOnlyRepository : IReadOnlyRepository, IDisposable
+    public sealed class ReadOnlyRepository : IReadOnlyRepository, IDisposable
     {
         private readonly QueryFactory _db;
 
+        /// <summary>
+        /// Gets the database engine used by this repository.
+        /// </summary>
         public DatabaseEngine Engine { get; }
 
         /// <summary>

@@ -5,7 +5,7 @@ namespace Localization.Providers
     /// <summary>
     /// Resolves text by trying multiple providers in configured order.
     /// </summary>
-    public class CompositeTextProvider(IEnumerable<ITextProvider> providers) : ITextProvider
+    public sealed class CompositeTextProvider(IEnumerable<ITextProvider> providers) : ITextProvider
     {
         private readonly IReadOnlyList<ITextProvider> _providers = [.. providers];
 

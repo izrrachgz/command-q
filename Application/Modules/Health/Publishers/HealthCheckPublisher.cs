@@ -4,8 +4,17 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.Modules.Health.Publishers
 {
-    public class HealthCheckPublisher(ILogger<HealthCheckPublisher> logger) : IHealthCheckPublisher
+    /// <summary>
+    /// Logs the outcome of a published application health report.
+    /// </summary>
+    public sealed class HealthCheckPublisher(ILogger<HealthCheckPublisher> logger) : IHealthCheckPublisher
     {
+        /// <summary>
+        /// Publishes a health report by logging its resulting status.
+        /// </summary>
+        /// <param name="report">The health report to publish.</param>
+        /// <param name="cancellationToken">The token used to cancel publishing.</param>
+        /// <returns>A task that completes when the report has been logged.</returns>
         public Task PublishAsync(HealthReport report, CancellationToken cancellationToken)
         {
             switch (report.Status)

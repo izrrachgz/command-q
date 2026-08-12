@@ -7,7 +7,7 @@ namespace Localization.Providers
     /// <summary>
     /// Resolves validation templates and validator field names from embedded .resx resources.
     /// </summary>
-    public class ValidationTextProvider : ITextProvider
+    public sealed class ValidationTextProvider : ITextProvider
     {
         private readonly CultureInfo _primaryCulture;
 

@@ -9,7 +9,7 @@ namespace Localization.Providers
     /// <summary>
     /// Resolves localized text from JSON locale files with a shared cache per culture and locale path.
     /// </summary>
-    public class JsonTextProvider : ITextProvider
+    public sealed class JsonTextProvider : ITextProvider
     {
         private static readonly ConcurrentDictionary<string, IReadOnlyDictionary<string, string>> Cache = [];
 

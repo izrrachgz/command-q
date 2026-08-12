@@ -12,7 +12,7 @@ namespace Persistence.Repository
     /// <summary>
     /// SqlKata-backed repository that exposes read operations plus the write-capable query factory.
     /// </summary>
-    public class WritableRepository : IWritableRepository, IDisposable
+    public sealed class WritableRepository : IWritableRepository, IDisposable
     {
         /// <summary>
         /// Database query entry point with write-capable SqlKata operations.

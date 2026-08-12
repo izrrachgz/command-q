@@ -18,8 +18,11 @@ namespace Persistence.Repository.Command
     /// <summary>
     /// Executes commands and bulk inserts against PostgreSQL.
     /// </summary>
-    public class PgSqlCommandRunner : ICommandRunner
+    public sealed class PgSqlCommandRunner : ICommandRunner
     {
+        /// <summary>
+        /// Gets the logger used by this command runner.
+        /// </summary>
         public ILogger Logger { get; set; }
 
         private string ConnectionString { get; }
@@ -41,6 +44,9 @@ namespace Persistence.Repository.Command
         public PgSqlCommandRunner(IConfiguration configuration, ILogger<PgSqlCommandRunner> logger) : this(configuration.GetDatabaseConnection(), logger)
         { }
 
+        /// <summary>
+        /// Opens a PostgreSQL connection.
+        /// </summary>
         public async Task<IDbConnection> GetConnection(CancellationToken cancellationToken = default)
         {
             var connection = new NpgsqlConnection(ConnectionString);
@@ -50,6 +56,9 @@ namespace Persistence.Repository.Command
             return connection;
         }
 
+        /// <summary>
+        /// Executes a batch of PostgreSQL commands concurrently.
+        /// </summary>
         public async Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
             var tasks = commands
@@ -75,6 +84,9 @@ namespace Persistence.Repository.Command
             return [];
         }
 
+        /// <summary>
+        /// Executes a PostgreSQL query and maps its rows to the requested type.
+        /// </summary>
         public async Task<List<object>> Execute(string query, Type type, Dictionary<string, object?>? parameters, CancellationToken cancellationToken = default)
         {
             List<object> results = [];
@@ -117,6 +129,9 @@ namespace Persistence.Repository.Command
             return results;
         }
 
+        /// <summary>
+        /// Inserts rows into a PostgreSQL table using binary import.
+        /// </summary>
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
             Logger.SavingRecords(rows.Length);
