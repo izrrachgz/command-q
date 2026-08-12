@@ -281,11 +281,29 @@ namespace Email.Test.Services
             configure?.Invoke(options.Value);
 
             return new MailKitEmailSender(
-                options,
+                new TestOptionsMonitor<EmailOptions>(options.Value),
                 new RecordingSmtpTransportFactory(transport),
                 new MimeMessageFactory(),
                 new EmailMessageValidator(),
                 NullLogger<MailKitEmailSender>.Instance);
+        }
+
+        private sealed class TestOptionsMonitor<T>(T value) : IOptionsMonitor<T>
+        {
+            public T CurrentValue => value;
+
+            public T Get(string? name) => value;
+
+            public IDisposable OnChange(Action<T, string?> listener) => NoopDisposable.Instance;
+
+            private sealed class NoopDisposable : IDisposable
+            {
+                public static readonly NoopDisposable Instance = new();
+
+                public void Dispose()
+                {
+                }
+            }
         }
 
         private static EmailMessage CreateMessage(string recipient, string subject, string body)

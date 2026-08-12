@@ -23,7 +23,7 @@ namespace Email.Extensions
                 .AddJsonFile(
                     EmailConstants.DefaultSettingsPath,
                     optional: true,
-                    reloadOnChange: false)
+                    reloadOnChange: true)
                 .AddConfiguration(configuration)
                 .Build();
 

@@ -9,34 +9,54 @@ namespace Email.Worker.Services
     internal sealed class EmailOutboxBackgroundService(
         IEmailOutboxProcessor processor,
         TimeProvider timeProvider,
-        IOptions<EmailWorkerOptions> options,
+        IOptionsMonitor<EmailWorkerOptions> options,
         ILogger<EmailOutboxBackgroundService> logger)
         : BackgroundService
     {
-        private readonly EmailWorkerOptions _options = options.Value;
         private readonly string _workerId = $"{Environment.MachineName}:{Guid.NewGuid():N}";
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (!_options.Enabled)
-            {
-                logger.Disabled();
-                return;
-            }
-
-            logger.Started(_workerId, _options.BatchSize, _options.PollIntervalSeconds);
-
             try
             {
+                using IDisposable? configurationSubscription = options.OnChange(currentOptions => logger.ConfigurationReloaded(
+                    currentOptions.Enabled,
+                    currentOptions.BatchSize,
+                    currentOptions.PollIntervalSeconds,
+                    currentOptions.LeaseSeconds,
+                    currentOptions.ErrorDelaySeconds));
+                bool? wasEnabled = null;
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
+                    EmailWorkerOptions currentOptions = options.CurrentValue;
+
+                    if (!currentOptions.Enabled)
+                    {
+                        if (wasEnabled is not false)
+                        {
+                            logger.Disabled();
+                        }
+
+                        wasEnabled = false;
+
+                        await Task.Delay(TimeSpan.FromSeconds(currentOptions.PollIntervalSeconds), timeProvider, stoppingToken);
+                        continue;
+                    }
+
+                    if (wasEnabled is not true)
+                    {
+                        logger.Started(_workerId, currentOptions.BatchSize, currentOptions.PollIntervalSeconds);
+                        wasEnabled = true;
+                    }
+
                     try
                     {
                         var result = await processor.ProcessBatchAsync(
                             new EmailOutboxClaimRequest(
-                                _options.BatchSize,
+                                currentOptions.BatchSize,
                                 _workerId,
-                                TimeSpan.FromSeconds(_options.LeaseSeconds),
+                                TimeSpan.FromSeconds(currentOptions.LeaseSeconds),
                                 timeProvider.GetUtcNow().UtcDateTime),
                             stoppingToken);
 
@@ -52,7 +72,7 @@ namespace Email.Worker.Services
                         }
 
                         await Task.Delay(
-                            TimeSpan.FromSeconds(_options.PollIntervalSeconds),
+                            TimeSpan.FromSeconds(currentOptions.PollIntervalSeconds),
                             timeProvider,
                             stoppingToken);
                     }
@@ -64,7 +84,7 @@ namespace Email.Worker.Services
                     {
                         logger.PollFailed(exception);
                         await Task.Delay(
-                            TimeSpan.FromSeconds(_options.ErrorDelaySeconds),
+                            TimeSpan.FromSeconds(currentOptions.ErrorDelaySeconds),
                             timeProvider,
                             stoppingToken);
                     }

@@ -214,6 +214,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Supported SMTP authentication types are `Anonymous`, `Login`, `Plain` and `OAuth`. Only the selected authentication section is consumed. OAuth expects an already-issued access token and does not acquire, refresh or persist tokens.
 - Authenticated modes require `StartTls` or `SslOnConnect`; do not weaken this validation or bypass certificate validation.
 - `IEmailSender` returns `EmailSendResult`/`EmailBatchResult` with message IDs and SMTP responses. `EmailDeliveryException` exposes failure classification and messages accepted before a partial batch failure.
+- `IEmailSender` monitors `EmailOptions`; SMTP endpoint, sender, authentication, delivery limits and supplied OAuth tokens apply to the next batch. Each batch captures one valid options snapshot and creates its own transport. Reload logs contain safe metadata only.
 - `IEmailSender.SendAsync(IEnumerable<EmailMessage>)` validates the full batch and configured delivery limits, opens one connection, authenticates once, sends sequentially, disconnects once and disposes the SMTP client.
 - File, byte and copied-stream attachments are supported. HTML messages may include `EmailInlineResource` items referenced through `cid:` URLs. Caller-owned streams are copied and are never retained or disposed by the library.
 - HTML template overloads read already-rendered files verbatim. Rendering, substitutions and localization belong to the caller.
@@ -250,6 +251,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Development uses smtp4dev at `localhost:25`, enables polling and uses the independently migrated outbox schema in local MsSql `command_q`.
 - Base, QA and Production settings disable delivery and polling and leave the outbox connection empty. QA/Production also disable startup migrations until explicitly enabled.
 - Worker settings live under `EmailWorker:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`. Startup migration policy lives separately under `EmailWorker:Migrations:RunOnStartup`.
+- Worker settings are monitored at runtime. Changes apply to new polling cycles; disabling pauses the worker and re-enabling resumes it. Active batches are not reconfigured mid-flight.
 - Run with `.\scripts\run-email-worker.ps1`. It is not required for API or IdentityServer startup.
 - The `Email.Worker` Visual Studio launch profile and run script set `DOTNET_ENVIRONMENT=Development`, allowing the generic host to load the worker project's user-secrets. Do not load user-secrets explicitly outside Development.
 - OAuth token acquisition and refresh remain external to the worker.
@@ -291,6 +293,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `Email.Outbox.Persistence/Logging/EmailOutboxPersistenceEventIdRanges.cs`
   - `Email.Worker/Logging/EmailWorkerEventIdRanges.cs`
 - Add cross-cutting IDs to root `*EventIds.cs` files. Add module-owned IDs to module `Logging/*EventIds.cs` files.
+- `Logging` and Serilog level/threshold settings use the host configuration reload pipeline. Do not log configuration secrets while observing reloads.
 
 ## Coding Conventions
 - Prefer existing project patterns over new abstractions.

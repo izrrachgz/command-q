@@ -23,6 +23,13 @@ Delivery is disabled by default so a host cannot accidentally contact a
 placeholder endpoint. Sending while disabled throws `EmailDeliveryException`
 with the `Disabled` classification and performs no network work.
 
+`IEmailSender` uses `IOptionsMonitor<EmailOptions>`. When the configuration
+provider supports reload-on-change, each new batch uses the latest valid SMTP,
+sender, authentication and delivery-policy settings. A batch captures one
+configuration snapshot for its entire connection, so a reload cannot change an
+active SMTP session. Reload events record only safe endpoint and mode metadata;
+credentials and OAuth tokens are never logged.
+
 Hosts that namespace their settings can pass an exact section instead:
 
 ```csharp

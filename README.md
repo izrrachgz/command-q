@@ -174,6 +174,10 @@ rate-limit policies, feature flags, health-check publishing and localization use
 the current values for new work. External API clients created through
 `IExternalApiClientFactory` also use the current endpoint and timeout.
 
+The framework `Logging` section and Serilog `MinimumLevel`, overrides and sink
+thresholds are also reloadable through the standard host configuration pipeline.
+Changes affect new log events; they do not require rebuilding the host.
+
 Database providers, migrations, dependency-injection registrations, identity
 certificates and other infrastructure topology remain startup-bound. Memory
 cache size and SMTP retry policies should be treated as startup or deployment

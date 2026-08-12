@@ -39,3 +39,20 @@ host should run migrations.
 The OAuth SMTP option still expects a ready access token. Token acquisition and
 refresh remain the responsibility of the host's credential provider; the
 worker does not persist or refresh OAuth tokens automatically.
+
+## Runtime Reload
+
+The worker monitors `EmailWorker:Worker` and applies changes to polling interval,
+batch size, lease duration, error delay and enabled state to new polling cycles.
+Disabling the worker pauses polling without stopping the host; enabling it again
+resumes polling. An active batch keeps its original lease and completes with its
+current settings.
+
+The SMTP sender monitors `EmailWorker:Email`. Changes to the SMTP host, port,
+security mode, sender, delivery limits, authentication mode and supplied OAuth
+token are used by the next batch. Each batch creates and disposes its own SMTP
+transport, so an active connection is not changed underneath an in-progress
+delivery.
+
+Configuration reload events log safe operational metadata only. Passwords,
+OAuth tokens and complete sender credentials are never written to logs.

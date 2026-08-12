@@ -8,5 +8,6 @@ namespace Email.Worker.Logging
         public const int PollFailed = EmailWorkerEventIdRanges.General + 3;
         public const int Stopped = EmailWorkerEventIdRanges.General + 4;
         public const int StartupConfiguration = EmailWorkerEventIdRanges.General + 5;
+        public const int ConfigurationReloaded = EmailWorkerEventIdRanges.General + 6;
     }
 }

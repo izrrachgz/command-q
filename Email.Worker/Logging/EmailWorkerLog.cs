@@ -27,5 +27,8 @@ namespace Email.Worker.Logging
             bool runMigrationsOnStartup,
             bool workerEnabled,
             bool emailEnabled);
+
+        [LoggerMessage(EventId = EmailWorkerEventIds.ConfigurationReloaded, Level = LogLevel.Information, Message = "Email worker configuration reloaded. Enabled: {Enabled}. Batch size: {BatchSize}. Poll interval: {PollIntervalSeconds} seconds. Lease: {LeaseSeconds} seconds. Error delay: {ErrorDelaySeconds} seconds.")]
+        public static partial void ConfigurationReloaded(this ILogger logger, bool enabled, int batchSize, int pollIntervalSeconds, int leaseSeconds, int errorDelaySeconds);
     }
 }

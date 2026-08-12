@@ -10,5 +10,6 @@ namespace Email.Logging
         public const int BatchCancelled = EmailEventIdRanges.General + 5;
         public const int BatchFailed = EmailEventIdRanges.General + 6;
         public const int DisconnectFailed = EmailEventIdRanges.General + 7;
+        public const int ConfigurationReloaded = EmailEventIdRanges.General + 8;
     }
 }

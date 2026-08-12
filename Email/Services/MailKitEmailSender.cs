@@ -8,26 +8,33 @@ using Microsoft.Extensions.Options;
 
 namespace Email.Services
 {
-    internal sealed class MailKitEmailSender : IEmailSender
+    internal sealed class MailKitEmailSender : IEmailSender, IDisposable
     {
-        private readonly EmailOptions _options;
+        private readonly IOptionsMonitor<EmailOptions> _options;
         private readonly ILogger<MailKitEmailSender> _logger;
         private readonly MimeMessageFactory _messageFactory;
         private readonly EmailMessageValidator _messageValidator;
         private readonly ISmtpTransportFactory _transportFactory;
+        private readonly IDisposable? _configurationSubscription;
 
         public MailKitEmailSender(
-            IOptions<EmailOptions> options,
+            IOptionsMonitor<EmailOptions> options,
             ISmtpTransportFactory transportFactory,
             MimeMessageFactory messageFactory,
             EmailMessageValidator messageValidator,
             ILogger<MailKitEmailSender> logger)
         {
-            _options = options.Value;
+            _options = options;
             _transportFactory = transportFactory;
             _messageFactory = messageFactory;
             _messageValidator = messageValidator;
             _logger = logger;
+            _configurationSubscription = options.OnChange(LogConfigurationReloaded);
+        }
+
+        public void Dispose()
+        {
+            _configurationSubscription?.Dispose();
         }
 
         public async Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
@@ -49,36 +56,38 @@ namespace Email.Services
                 return EmailBatchResult.Empty;
             }
 
-            if (!_options.Enabled)
+            EmailOptions options = _options.CurrentValue;
+
+            if (!options.Enabled)
             {
                 throw EmailDeliveryException.Disabled(batch.Count);
             }
 
             foreach (var message in batch)
             {
-                _messageValidator.Validate(message, _options.Sender, _options.DeliveryPolicy);
+                _messageValidator.Validate(message, options.Sender, options.DeliveryPolicy);
             }
 
-            using var transport = _transportFactory.Create(_options.Smtp);
+            using var transport = _transportFactory.Create(options.Smtp);
             var sentMessages = new List<EmailSendResult>(batch.Count);
             string? currentMessageId = null;
 
             try
             {
-                _logger.BatchStarting(_options.Smtp.Host, _options.Smtp.Port, batch.Count);
+                _logger.BatchStarting(options.Smtp.Host, options.Smtp.Port, batch.Count);
 
                 await transport.ConnectAsync(
-                    _options.Smtp.Host,
-                    _options.Smtp.Port,
-                    _options.Smtp.Security,
+                    options.Smtp.Host,
+                    options.Smtp.Port,
+                    options.Smtp.Security,
                     cancellationToken);
 
                 _logger.SmtpConnected();
 
-                if (_options.Authentication.Type != EmailAuthenticationType.Anonymous)
+                if (options.Authentication.Type != EmailAuthenticationType.Anonymous)
                 {
                     await transport.AuthenticateAsync(
-                        _options.Authentication,
+                        options.Authentication,
                         cancellationToken);
 
                     _logger.SmtpAuthenticated();
@@ -90,7 +99,7 @@ namespace Email.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    using var message = _messageFactory.Create(source, _options.Sender, cancellationToken);
+                    using var message = _messageFactory.Create(source, options.Sender, cancellationToken);
                     var messageId = message.MessageId ?? throw new InvalidOperationException(
                         "The MIME message factory did not assign a message ID.");
                     currentMessageId = messageId;
@@ -284,6 +293,16 @@ namespace Email.Services
             {
                 _logger.DisconnectFailed(exception);
             }
+        }
+
+        private void LogConfigurationReloaded(EmailOptions options, string? name)
+        {
+            _logger.ConfigurationReloaded(
+                options.Smtp.Host,
+                options.Smtp.Port,
+                options.Authentication.Type,
+                options.Enabled,
+                !string.IsNullOrWhiteSpace(options.Sender.Address));
         }
 
         private static EmailMessage CreateMessage(

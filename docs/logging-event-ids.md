@@ -30,3 +30,7 @@ range when the log message belongs to a feature module.
 - API event `100060` records reloads of operational configuration. Its details are
   limited to non-sensitive summaries and must never include credentials, tokens or
   connection strings.
+- Email event `600008` records SMTP delivery configuration reloads using endpoint,
+  authentication-mode and enabled-state metadata only.
+- Email Worker event `1000006` records worker polling configuration reloads without
+  database connection strings or email credentials.
