@@ -1,5 +1,5 @@
 #nullable enable
-namespace Domain.Interfaces
+namespace Domain.Abstractions
 {
     /// <summary>
     /// Represents a persisted entity with a typed primary identifier.

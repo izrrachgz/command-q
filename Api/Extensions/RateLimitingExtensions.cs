@@ -1,4 +1,4 @@
-using Api.Models;
+using Api.Configuration;
 using Api.Constants;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;

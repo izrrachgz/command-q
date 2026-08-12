@@ -1,5 +1,5 @@
 using Common.Enumerations;
-using Persistence.Constant;
+using Persistence.Constants;
 using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Extensions

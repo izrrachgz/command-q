@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Configuration;
 using Application.Modules.Health.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 
 namespace Application.Modules.Health
 {

@@ -2,7 +2,7 @@ using MediatR;
 using Application.Modules.Identity.Accounts.Services;
 using Application.Modules.Identity.AccountActivity.Services;
 using Localization.Abstractions;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Test.Infrastructure

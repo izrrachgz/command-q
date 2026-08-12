@@ -1,5 +1,5 @@
 using Api.Logging;
-using Api.Models;
+using Api.Configuration;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 

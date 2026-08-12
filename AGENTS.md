@@ -49,7 +49,7 @@ This file captures practical repository knowledge for coding agents working in t
 - The API validates IdentityServer discovery keys, audience, lifetime, `at+jwt` type and required API scope. It does not issue JWTs or handle refresh tokens.
 - Protocol claims are read through `Api/Extensions/ClaimsPrincipalExtensions.cs`; `ICurrentAccountAccessor` resolves `(iss, sub)` to the application profile through `GetAccountByIdentityQuery`.
 - `POST /Account/create` provisions an application profile for an authenticated identity. Credentials are never accepted or stored by this endpoint.
-- Generic cache mechanics live in `Common.Interfaces.ITypedCache<TEntry>` and `Common.System.TypedMemoryCache<TEntry>`; add specific cache adapters over this when new typed caches are needed.
+- Generic cache mechanics live in `Common.Abstractions.ITypedCache<TEntry>` and `Common.System.TypedMemoryCache<TEntry>`; add specific cache adapters over this when new typed caches are needed.
 - API-owned settings live under the `Api` section. Rate limiting, cache, database and API client child paths use constants under `Api/Constants/ConfigKeys.cs`.
 - Local secrets should use .NET user-secrets or environment variables. Keep real secrets out of `appsettings*.json`, `.env`, scripts and docs. See `docs/local-secrets.md`.
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
@@ -111,14 +111,14 @@ This file captures practical repository knowledge for coding agents working in t
   - Register with `services.AddTaskRunner()` and inject `ITaskRunner`.
   - Default concurrency is `TaskRunnerConstants.DefaultMaxConcurrency`.
 - Typed memory cache:
-  - `Common.Interfaces.ITypedCache<TEntry>` is the reusable cache contract.
+  - `Common.Abstractions.ITypedCache<TEntry>` is the reusable cache contract.
   - `Common.System.TypedMemoryCache<TEntry>` stores values in `IMemoryCache` using type-scoped keys.
   - Build project-specific cache adapters over `ITypedCache<TEntry>` when settings or domain-specific methods are needed.
 - Keep this project stable because it is widely referenced.
 
 ### Persistence
 - Reusable SqlKata-backed repositories and database command runners. It does not own an application schema or migration lifecycle.
-- Persistence-facing abstractions live under `Persistence.Interfaces`, including:
+- Persistence-facing abstractions live under `Persistence.Abstractions`, including:
   - `IReadOnlyRepository`
   - `IWritableRepository`
   - `ICommandRunner`
@@ -299,7 +299,8 @@ This file captures practical repository knowledge for coding agents working in t
 - Use `apply_patch` for manual edits.
 - Avoid unrelated refactors and metadata churn.
 - Avoid hardcoded magic strings and numbers when a value is reused, user-facing, externally observable, or likely to change.
-- Keep constants near the owner of the behavior: API-wide constants under `Api/Constants`, module routes under `Api/Modules/{Module}`, module behavior limits under `Application/Modules/{Module}`, and persistence settings under `Persistence/Constant`.
+- Keep constants near the owner of the behavior: API-wide constants under `Api/Constants`, module routes under `Api/Modules/{Module}`, module behavior limits under `Application/Modules/{Module}`, and persistence settings under `Persistence/Constants`.
+- Keep configuration boundaries consistent: configuration path constants belong in `Constants/ConfigKeys.cs`, bindable configuration models belong in a `Configuration` folder and use the `*Options` suffix, and `Models` should not contain configuration options.
 - Prefer configuration over constants for environment-specific or runtime-tunable values.
 - Do not over-abstract one-off SQL schema definitions, source-generated log message templates, or local test data unless reuse or consistency requires it.
 - Add focused tests when changing shared helpers, DI, repositories, command runners or user-facing behavior.

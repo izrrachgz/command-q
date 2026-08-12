@@ -1,5 +1,5 @@
 using System.Reflection;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Application.Migrations.Logging;
 
 namespace Application.Migrations.Test.Architecture

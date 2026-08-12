@@ -1,5 +1,5 @@
 using Common.Logging;
-using Common.Interfaces;
+using Common.Abstractions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Caching.Memory;

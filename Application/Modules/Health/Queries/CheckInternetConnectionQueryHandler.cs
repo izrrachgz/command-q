@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using Application.Modules.Health.Logging;
+using Application.Modules.Health.Configuration;
 
 namespace Application.Modules.Health.Queries
 {

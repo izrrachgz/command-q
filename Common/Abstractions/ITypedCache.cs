@@ -1,4 +1,4 @@
-namespace Common.Interfaces
+namespace Common.Abstractions
 {
     /// <summary>
     /// Stores cache entries for a specific value type.

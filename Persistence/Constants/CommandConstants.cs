@@ -1,4 +1,4 @@
-namespace Persistence.Constant
+namespace Persistence.Constants
 {
     /// <summary>
     /// Messages returned by database command runners.

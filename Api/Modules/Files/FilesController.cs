@@ -1,7 +1,7 @@
 using Public;
 using MediatR;
 using Api.Constants;
-using Api.Interfaces;
+using Api.Abstractions;
 using Common.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Localization.Abstractions;

@@ -4,6 +4,7 @@ using IdentityServer.Modules;
 using IdentityServer.Constants;
 using IdentityServer.Middleware;
 using IdentityServer.Modules.OpenIddict;
+using IdentityServer.Modules.OpenIddict.Configuration;
 
 namespace IdentityServer.Extensions
 {
@@ -30,7 +31,7 @@ namespace IdentityServer.Extensions
             app.MapIdentityServerModules();
         }
 
-        public static void LogAppConfig(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
+        public static void LogApplicationConfigurationConstants(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
         {
             var options = configuration
                 .GetRequiredSection(ConfigKeys.OpenIddict.Section)

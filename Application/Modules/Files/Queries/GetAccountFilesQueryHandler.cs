@@ -2,9 +2,9 @@ using SqlKata;
 using Common.Cqrs;
 using Common.Enumerations;
 using System.Globalization;
-using Application.Interfaces;
+using Application.Abstractions;
 using Common.Models.Response;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Application.Modules.Files.Dtos;
 
 namespace Application.Modules.Files.Queries

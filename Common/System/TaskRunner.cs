@@ -1,6 +1,6 @@
 using Common.Logging;
 using Common.Constants;
-using Common.Interfaces;
+using Common.Abstractions;
 using Microsoft.Extensions.Logging;
 
 namespace Common.System

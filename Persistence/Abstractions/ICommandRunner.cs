@@ -3,7 +3,7 @@ using Common.Models.Command;
 using Common.Models.Response;
 using Microsoft.Extensions.Logging;
 
-namespace Persistence.Interfaces
+namespace Persistence.Abstractions
 {
     /// <summary>
     /// Executes raw database commands and engine-specific bulk insert operations.

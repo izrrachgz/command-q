@@ -1,4 +1,4 @@
-namespace Application.Modules.Health
+namespace Application.Modules.Health.Configuration
 {
     public sealed class HealthCheckConfigurationOptions
     {

@@ -1,4 +1,6 @@
-namespace Localization.Models
+using Localization.Models;
+
+namespace Localization.Configuration
 {
     /// <summary>
     /// Options that control localization provider order, supported cultures and JSON locale lookup.

@@ -1,4 +1,4 @@
-﻿using IdentityServer.Constants;
+using IdentityServer.Constants;
 using IdentityServer.Extensions;
 using IdentityServer.Persistence;
 
@@ -12,7 +12,7 @@ IConfigurationSection identityServerConfiguration = app.Configuration
     .GetRequiredSection(ConfigKeys.Section);
 
 app.ConfigurePipeline();
-app.Logger.LogAppConfig(identityServerConfiguration, app.Environment);
+app.Logger.LogApplicationConfigurationConstants(identityServerConfiguration, app.Environment);
 
 if (app.Environment.IsDevelopment() ||
     identityServerConfiguration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))

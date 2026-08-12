@@ -1,7 +1,7 @@
 using Public;
 using Common.Cqrs;
 using Domain.Entities;
-using Application.Interfaces;
+using Application.Abstractions;
 using Common.Models.Response;
 using Localization.Abstractions;
 using Application.Modules.Identity.Accounts.Dtos;

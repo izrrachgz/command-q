@@ -2,7 +2,7 @@ using SqlKata;
 using SqlKata.Execution;
 using Common.Enumerations;
 using Persistence.Logging;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;

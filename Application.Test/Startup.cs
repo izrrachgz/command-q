@@ -4,7 +4,7 @@ using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
 using Application.Constants;
-using Application.Interfaces;
+using Application.Abstractions;
 using Application.Extensions;
 using Localization.Extensions;
 using Persistence.Repository.Extensions;
@@ -22,8 +22,8 @@ namespace Application.Test
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile(AppConfig.ConfigurationFileName, optional: false)
-                .AddUserSecrets(AppConfig.UserSecrets)
+                .AddJsonFile(ApplicationConfigurationConstants.ConfigurationFileName, optional: false)
+                .AddUserSecrets(ApplicationConfigurationConstants.UserSecrets)
                 .AddEnvironmentVariables()
                 .Build();
 

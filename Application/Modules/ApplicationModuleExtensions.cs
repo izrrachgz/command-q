@@ -4,8 +4,8 @@ using Application.Modules.Contacts;
 using Application.Modules.Identity;
 using Application.Modules.Addresses;
 using Application.Modules.Notifications;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Modules
 {

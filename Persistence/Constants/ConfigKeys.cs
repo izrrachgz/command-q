@@ -1,4 +1,4 @@
-namespace Persistence.Constant
+namespace Persistence.Constants
 {
     /// <summary>
     /// Configuration keys used by the persistence project.

@@ -1,7 +1,7 @@
 using SqlKata;
 using Common.Enumerations;
 
-namespace Persistence.Interfaces
+namespace Persistence.Abstractions
 {
     /// <summary>
     /// Provides a database entry point intended for read operations without exposing write-capable SqlKata APIs.

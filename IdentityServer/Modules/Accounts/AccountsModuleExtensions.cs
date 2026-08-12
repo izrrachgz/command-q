@@ -1,4 +1,5 @@
 using IdentityServer.Constants;
+using IdentityServer.Modules.Accounts.Configuration;
 using OpenIddict.Abstractions;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;

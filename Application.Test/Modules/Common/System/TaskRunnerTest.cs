@@ -1,6 +1,6 @@
 using Common.System;
 using Common.Extensions;
-using Common.Interfaces;
+using Common.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 

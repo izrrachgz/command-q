@@ -1,3 +1,4 @@
+using Localization.Configuration;
 using Localization.Models;
 using System.Globalization;
 using Localization.Extensions;

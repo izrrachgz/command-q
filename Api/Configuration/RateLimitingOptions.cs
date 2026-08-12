@@ -1,4 +1,4 @@
-﻿namespace Api.Models
+namespace Api.Configuration
 {
     public class RateLimitingOptions
     {

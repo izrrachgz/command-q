@@ -1,7 +1,7 @@
 using MediatR;
 using Api.Models;
 using Api.Extensions;
-using Api.Interfaces;
+using Api.Abstractions;
 using Application.Modules.Identity.Accounts.Queries;
 
 namespace Api.Services

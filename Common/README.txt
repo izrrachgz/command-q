@@ -6,7 +6,7 @@ Main areas:
 - Common.Cqrs: MediatR command/query marker interfaces, handlers and validation pipeline behavior.
 - Common.Transfer.Http: Lightweight HTTP helpers for JSON/form/string requests and multipart file uploads.
 - Common.System: TaskRunner for bounded-concurrency asynchronous work and TypedMemoryCache for reusable typed memory caching.
-- Common.Interfaces: Reusable contracts such as ITaskRunner and ITypedCache.
+- Common.Abstractions: Reusable contracts such as ITaskRunner and ITypedCache.
 - Common.Models: Shared response, request, command, system and transfer models.
 - Common.Constants: Stable shared constants for logging, process messages, database messages, languages and helper defaults.
 - Common.Extensions: Small extension methods used by other projects.

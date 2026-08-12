@@ -1,5 +1,5 @@
 using Domain.Entities;
-using Application.Interfaces;
+using Application.Abstractions;
 using Riok.Mapperly.Abstractions;
 using Application.Modules.Addresses.Dtos;
 

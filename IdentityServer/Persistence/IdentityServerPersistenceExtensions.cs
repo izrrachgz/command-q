@@ -11,7 +11,7 @@ namespace IdentityServer.Persistence
             IConfiguration configuration,
             IdentityBuilder identityBuilder)
         {
-            var settings = configuration.GetIdentityDatabaseSettings();
+            var settings = configuration.GetIdentityDatabaseOptions();
 
             switch (settings.Engine)
             {

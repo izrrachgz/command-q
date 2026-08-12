@@ -1,5 +1,5 @@
 #nullable enable
-namespace Domain.Interfaces
+namespace Domain.Abstractions
 {
     /// <summary>
     /// Represents an entity that tracks creation and modification timestamps.

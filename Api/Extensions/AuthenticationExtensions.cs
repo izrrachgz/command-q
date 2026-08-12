@@ -1,7 +1,7 @@
-using Api.Models;
+using Api.Configuration;
 using Api.Services;
 using Api.Constants;
-using Api.Interfaces;
+using Api.Abstractions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 

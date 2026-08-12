@@ -1,6 +1,6 @@
 using Api.Models;
 
-namespace Api.Interfaces
+namespace Api.Abstractions
 {
     public interface ICurrentAccountAccessor
     {

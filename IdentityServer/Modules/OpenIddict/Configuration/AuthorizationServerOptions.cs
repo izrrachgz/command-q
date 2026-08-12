@@ -1,4 +1,4 @@
-namespace IdentityServer.Modules.OpenIddict
+namespace IdentityServer.Modules.OpenIddict.Configuration
 {
     internal sealed class AuthorizationServerOptions
     {

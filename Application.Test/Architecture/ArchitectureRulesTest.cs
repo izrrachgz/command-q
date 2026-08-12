@@ -1,8 +1,8 @@
-﻿using Api.Modules;
+using Api.Modules;
 using Common.Cqrs;
 using Domain.Entities;
 using System.Reflection;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 
 namespace Application.Test.Architecture
 {
@@ -215,7 +215,7 @@ namespace Application.Test.Architecture
 
         private static Assembly CommonAssembly()
         {
-            return typeof(Common.Interfaces.ITaskRunner).Assembly;
+            return typeof(Common.Abstractions.ITaskRunner).Assembly;
         }
 
         private static IEnumerable<EventIdValue> GetEventIds(params Assembly[] assemblies)

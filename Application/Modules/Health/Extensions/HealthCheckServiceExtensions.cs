@@ -1,6 +1,7 @@
 using Application.Modules.Health.Queries;
 using Application.Modules.Health.Commands;
 using Application.Modules.Health.Publishers;
+using Application.Modules.Health.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

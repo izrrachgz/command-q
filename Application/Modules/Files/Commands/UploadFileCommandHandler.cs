@@ -4,7 +4,7 @@ using SqlKata.Execution;
 using System.Globalization;
 using System.Text.Json;
 using Common.Models.Response;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Files.Logging;

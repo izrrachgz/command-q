@@ -1,4 +1,4 @@
-using Api.Models;
+using Api.Configuration;
 using Api.Logging;
 using System.Text;
 using Api.Constants;
@@ -12,7 +12,7 @@ namespace Api.Middleware
     /// <summary>
     /// Checks if the api keys for the client are present in the request
     /// </summary>
-    public sealed class CheckApiClientMiddleware(RequestDelegate next, IHostEnvironment environment, IOptions<List<ApiClient>> configuredClients, ILogger<CheckApiClientMiddleware> logger)
+    public sealed class CheckApiClientMiddleware(RequestDelegate next, IHostEnvironment environment, IOptions<List<ApiClientOptions>> configuredClients, ILogger<CheckApiClientMiddleware> logger)
     {
         public async Task Invoke(HttpContext context)
         {
@@ -28,7 +28,7 @@ namespace Api.Middleware
                 throw new NotValidApiClientException();
             }
 
-            ApiClient? client = configuredClients.Value.FirstOrDefault(c =>
+            ApiClientOptions? client = configuredClients.Value.FirstOrDefault(c =>
                 context.Request.Headers.TryGetValue(c.Name, out var headerValues) &&
                 headerValues.Any(headerValue => SecureEquals(c.Id, headerValue)));
 
@@ -43,7 +43,7 @@ namespace Api.Middleware
             await next(context);
         }
 
-        private static bool IsAllowedOrigin(HttpContext context, ApiClient client)
+        private static bool IsAllowedOrigin(HttpContext context, ApiClientOptions client)
         {
             string? origin = context.Request.Headers[HeaderNames.Origin].FirstOrDefault();
 

@@ -1,4 +1,4 @@
-namespace Common.Interfaces
+namespace Common.Abstractions
 {
     /// <summary>
     /// Runs asynchronous operations with a bounded concurrency limit.

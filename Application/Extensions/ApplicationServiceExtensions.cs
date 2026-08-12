@@ -4,7 +4,7 @@ using Common.Cqrs;
 using FluentValidation;
 using Common.Extensions;
 using Application.Modules;
-using Application.Interfaces;
+using Application.Abstractions;
 using Localization.Extensions;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;

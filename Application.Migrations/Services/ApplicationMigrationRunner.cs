@@ -1,5 +1,5 @@
 using SqlKata.Execution;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Migrations.Models;
 using Application.Migrations.Logging;

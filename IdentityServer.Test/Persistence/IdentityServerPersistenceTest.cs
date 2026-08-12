@@ -55,7 +55,7 @@ namespace IdentityServer.Test.Persistence
             using var scope = serviceProvider.CreateScope();
             var database = scope.ServiceProvider.GetRequiredService<IdentityServerDbContext>();
 
-            Assert.Equal(engine, configuration.GetIdentityDatabaseSettings().Engine.ToString());
+            Assert.Equal(engine, configuration.GetIdentityDatabaseOptions().Engine.ToString());
             Assert.IsType(expectedContextType, database);
             Assert.Equal(expectedProviderName, database.Database.ProviderName);
         }
@@ -69,7 +69,7 @@ namespace IdentityServer.Test.Persistence
             var configuration = CreateConfiguration(engine, "Data Source=test.db");
 
             var exception = Assert.Throws<InvalidOperationException>(
-                configuration.GetIdentityDatabaseSettings);
+                configuration.GetIdentityDatabaseOptions);
 
             Assert.Contains("PgSql, MsSql, MySql, SqLite", exception.Message);
         }

@@ -1,4 +1,4 @@
-﻿using Api.Models;
+using Api.Configuration;
 using Api.Logging;
 using Api.Modules;
 using Api.Constants;
@@ -39,12 +39,12 @@ namespace Api.Extensions
             // Endpoints explorer (Swagger generation kept commented as original)
             builder.Services.AddEndpointsApiExplorer();
             // Prefer not to use swagger gen unless it's strictly necessary
-            // builder.Services.AddSwaggerGen();          
+            // builder.Services.AddSwaggerGen();
 
             // Register exception handler service
             builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
-            builder.Services.ValidateAppConfiguration(apiConfiguration);
+            builder.Services.ValidateApplicationConfiguration(apiConfiguration);
 
             // Add resource-server authentication backed by the standalone identity server.
             builder.Services.AddResourceServerAuthentication(apiConfiguration);
@@ -79,7 +79,7 @@ namespace Api.Extensions
             var clientsSection = apiConfiguration.GetSection(ConfigKeys.Api.Clients);
 
             //Register api clients
-            builder.Services.AddOptions<List<ApiClient>>()
+            builder.Services.AddOptions<List<ApiClientOptions>>()
                 .Bind(clientsSection)
                 .Validate(clients => clients.Count > 0, "At least one API client must be configured.")
                 .Validate(clients => clients.All(client =>
@@ -96,7 +96,7 @@ namespace Api.Extensions
                 {
                     options.AddDefaultPolicy(policy =>
                     {
-                        var allowedOrigins = (clientsSection.Get<List<ApiClient>>() ?? [])
+                        var allowedOrigins = (clientsSection.Get<List<ApiClientOptions>>() ?? [])
                             .Select(client => client.Uri.Trim().TrimEnd('/'))
                             .Where(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
                             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -130,7 +130,7 @@ namespace Api.Extensions
             _ = services.GetRequiredService<IOptions<CacheOptions>>().Value;
             _ = services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             _ = services.GetRequiredService<IOptions<BearerAuthenticationOptions>>().Value;
-            _ = services.GetRequiredService<IOptions<List<ApiClient>>>().Value;
+            _ = services.GetRequiredService<IOptions<List<ApiClientOptions>>>().Value;
             _ = services.GetRequiredService<IOptions<ApiHostOptions>>().Value;
         }
 
@@ -219,7 +219,7 @@ namespace Api.Extensions
         /// <param name="configuration">The configuration source from which application-specific settings are retrieved.</param>
         /// <param name="environment">The hosting environment that provides information about the application's current environment, such as
         /// Development or Production.</param>
-        public static void LogAppConfig(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
+        public static void LogApplicationConfigurationConstants(this ILogger logger, IConfiguration configuration, IHostEnvironment environment)
         {
             logger.StartupSetting("Environment", environment.EnvironmentName);
 
@@ -259,7 +259,7 @@ namespace Api.Extensions
             logger.StartupSetting("Cache Max Age (seconds)", cacheMaxAgeSeconds);
         }
 
-        private static void ValidateAppConfiguration(this IServiceCollection services, IConfiguration configuration)
+        private static void ValidateApplicationConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions<FixedRateLimitingOptions>()
                 .Bind(configuration.GetSection(ConfigKeys.RateLimiting.FixedOptions))
@@ -307,15 +307,5 @@ namespace Api.Extensions
                 options.QueueLimit >= 0;
         }
 
-        private sealed class DatabaseOptions
-        {
-            public string Db { get; init; } = string.Empty;
-            public DatabaseEngine Engine { get; init; }
-        }
-
-        private sealed class ApiHostOptions
-        {
-            public string Language { get; set; } = string.Empty;
-        }
     }
 }

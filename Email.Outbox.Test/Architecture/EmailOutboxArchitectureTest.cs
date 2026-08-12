@@ -2,7 +2,7 @@ using Email.Worker;
 using System.Reflection;
 using Email.Outbox.Logging;
 using Email.Worker.Logging;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Email.Outbox.Persistence;
 using Email.Outbox.Abstractions;
 using Email.Outbox.Persistence.Logging;

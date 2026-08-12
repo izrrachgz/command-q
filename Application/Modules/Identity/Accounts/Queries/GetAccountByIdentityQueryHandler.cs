@@ -1,8 +1,8 @@
 using Public;
 using Common.Cqrs;
-using Application.Interfaces;
+using Application.Abstractions;
 using Common.Models.Response;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Localization.Abstractions;
 using Application.Modules.Identity.Accounts.Dtos;
 

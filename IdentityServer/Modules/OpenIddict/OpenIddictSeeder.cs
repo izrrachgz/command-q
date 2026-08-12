@@ -2,6 +2,7 @@ using OpenIddict.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using IdentityServer.Modules.Accounts;
+using IdentityServer.Modules.OpenIddict.Configuration;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
 

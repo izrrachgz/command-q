@@ -1,4 +1,4 @@
-namespace IdentityServer.Modules.Accounts
+namespace IdentityServer.Modules.Accounts.Configuration
 {
     internal sealed class IdentityConfigurationOptions
     {

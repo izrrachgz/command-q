@@ -1,5 +1,5 @@
 using Common.Cqrs;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Health.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;

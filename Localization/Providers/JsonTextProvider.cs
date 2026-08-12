@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Localization.Models;
+using Localization.Configuration;
 using Localization.Abstractions;
 using Localization.Serialization;
 using System.Collections.Concurrent;

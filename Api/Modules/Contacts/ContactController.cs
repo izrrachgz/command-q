@@ -1,5 +1,5 @@
 using MediatR;
-using Api.Interfaces;
+using Api.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Application.Modules.Contacts.Queries;

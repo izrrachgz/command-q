@@ -1,7 +1,7 @@
 using MediatR;
 using Api.Constants;
 using Api.Extensions;
-using Api.Interfaces;
+using Api.Abstractions;
 using Common.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;

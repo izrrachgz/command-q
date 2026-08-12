@@ -1,4 +1,4 @@
-﻿namespace Application.Interfaces
+namespace Application.Abstractions
 {
     /// <summary>
     /// Interface contract for mapping between source and destination types. This is typically used to convert between

@@ -1,4 +1,4 @@
-using Domain.Interfaces;
+using Domain.Abstractions;
 
 namespace Domain.Entities
 {

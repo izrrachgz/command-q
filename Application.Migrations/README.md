@@ -13,7 +13,7 @@ library remains reusable by consumers with unrelated schemas.
 - Validate migration IDs and ordering before execution.
 - Reject a database ledger newer than the scripts in the deployed assembly.
 - Read and update the `MigrationRecord` ledger.
-- Apply pending scripts through `Persistence.Interfaces.IWritableRepository`.
+- Apply pending scripts through `Persistence.Abstractions.IWritableRepository`.
 - Expose registration and host execution through
   `AddApplicationMigrations()` and `RunApplicationMigrations()`.
 

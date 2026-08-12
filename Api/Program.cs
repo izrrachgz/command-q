@@ -15,7 +15,7 @@ app.ValidateStartupConfiguration();
 
 app.ConfigurePipeline(apiConfiguration, builder.Environment);
 
-app.Logger.LogAppConfig(apiConfiguration, builder.Environment);
+app.Logger.LogApplicationConfigurationConstants(apiConfiguration, builder.Environment);
 
 // Run migrations before starting the application
 if (app.Environment.IsDevelopment() || apiConfiguration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))

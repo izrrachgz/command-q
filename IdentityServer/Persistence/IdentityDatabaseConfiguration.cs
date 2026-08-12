@@ -2,11 +2,11 @@ using IdentityServer.Constants;
 
 namespace IdentityServer.Persistence
 {
-    internal sealed record IdentityDatabaseSettings(IdentityDatabaseEngine Engine, string ConnectionString);
+    internal sealed record IdentityDatabaseOptions(IdentityDatabaseEngine Engine, string ConnectionString);
 
     internal static class IdentityDatabaseConfiguration
     {
-        public static IdentityDatabaseSettings GetIdentityDatabaseSettings(this IConfiguration configuration)
+        public static IdentityDatabaseOptions GetIdentityDatabaseOptions(this IConfiguration configuration)
         {
             string? configuredEngine = configuration[ConfigKeys.ConnectionStrings.Engine];
 
@@ -27,7 +27,7 @@ namespace IdentityServer.Persistence
                 throw new InvalidOperationException("IdentityServer:ConnectionStrings:IdentityDb is required.");
             }
 
-            return new IdentityDatabaseSettings(engine, connectionString);
+            return new IdentityDatabaseOptions(engine, connectionString);
         }
     }
 }

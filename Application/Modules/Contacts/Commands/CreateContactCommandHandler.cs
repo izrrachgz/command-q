@@ -3,7 +3,7 @@ using Common.Cqrs;
 using SqlKata.Execution;
 using Application.Logging;
 using Common.Models.Response;
-using Persistence.Interfaces;
+using Persistence.Abstractions;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging;
 
