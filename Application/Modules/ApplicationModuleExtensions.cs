@@ -9,8 +9,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Modules
 {
+    /// <summary>
+    /// Provides the composition entry point for application feature modules.
+    /// </summary>
     public static class ApplicationModuleExtensions
     {
+        /// <summary>
+        /// Registers all application feature modules.
+        /// </summary>
+        /// <param name="services">The service collection to configure.</param>
+        /// <param name="configuration">The host configuration used by configuration-aware modules.</param>
+        /// <returns>The configured service collection.</returns>
         public static IServiceCollection AddApplicationModules(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddIdentityModule();

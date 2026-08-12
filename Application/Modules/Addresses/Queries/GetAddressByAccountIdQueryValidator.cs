@@ -4,7 +4,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Addresses.Queries
 {
-    public class GetAddressByAccountIdQueryValidator : AbstractValidator<GetAddressByAccountIdQuery>
+    internal sealed class GetAddressByAccountIdQueryValidator : AbstractValidator<GetAddressByAccountIdQuery>
     {
         public GetAddressByAccountIdQueryValidator(ValidationTextProvider messages)
         {

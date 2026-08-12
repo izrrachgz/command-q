@@ -6,7 +6,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Addresses.Commands
 {
-    public class CreateAddressCommandValidator : AbstractValidator<CreateAddressCommand>
+    internal sealed class CreateAddressCommandValidator : AbstractValidator<CreateAddressCommand>
     {
         public CreateAddressCommandValidator(ValidationTextProvider messages)
         {

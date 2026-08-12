@@ -5,7 +5,7 @@ using Application.Modules.Identity.Accounts.Dtos;
 namespace Application.Modules.Identity.Accounts.Mappings
 {
     [Mapper]
-    public partial class AccountMapper : IMapper<Account, AccountModel>
+    internal partial class AccountMapper : IMapper<Account, AccountModel>
     {
         [MapperIgnoreTarget(nameof(Account.Created))]
         [MapperIgnoreTarget(nameof(Account.Modified))]

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.Modules.Health.Commands
 {
-    public class SaveDatabaseDataCommandHandler : ICommandHandler<SaveDatabaseDataCommand, HealthCheckResult>, IHealthCheck
+    internal sealed class SaveDatabaseDataCommandHandler : ICommandHandler<SaveDatabaseDataCommand, HealthCheckResult>, IHealthCheck
     {
         private readonly IWritableRepository _repository;
         private readonly ILogger<SaveDatabaseDataCommandHandler> _logger;

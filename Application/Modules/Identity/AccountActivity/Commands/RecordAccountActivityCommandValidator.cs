@@ -5,7 +5,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Identity.AccountActivity.Commands
 {
-    public sealed class RecordAccountActivityCommandValidator : AbstractValidator<RecordAccountActivityCommand>
+    internal sealed class RecordAccountActivityCommandValidator : AbstractValidator<RecordAccountActivityCommand>
     {
         public RecordAccountActivityCommandValidator(ValidationTextProvider messages)
         {

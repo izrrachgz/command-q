@@ -1,15 +1,15 @@
 using Public;
 using Common.Cqrs;
 using Domain.Entities;
-using Application.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 using Localization.Abstractions;
 using Application.Modules.Identity.Accounts.Dtos;
 using Application.Modules.Identity.Accounts.Services;
 
 namespace Application.Modules.Identity.Accounts.Queries
 {
-    public class GetAccountByIdQueryHandler : IQueryHandler<GetAccountByIdQuery, DetailResponse<AccountModel>>
+    internal sealed class GetAccountByIdQueryHandler : IQueryHandler<GetAccountByIdQuery, DetailResponse<AccountModel>>
     {
         private readonly IMapper<Account, AccountModel> _mapper;
         private readonly ITextProvider _messages;

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Identity.Accounts.Services
 {
-    public sealed class AccountService(ITextProvider textProvider, IReadOnlyRepository repository, ILogger<AccountService> logger)
+    internal sealed class AccountService(ITextProvider textProvider, IReadOnlyRepository repository, ILogger<AccountService> logger)
     {
         private readonly ITextProvider _messages = textProvider;
         private readonly IReadOnlyRepository _repository = repository;

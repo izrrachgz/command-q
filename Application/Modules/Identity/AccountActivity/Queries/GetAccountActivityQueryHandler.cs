@@ -2,14 +2,14 @@ using SqlKata;
 using Common.Cqrs;
 using Common.Enumerations;
 using System.Globalization;
-using Application.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 using Persistence.Abstractions;
 using Application.Modules.Identity.AccountActivity.Dtos;
 
 namespace Application.Modules.Identity.AccountActivity.Queries
 {
-    public sealed class GetAccountActivityQueryHandler(IReadOnlyRepository repository, IMapper<Domain.Modules.Identity.AccountActivity, AccountActivityModel> mapper) : IQueryHandler<GetAccountActivityQuery, PagedResponse<AccountActivityModel>>
+    internal sealed class GetAccountActivityQueryHandler(IReadOnlyRepository repository, IMapper<Domain.Modules.Identity.AccountActivity, AccountActivityModel> mapper) : IQueryHandler<GetAccountActivityQuery, PagedResponse<AccountActivityModel>>
     {
         public async Task<PagedResponse<AccountActivityModel>> Handle(GetAccountActivityQuery request, CancellationToken cancellationToken)
         {

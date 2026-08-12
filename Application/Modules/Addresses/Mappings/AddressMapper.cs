@@ -6,7 +6,7 @@ using Application.Modules.Addresses.Dtos;
 namespace Application.Modules.Addresses.Mappings
 {
     [Mapper]
-    public partial class AddressMapper : IMapper<Address, AddressModel>
+    internal partial class AddressMapper : IMapper<Address, AddressModel>
     {
         [MapperIgnoreTarget(nameof(Address.Id))]
         [MapperIgnoreTarget(nameof(Address.AccountId))]

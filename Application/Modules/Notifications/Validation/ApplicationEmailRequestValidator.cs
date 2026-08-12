@@ -8,7 +8,7 @@ using Application.Modules.Notifications.Models;
 
 namespace Application.Modules.Notifications.Validation
 {
-    public sealed class ApplicationEmailRequestValidator : AbstractValidator<ApplicationEmailRequest>
+    internal sealed class ApplicationEmailRequestValidator : AbstractValidator<ApplicationEmailRequest>
     {
         public ApplicationEmailRequestValidator(ValidationTextProvider messages)
         {

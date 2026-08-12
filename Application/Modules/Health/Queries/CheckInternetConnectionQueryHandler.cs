@@ -10,7 +10,7 @@ using Application.Modules.Health.Configuration;
 
 namespace Application.Modules.Health.Queries
 {
-    public class CheckInternetConnectionQueryHandler : IQueryHandler<CheckInternetConnectionQuery, HealthCheckResult>, IHealthCheck
+    internal sealed class CheckInternetConnectionQueryHandler : IQueryHandler<CheckInternetConnectionQuery, HealthCheckResult>, IHealthCheck
     {
         private readonly IOptionsMonitor<HealthCheckConfigurationOptions> _options;
         private readonly ILogger<CheckInternetConnectionQueryHandler> _logger;

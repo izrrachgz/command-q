@@ -451,7 +451,7 @@ API endpoints are mapped through:
 app.MapApiModules(configuration);
 ```
 
-When adding a feature module, add its services to `Application/Modules/ApplicationModuleExtensions.cs` and its API mapping to `Api/Modules/ApiModuleExtensions.cs` when needed.
+When adding a feature module, add its services to `Application/Modules/ApplicationModuleExtensions.cs` and its API mapping to `Api/Modules/ApiModuleExtensions.cs` when needed. The module's own `*ModuleExtensions.cs` file explicitly registers its MediatR handlers, validators, mappers and internal services; do not reintroduce application-wide assembly scanning. Keep commands, queries and contracts public for API/test boundaries, while implementation classes remain internal to the Application assembly.
 
 Each module owns its registration extension:
 

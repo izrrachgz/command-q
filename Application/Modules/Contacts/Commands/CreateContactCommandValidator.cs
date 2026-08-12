@@ -6,7 +6,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Contacts.Commands
 {
-    public class CreateContactCommandValidator : AbstractValidator<CreateContactCommand>
+    internal sealed class CreateContactCommandValidator : AbstractValidator<CreateContactCommand>
     {
         public CreateContactCommandValidator(ValidationTextProvider messages)
         {

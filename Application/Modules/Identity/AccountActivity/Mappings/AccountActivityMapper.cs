@@ -5,7 +5,7 @@ using Application.Modules.Identity.AccountActivity.Dtos;
 namespace Application.Modules.Identity.AccountActivity.Mappings
 {
     [Mapper]
-    public partial class AccountActivityMapper : IMapper<Domain.Modules.Identity.AccountActivity, AccountActivityModel>
+    internal partial class AccountActivityMapper : IMapper<Domain.Modules.Identity.AccountActivity, AccountActivityModel>
     {
         [MapperIgnoreSource(nameof(Domain.Modules.Identity.AccountActivity.Created))]
         [MapperIgnoreSource(nameof(Domain.Modules.Identity.AccountActivity.Modified))]

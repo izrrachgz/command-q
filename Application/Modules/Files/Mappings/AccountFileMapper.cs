@@ -5,7 +5,7 @@ using Application.Modules.Files.Dtos;
 namespace Application.Modules.Files.Mappings
 {
     [Mapper]
-    public partial class AccountFileMapper : IMapper<AccountFile, AccountFileModel>
+    internal partial class AccountFileMapper : IMapper<AccountFile, AccountFileModel>
     {
         [MapperIgnoreSource(nameof(AccountFile.AccountId))]
         [MapperIgnoreSource(nameof(AccountFile.Path))]

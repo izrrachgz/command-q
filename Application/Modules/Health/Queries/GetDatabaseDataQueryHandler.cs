@@ -6,7 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.Modules.Health.Queries
 {
-    public class GetDatabaseDataQueryHandler : IQueryHandler<GetDatabaseDataQuery, HealthCheckResult>, IHealthCheck
+    internal sealed class GetDatabaseDataQueryHandler : IQueryHandler<GetDatabaseDataQuery, HealthCheckResult>, IHealthCheck
     {
         private readonly IReadOnlyRepository _readOnlyRepository;
         private readonly ILogger<GetDatabaseDataQueryHandler> _logger;

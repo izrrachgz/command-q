@@ -7,7 +7,7 @@ using Application.Modules.Identity.Logging;
 
 namespace Application.Modules.Identity.AccountActivity.Commands
 {
-    public sealed class RecordAccountActivityCommandHandler(IWritableRepository repository, ILogger<RecordAccountActivityCommandHandler> logger) : ICommandHandler<RecordAccountActivityCommand, BasicResponse>
+    internal sealed class RecordAccountActivityCommandHandler(IWritableRepository repository, ILogger<RecordAccountActivityCommandHandler> logger) : ICommandHandler<RecordAccountActivityCommand, BasicResponse>
     {
         public async Task<BasicResponse> Handle(RecordAccountActivityCommand request, CancellationToken cancellationToken)
         {

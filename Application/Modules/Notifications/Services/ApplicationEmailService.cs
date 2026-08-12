@@ -9,7 +9,7 @@ using Application.Modules.Notifications.Validation;
 
 namespace Application.Modules.Notifications.Services
 {
-    public sealed class ApplicationEmailService(
+    internal sealed class ApplicationEmailService(
         IEmailOutbox emailOutbox,
         IValidator<ApplicationEmailRequest> validator,
         ILogger<ApplicationEmailService> logger)

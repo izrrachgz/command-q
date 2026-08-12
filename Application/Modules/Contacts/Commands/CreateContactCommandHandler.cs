@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Contacts.Commands
 {
-    public class CreateContactCommandHandler : ICommandHandler<CreateContactCommand, BasicResponse>
+    internal sealed class CreateContactCommandHandler : ICommandHandler<CreateContactCommand, BasicResponse>
     {
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;

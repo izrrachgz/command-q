@@ -9,7 +9,7 @@ using Application.Modules.Identity.Logging;
 
 namespace Application.Modules.Identity.Accounts.Commands
 {
-    public sealed class CreateAccountCommandHandler(
+    internal sealed class CreateAccountCommandHandler(
         ITextProvider textProvider,
         IWritableRepository repository,
         ILogger<CreateAccountCommandHandler> logger)

@@ -1,4 +1,4 @@
-﻿using Public;
+using Public;
 using FluentValidation;
 using Common.Extensions;
 using Application.Constants;
@@ -6,7 +6,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Identity.Accounts.Commands
 {
-    public class CreateAccountCommandValidator : AbstractValidator<CreateAccountCommand>
+    internal sealed class CreateAccountCommandValidator : AbstractValidator<CreateAccountCommand>
     {
         public CreateAccountCommandValidator(ValidationTextProvider messages)
         {

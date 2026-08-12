@@ -6,7 +6,7 @@ using Application.Modules.Notifications.Validation;
 
 namespace Application.Modules.Notifications.Commands
 {
-    public sealed class QueueEmailCommandValidator : AbstractValidator<QueueEmailCommand>
+    internal sealed class QueueEmailCommandValidator : AbstractValidator<QueueEmailCommand>
     {
         public QueueEmailCommandValidator(IValidator<ApplicationEmailRequest> emailValidator, ValidationTextProvider messages)
         {

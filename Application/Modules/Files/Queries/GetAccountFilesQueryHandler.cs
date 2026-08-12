@@ -2,14 +2,14 @@ using SqlKata;
 using Common.Cqrs;
 using Common.Enumerations;
 using System.Globalization;
-using Application.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 using Persistence.Abstractions;
 using Application.Modules.Files.Dtos;
 
 namespace Application.Modules.Files.Queries
 {
-    public class GetAccountFilesQueryHandler : IQueryHandler<GetAccountFilesQuery, PagedResponse<AccountFileModel>>
+    internal sealed class GetAccountFilesQueryHandler : IQueryHandler<GetAccountFilesQuery, PagedResponse<AccountFileModel>>
     {
         private readonly IReadOnlyRepository _repository;
         private readonly IMapper<AccountFile, AccountFileModel> _mapper;

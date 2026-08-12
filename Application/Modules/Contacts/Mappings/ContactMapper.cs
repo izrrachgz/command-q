@@ -5,7 +5,7 @@ using Application.Modules.Contacts.Dtos;
 namespace Application.Modules.Contacts.Mappings
 {
     [Mapper]
-    public partial class ContactMapper : IMapper<Contact, ContactModel>
+    internal partial class ContactMapper : IMapper<Contact, ContactModel>
     {
         [MapperIgnoreTarget(nameof(Contact.Id))]
         [MapperIgnoreTarget(nameof(Contact.AccountId))]

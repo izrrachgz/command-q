@@ -4,7 +4,7 @@ using Application.Modules.Notifications.Services;
 
 namespace Application.Modules.Notifications.Commands
 {
-    public sealed class QueueEmailCommandHandler(IApplicationEmailService emailService)
+    internal sealed class QueueEmailCommandHandler(IApplicationEmailService emailService)
         : ICommandHandler<QueueEmailCommand, QueuedEmailResult>
     {
         public Task<QueuedEmailResult> Handle(QueueEmailCommand request, CancellationToken cancellationToken)

@@ -1,14 +1,14 @@
 using Public;
 using Common.Cqrs;
-using Application.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 using Persistence.Abstractions;
 using Localization.Abstractions;
 using Application.Modules.Contacts.Dtos;
 
 namespace Application.Modules.Contacts.Queries
 {
-    public class GetContactByAccountIdQueryHandler : IQueryHandler<GetContactByAccountIdQuery, DetailResponse<ContactModel>>
+    internal sealed class GetContactByAccountIdQueryHandler : IQueryHandler<GetContactByAccountIdQuery, DetailResponse<ContactModel>>
     {
         private readonly IMapper<Contact, ContactModel> _mapper;
         private readonly ITextProvider _messages;

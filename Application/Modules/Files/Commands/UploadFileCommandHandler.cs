@@ -14,7 +14,7 @@ using Application.Modules.Identity.AccountActivity.Services;
 
 namespace Application.Modules.Files.Commands
 {
-    public class UploadFileCommandHandler : ICommandHandler<UploadFileCommand, BasicResponse>
+    internal sealed class UploadFileCommandHandler : ICommandHandler<UploadFileCommand, BasicResponse>
     {
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;

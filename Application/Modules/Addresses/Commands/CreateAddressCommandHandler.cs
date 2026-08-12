@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Modules.Addresses.Commands
 {
-    public class CreateAddressCommandHandler : ICommandHandler<CreateAddressCommand, BasicResponse>
+    internal sealed class CreateAddressCommandHandler : ICommandHandler<CreateAddressCommand, BasicResponse>
     {
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;

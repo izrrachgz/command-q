@@ -5,7 +5,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Files.Commands
 {
-    public class UploadFileCommandValidator : AbstractValidator<UploadFileCommand>
+    internal sealed class UploadFileCommandValidator : AbstractValidator<UploadFileCommand>
     {
         public UploadFileCommandValidator(ValidationTextProvider messages)
         {

@@ -4,7 +4,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Contacts.Queries
 {
-    public class GetContactByAccountIdQueryValidator : AbstractValidator<GetContactByAccountIdQuery>
+    internal sealed class GetContactByAccountIdQueryValidator : AbstractValidator<GetContactByAccountIdQuery>
     {
         public GetContactByAccountIdQueryValidator(ValidationTextProvider messages)
         {

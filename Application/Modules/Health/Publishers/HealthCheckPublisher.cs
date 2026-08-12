@@ -7,7 +7,7 @@ namespace Application.Modules.Health.Publishers
     /// <summary>
     /// Logs the outcome of a published application health report.
     /// </summary>
-    public sealed class HealthCheckPublisher(ILogger<HealthCheckPublisher> logger) : IHealthCheckPublisher
+    internal sealed class HealthCheckPublisher(ILogger<HealthCheckPublisher> logger) : IHealthCheckPublisher
     {
         /// <summary>
         /// Publishes a health report by logging its resulting status.

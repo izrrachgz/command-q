@@ -4,7 +4,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Files.Queries
 {
-    public class GetAccountFilesQueryValidator : AbstractValidator<GetAccountFilesQuery>
+    internal sealed class GetAccountFilesQueryValidator : AbstractValidator<GetAccountFilesQuery>
     {
         public GetAccountFilesQueryValidator(ValidationTextProvider messages)
         {

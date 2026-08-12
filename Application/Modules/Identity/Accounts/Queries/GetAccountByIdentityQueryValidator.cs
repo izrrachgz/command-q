@@ -1,9 +1,9 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Application.Modules.Identity.Accounts;
 
 namespace Application.Modules.Identity.Accounts.Queries
 {
-    public sealed class GetAccountByIdentityQueryValidator : AbstractValidator<GetAccountByIdentityQuery>
+    internal sealed class GetAccountByIdentityQueryValidator : AbstractValidator<GetAccountByIdentityQuery>
     {
         public GetAccountByIdentityQueryValidator()
         {

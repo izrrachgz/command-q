@@ -1,11 +1,11 @@
-﻿using Public;
+using Public;
 using FluentValidation;
 using Application.Constants;
 using Localization.Providers;
 
 namespace Application.Modules.Identity.Accounts.Queries
 {
-    public class GetAccountByUsernameQueryValidator : AbstractValidator<GetAccountByUsernameQuery>
+    internal sealed class GetAccountByUsernameQueryValidator : AbstractValidator<GetAccountByUsernameQuery>
     {
         public GetAccountByUsernameQueryValidator(ValidationTextProvider messages)
         {

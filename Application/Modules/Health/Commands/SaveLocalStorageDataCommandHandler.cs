@@ -5,7 +5,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.Modules.Health.Commands
 {
-    public class SaveLocalStorageDataCommandHandler : ICommandHandler<SaveLocalStorageDataCommand, HealthCheckResult>, IHealthCheck
+    internal sealed class SaveLocalStorageDataCommandHandler : ICommandHandler<SaveLocalStorageDataCommand, HealthCheckResult>, IHealthCheck
     {
         private readonly ILogger<SaveLocalStorageDataCommandHandler> _logger;
 

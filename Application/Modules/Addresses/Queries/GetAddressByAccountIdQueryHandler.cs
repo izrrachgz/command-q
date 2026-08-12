@@ -1,14 +1,14 @@
 using Public;
 using Common.Cqrs;
-using Application.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 using Persistence.Abstractions;
 using Localization.Abstractions;
 using Application.Modules.Addresses.Dtos;
 
 namespace Application.Modules.Addresses.Queries
 {
-    public class GetAddressByAccountIdQueryHandler : IQueryHandler<GetAddressByAccountIdQuery, DetailResponse<AddressModel>>
+    internal sealed class GetAddressByAccountIdQueryHandler : IQueryHandler<GetAddressByAccountIdQuery, DetailResponse<AddressModel>>
     {
         private readonly IMapper<Address, AddressModel> _mapper;
         private readonly ITextProvider _messages;

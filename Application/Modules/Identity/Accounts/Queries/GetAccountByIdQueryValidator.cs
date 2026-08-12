@@ -4,7 +4,7 @@ using Localization.Providers;
 
 namespace Application.Modules.Identity.Accounts.Queries
 {
-    public class GetAccountByIdQueryValidator : AbstractValidator<GetAccountByIdQuery>
+    internal sealed class GetAccountByIdQueryValidator : AbstractValidator<GetAccountByIdQuery>
     {
         public GetAccountByIdQueryValidator(ValidationTextProvider messages)
         {

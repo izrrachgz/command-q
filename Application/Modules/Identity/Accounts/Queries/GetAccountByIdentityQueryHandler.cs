@@ -1,14 +1,14 @@
 using Public;
 using Common.Cqrs;
-using Application.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 using Persistence.Abstractions;
 using Localization.Abstractions;
 using Application.Modules.Identity.Accounts.Dtos;
 
 namespace Application.Modules.Identity.Accounts.Queries
 {
-    public sealed class GetAccountByIdentityQueryHandler(
+    internal sealed class GetAccountByIdentityQueryHandler(
         IMapper<Account, AccountModel> mapper,
         IReadOnlyRepository repository,
         ITextProvider textProvider)
