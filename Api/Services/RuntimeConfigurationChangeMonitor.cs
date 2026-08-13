@@ -1,10 +1,10 @@
-using Api.Configuration;
 using Api.Logging;
-using Application.Modules.Health.Configuration;
+using Api.Configuration;
 using Localization.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Application.Modules.Health.Configuration;
 
 namespace Api.Services
 {
@@ -35,7 +35,7 @@ namespace Api.Services
             subscriptions.Add(slidingRateOptions.OnChange(options => logger.ConfigurationReloaded("Api:RateLimiting:Sliding", DescribeRateLimit(options))));
             subscriptions.Add(tokenBucketRateOptions.OnChange(options => logger.ConfigurationReloaded("Api:RateLimiting:TokenBucket", DescribeRateLimit(options))));
             subscriptions.Add(concurrencyRateOptions.OnChange(options => logger.ConfigurationReloaded("Api:RateLimiting:Concurrency", DescribeRateLimit(options))));
-            subscriptions.Add(healthOptions.OnChange(options => logger.ConfigurationReloaded("Api:HealthCheck", $"PublishOnStartup={options.PublishOnStartup}; PublishIntervalSeconds={options.PublishIntervalSeconds}")));
+            subscriptions.Add(healthOptions.OnChange(options => logger.ConfigurationReloaded("Api:HealthCheck", DescribeHealthChecks(options))));
             subscriptions.Add(featureOptions.OnChange(options => logger.ConfigurationReloaded("Api:Features", $"Flags={options.Values.Count}")));
             subscriptions.Add(externalApiOptions.OnChange(options => logger.ConfigurationReloaded("Api:ExternalApiClients", $"Clients={options.Clients.Count}")));
             subscriptions.Add(localizationOptions.OnChange(options => logger.ConfigurationReloaded("Api:Localization", $"DefaultCulture={options.DefaultCulture}; FallbackCulture={options.FallbackCulture}; SupportedCultures={options.SupportedCultures.Length}")));
@@ -62,6 +62,17 @@ namespace Api.Services
         private static string DescribeRateLimit(RateLimitingOptions options)
         {
             return $"PermitLimit={options.PermitLimit}; WindowSeconds={options.WindowSeconds}; QueueLimit={options.QueueLimit}";
+        }
+
+        /// <summary>
+        /// Formats health-check settings without including unrelated configuration data.
+        /// </summary>
+        private static string DescribeHealthChecks(HealthCheckConfigurationOptions options)
+        {
+            return $"RunOnStartup={options.RunOnStartup}; " +
+                $"FailStartupOnUnhealthy={options.FailStartupOnUnhealthy}; " +
+                $"PublishReports={options.ShouldPublishReports}; " +
+                $"PublishIntervalSeconds={options.PublishIntervalSeconds}";
         }
     }
 }

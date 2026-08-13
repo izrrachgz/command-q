@@ -1,6 +1,5 @@
 using Api.Extensions;
 using Api.Modules.Files;
-using Api.Modules.Health;
 using Api.Modules.Contacts;
 using Api.Modules.Identity;
 using Api.Modules.Addresses;
@@ -17,8 +16,7 @@ namespace Api.Modules
                 .MapIdentityModule()
                 .MapContactsModule()
                 .MapAddressesModule()
-                .MapFilesModule()
-                .MapHealthModule();
+                .MapFilesModule();
 
             return endpoints;
         }

@@ -1,22 +1,22 @@
 using Api.Logging;
 using Api.Modules;
+using Api.Services;
 using Api.Constants;
 using Api.Middleware;
+using Api.Abstractions;
 using Api.Enumerations;
 using Common.Constants;
 using Api.Configuration;
-using Api.Abstractions;
-using Api.Services;
+using Api.Modules.Health;
 using Common.Enumerations;
 using Application.Extensions;
 using Email.Outbox.Extensions;
-using Application.Modules.Health;
 using Localization.Configuration;
 using Microsoft.Extensions.Options;
 using Application.Migrations.Extensions;
 using Email.Outbox.Persistence.Extensions;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Application.Modules.Health.Configuration;
 
 namespace Api.Extensions
 {
@@ -171,17 +171,7 @@ namespace Api.Extensions
                 options.SetDefaultCulture(defaultCulture);
             });
 
-            app.MapHealthChecks(RouteConstants.HealthLive, new HealthCheckOptions
-            {
-                Predicate = healthCheck => healthCheck.Tags.Contains(HealthCheckConstants.LiveTag)
-            });
-
-            app.MapHealthChecks(RouteConstants.HealthReady, new HealthCheckOptions
-            {
-                Predicate = healthCheck => healthCheck.Tags.Contains(HealthCheckConstants.ReadyTag)
-            });
-
-            app.MapHealthChecks(RouteConstants.HealthChecks);
+            app.MapHealthEndpoints();
 
             // Configure the HTTP request pipeline.
             if (env.IsDevelopment())
@@ -260,8 +250,13 @@ namespace Api.Extensions
             logger.StartupSetting("Email Outbox Engine", outboxEngine);
             logger.StartupSetting("Email Outbox Migrator", "EmailWorker");
 
-            string? healthCheckInternetUrl = configuration.GetValue<string?>(ConfigKeys.HealthCheck.Url);
-            logger.StartupSetting("Health Check URL", healthCheckInternetUrl);
+            var healthCheck = configuration
+                .GetSection(ConfigKeys.HealthCheck.Section)
+                .Get<HealthCheckConfigurationOptions>() ?? new HealthCheckConfigurationOptions();
+            logger.StartupSetting("Health Check URL", healthCheck.UrlCheckInternetAccess);
+            logger.StartupSetting("Health Check Run On Startup", healthCheck.RunOnStartup);
+            logger.StartupSetting("Health Check Fail Startup On Unhealthy", healthCheck.FailStartupOnUnhealthy);
+            logger.StartupSetting("Health Check Publish Reports", healthCheck.ShouldPublishReports);
 
             int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ConfigKeys.Cache.MaxAgeSeconds);
             logger.StartupSetting("Cache Max Age (seconds)", cacheMaxAgeSeconds);

@@ -1,9 +1,11 @@
 using Email.Outbox.Models;
 using Email.Outbox.Abstractions;
 using Microsoft.Extensions.Hosting;
+using Email.Outbox.Persistence.Health;
 using Microsoft.Extensions.Configuration;
 using Email.Outbox.Persistence.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Email.Outbox.Test.Persistence
 {
@@ -31,9 +33,16 @@ namespace Email.Outbox.Test.Persistence
                 });
                 builder.Services.AddEmailOutboxPersistence(
                     builder.Configuration.GetRequiredSection("TestHost:OutboxPersistence"));
+                builder.Services.AddHealthChecks()
+                    .AddEmailOutboxPersistenceHealthCheck("email-outbox-persistence");
 
                 using var host = builder.Build();
                 await host.RunEmailOutboxMigrations(TestContext.Current.CancellationToken);
+                var healthCheckService = host.Services.GetRequiredService<HealthCheckService>();
+                var healthReport = await healthCheckService.CheckHealthAsync(TestContext.Current.CancellationToken);
+                Assert.Equal(HealthStatus.Healthy, healthReport.Status);
+                Assert.Contains("email-outbox-persistence", healthReport.Entries.Keys);
+
                 var store = host.Services.GetRequiredService<IEmailOutboxStore>();
                 DateTime utcNow = DateTime.UtcNow;
                 var record = new EmailOutboxRecord(

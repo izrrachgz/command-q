@@ -1,21 +1,6 @@
 [
   {
-    "Name": "Backend (IdentityServer + API)",
-    "Projects": [
-      {
-        "Path": "IdentityServer\\IdentityServer.csproj",
-        "Action": "Start",
-        "DebugTarget": "https"
-      },
-      {
-        "Path": "Api\\Api.csproj",
-        "Action": "Start",
-        "DebugTarget": "https"
-      }
-    ]
-  },
-  {
-    "Name": "Backend + Email Worker",
+    "Name": "Backend (IdentityServer + API + Email Worker)",
     "Projects": [
       {
         "Path": "IdentityServer\\IdentityServer.csproj",

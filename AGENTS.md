@@ -141,7 +141,9 @@ This file captures practical repository knowledge for coding agents working in t
   - `/health/live` is the liveness endpoint.
   - `/health/ready` is the dependency readiness endpoint.
   - `/health/checks` returns the full registered check set.
-  - Background health publishing is opt-in through the host-relative `HealthCheck:PublishOnStartup` key (`Api:HealthCheck:PublishOnStartup` in the API host).
+  - API readiness is host-local and selected by the `ready` tag. Startup diagnostics use the `startup` tag and background publishing uses the `publish` tag.
+  - Startup health execution is opt-in through the host-relative `HealthCheck:RunOnStartup` key (`Api:HealthCheck:RunOnStartup` in the API host).
+  - Background health publishing is opt-in through the host-relative `HealthCheck:PublishReports` key (`Api:HealthCheck:PublishReports` in the API host).
 
 ### Application.Migrations
 - Standalone application-schema migration library. It references `Persistence` and `Common`, but not `Application`, `Domain` or `Api`.

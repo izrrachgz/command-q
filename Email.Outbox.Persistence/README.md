@@ -37,6 +37,10 @@ QA/Production settings disable it. In a multi-instance deployment, run
 migrations in one deployment step or one designated instance before enabling
 the workers.
 
+Consumers can register the persistence readiness probe with
+`AddEmailOutboxPersistenceHealthCheck`. The check verifies that the configured
+store is reachable and that the email outbox migration ledger can be queried.
+
 Claims use conditional updates and unique lease IDs. A worker can reclaim a
 record after `LockedUntilUtc`, allowing recovery from terminated processes.
 Configure the lease longer than the worst expected SMTP batch duration to avoid

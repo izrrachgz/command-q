@@ -4,7 +4,9 @@
     "Email.Worker": {
       "commandName": "Project",
       "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:7105",
       "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
         "DOTNET_ENVIRONMENT": "Development"
       }
     }

@@ -1,7 +1,7 @@
 using Application.Modules.Health.Configuration;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Application.Modules.Health.Publishers
 {
@@ -23,10 +23,10 @@ namespace Application.Modules.Health.Publishers
             {
                 var currentOptions = options.CurrentValue;
 
-                if (currentOptions.PublishOnStartup)
+                if (currentOptions.ShouldPublishReports)
                 {
                     var report = await healthCheckService.CheckHealthAsync(
-                        check => check.Name.Contains("Can"),
+                        check => check.Tags.Contains(HealthCheckConstants.PublishTag),
                         stoppingToken);
 
                     await publisher.PublishAsync(report, stoppingToken);

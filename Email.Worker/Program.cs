@@ -5,11 +5,12 @@ using Email.Worker.Constants;
 using Email.Outbox.Extensions;
 using Email.Worker.Extensions;
 using Email.Worker.Configuration;
+using Email.Worker.Modules.Health;
 using Microsoft.Extensions.Options;
 using Email.Outbox.Persistence.Extensions;
 using Email.Outbox.Persistence.Configuration;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 IConfigurationSection workerConfiguration = builder.Configuration.GetRequiredSection(EmailWorkerConstants.ConfigurationSection);
 IConfigurationSection outboxConfiguration = workerConfiguration.GetRequiredSection(EmailWorkerConstants.OutboxSection);
@@ -19,15 +20,16 @@ builder.Services.AddEmailOutbox(outboxConfiguration);
 builder.Services.AddEmailOutboxPersistence(outboxConfiguration.GetRequiredSection(EmailWorkerConstants.PersistenceSection));
 builder.Services.AddEmailOutboxWorker(workerConfiguration.GetRequiredSection(EmailWorkerConstants.WorkerSection));
 builder.Services.AddEmailWorkerMigrations(workerConfiguration.GetRequiredSection(EmailWorkerConstants.MigrationsSection));
+builder.Services.AddEmailWorkerHealthModule();
 
-var host = builder.Build();
+var app = builder.Build();
 
-var migrationOptions = host.Services.GetRequiredService<IOptions<EmailWorkerMigrationOptions>>().Value;
-var workerOptions = host.Services.GetRequiredService<IOptions<EmailWorkerOptions>>().Value;
-var emailOptions = host.Services.GetRequiredService<IOptions<EmailOptions>>().Value;
-var persistenceOptions = host.Services.GetRequiredService<IOptions<EmailOutboxPersistenceOptions>>().Value;
+var migrationOptions = app.Services.GetRequiredService<IOptions<EmailWorkerMigrationOptions>>().Value;
+var workerOptions = app.Services.GetRequiredService<IOptions<EmailWorkerOptions>>().Value;
+var emailOptions = app.Services.GetRequiredService<IOptions<EmailOptions>>().Value;
+var persistenceOptions = app.Services.GetRequiredService<IOptions<EmailOutboxPersistenceOptions>>().Value;
 
-ILogger startupLogger = host.Services
+ILogger startupLogger = app.Services
     .GetRequiredService<ILoggerFactory>()
     .CreateLogger(EmailWorkerConstants.StartupLoggerCategory);
 
@@ -40,7 +42,9 @@ startupLogger.StartupConfiguration(
 
 if (migrationOptions.RunOnStartup)
 {
-    await host.RunEmailOutboxMigrations();
+    await app.RunEmailOutboxMigrations();
 }
 
-await host.RunAsync();
+app.MapEmailWorkerHealthModule();
+
+await app.RunAsync();

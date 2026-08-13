@@ -10,9 +10,17 @@ Run locally with smtp4dev listening on SMTP port 25:
 ```
 
 Visual Studio uses the `Email.Worker` launch profile, which sets
-`DOTNET_ENVIRONMENT=Development`. This is required for the standard .NET
-configuration pipeline to load the worker project's user-secrets. The helper
-script sets the same environment explicitly.
+`DOTNET_ENVIRONMENT=Development` and `ASPNETCORE_ENVIRONMENT=Development`.
+This is required for the standard .NET configuration pipeline to load the
+worker project's user-secrets. The helper script sets the same environment
+explicitly and listens on `http://localhost:7105` by default.
+
+The worker exposes unauthenticated health endpoints on its configured HTTP
+listener:
+
+- `/health/live` for process liveness.
+- `/health/ready` for email outbox persistence readiness.
+- `/health/checks` for the complete registered health check set.
 
 Development enables SMTP delivery and the worker, applies the outbox MsSql
 migrations, and stores the queue in the local `command_q` database through its

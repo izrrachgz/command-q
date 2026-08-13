@@ -50,14 +50,15 @@ a configured authority.
    dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj --no-build
    ```
 
-5. Run the identity server, then the API in separate terminals.
+5. Run the identity server, the API, and the email worker in separate terminals.
 
    ```powershell
    .\scripts\run-identity-server.ps1
    .\scripts\run-api.ps1
+   .\scripts\run-email-worker.ps1
    ```
 
-   In Visual Studio 2022 17.11 or later, select the shared `Backend (IdentityServer + API)` solution launch profile before pressing F5. It starts IdentityServer first and API second with their HTTPS project profiles.
+   In Visual Studio 2022 17.11 or later, select the shared `Backend (IdentityServer + API + Email Worker)` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third.
 
    After the API has applied the application migrations, run the full suite with
    `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own
@@ -171,8 +172,10 @@ NuGet versions are centrally managed in `Directory.Packages.props`. Project file
 The API reloads JSON and environment configuration for operational settings when
 the configuration provider supports reload-on-change. Cache response headers,
 rate-limit policies, feature flags, health-check publishing and localization use
-the current values for new work. External API clients created through
-`IExternalApiClientFactory` also use the current endpoint and timeout.
+the current values for new work. `Api:HealthCheck:RunOnStartup` is startup-bound
+because startup checks run before the server begins accepting traffic. External
+API clients created through `IExternalApiClientFactory` also use the current
+endpoint and timeout.
 
 The framework `Logging` section and Serilog `MinimumLevel`, overrides and sink
 thresholds are also reloadable through the standard host configuration pipeline.
@@ -381,15 +384,24 @@ The persistence layer separates read and write entry points:
 
 ## Health Checks
 
-Both backend hosts expose:
+API, IdentityServer and Email.Worker expose:
 
 - `/health/live` for process liveness
 - `/health/ready` for dependency readiness
 - `/health/checks` for the full registered health-check set
 
-Background health-check publishing is opt-in through `Api:HealthCheck:PublishOnStartup`.
-This publishing setting belongs to the application API. IdentityServer does not
-run a background publisher; its readiness check validates its EF database.
+API readiness is intentionally cheap and host-local. It uses the `ready` tag and
+does not call the email worker or run mutating diagnostics. Deeper API checks
+use the `startup` and `publish` tags.
+
+Startup health checks are opt-in through `Api:HealthCheck:RunOnStartup`.
+`Api:HealthCheck:FailStartupOnUnhealthy` controls whether an unhealthy startup
+report stops the API host. Background health-check publishing is opt-in through
+`Api:HealthCheck:PublishReports`. The legacy `PublishOnStartup` setting is still
+accepted as a publishing alias for existing local configuration.
+
+IdentityServer does not run a background publisher; its readiness check validates
+its EF database. Email.Worker readiness validates email outbox persistence.
 
 ## Email Delivery
 

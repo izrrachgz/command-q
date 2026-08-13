@@ -63,7 +63,9 @@ namespace Api.Test.Infrastructure
                     ["Api:ApiClients:0:Id"] = ApiClientHeaderValue,
                     ["Api:ApiClients:0:Uri"] = ApiClientOrigin,
                     ["Api:HealthCheck:UrlCheckInternetAccess"] = "https://example.com/",
-                    ["Api:HealthCheck:PublishOnStartup"] = "false",
+                    ["Api:HealthCheck:RunOnStartup"] = "false",
+                    ["Api:HealthCheck:FailStartupOnUnhealthy"] = "false",
+                    ["Api:HealthCheck:PublishReports"] = "false",
                     ["Api:CacheSettings:MaxAgeSeconds"] = "10"
                 });
             });

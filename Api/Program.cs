@@ -1,6 +1,7 @@
 using Api.Constants;
 using Api.Extensions;
 using Application.Migrations.Extensions;
+using Application.Modules.Health.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,5 +23,7 @@ if (app.Environment.IsDevelopment() || apiConfiguration.GetValue(ConfigKeys.Migr
 {
     await app.RunApplicationMigrations();
 }
+
+await app.RunStartupHealthChecks();
 
 app.Run();
