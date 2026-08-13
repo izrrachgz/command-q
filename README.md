@@ -58,7 +58,7 @@ a configured authority.
    .\scripts\run-email-worker.ps1
    ```
 
-   In Visual Studio 2022 17.11 or later, select the shared `Backend (IdentityServer + API + Email Worker)` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third.
+   In Visual Studio 2022 17.11 or later, select the shared `Backend + Email Worker` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third.
 
    After the API has applied the application migrations, run the full suite with
    `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own

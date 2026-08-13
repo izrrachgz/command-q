@@ -17,7 +17,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
   - `.\scripts\test-email-integration.ps1`
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
-- `CommandQ.slnLaunch` provides `Backend (IdentityServer + API)` and the optional `Backend + Email Worker` profile. The latter also starts the standalone email queue worker.
+- `CommandQ.slnLaunch` provides the `Backend + Email Worker` profile, which starts IdentityServer, API and the standalone email queue worker.
 - The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
 - Custom executable settings are namespaced by host: `Api`, `IdentityServer` and `EmailWorker`. Framework-owned `Logging`, `Serilog` and `AllowedHosts` sections remain top-level. Hosts pass explicit subsections to reusable libraries; do not make a library depend on a host prefix.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
@@ -255,7 +255,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Base, QA and Production settings disable delivery and polling and leave the outbox connection empty. QA/Production also disable startup migrations until explicitly enabled.
 - Worker settings live under `EmailWorker:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`. Startup migration policy lives separately under `EmailWorker:Migrations:RunOnStartup`.
 - Worker settings are monitored at runtime. Changes apply to new polling cycles; disabling pauses the worker and re-enabling resumes it. Active batches are not reconfigured mid-flight.
-- Run with `.\scripts\run-email-worker.ps1`. It is not required for API or IdentityServer startup.
+- Run independently with `.\scripts\run-email-worker.ps1`. The shared Visual Studio backend launch profile also starts it alongside API and IdentityServer.
 - The `Email.Worker` Visual Studio launch profile and run script set `DOTNET_ENVIRONMENT=Development`, allowing the generic host to load the worker project's user-secrets. Do not load user-secrets explicitly outside Development.
 - OAuth token acquisition and refresh remain external to the worker.
 - See `Email.Worker/README.md`.
