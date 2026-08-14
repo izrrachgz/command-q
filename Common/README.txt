@@ -10,6 +10,10 @@ Main areas:
 - Common.Models: Shared response, request, command, system and transfer models.
 - Common.Constants: Stable shared constants for logging, process messages, database messages, languages and helper defaults.
 - Common.Extensions: Small extension methods used by other projects.
+- StringsExtensions.ToEnum converts only declared enum names or values.
+- StringsExtensions.IsAbsoluteUri validates configuration values that require
+  absolute URI syntax.
+- EnumerableExtensions provides null-safe generic NotEmpty and Empty helpers.
 
 HTTP helpers:
 - HttpCall supports reusable request headers, content headers, JSON serialization settings, query-string building and common GET/POST helpers.

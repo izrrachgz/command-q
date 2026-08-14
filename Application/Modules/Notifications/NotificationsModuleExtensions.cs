@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Application.Modules.Notifications.Commands;
 using Application.Modules.Notifications.Services;
 using Application.Modules.Notifications.Validation;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Application.Modules.Notifications
 {
@@ -21,6 +22,7 @@ namespace Application.Modules.Notifications
         public static IServiceCollection AddNotificationsModule(this IServiceCollection services)
         {
             services.AddScoped<IApplicationEmailService, ApplicationEmailService>();
+            services.TryAddScoped<IEmailProfileSelectionPolicy, DefaultEmailProfileSelectionPolicy>();
 
             services.AddTransient<IRequestHandler<QueueEmailCommand, QueuedEmailResult>, QueueEmailCommandHandler>();
 

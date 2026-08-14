@@ -1,8 +1,10 @@
 using Email.Models;
 using Email.Exceptions;
+using System.Diagnostics;
 using Email.Abstractions;
 using Email.Outbox.Models;
 using Email.Outbox.Logging;
+using Email.Outbox.Telemetry;
 using Email.Outbox.Abstractions;
 using Email.Outbox.Configuration;
 using Email.Outbox.Serialization;
@@ -13,7 +15,7 @@ namespace Email.Outbox.Services
 {
     internal sealed class EmailOutboxProcessor(
         IEmailOutboxStore store,
-        IEmailSender sender,
+        IEmailSenderFactory senderFactory,
         IEmailOutboxSerializer serializer,
         IOptions<EmailOutboxOptions> options,
         ILogger<EmailOutboxProcessor> logger)
@@ -25,11 +27,25 @@ namespace Email.Outbox.Services
             EmailOutboxClaimRequest request,
             CancellationToken cancellationToken = default)
         {
-            var claimed = await store.ClaimPendingAsync(request, cancellationToken);
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.process");
+            IReadOnlyList<ClaimedEmailOutboxRecord> claimed;
+
+            try
+            {
+                claimed = await store.ClaimPendingAsync(request, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "failure");
+                activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+                throw;
+            }
+
             logger.BatchClaimed(claimed.Count);
 
             if (claimed.Count == 0)
             {
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "empty");
                 return EmailOutboxBatchResult.Empty;
             }
 
@@ -57,23 +73,18 @@ namespace Email.Outbox.Services
 
             if (deliverable.Count == 0)
             {
-                return result.ToResult();
+                EmailOutboxBatchResult emptyDeliveryResult = result.ToResult();
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "serialization_failure");
+                return emptyDeliveryResult;
             }
 
             try
             {
-                var sendResult = await sender.SendAsync(
-                    deliverable.Select(item => item.Message),
-                    cancellationToken);
-
-                if (sendResult.Messages.Count != deliverable.Count)
+                foreach (var profileBatch in deliverable
+                    .GroupBy(item => item.Record.ProfileName, StringComparer.OrdinalIgnoreCase)
+                    .Select(group => group.ToArray()))
                 {
-                    throw new InvalidOperationException("The email sender returned a result count that does not match the outbox batch.");
-                }
-
-                for (var index = 0; index < deliverable.Count; index++)
-                {
-                    await MarkSent(deliverable[index].Record, sendResult.Messages[index], result, cancellationToken);
+                    await ProcessProfileBatch(profileBatch, result, cancellationToken);
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -81,21 +92,102 @@ namespace Email.Outbox.Services
                 await Release(deliverable.Select(item => item.Record).ToArray(), result, CancellationToken.None);
                 throw;
             }
+
+            logger.BatchSent(result.SentCount);
+            EmailOutboxBatchResult batchResult = result.ToResult();
+            activity?.SetTag(
+                EmailOutboxTelemetry.OutcomeTag,
+                batchResult.RetryCount > 0 || batchResult.DeadLetterCount > 0 ? "partial" : "success");
+            return batchResult;
+        }
+
+        private async Task ProcessProfileBatch(
+            IReadOnlyList<(ClaimedEmailOutboxRecord Record, EmailMessage Message)> profileBatch,
+            MutableBatchResult result,
+            CancellationToken cancellationToken)
+        {
+            string profileName = profileBatch[0].Record.ProfileName;
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.profile.process");
+            activity?.SetTag(EmailOutboxTelemetry.ProfileTag, profileName);
+            AddTraceLinks(activity, profileBatch);
+
+            IEmailSender sender;
+            try
+            {
+                sender = senderFactory.Create(profileName);
+            }
+            catch (EmailProfileNotFoundException exception)
+            {
+                foreach ((ClaimedEmailOutboxRecord record, _) in profileBatch)
+                {
+                    await MarkFailure(
+                        record,
+                        EmailOutboxFailureKind.ProfileNotFound,
+                        exception,
+                        isPermanent: true,
+                        result,
+                        cancellationToken);
+                }
+
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "dead_letter");
+                return;
+            }
+
+            try
+            {
+                EmailBatchResult sendResult = await sender.SendAsync(
+                    profileBatch.Select(item => item.Message),
+                    cancellationToken);
+
+                if (sendResult.Messages.Count != profileBatch.Count)
+                {
+                    throw new InvalidOperationException("The email sender returned a result count that does not match the outbox profile batch.");
+                }
+
+                for (var index = 0; index < profileBatch.Count; index++)
+                {
+                    await MarkSent(profileBatch[index].Record, sendResult.Messages[index], result, cancellationToken);
+                }
+
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "success");
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                await Release(
+                    profileBatch.Select(item => item.Record).ToArray(),
+                    result,
+                    CancellationToken.None);
+                throw;
+            }
+            catch (EmailProfileNotFoundException exception)
+            {
+                foreach ((ClaimedEmailOutboxRecord record, _) in profileBatch)
+                {
+                    await MarkFailure(
+                        record,
+                        EmailOutboxFailureKind.ProfileNotFound,
+                        exception,
+                        isPermanent: true,
+                        result,
+                        cancellationToken);
+                }
+
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "dead_letter");
+            }
             catch (EmailDeliveryException exception)
             {
-                int sentCount = Math.Min(exception.SentCount, deliverable.Count);
+                int sentCount = Math.Min(exception.SentCount, profileBatch.Count);
+                EmailOutboxFailureKind failureKind = EmailOutboxFailureMapper.Map(exception.FailureKind);
 
                 for (var index = 0; index < sentCount; index++)
                 {
-                    await MarkSent(deliverable[index].Record, exception.SentMessages[index], result, cancellationToken);
+                    await MarkSent(profileBatch[index].Record, exception.SentMessages[index], result, cancellationToken);
                 }
 
-                if (sentCount < deliverable.Count)
+                if (sentCount < profileBatch.Count)
                 {
-                    var failed = deliverable[sentCount].Record;
-                    EmailOutboxFailureKind failureKind = EmailOutboxFailureMapper.Map(exception.FailureKind);
                     await MarkFailure(
-                        failed,
+                        profileBatch[sentCount].Record,
                         failureKind,
                         exception,
                         IsPermanent(failureKind),
@@ -103,10 +195,12 @@ namespace Email.Outbox.Services
                         cancellationToken);
 
                     await Release(
-                        deliverable.Skip(sentCount + 1).Select(item => item.Record).ToArray(),
+                        profileBatch.Skip(sentCount + 1).Select(item => item.Record).ToArray(),
                         result,
                         cancellationToken);
                 }
+
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "partial");
             }
             catch (Exception exception)
             {
@@ -114,20 +208,18 @@ namespace Email.Outbox.Services
                     ? EmailOutboxFailureKind.Validation
                     : EmailOutboxFailureKind.Unknown;
                 await MarkFailure(
-                    deliverable[0].Record,
+                    profileBatch[0].Record,
                     failureKind,
                     exception,
                     IsPermanent(failureKind),
                     result,
                     cancellationToken);
                 await Release(
-                    deliverable.Skip(1).Select(item => item.Record).ToArray(),
+                    profileBatch.Skip(1).Select(item => item.Record).ToArray(),
                     result,
                     cancellationToken);
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "partial");
             }
-
-            logger.BatchSent(result.SentCount);
-            return result.ToResult();
         }
 
         private async Task MarkSent(
@@ -167,6 +259,13 @@ namespace Email.Outbox.Services
                 ? failedUtc
                 : failedUtc.Add(CalculateRetryDelay(attemptCount));
             string error = Truncate(exception.GetBaseException().Message, _options.MaxErrorLength);
+            using Activity? failureActivity = EmailOutboxTelemetry.ActivitySource.StartActivity(
+                isDeadLetter ? "email.outbox.dead_letter" : "email.outbox.retry");
+            failureActivity?.SetTag(EmailOutboxTelemetry.ProfileTag, record.ProfileName);
+            failureActivity?.SetTag(EmailOutboxTelemetry.FailureCategoryTag, failureKind.ToString());
+            failureActivity?.SetTag(
+                EmailOutboxTelemetry.OutcomeTag,
+                isDeadLetter ? "dead_letter" : "retry");
 
             bool updated = await store.MarkFailedAsync(
                 new EmailOutboxFailedUpdate(
@@ -185,10 +284,22 @@ namespace Email.Outbox.Services
                 if (isDeadLetter)
                 {
                     result.DeadLetterCount++;
+                    EmailOutboxTelemetry.DeadLettered.Add(1, new TagList
+                    {
+                        { EmailOutboxTelemetry.ProfileTag, record.ProfileName },
+                        { EmailOutboxTelemetry.FailureCategoryTag, failureKind.ToString() },
+                        { EmailOutboxTelemetry.OutcomeTag, "dead_letter" }
+                    });
                 }
                 else
                 {
                     result.RetryCount++;
+                    EmailOutboxTelemetry.Retried.Add(1, new TagList
+                    {
+                        { EmailOutboxTelemetry.ProfileTag, record.ProfileName },
+                        { EmailOutboxTelemetry.FailureCategoryTag, failureKind.ToString() },
+                        { EmailOutboxTelemetry.OutcomeTag, "retry" }
+                    });
                 }
             }
 
@@ -210,6 +321,24 @@ namespace Email.Outbox.Services
             logger.RecordsReleased(released);
         }
 
+        private static void AddTraceLinks(
+            Activity? activity,
+            IReadOnlyList<(ClaimedEmailOutboxRecord Record, EmailMessage Message)> profileBatch)
+        {
+            if (activity is null)
+            {
+                return;
+            }
+
+            foreach ((ClaimedEmailOutboxRecord record, _) in profileBatch)
+            {
+                if (ActivityContext.TryParse(record.TraceParent, record.TraceState, out ActivityContext context))
+                {
+                    activity.AddLink(new ActivityLink(context));
+                }
+            }
+        }
+
         private TimeSpan CalculateRetryDelay(int attemptCount)
         {
             double multiplier = Math.Pow(2, Math.Max(0, attemptCount - 1));
@@ -224,7 +353,8 @@ namespace Email.Outbox.Services
         {
             return failureKind is EmailOutboxFailureKind.PermanentSmtp or
                 EmailOutboxFailureKind.Serialization or
-                EmailOutboxFailureKind.Validation;
+                EmailOutboxFailureKind.Validation or
+                EmailOutboxFailureKind.ProfileNotFound;
         }
 
         private static string Truncate(string value, int maxLength)
@@ -250,5 +380,6 @@ namespace Email.Outbox.Services
                     ReleasedCount);
             }
         }
+
     }
 }

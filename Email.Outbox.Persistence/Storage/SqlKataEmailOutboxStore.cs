@@ -1,6 +1,8 @@
 using SqlKata;
 using SqlKata.Execution;
+using System.Diagnostics;
 using Email.Outbox.Models;
+using Email.Outbox.Telemetry;
 using Email.Outbox.Abstractions;
 using Microsoft.Extensions.Logging;
 using Email.Outbox.Persistence.Logging;
@@ -38,9 +40,12 @@ namespace Email.Outbox.Persistence.Storage
                         {
                             Id = record.Id.ToString("D"),
                             record.Payload,
+                            record.ProfileName,
                             record.IdempotencyKey,
                             record.AccountReference,
                             record.CorrelationId,
+                            record.TraceParent,
+                            record.TraceState,
                             Status = (int)EmailOutboxStatus.Pending,
                             record.AttemptCount,
                             record.CreatedUtc,
@@ -85,6 +90,8 @@ namespace Email.Outbox.Persistence.Storage
             }
 
             using var repository = repositoryFactory.Create();
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.claim");
+            activity?.SetTag(EmailOutboxTelemetry.EngineTag, repositoryFactory.Engine.ToString());
             int candidateLimit = request.BatchSize > int.MaxValue / EmailOutboxPersistenceConstants.CandidateMultiplier
                 ? int.MaxValue
                 : request.BatchSize * EmailOutboxPersistenceConstants.CandidateMultiplier;
@@ -130,11 +137,32 @@ namespace Email.Outbox.Persistence.Storage
                         candidate.Payload,
                         lockId,
                         candidate.AttemptCount,
-                        candidate.CorrelationId));
+                        candidate.CorrelationId,
+                        candidate.CreatedUtc,
+                        candidate.ProfileName,
+                        candidate.TraceParent,
+                        candidate.TraceState));
                 }
             }
 
             logger.Claimed(claimed.Count, request.WorkerId);
+            foreach (var profileBatch in claimed.GroupBy(record => record.ProfileName, StringComparer.OrdinalIgnoreCase))
+            {
+                var tags = new TagList
+                {
+                    { EmailOutboxTelemetry.EngineTag, repositoryFactory.Engine.ToString() },
+                    { EmailOutboxTelemetry.ProfileTag, profileBatch.Key }
+                };
+                EmailOutboxTelemetry.BatchSize.Record(profileBatch.Count(), tags);
+
+                foreach (ClaimedEmailOutboxRecord record in profileBatch)
+                {
+                    double queueAgeSeconds = Math.Max(0, (request.UtcNow - record.CreatedUtc).TotalSeconds);
+                    EmailOutboxTelemetry.QueueAge.Record(queueAgeSeconds, tags);
+                }
+            }
+
+            activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "success");
             return claimed;
         }
 

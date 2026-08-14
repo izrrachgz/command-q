@@ -16,7 +16,7 @@ namespace Api.Modules.Identity
     public sealed class AccountController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
         [Authorize, HttpPost("create")]
-        [EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
+        [EnableRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Create(CancellationToken cancellationToken = default)
         {
             if (!User.TryGetIdentityKey(out var issuer, out var subject))

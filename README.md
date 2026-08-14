@@ -403,6 +403,30 @@ accepted as a publishing alias for existing local configuration.
 IdentityServer does not run a background publisher; its readiness check validates
 its EF database. Email.Worker readiness validates email outbox persistence.
 
+## OpenTelemetry
+
+OpenTelemetry is disabled by default and is configured independently by the API
+and email worker hosts. Enable it with `Api:OpenTelemetry:Enabled` or
+`EmailWorker:OpenTelemetry:Enabled`, then provide the host service name and an
+OTLP endpoint under the same section. The hosts own SDK registration and
+exporters; reusable libraries only define their local `ActivitySource` and
+`Meter` instrumentation.
+
+The API subscribes to HTTP server and email-outbox instrumentation. The worker
+subscribes to HTTP server, SMTP, email-outbox and polling instrumentation. The
+telemetry uses only low-cardinality profile, engine, failure-category and
+outcome tags. Recipients, subjects, bodies, tokens, correlation IDs and outbox
+IDs are never emitted as tags.
+
+The current instrumentation measures email SMTP connection, authentication,
+MIME construction, send and disconnect operations; outbox enqueue, duplicate
+enqueue, serialize, claim, process, retry, dead-letter, batch size and queue
+age; and worker poll and batch activity. Named SMTP profiles are low-cardinality
+telemetry tags and outbox records persist only the logical profile name. The
+outbox also persists W3C trace-parent and trace-state values when an enqueue
+activity has a W3C context; the worker uses those contexts as links on the
+profile processing activity without exposing them as metric tags.
+
 ## Email Delivery
 
 The standalone `Email` project provides reusable MailKit/MimeKit SMTP delivery.
@@ -412,6 +436,15 @@ file-path and in-memory attachments, CID resources, verbatim rendered HTML
 templates, and batch delivery over one connection and authentication session.
 SMTP authentication can be selected as anonymous, LOGIN, PLAIN or
 caller-supplied OAuth 2.0 bearer authentication.
+
+Email supports named SMTP profiles. Each profile owns its endpoint,
+authentication, sender validation and delivery limits. The outbox stores only
+the selected logical profile, groups delivery by profile and opens one SMTP
+connection per group. The durable `default` marker resolves to the worker's
+configured `Email:DefaultProfile`; a profile removed from configuration is
+dead-lettered as a permanent configuration failure. Application notifications
+allow the default marker by default; sensitive named profiles require an
+explicit application-provided `IEmailProfileSelectionPolicy`.
 
 The project is intentionally not referenced by API or IdentityServer. Immediate
 delivery consumers can register `services.AddEmailServices(configuration)`.

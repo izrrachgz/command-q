@@ -30,7 +30,7 @@ namespace Api.Modules.Files
         /// Uploads a file to the server.
         /// </summary>
         [HttpPost(@"upload"), Consumes(ContentTypes.MultipartFormData)]
-        [EnableRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName)]
+        [EnableRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Upload([FromForm] IFormFile file, CancellationToken cancellationToken)
         {
             if (file is null || file.Length == 0)

@@ -13,6 +13,7 @@ using Email.Outbox.Persistence.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.ConfigureLogging();
+builder.AddEmailWorkerOpenTelemetry();
 
 IConfigurationSection workerConfiguration = builder.Configuration.GetRequiredSection(EmailWorkerConstants.ConfigurationSection);
 IConfigurationSection outboxConfiguration = workerConfiguration.GetRequiredSection(EmailWorkerConstants.OutboxSection);

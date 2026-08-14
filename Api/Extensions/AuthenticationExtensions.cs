@@ -12,7 +12,7 @@ namespace Api.Extensions
         public static void AddResourceServerAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions<BearerAuthenticationOptions>()
-                .Bind(configuration.GetRequiredSection(ConfigKeys.Authentication.Section))
+                .Bind(configuration.GetRequiredSection(ApiConfigKeys.Authentication.Section))
                 .Validate(options =>
                     Uri.TryCreate(options.Authority, UriKind.Absolute, out var authority) &&
                     string.Equals(authority.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase),
@@ -23,7 +23,7 @@ namespace Api.Extensions
                 .ValidateOnStart();
 
             var settings = configuration
-                .GetRequiredSection(ConfigKeys.Authentication.Section)
+                .GetRequiredSection(ApiConfigKeys.Authentication.Section)
                 .Get<BearerAuthenticationOptions>()
                 ?? throw new InvalidOperationException("Authentication configuration is required.");
 

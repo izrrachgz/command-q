@@ -15,6 +15,7 @@ services.AddEmailOutboxProducer(configuration.GetRequiredSection("Api:EmailOutbo
 var result = await emailOutbox.EnqueueAsync(new EmailOutboxRequest
 {
     Message = preparedMessage,
+    ProfileName = "Transactional",
     IdempotencyKey = $"order-confirmation:{orderId}",
     AccountReference = accountId.ToString(),
     CorrelationId = correlationId
@@ -23,6 +24,14 @@ var result = await emailOutbox.EnqueueAsync(new EmailOutboxRequest
 
 `EmailOutboxEnqueueResult` returns the durable record ID and indicates whether
 the idempotency key resolved to an existing record.
+
+Enqueue instrumentation distinguishes newly persisted messages from duplicate
+idempotency hits. Duplicate attempts increment `email.outbox.duplicates`, while
+only newly persisted messages increment `email.outbox.enqueued`.
+
+`ProfileName` stores only a logical SMTP profile name. It never stores SMTP
+credentials. Omitting it stores the durable `default` marker, which the worker
+resolves to its configured `Email:DefaultProfile`.
 
 Within CommandQ, application use cases should normally use
 `QueueEmailCommand` or `IApplicationEmailService` from
@@ -41,9 +50,9 @@ names.
 
 ## Delivery Semantics
 
-`IEmailOutboxProcessor` claims a leased batch and sends all valid messages
-through the collection overload of `IEmailSender`. This opens one SMTP
-connection and authenticates once per claimed batch.
+`IEmailOutboxProcessor` claims a leased batch, groups valid messages by logical
+profile, and sends each group through one profile-bound sender. This opens one
+SMTP connection and authenticates once per profile group.
 
 Consumer hosts such as `Email.Worker` pass their owned outbox section to
 `AddEmailOutbox(section)`, which combines producer registration with
@@ -58,11 +67,17 @@ The workflow provides:
 - permanent-failure and exhausted-attempt dead-letter states
 - partial SMTP batch handling using `EmailDeliveryException.SentMessages`
 - release of messages that were claimed but not attempted after a batch failure
+- dead-lettering of messages that reference a profile deleted from worker configuration
 
 Delivery is at least once. SMTP acceptance and the database status update cannot
 share a transaction, so process termination after SMTP acceptance can cause a
 duplicate delivery. Use stable business idempotency keys and make message
 content tolerant of rare duplicates.
+
+When enqueueing under a W3C `Activity`, the outbox stores its trace-parent and
+trace-state alongside the message. The worker creates a local profile-processing
+activity and adds the stored contexts as trace links. Trace context is used for
+diagnostic continuity only and is never emitted as a metric tag.
 
 The outbox stores complete message bodies and attachment bytes. Protect the
 database with appropriate file permissions, encrypted storage or database

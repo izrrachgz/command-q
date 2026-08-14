@@ -10,5 +10,7 @@ namespace Email.Outbox.Constants
         public const long DefaultMaxPayloadBytes = 64 * 1024 * 1024;
         public const int MaxIdempotencyKeyLength = 256;
         public const int MaxReferenceLength = 128;
+        public const int MaxProfileNameLength = 64;
+        public const string DefaultProfileName = "default";
     }
 }

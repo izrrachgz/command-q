@@ -1,8 +1,8 @@
-using Api.Configuration;
 using Api.Constants;
+using Api.Configuration;
+using Microsoft.Extensions.Options;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.Options;
 
 namespace Api.Extensions
 {
@@ -30,7 +30,7 @@ namespace Api.Extensions
         public static void AddFixedWindowRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddPolicy(ConfigKeys.RateLimiting.FixedPolicyName, context =>
+                configureOptions.AddPolicy(ApiConfigKeys.RateLimiting.FixedPolicyName, context =>
                 {
                     var rateOptions = context.RequestServices
                         .GetRequiredService<IOptionsMonitor<FixedRateLimitingOptions>>().CurrentValue;
@@ -61,7 +61,7 @@ namespace Api.Extensions
         public static void AddSlidingWindowRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddPolicy(ConfigKeys.RateLimiting.SlidingPolicyName, context =>
+                configureOptions.AddPolicy(ApiConfigKeys.RateLimiting.SlidingPolicyName, context =>
                 {
                     var rateOptions = context.RequestServices
                         .GetRequiredService<IOptionsMonitor<SlidingRateLimitingOptions>>().CurrentValue;
@@ -92,7 +92,7 @@ namespace Api.Extensions
         public static void AddTokenBucketRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddPolicy(ConfigKeys.RateLimiting.TokenBucketPolicyName, context =>
+                configureOptions.AddPolicy(ApiConfigKeys.RateLimiting.TokenBucketPolicyName, context =>
                 {
                     var rateOptions = context.RequestServices
                         .GetRequiredService<IOptionsMonitor<TokenBucketRateLimitingOptions>>().CurrentValue;
@@ -125,7 +125,7 @@ namespace Api.Extensions
         public static void AddConcurrencyRateLimit(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddRateLimiter((RateLimiterOptions configureOptions) =>
-                configureOptions.AddPolicy(ConfigKeys.RateLimiting.ConcurrencyPolicyName, context =>
+                configureOptions.AddPolicy(ApiConfigKeys.RateLimiting.ConcurrencyPolicyName, context =>
                 {
                     var rateOptions = context.RequestServices
                         .GetRequiredService<IOptionsMonitor<ConcurrencyRateLimitingOptions>>().CurrentValue;

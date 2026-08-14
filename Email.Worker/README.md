@@ -39,10 +39,26 @@ All custom settings owned by this executable live below `EmailWorker`:
 - `EmailWorker:EmailOutbox` configures queue behavior and persistence.
 - `EmailWorker:Worker` configures polling and leases.
 - `EmailWorker:Migrations` controls this host's startup policy.
+- `EmailWorker:OpenTelemetry` controls optional OTLP tracing and metrics export.
+
+OpenTelemetry is disabled by default. When enabled, configure
+`EmailWorker:OpenTelemetry:ServiceName` and
+`EmailWorker:OpenTelemetry:Otlp:Endpoint`. The worker subscribes to its own
+polling instrumentation and the `Email`, `Email.Outbox` and persistence
+instrumentation sources. Recipients, subjects, bodies, tokens, correlation
+IDs and outbox IDs are never emitted as telemetry tags.
 
 The worker passes those exact subsections to the reusable libraries. The
 persistence adapter therefore knows how to migrate, but does not decide when a
 host should run migrations.
+
+`EmailWorker:Email:DefaultProfile` selects the default profile and
+`EmailWorker:Email:Profiles` contains the named SMTP configurations. Claimed
+outbox messages are grouped by their logical profile, so each profile group
+uses one SMTP connection. A message referencing a deleted profile is treated
+as a permanent profile configuration failure and is dead-lettered.
+Profile-specific sender and attachment limits are supported; profile-specific
+rate limiting remains a later extension.
 
 The OAuth SMTP option still expects a ready access token. Token acquisition and
 refresh remain the responsibility of the host's credential provider; the
@@ -56,11 +72,11 @@ Disabling the worker pauses polling without stopping the host; enabling it again
 resumes polling. An active batch keeps its original lease and completes with its
 current settings.
 
-The SMTP sender monitors `EmailWorker:Email`. Changes to the SMTP host, port,
-security mode, sender, delivery limits, authentication mode and supplied OAuth
-token are used by the next batch. Each batch creates and disposes its own SMTP
-transport, so an active connection is not changed underneath an in-progress
-delivery.
+The SMTP sender monitors `EmailWorker:Email`. Changes to a profile's SMTP host,
+port, security mode, sender, delivery limits, authentication mode and supplied
+OAuth token are used by the next profile batch. Each profile sender creates and
+disposes its own SMTP transport, so an active connection is not changed
+underneath an in-progress delivery.
 
 Configuration reload events log safe operational metadata only. Passwords,
 OAuth tokens and complete sender credentials are never written to logs.

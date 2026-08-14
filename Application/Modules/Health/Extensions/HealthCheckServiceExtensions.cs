@@ -1,3 +1,4 @@
+using Common.Extensions;
 using Application.Modules.Health.Checks;
 using Microsoft.Extensions.Configuration;
 using Application.Modules.Health.Publishers;
@@ -26,7 +27,7 @@ namespace Application.Modules.Health.Extensions
             services.AddOptions<HealthCheckConfigurationOptions>()
                 .Bind(healthCheckSection)
                 .Validate(options =>
-                    Uri.TryCreate(options.UrlCheckInternetAccess, UriKind.Absolute, out _),
+                    options.UrlCheckInternetAccess.IsAbsoluteUri(),
                     "HealthCheck:UrlCheckInternetAccess must be an absolute URI.")
                 .Validate(options => options.PublishIntervalSeconds > 0,
                     "HealthCheck:PublishIntervalSeconds must be greater than zero.")

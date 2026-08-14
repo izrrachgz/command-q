@@ -12,14 +12,24 @@ namespace Application.Modules.Notifications.Services
     internal sealed class ApplicationEmailService(
         IEmailOutbox emailOutbox,
         IValidator<ApplicationEmailRequest> validator,
-        ILogger<ApplicationEmailService> logger)
+        ILogger<ApplicationEmailService> logger,
+        IEmailProfileSelectionPolicy profileSelectionPolicy)
         : IApplicationEmailService
     {
+        public ApplicationEmailService(
+            IEmailOutbox emailOutbox,
+            IValidator<ApplicationEmailRequest> validator,
+            ILogger<ApplicationEmailService> logger)
+            : this(emailOutbox, validator, logger, new DefaultEmailProfileSelectionPolicy())
+        {
+        }
+
         public async Task<QueuedEmailResult> QueueAsync(ApplicationEmailRequest request, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(request);
 
             await validator.ValidateAndThrowAsync(request, cancellationToken);
+            profileSelectionPolicy.Validate(request.ProfileName);
 
             try
             {
@@ -28,6 +38,7 @@ namespace Application.Modules.Notifications.Services
                     new EmailOutboxRequest
                     {
                         Message = request.Message,
+                        ProfileName = request.ProfileName,
                         IdempotencyKey = metadata.IdempotencyKey,
                         AccountReference = metadata.AccountReference,
                         CorrelationId = metadata.CorrelationId

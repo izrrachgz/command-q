@@ -1,3 +1,4 @@
+using Email.Abstractions;
 using Email.Outbox.Services;
 using Email.Outbox.Constants;
 using Email.Outbox.Abstractions;
@@ -55,6 +56,8 @@ namespace Email.Outbox.Extensions
         {
             ArgumentNullException.ThrowIfNull(services);
 
+            services.TryAddSingleton<IEmailSenderFactory>(serviceProvider =>
+                new FixedEmailSenderFactory(serviceProvider.GetRequiredService<IEmailSender>()));
             services.TryAddSingleton<IEmailOutboxProcessor, EmailOutboxProcessor>();
 
             return services;

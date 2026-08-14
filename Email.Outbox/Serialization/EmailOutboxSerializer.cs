@@ -1,6 +1,8 @@
 using System.Text;
 using Email.Models;
 using System.Text.Json;
+using System.Diagnostics;
+using Email.Outbox.Telemetry;
 using Email.Outbox.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -14,6 +16,7 @@ namespace Email.Outbox.Serialization
         public async Task<string> SerializeAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(message);
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.serialize");
 
             var attachments = new List<EmailContentSnapshot>(message.Attachments.Count);
             foreach (var attachment in message.Attachments)
@@ -54,9 +57,11 @@ namespace Email.Outbox.Serialization
             if (payloadBytes > _options.MaxPayloadBytes)
             {
                 throw new InvalidOperationException(
-                    $"The serialized email outbox payload is {payloadBytes} bytes and exceeds the configured limit of {_options.MaxPayloadBytes} bytes.");
+                    $"The serialized email outbox payload is {payloadBytes} bytes and exceeds the configured limit " +
+                    $"of {_options.MaxPayloadBytes} bytes.");
             }
 
+            activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "success");
             return payload;
         }
 

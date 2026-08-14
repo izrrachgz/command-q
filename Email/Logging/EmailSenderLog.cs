@@ -30,7 +30,7 @@ namespace Email.Logging
         [LoggerMessage(EventId = EmailEventIds.DisconnectFailed, Level = LogLevel.Warning, Message = "The SMTP session could not disconnect gracefully and will be disposed.")]
         public static partial void DisconnectFailed(this ILogger logger, Exception exception);
 
-        [LoggerMessage(EventId = EmailEventIds.ConfigurationReloaded, Level = LogLevel.Information, Message = "Email delivery configuration reloaded. Host: {SmtpHost}. Port: {SmtpPort}. Authentication: {AuthenticationType}. Enabled: {Enabled}. Sender configured: {SenderConfigured}.")]
-        public static partial void ConfigurationReloaded(this ILogger logger, string smtpHost, int smtpPort, EmailAuthenticationType authenticationType, bool enabled, bool senderConfigured);
+        [LoggerMessage(EventId = EmailEventIds.ConfigurationReloaded, Level = LogLevel.Information, Message = "Email delivery profile {ProfileName} configuration reloaded. Host: {SmtpHost}. Port: {SmtpPort}. Authentication: {AuthenticationType}. Enabled: {Enabled}. Sender configured: {SenderConfigured}.")]
+        public static partial void ConfigurationReloaded(this ILogger logger, string profileName, string smtpHost, int smtpPort, EmailAuthenticationType authenticationType, bool enabled, bool senderConfigured);
     }
 }

@@ -1,4 +1,4 @@
-using MimeKit;
+using Email.Constants;
 using Microsoft.Extensions.Options;
 
 namespace Email.Configuration
@@ -13,128 +13,60 @@ namespace Email.Configuration
             }
 
             var errors = new List<string>();
+            string defaultProfile = options.DefaultProfile.Trim();
 
-            if (string.IsNullOrWhiteSpace(options.Smtp.Host))
+            if (string.IsNullOrWhiteSpace(options.DefaultProfile))
             {
-                errors.Add("Email:Smtp:Host is required.");
+                errors.Add("Email:DefaultProfile is required.");
+            }
+            else if (!string.Equals(options.DefaultProfile, defaultProfile, StringComparison.Ordinal))
+            {
+                errors.Add("Email:DefaultProfile cannot start or end with whitespace.");
+            }
+            else if (defaultProfile.Length > EmailConstants.MaxProfileNameLength)
+            {
+                errors.Add($"Email:DefaultProfile cannot exceed {EmailConstants.MaxProfileNameLength} characters.");
             }
 
-            if (options.Smtp.Port is < 1 or > 65535)
+            if (options.Profiles.Count == 0)
             {
-                errors.Add("Email:Smtp:Port must be between 1 and 65535.");
-            }
-
-            if (!Enum.IsDefined(options.Smtp.Security))
-            {
-                errors.Add("Email:Smtp:Security is invalid.");
-            }
-
-            if (options.Smtp.TimeoutMilliseconds <= 0)
-            {
-                errors.Add("Email:Smtp:TimeoutMilliseconds must be greater than zero.");
-            }
-
-            if (!Enum.IsDefined(options.Authentication.Type))
-            {
-                errors.Add("Email:Authentication:Type is invalid.");
+                EmailProfileOptionsValidator.Validate(options, "Email", errors);
             }
             else
             {
-                ValidateAuthentication(options.Authentication, errors);
-
-                if (options.Authentication.Type != EmailAuthenticationType.Anonymous &&
-                    options.Smtp.Security is not EmailSecurityMode.StartTls and not EmailSecurityMode.SslOnConnect)
+                if (!options.Profiles.Keys.Any(profileName =>
+                    string.Equals(profileName, defaultProfile, StringComparison.OrdinalIgnoreCase)))
                 {
-                    errors.Add("Authenticated SMTP delivery requires Email:Smtp:Security to be StartTls or SslOnConnect.");
+                    errors.Add($"Email:Profiles must contain the configured default profile '{defaultProfile}'.");
+                }
+
+                foreach ((string profileName, EmailProfileOptions profile) in options.Profiles)
+                {
+                    if (string.IsNullOrWhiteSpace(profileName))
+                    {
+                        errors.Add("Email:Profiles cannot contain an empty profile name.");
+                        continue;
+                    }
+
+                    if (!string.Equals(profileName, profileName.Trim(), StringComparison.Ordinal))
+                    {
+                        errors.Add($"Email:Profiles:{profileName} cannot start or end with whitespace.");
+                        continue;
+                    }
+
+                    if (profileName.Length > EmailConstants.MaxProfileNameLength)
+                    {
+                        errors.Add($"Email:Profiles:{profileName} cannot exceed {EmailConstants.MaxProfileNameLength} characters.");
+                        continue;
+                    }
+
+                    EmailProfileOptionsValidator.Validate(profile, $"Email:Profiles:{profileName}", errors);
                 }
             }
-
-            if (!MailboxAddress.TryParse(options.Sender.Address, out _))
-            {
-                errors.Add("Email:Sender:Address must be a valid mailbox address.");
-            }
-
-            ValidateDeliveryPolicy(options.DeliveryPolicy, errors);
 
             return errors.Count == 0
                 ? ValidateOptionsResult.Success
                 : ValidateOptionsResult.Fail(errors);
-        }
-
-        private static void ValidateDeliveryPolicy(EmailDeliveryPolicyOptions policy, ICollection<string> errors)
-        {
-            if (policy.MaxRecipients <= 0)
-            {
-                errors.Add("Email:DeliveryPolicy:MaxRecipients must be greater than zero.");
-            }
-
-            if (policy.MaxAttachmentCount < 0)
-            {
-                errors.Add("Email:DeliveryPolicy:MaxAttachmentCount cannot be negative.");
-            }
-
-            if (policy.MaxAttachmentBytes <= 0)
-            {
-                errors.Add("Email:DeliveryPolicy:MaxAttachmentBytes must be greater than zero.");
-            }
-
-            if (policy.MaxTotalAttachmentBytes <= 0)
-            {
-                errors.Add("Email:DeliveryPolicy:MaxTotalAttachmentBytes must be greater than zero.");
-            }
-
-            if (policy.MaxTotalAttachmentBytes < policy.MaxAttachmentBytes)
-            {
-                errors.Add("Email:DeliveryPolicy:MaxTotalAttachmentBytes cannot be less than MaxAttachmentBytes.");
-            }
-
-            if (policy.AllowedSenderDomains is null || policy.AllowedSenderDomains.Any(string.IsNullOrWhiteSpace))
-            {
-                errors.Add("Email:DeliveryPolicy:AllowedSenderDomains cannot contain empty values.");
-            }
-        }
-
-        private static void ValidateAuthentication(EmailAuthenticationOptions authentication, ICollection<string> errors)
-        {
-            switch (authentication.Type)
-            {
-                case EmailAuthenticationType.Anonymous:
-                    return;
-                case EmailAuthenticationType.Login:
-                    ValidateCredentials(authentication.Login, "Login", errors);
-                    return;
-                case EmailAuthenticationType.Plain:
-                    ValidateCredentials(authentication.Plain, "Plain", errors);
-                    return;
-                case EmailAuthenticationType.OAuth:
-                    if (string.IsNullOrWhiteSpace(authentication.OAuth.Username))
-                    {
-                        errors.Add("Email:Authentication:OAuth:Username is required for OAuth authentication.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(authentication.OAuth.AccessToken))
-                    {
-                        errors.Add("Email:Authentication:OAuth:AccessToken is required for OAuth authentication.");
-                    }
-
-                    return;
-            }
-        }
-
-        private static void ValidateCredentials(
-            EmailUsernamePasswordOptions credentials,
-            string authenticationType,
-            ICollection<string> errors)
-        {
-            if (string.IsNullOrWhiteSpace(credentials.Username))
-            {
-                errors.Add($"Email:Authentication:{authenticationType}:Username is required for {authenticationType} authentication.");
-            }
-
-            if (string.IsNullOrWhiteSpace(credentials.Password))
-            {
-                errors.Add($"Email:Authentication:{authenticationType}:Password is required for {authenticationType} authentication.");
-            }
         }
     }
 }

@@ -8,6 +8,7 @@ namespace Email.Worker.Constants
         public const string PersistenceSection = "Persistence";
         public const string WorkerSection = "Worker";
         public const string MigrationsSection = "Migrations";
+        public const string OpenTelemetrySection = "OpenTelemetry";
         public const string StartupLoggerCategory = "Email.Worker.Startup";
         public const int DefaultBatchSize = 10;
         public const int DefaultPollIntervalSeconds = 5;

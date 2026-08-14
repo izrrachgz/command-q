@@ -6,6 +6,7 @@ using Api.Middleware;
 using Api.Abstractions;
 using Api.Enumerations;
 using Common.Constants;
+using Common.Extensions;
 using Api.Configuration;
 using Api.Modules.Health;
 using Common.Enumerations;
@@ -34,10 +35,11 @@ namespace Api.Extensions
         /// injection container.</param>
         public static void ConfigureServices(this IHostApplicationBuilder builder)
         {
-            IConfigurationSection apiConfiguration = builder.Configuration.GetRequiredSection(ConfigKeys.Section);
+            IConfigurationSection apiConfiguration = builder.Configuration.GetRequiredSection(ApiConfigKeys.Section);
 
             // Add controllers
             builder.Services.AddControllers();
+            builder.AddApiOpenTelemetry();
 
             // Endpoints explorer (Swagger generation kept commented as original)
             builder.Services.AddEndpointsApiExplorer();
@@ -75,15 +77,15 @@ namespace Api.Extensions
 
             // Add durable notification queue services. The worker owns delivery and schema migration.
             IConfigurationSection outboxConfiguration = apiConfiguration
-                .GetRequiredSection(ConfigKeys.EmailOutbox.Section);
+                .GetRequiredSection(ApiConfigKeys.EmailOutbox.Section);
             builder.Services.AddEmailOutboxProducer(outboxConfiguration);
             builder.Services.AddEmailOutboxPersistence(
-                outboxConfiguration.GetRequiredSection(ConfigKeys.EmailOutbox.PersistenceSection));
+                outboxConfiguration.GetRequiredSection(ApiConfigKeys.EmailOutbox.PersistenceSection));
 
             // Add application-owned database migrations
             builder.Services.AddApplicationMigrations();
 
-            var clientsSection = apiConfiguration.GetSection(ConfigKeys.Api.Clients);
+            var clientsSection = apiConfiguration.GetSection(ApiConfigKeys.Api.Clients);
 
             //Register api clients
             builder.Services.AddOptions<List<ApiClientOptions>>()
@@ -92,7 +94,7 @@ namespace Api.Extensions
                 .Validate(clients => clients.All(client =>
                     !string.IsNullOrWhiteSpace(client.Name) &&
                     !string.IsNullOrWhiteSpace(client.Id) &&
-                    Uri.TryCreate(client.Uri, UriKind.Absolute, out _)),
+                    client.Uri.IsAbsoluteUri()),
                     "Every API client requires a name, id and absolute URI.")
                 .ValidateOnStart();
 
@@ -105,7 +107,7 @@ namespace Api.Extensions
                     {
                         var allowedOrigins = (clientsSection.Get<List<ApiClientOptions>>() ?? [])
                             .Select(client => client.Uri.Trim().TrimEnd('/'))
-                            .Where(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
+                            .Where(uri => uri.IsAbsoluteUri())
                             .Distinct(StringComparer.OrdinalIgnoreCase)
                             .ToArray();
 
@@ -161,7 +163,7 @@ namespace Api.Extensions
             // Configure localization
             app.UseRequestLocalization(options =>
             {
-                var localization = configuration.GetSection(ConfigKeys.Localization.Section)
+                var localization = configuration.GetSection(ApiConfigKeys.Localization.Section)
                     .Get<LocalizationOptions>() ?? new LocalizationOptions();
                 string[] supportedCultures = localization.SupportedCultures;
                 string defaultCulture = localization.DefaultCulture;
@@ -225,82 +227,92 @@ namespace Api.Extensions
 
             logger.StartupSetting(
                 "Localization Default Culture",
-                configuration.GetSection(ConfigKeys.Localization.Section)
+                configuration.GetSection(ApiConfigKeys.Localization.Section)
                     .GetValue<string>(nameof(LocalizationOptions.DefaultCulture)) ?? "en-US");
 
             var authentication = configuration
-                .GetSection(ConfigKeys.Authentication.Section)
+                .GetSection(ApiConfigKeys.Authentication.Section)
                 .Get<BearerAuthenticationOptions>()!;
 
             logger.StartupSetting("Authentication Authority", authentication.Authority);
             logger.StartupSetting("Authentication Audience", authentication.Audience);
             logger.StartupSetting("Authentication API Scope", authentication.ApiScope);
 
-            RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ConfigKeys.RateLimiting.Type);
+            RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ApiConfigKeys.RateLimiting.Type);
             logger.StartupSetting("Rate Limiting", rateLimiting);
 
-            DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(ConfigKeys.Database.Engine);
+            DatabaseEngine? databaseEngine = configuration.GetValue<DatabaseEngine?>(ApiConfigKeys.Database.Engine);
             logger.StartupSetting("Database Engine", databaseEngine);
 
             logger.StartupSetting(
                 "Application Migrations On Startup",
-                environment.IsDevelopment() || configuration.GetValue(ConfigKeys.Migrations.RunOnStartup, false));
+                environment.IsDevelopment() || configuration.GetValue(ApiConfigKeys.Migrations.RunOnStartup, false));
 
-            DatabaseEngine? outboxEngine = configuration.GetValue<DatabaseEngine?>(ConfigKeys.EmailOutbox.Engine);
+            DatabaseEngine? outboxEngine = configuration.GetValue<DatabaseEngine?>(ApiConfigKeys.EmailOutbox.Engine);
             logger.StartupSetting("Email Outbox Engine", outboxEngine);
             logger.StartupSetting("Email Outbox Migrator", "EmailWorker");
 
             var healthCheck = configuration
-                .GetSection(ConfigKeys.HealthCheck.Section)
+                .GetSection(ApiConfigKeys.HealthCheck.Section)
                 .Get<HealthCheckConfigurationOptions>() ?? new HealthCheckConfigurationOptions();
             logger.StartupSetting("Health Check URL", healthCheck.UrlCheckInternetAccess);
             logger.StartupSetting("Health Check Run On Startup", healthCheck.RunOnStartup);
             logger.StartupSetting("Health Check Fail Startup On Unhealthy", healthCheck.FailStartupOnUnhealthy);
             logger.StartupSetting("Health Check Publish Reports", healthCheck.ShouldPublishReports);
 
-            int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ConfigKeys.Cache.MaxAgeSeconds);
+            int? cacheMaxAgeSeconds = configuration.GetValue<int?>(ApiConfigKeys.Cache.MaxAgeSeconds);
             logger.StartupSetting("Cache Max Age (seconds)", cacheMaxAgeSeconds);
         }
 
         private static void ValidateApplicationConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
+            RateLimiting rateLimiting = configuration.GetValue(
+                ApiConfigKeys.RateLimiting.Type,
+                RateLimiting.None);
+
+            if (!Enum.IsDefined(rateLimiting))
+            {
+                throw new InvalidOperationException(
+                    "Api:RateLimiting:Type must be a supported rate limiting strategy.");
+            }
+
             services.AddOptions<FixedRateLimitingOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.FixedOptions))
+                .Bind(configuration.GetSection(ApiConfigKeys.RateLimiting.FixedOptions))
                 .Validate(IsValidRateLimit, "FixedWindow rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
                 .ValidateOnStart();
 
             services.AddOptions<SlidingRateLimitingOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.SlidingOptions))
+                .Bind(configuration.GetSection(ApiConfigKeys.RateLimiting.SlidingOptions))
                 .Validate(options => IsValidRateLimit(options) && options.SegmentsPerWindow > 0, "Sliding rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
                 .ValidateOnStart();
 
             services.AddOptions<TokenBucketRateLimitingOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.TokenBucketOptions))
+                .Bind(configuration.GetSection(ApiConfigKeys.RateLimiting.TokenBucketOptions))
                 .Validate(options => IsValidRateLimit(options) && options.TokenLimit > 0 && options.TokensPerPeriod > 0, "TokenBucket rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
                 .ValidateOnStart();
 
             services.AddOptions<ConcurrencyRateLimitingOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.RateLimiting.ConcurrencyOptions))
+                .Bind(configuration.GetSection(ApiConfigKeys.RateLimiting.ConcurrencyOptions))
                 .Validate(options => options.PermitLimit > 0 && options.QueueLimit >= 0, "Concurrency rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
                 .ValidateOnStart();
 
             services.AddOptions<CacheOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.Cache.Section))
+                .Bind(configuration.GetSection(ApiConfigKeys.Cache.Section))
                 .Validate(options => options.MaxAgeSeconds >= 0, "Api:CacheSettings:MaxAgeSeconds cannot be negative.")
                 .ValidateOnStart();
 
             services.AddOptions<FeatureFlagOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.Features.Section));
+                .Bind(configuration.GetSection(ApiConfigKeys.Features.Section));
 
             services.AddOptions<ExternalApiClientsOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.Api.ExternalClients))
+                .Bind(configuration.GetSection(ApiConfigKeys.Api.ExternalClients))
                 .Validate(options => options.Clients.Values.All(client =>
-                    Uri.TryCreate(client.BaseUrl, UriKind.Absolute, out _) && client.TimeoutSeconds > 0),
+                    client.BaseUrl.IsAbsoluteUri() && client.TimeoutSeconds > 0),
                     "Every external API client requires an absolute BaseUrl and a positive TimeoutSeconds.")
                 .ValidateOnStart();
 
             services.AddOptions<DatabaseOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.Database.Section))
+                .Bind(configuration.GetSection(ApiConfigKeys.Database.Section))
                 .Validate(options => Enum.IsDefined(options.Engine), "Api:ConnectionStrings:Engine must be a supported database engine.")
                 .Validate(options => !string.IsNullOrWhiteSpace(options.Db), "Api:ConnectionStrings:Db is required.")
                 .ValidateOnStart();

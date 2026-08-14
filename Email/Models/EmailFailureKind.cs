@@ -11,6 +11,7 @@ namespace Email.Models
         TransientSmtp = 3,
         PermanentSmtp = 4,
         Protocol = 5,
-        Unknown = 6
+        Unknown = 6,
+        ProfileNotFound = 7
     }
 }

@@ -54,6 +54,89 @@ namespace Email.Test.Configuration
         }
 
         [Fact]
+        public void Validate_Should_Accept_Complete_Named_Profiles()
+        {
+            var validator = new EmailOptionsValidator();
+            var profile = new EmailProfileOptions
+            {
+                Smtp = new EmailSmtpOptions
+                {
+                    Host = "smtp.example.test",
+                    Port = 587,
+                    Security = EmailSecurityMode.StartTls
+                },
+                Sender = new EmailSenderOptions { Address = "sender@example.test" }
+            };
+            var options = new EmailOptions
+            {
+                Enabled = true,
+                DefaultProfile = "Transactional",
+                Profiles = new Dictionary<string, EmailProfileOptions>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Transactional"] = profile
+                }
+            };
+
+            var result = validator.Validate(null, options);
+
+            Assert.True(result.Succeeded);
+        }
+
+        [Fact]
+        public void ResolveProfile_Should_Map_Durable_Default_Marker_To_Configured_Default()
+        {
+            var options = new EmailOptions
+            {
+                DefaultProfile = "Transactional",
+                Profiles = new Dictionary<string, EmailProfileOptions>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Transactional"] = new EmailProfileOptions()
+                }
+            };
+
+            (string name, EmailProfileOptions _) = options.ResolveProfile("default");
+
+            Assert.Equal("Transactional", name);
+        }
+
+        [Fact]
+        public void ResolveProfile_Should_Return_Configured_Canonical_Name()
+        {
+            var options = new EmailOptions
+            {
+                DefaultProfile = "Transactional",
+                Profiles = new Dictionary<string, EmailProfileOptions>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Transactional"] = new EmailProfileOptions()
+                }
+            };
+
+            (string name, EmailProfileOptions _) = options.ResolveProfile("transactional");
+
+            Assert.Equal("Transactional", name);
+        }
+
+        [Fact]
+        public void Validate_Should_Reject_Profile_Name_Whitespace()
+        {
+            var validator = new EmailOptionsValidator();
+            var options = new EmailOptions
+            {
+                Enabled = true,
+                DefaultProfile = " Transactional ",
+                Profiles = new Dictionary<string, EmailProfileOptions>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Transactional"] = new EmailProfileOptions { Enabled = false }
+                }
+            };
+
+            var result = validator.Validate(null, options);
+
+            Assert.True(result.Failed);
+            Assert.Contains(result.Failures, failure => failure.Contains("whitespace", StringComparison.Ordinal));
+        }
+
+        [Fact]
         public void Validate_Should_Require_Access_Token_For_OAuth()
         {
             var validator = new EmailOptionsValidator();
@@ -77,6 +160,21 @@ namespace Email.Test.Configuration
 
             Assert.True(result.Failed);
             Assert.Contains(result.Failures, failure => failure.Contains("requires", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void Validate_Should_Reject_Undeclared_Enum_Configuration_Values()
+        {
+            var validator = new EmailOptionsValidator();
+            var options = CreateOptions(EmailAuthenticationType.Anonymous);
+            options.Smtp.Security = (EmailSecurityMode)99;
+            options.Authentication.Type = (EmailAuthenticationType)99;
+
+            var result = validator.Validate(null, options);
+
+            Assert.True(result.Failed);
+            Assert.Contains(result.Failures, failure => failure.Contains("Smtp:Security", StringComparison.Ordinal));
+            Assert.Contains(result.Failures, failure => failure.Contains("Authentication:Type", StringComparison.Ordinal));
         }
 
         private static EmailOptions CreateOptions(EmailAuthenticationType authenticationType)

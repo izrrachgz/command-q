@@ -1,6 +1,10 @@
+using MimeKit;
 using Email.Models;
 using Email.Logging;
+using Email.Constants;
+using Email.Telemetry;
 using Email.Exceptions;
+using System.Diagnostics;
 using Email.Abstractions;
 using Email.Configuration;
 using Microsoft.Extensions.Logging;
@@ -10,6 +14,7 @@ namespace Email.Services
 {
     internal sealed class MailKitEmailSender : IEmailSender, IDisposable
     {
+        private readonly string _profileName;
         private readonly IOptionsMonitor<EmailOptions> _options;
         private readonly ILogger<MailKitEmailSender> _logger;
         private readonly MimeMessageFactory _messageFactory;
@@ -23,7 +28,25 @@ namespace Email.Services
             MimeMessageFactory messageFactory,
             EmailMessageValidator messageValidator,
             ILogger<MailKitEmailSender> logger)
+            : this(
+                EmailConstants.DefaultProfileName,
+                options,
+                transportFactory,
+                messageFactory,
+                messageValidator,
+                logger)
         {
+        }
+
+        public MailKitEmailSender(
+            string profileName,
+            IOptionsMonitor<EmailOptions> options,
+            ISmtpTransportFactory transportFactory,
+            MimeMessageFactory messageFactory,
+            EmailMessageValidator messageValidator,
+            ILogger<MailKitEmailSender> logger)
+        {
+            _profileName = profileName;
             _options = options;
             _transportFactory = transportFactory;
             _messageFactory = messageFactory;
@@ -56,10 +79,20 @@ namespace Email.Services
                 return EmailBatchResult.Empty;
             }
 
-            EmailOptions options = _options.CurrentValue;
+            EmailOptions emailOptions = _options.CurrentValue;
+            (string profileName, EmailProfileOptions options) = emailOptions.ResolveProfile(_profileName);
+            var tags = new TagList { { EmailTelemetry.ProfileTag, profileName } };
+            long startedAt = Stopwatch.GetTimestamp();
+            using Activity? sendActivity = EmailTelemetry.ActivitySource.StartActivity("email.send");
+            sendActivity?.SetTag(EmailTelemetry.ProfileTag, profileName);
 
-            if (!options.Enabled)
+            if (!emailOptions.Enabled || !options.Enabled)
             {
+                sendActivity?.SetTag(EmailTelemetry.OutcomeTag, "disabled");
+                TagList failureTags = tags;
+                failureTags.Add(EmailTelemetry.FailureCategoryTag, EmailFailureKind.Disabled.ToString());
+                failureTags.Add(EmailTelemetry.OutcomeTag, "disabled");
+                EmailTelemetry.MessagesFailed.Add(batch.Count, failureTags);
                 throw EmailDeliveryException.Disabled(batch.Count);
             }
 
@@ -68,27 +101,54 @@ namespace Email.Services
                 _messageValidator.Validate(message, options.Sender, options.DeliveryPolicy);
             }
 
-            using var transport = _transportFactory.Create(options.Smtp);
             var sentMessages = new List<EmailSendResult>(batch.Count);
             string? currentMessageId = null;
+            using var transport = _transportFactory.Create(options.Smtp);
 
             try
             {
                 _logger.BatchStarting(options.Smtp.Host, options.Smtp.Port, batch.Count);
 
-                await transport.ConnectAsync(
-                    options.Smtp.Host,
-                    options.Smtp.Port,
-                    options.Smtp.Security,
-                    cancellationToken);
+                long connectStartedAt = Stopwatch.GetTimestamp();
+                using (Activity? activity = StartActivity("email.smtp.connect", profileName))
+                {
+                    try
+                    {
+                        await transport.ConnectAsync(
+                            options.Smtp.Host,
+                            options.Smtp.Port,
+                            options.Smtp.Security,
+                            cancellationToken);
+                        CompleteActivity(activity, "success");
+                    }
+                    catch (Exception exception)
+                    {
+                        CompleteActivity(activity, "failure", exception, EmailFailureClassifier.Classify(exception).ToString());
+                        throw;
+                    }
+                    finally
+                    {
+                        EmailTelemetry.SmtpConnectionDuration.Record(
+                            Stopwatch.GetElapsedTime(connectStartedAt).TotalSeconds,
+                            tags);
+                    }
+                }
 
                 _logger.SmtpConnected();
 
                 if (options.Authentication.Type != EmailAuthenticationType.Anonymous)
                 {
-                    await transport.AuthenticateAsync(
-                        options.Authentication,
-                        cancellationToken);
+                    using Activity? activity = StartActivity("email.smtp.authenticate", profileName);
+                    try
+                    {
+                        await transport.AuthenticateAsync(options.Authentication, cancellationToken);
+                        CompleteActivity(activity, "success");
+                    }
+                    catch (Exception exception)
+                    {
+                        CompleteActivity(activity, "failure", exception, EmailFailureClassifier.Classify(exception).ToString());
+                        throw;
+                    }
 
                     _logger.SmtpAuthenticated();
                 }
@@ -99,30 +159,64 @@ namespace Email.Services
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    using var message = _messageFactory.Create(source, options.Sender, cancellationToken);
-                    var messageId = message.MessageId ?? throw new InvalidOperationException(
-                        "The MIME message factory did not assign a message ID.");
-                    currentMessageId = messageId;
+                    MimeMessage message;
+                    using (Activity? activity = StartActivity("email.mime.build", profileName))
+                    {
+                        try
+                        {
+                            message = _messageFactory.Create(source, options.Sender, cancellationToken);
+                            CompleteActivity(activity, "success");
+                        }
+                        catch (Exception exception)
+                        {
+                            CompleteActivity(activity, "failure", exception, "mime");
+                            throw;
+                        }
+                    }
 
-                    var smtpResponse = await transport.SendAsync(message, cancellationToken);
-                    var result = new EmailSendResult(
-                        sentMessages.Count + 1,
-                        messageId,
-                        smtpResponse,
-                        DateTimeOffset.UtcNow);
+                    using (message)
+                    {
+                        var messageId = message.MessageId ?? throw new InvalidOperationException(
+                            "The MIME message factory did not assign a message ID.");
+                        currentMessageId = messageId;
 
-                    sentMessages.Add(result);
-                    _logger.MessageSent(sentMessages.Count, batch.Count);
-                    currentMessageId = null;
+                        string smtpResponse;
+                        using (Activity? activity = StartActivity("email.smtp.send", profileName))
+                        {
+                            try
+                            {
+                                smtpResponse = await transport.SendAsync(message, cancellationToken);
+                                CompleteActivity(activity, "success");
+                            }
+                            catch (Exception exception)
+                            {
+                                CompleteActivity(activity, "failure", exception, EmailFailureClassifier.Classify(exception).ToString());
+                                throw;
+                            }
+                        }
+
+                        var result = new EmailSendResult(
+                            sentMessages.Count + 1,
+                            messageId,
+                            smtpResponse,
+                            DateTimeOffset.UtcNow);
+
+                        sentMessages.Add(result);
+                        _logger.MessageSent(sentMessages.Count, batch.Count);
+                        currentMessageId = null;
+                    }
                 }
 
                 _logger.BatchCompleted(sentMessages.Count);
+                sendActivity?.SetTag(EmailTelemetry.OutcomeTag, "success");
+                EmailTelemetry.MessagesSent.Add(sentMessages.Count, tags);
 
                 return new EmailBatchResult(sentMessages.ToArray());
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 _logger.BatchCancelled(sentMessages.Count, batch.Count);
+                sendActivity?.SetTag(EmailTelemetry.OutcomeTag, "cancelled");
                 throw;
             }
             catch (Exception exception)
@@ -130,6 +224,14 @@ namespace Email.Services
                 var failureKind = EmailFailureClassifier.Classify(exception);
 
                 _logger.BatchFailed(exception, failureKind, sentMessages.Count, batch.Count);
+                sendActivity?.SetTag(EmailTelemetry.OutcomeTag, "failure");
+                sendActivity?.SetTag(EmailTelemetry.FailureCategoryTag, failureKind.ToString());
+                sendActivity?.SetStatus(ActivityStatusCode.Error, failureKind.ToString());
+                TagList failureTags = tags;
+                failureTags.Add(EmailTelemetry.FailureCategoryTag, failureKind.ToString());
+                failureTags.Add(EmailTelemetry.OutcomeTag, "failure");
+                EmailTelemetry.MessagesSent.Add(sentMessages.Count, tags);
+                EmailTelemetry.MessagesFailed.Add(batch.Count - sentMessages.Count, failureTags);
 
                 throw new EmailDeliveryException(
                     "Email delivery failed. Inspect the failure classification and inner exception for details.",
@@ -143,6 +245,7 @@ namespace Email.Services
             finally
             {
                 await DisconnectSafely(transport);
+                EmailTelemetry.SendDuration.Record(Stopwatch.GetElapsedTime(startedAt).TotalSeconds, tags);
             }
         }
 
@@ -287,7 +390,17 @@ namespace Email.Services
 
             try
             {
-                await transport.DisconnectAsync(quit: true, CancellationToken.None);
+                using Activity? activity = StartActivity("email.smtp.disconnect", _profileName);
+                try
+                {
+                    await transport.DisconnectAsync(quit: true, CancellationToken.None);
+                    CompleteActivity(activity, "success");
+                }
+                catch (Exception exception)
+                {
+                    CompleteActivity(activity, "failure", exception, EmailFailureClassifier.Classify(exception).ToString());
+                    throw;
+                }
             }
             catch (Exception exception)
             {
@@ -295,14 +408,54 @@ namespace Email.Services
             }
         }
 
+        private static Activity? StartActivity(string name, string profile)
+        {
+            var activity = EmailTelemetry.ActivitySource.StartActivity(name);
+            activity?.SetTag(EmailTelemetry.ProfileTag, profile);
+            return activity;
+        }
+
+        private static void CompleteActivity(
+            Activity? activity,
+            string outcome,
+            Exception? exception = null,
+            string? failureCategory = null)
+        {
+            if (activity is null)
+            {
+                return;
+            }
+
+            activity.SetTag(EmailTelemetry.OutcomeTag, outcome);
+
+            if (failureCategory is not null)
+            {
+                activity.SetTag(EmailTelemetry.FailureCategoryTag, failureCategory);
+            }
+
+            if (exception is not null)
+            {
+                activity.SetStatus(ActivityStatusCode.Error, failureCategory);
+            }
+        }
+
         private void LogConfigurationReloaded(EmailOptions options, string? name)
         {
-            _logger.ConfigurationReloaded(
-                options.Smtp.Host,
-                options.Smtp.Port,
-                options.Authentication.Type,
-                options.Enabled,
-                !string.IsNullOrWhiteSpace(options.Sender.Address));
+            try
+            {
+                (string profileName, EmailProfileOptions profile) = options.ResolveProfile(_profileName);
+                _logger.ConfigurationReloaded(
+                    profileName,
+                    profile.Smtp.Host,
+                    profile.Smtp.Port,
+                    profile.Authentication.Type,
+                    options.Enabled && profile.Enabled,
+                    !string.IsNullOrWhiteSpace(profile.Sender.Address));
+            }
+            catch (EmailProfileNotFoundException)
+            {
+                // The next send will reject the deleted profile and the worker will dead-letter its records.
+            }
         }
 
         private static EmailMessage CreateMessage(

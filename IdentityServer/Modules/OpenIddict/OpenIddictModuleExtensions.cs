@@ -1,8 +1,8 @@
 using OpenIddict.Server;
 using OpenIddict.Abstractions;
 using IdentityServer.Constants;
-using IdentityServer.Modules.OpenIddict.Configuration;
 using System.Security.Cryptography.X509Certificates;
+using IdentityServer.Modules.OpenIddict.Configuration;
 
 namespace IdentityServer.Modules.OpenIddict
 {

@@ -7,6 +7,8 @@ namespace Email.Constants
     {
         public const string ConfigurationSection = "Email";
         public const string DefaultSettingsPath = "Email/appsettings.json";
+        public const string DefaultProfileName = "default";
+        public const int MaxProfileNameLength = 64;
         public const int DefaultSmtpPort = 587;
         public const int DefaultTimeoutMilliseconds = 100000;
         public const int DefaultMaxRecipients = 100;

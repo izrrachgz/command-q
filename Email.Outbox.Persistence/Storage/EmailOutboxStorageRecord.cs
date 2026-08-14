@@ -1,12 +1,17 @@
+using Email.Outbox.Constants;
+
 namespace Email.Outbox.Persistence.Storage
 {
     internal sealed class EmailOutboxStorageRecord
     {
         public string Id { get; set; } = string.Empty;
         public string Payload { get; set; } = string.Empty;
+        public string ProfileName { get; set; } = EmailOutboxConstants.DefaultProfileName;
         public string? IdempotencyKey { get; set; }
         public string? AccountReference { get; set; }
         public string? CorrelationId { get; set; }
+        public string? TraceParent { get; set; }
+        public string? TraceState { get; set; }
         public int Status { get; set; }
         public int AttemptCount { get; set; }
         public DateTime CreatedUtc { get; set; }

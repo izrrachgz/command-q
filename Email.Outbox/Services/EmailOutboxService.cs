@@ -1,6 +1,8 @@
 using Email.Models;
+using System.Diagnostics;
 using Email.Outbox.Models;
 using Email.Outbox.Constants;
+using Email.Outbox.Telemetry;
 using Email.Outbox.Abstractions;
 using Email.Outbox.Serialization;
 
@@ -21,28 +23,71 @@ namespace Email.Outbox.Services
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Message);
 
-            string payload = await serializer.SerializeAsync(request.Message, cancellationToken);
-            DateTime utcNow = DateTime.UtcNow;
-            var record = new EmailOutboxRecord(
-                Guid.NewGuid(),
-                payload,
-                Normalize(
-                    request.IdempotencyKey,
-                    EmailOutboxConstants.MaxIdempotencyKeyLength,
-                    nameof(request.IdempotencyKey)),
-                Normalize(
-                    request.AccountReference,
-                    EmailOutboxConstants.MaxReferenceLength,
-                    nameof(request.AccountReference)),
-                Normalize(
-                    request.CorrelationId,
-                    EmailOutboxConstants.MaxReferenceLength,
-                    nameof(request.CorrelationId)),
-                0,
-                utcNow,
-                utcNow);
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.enqueue");
+            Activity? traceActivity = activity ?? Activity.Current;
+            string? traceParent = traceActivity?.IdFormat == ActivityIdFormat.W3C
+                ? traceActivity.Id
+                : null;
+            string? traceState = traceActivity?.IdFormat == ActivityIdFormat.W3C
+                ? traceActivity.TraceStateString
+                : null;
 
-            return await store.EnqueueAsync(record, cancellationToken);
+            try
+            {
+                string payload = await serializer.SerializeAsync(request.Message, cancellationToken);
+                DateTime utcNow = DateTime.UtcNow;
+                string profileName = Normalize(
+                    request.ProfileName,
+                    EmailOutboxConstants.MaxProfileNameLength,
+                    nameof(request.ProfileName)) ?? EmailOutboxConstants.DefaultProfileName;
+                var record = new EmailOutboxRecord(
+                    Guid.NewGuid(),
+                    payload,
+                    Normalize(
+                        request.IdempotencyKey,
+                        EmailOutboxConstants.MaxIdempotencyKeyLength,
+                        nameof(request.IdempotencyKey)),
+                    Normalize(
+                        request.AccountReference,
+                        EmailOutboxConstants.MaxReferenceLength,
+                        nameof(request.AccountReference)),
+                    Normalize(
+                        request.CorrelationId,
+                        EmailOutboxConstants.MaxReferenceLength,
+                        nameof(request.CorrelationId)),
+                    0,
+                    utcNow,
+                    utcNow,
+                    profileName,
+                    traceParent,
+                    traceState);
+
+                EmailOutboxEnqueueResult result = await store.EnqueueAsync(record, cancellationToken);
+                string outcome = result.WasDuplicate ? "duplicate" : "enqueued";
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, outcome);
+                TagList tags = new()
+                {
+                    { EmailOutboxTelemetry.ProfileTag, profileName },
+                    { EmailOutboxTelemetry.OutcomeTag, outcome }
+                };
+
+                if (result.WasDuplicate)
+                {
+                    EmailOutboxTelemetry.Duplicates.Add(1, tags);
+                }
+                else
+                {
+                    EmailOutboxTelemetry.Enqueued.Add(1, tags);
+                }
+
+                return result;
+            }
+            catch (Exception exception)
+            {
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "failure");
+                activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+                throw;
+            }
         }
 
         private static string? Normalize(string? value, int maxLength, string parameterName)

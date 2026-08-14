@@ -4,10 +4,10 @@ using Email.Outbox.Models;
 using Localization.Providers;
 using Email.Outbox.Abstractions;
 using Application.Modules.Notifications.Models;
+using Microsoft.Extensions.Logging.Abstractions;
 using Application.Modules.Notifications.Commands;
 using Application.Modules.Notifications.Services;
 using Application.Modules.Notifications.Validation;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Application.Test.Modules.Notifications.Commands
 {
@@ -88,6 +88,25 @@ namespace Application.Test.Modules.Notifications.Commands
             await Assert.ThrowsAsync<ValidationException>(() => service.QueueAsync(
                 message,
                 cancellationToken: TestContext.Current.CancellationToken));
+
+            Assert.Null(outbox.Request);
+        }
+
+        [Fact]
+        public async Task QueueAsync_Should_Reject_Named_Profile_Without_Explicit_Policy()
+        {
+            var outbox = new CapturingEmailOutbox(
+                new EmailOutboxEnqueueResult(Guid.NewGuid(), false, DateTime.UtcNow));
+            var service = CreateService(outbox);
+            var request = new ApplicationEmailRequest
+            {
+                Message = CreateMessage(),
+                ProfileName = "Support"
+            };
+
+            await Assert.ThrowsAsync<ValidationException>(() => service.QueueAsync(
+                request,
+                TestContext.Current.CancellationToken));
 
             Assert.Null(outbox.Request);
         }

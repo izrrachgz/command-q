@@ -21,7 +21,7 @@ namespace Api.Extensions
         /// settings.</returns>
         public static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, IConfiguration configuration) where TBuilder : IEndpointConventionBuilder
         {
-            RateLimiting rateLimitingType = configuration.GetValue(ConfigKeys.RateLimiting.Type, RateLimiting.None);
+            RateLimiting rateLimitingType = configuration.GetValue(ApiConfigKeys.RateLimiting.Type, RateLimiting.None);
 
             RequireRateLimiting(builder, rateLimitingType);
 
@@ -43,16 +43,16 @@ namespace Api.Extensions
             switch (limiting)
             {
                 case RateLimiting.FixedWindow:
-                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.FixedPolicyName);
+                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName);
                     break;
                 case RateLimiting.SlidingWindow:
-                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.SlidingPolicyName);
+                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.SlidingPolicyName);
                     break;
                 case RateLimiting.TokenBucket:
-                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.TokenBucketPolicyName);
+                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.TokenBucketPolicyName);
                     break;
                 case RateLimiting.Concurrent:
-                    builder.RequireRateLimiting(ConfigKeys.RateLimiting.ConcurrencyPolicyName);
+                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.ConcurrencyPolicyName);
                     break;
                 case RateLimiting.None:
                 default:

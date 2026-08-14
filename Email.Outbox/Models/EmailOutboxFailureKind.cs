@@ -10,6 +10,7 @@ namespace Email.Outbox.Models
         Protocol = 6,
         Serialization = 7,
         Validation = 8,
-        Unknown = 9
+        Unknown = 9,
+        ProfileNotFound = 10
     }
 }

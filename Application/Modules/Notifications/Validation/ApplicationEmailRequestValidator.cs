@@ -64,6 +64,13 @@ namespace Application.Modules.Notifications.Validation
                     nameof(ValidationText.Field_Cannot_Exceed),
                     messages.Get(nameof(FieldNames.Correlation_Id)),
                     EmailOutboxConstants.MaxReferenceLength));
+
+            When(request => request.ProfileName is not null, () =>
+            {
+                RuleFor(request => request.ProfileName)
+                    .NotEmpty()
+                    .MaximumLength(EmailOutboxConstants.MaxProfileNameLength);
+            });
         }
 
         private static bool HasRecipient(EmailMessage message)

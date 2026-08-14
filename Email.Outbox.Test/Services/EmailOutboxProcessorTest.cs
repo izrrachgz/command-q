@@ -39,6 +39,31 @@ namespace Email.Outbox.Test.Services
         }
 
         [Fact]
+        public async Task Processor_Should_Open_One_Sender_Batch_Per_Profile()
+        {
+            var serializer = CreateSerializer();
+            var records = new[]
+            {
+                await CreateClaimedRecord(serializer, "one@example.com", "Transactional"),
+                await CreateClaimedRecord(serializer, "two@example.com", "Support"),
+                await CreateClaimedRecord(serializer, "three@example.com", "Transactional")
+            };
+            var store = new RecordingStore(records);
+            var senderFactory = new RecordingSenderFactory();
+            var processor = CreateProcessor(store, senderFactory, serializer);
+
+            var result = await processor.ProcessBatchAsync(
+                CreateClaimRequest(),
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(3, result.SentCount);
+            Assert.Equal(1, senderFactory.Senders["Transactional"].BatchCalls);
+            Assert.Equal(2, senderFactory.Senders["Transactional"].LastBatch.Count);
+            Assert.Equal(1, senderFactory.Senders["Support"].BatchCalls);
+            Assert.Single(senderFactory.Senders["Support"].LastBatch);
+        }
+
+        [Fact]
         public async Task Processor_Should_Retry_The_First_Record_And_Release_Unattempted_Records()
         {
             var serializer = CreateSerializer();
@@ -103,7 +128,20 @@ namespace Email.Outbox.Test.Services
         {
             return new EmailOutboxProcessor(
                 store,
-                sender,
+                new FixedSenderFactory(sender),
+                serializer,
+                Options.Create(new EmailOutboxOptions()),
+                NullLogger<EmailOutboxProcessor>.Instance);
+        }
+
+        private static EmailOutboxProcessor CreateProcessor(
+            IEmailOutboxStore store,
+            IEmailSenderFactory senderFactory,
+            IEmailOutboxSerializer serializer)
+        {
+            return new EmailOutboxProcessor(
+                store,
+                senderFactory,
                 serializer,
                 Options.Create(new EmailOutboxOptions()),
                 NullLogger<EmailOutboxProcessor>.Instance);
@@ -119,7 +157,10 @@ namespace Email.Outbox.Test.Services
             return new EmailOutboxClaimRequest(10, "test-worker", TimeSpan.FromMinutes(1), DateTime.UtcNow);
         }
 
-        private static async Task<ClaimedEmailOutboxRecord> CreateClaimedRecord(IEmailOutboxSerializer serializer, string recipient)
+        private static async Task<ClaimedEmailOutboxRecord> CreateClaimedRecord(
+            IEmailOutboxSerializer serializer,
+            string recipient,
+            string profileName = "default")
         {
             string payload = await serializer.SerializeAsync(
                 new EmailMessage
@@ -131,7 +172,14 @@ namespace Email.Outbox.Test.Services
                 },
                 TestContext.Current.CancellationToken);
 
-            return new ClaimedEmailOutboxRecord(Guid.NewGuid(), payload, Guid.NewGuid().ToString("N"), 0, null);
+            return new ClaimedEmailOutboxRecord(
+                Guid.NewGuid(),
+                payload,
+                Guid.NewGuid().ToString("N"),
+                0,
+                null,
+                DateTime.UtcNow,
+                profileName);
         }
 
         private sealed class RecordingStore(IReadOnlyList<ClaimedEmailOutboxRecord> claimed)
@@ -204,6 +252,27 @@ namespace Email.Outbox.Test.Services
             public Task<EmailSendResult> SendHtmlAsync(string recipientAddress, string subject, string htmlBody, IEnumerable<EmailAttachment> attachments, CancellationToken cancellationToken = default) => throw new NotSupportedException();
             public Task<EmailSendResult> SendHtmlTemplateAsync(string recipientAddress, string subject, string htmlTemplateFilePath, CancellationToken cancellationToken = default) => throw new NotSupportedException();
             public Task<EmailSendResult> SendHtmlTemplateAsync(string recipientAddress, string subject, string htmlTemplateFilePath, IEnumerable<string> attachmentFilePaths, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        }
+
+        private sealed class RecordingSenderFactory : IEmailSenderFactory
+        {
+            public Dictionary<string, RecordingSender> Senders { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+            public IEmailSender Create(string? profileName = null)
+            {
+                string name = profileName ?? "default";
+                return Senders.TryGetValue(name, out RecordingSender? sender)
+                    ? sender
+                    : Senders[name] = new RecordingSender();
+            }
+        }
+
+        private sealed class FixedSenderFactory(IEmailSender sender) : IEmailSenderFactory
+        {
+            public IEmailSender Create(string? profileName = null)
+            {
+                return sender;
+            }
         }
     }
 }

@@ -4,12 +4,11 @@ using Application.Modules.Notifications.Services;
 
 namespace Application.Modules.Notifications.Commands
 {
-    internal sealed class QueueEmailCommandHandler(IApplicationEmailService emailService)
-        : ICommandHandler<QueueEmailCommand, QueuedEmailResult>
+    internal sealed class QueueEmailCommandHandler(IApplicationEmailService emailService) : ICommandHandler<QueueEmailCommand, QueuedEmailResult>
     {
-        public Task<QueuedEmailResult> Handle(QueueEmailCommand request, CancellationToken cancellationToken)
+        public async Task<QueuedEmailResult> Handle(QueueEmailCommand request, CancellationToken cancellationToken)
         {
-            return emailService.QueueAsync(request.Email, cancellationToken);
+            return await emailService.QueueAsync(request.Email, cancellationToken);
         }
     }
 }

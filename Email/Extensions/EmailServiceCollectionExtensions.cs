@@ -59,11 +59,13 @@ namespace Email.Extensions
         {
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailOptions>, EmailOptionsValidator>());
+            services.TryAddSingleton<MailKitEmailSenderFactory>();
+            services.TryAddSingleton<IEmailSenderFactory>(services => services.GetRequiredService<MailKitEmailSenderFactory>());
+            services.TryAddSingleton<IEmailSender>(services => services.GetRequiredService<IEmailSenderFactory>().Create());
             services.TryAddSingleton<ISmtpTransportFactory, MailKitSmtpTransportFactory>();
             services.TryAddSingleton<MailKitAuthenticationMechanismFactory>();
             services.TryAddSingleton<MimeMessageFactory>();
             services.TryAddSingleton<EmailMessageValidator>();
-            services.TryAddSingleton<IEmailSender, MailKitEmailSender>();
 
             return services;
         }

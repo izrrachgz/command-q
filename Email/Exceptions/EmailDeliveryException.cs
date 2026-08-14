@@ -39,5 +39,6 @@ namespace Email.Exceptions
                 requestedCount,
                 Array.Empty<EmailSendResult>());
         }
+
     }
 }

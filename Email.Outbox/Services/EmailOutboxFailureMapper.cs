@@ -15,6 +15,7 @@ namespace Email.Outbox.Services
                 EmailFailureKind.TransientSmtp => EmailOutboxFailureKind.TransientSmtp,
                 EmailFailureKind.PermanentSmtp => EmailOutboxFailureKind.PermanentSmtp,
                 EmailFailureKind.Protocol => EmailOutboxFailureKind.Protocol,
+                EmailFailureKind.ProfileNotFound => EmailOutboxFailureKind.ProfileNotFound,
                 _ => EmailOutboxFailureKind.Unknown
             };
         }

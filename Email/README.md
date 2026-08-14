@@ -18,12 +18,14 @@ The project copies `Email/appsettings.json` to the same relative output path.
 Registration loads that file first and then layers the consuming host's
 configuration over it, so user-secrets, environment variables and deployment
 providers remain authoritative. The merged `Email` section is validated on
-startup when delivery is enabled, and `IEmailSender` is exposed as a singleton.
+startup when delivery is enabled, and both `IEmailSender` and
+`IEmailSenderFactory` are exposed as singletons.
 Delivery is disabled by default so a host cannot accidentally contact a
 placeholder endpoint. Sending while disabled throws `EmailDeliveryException`
 with the `Disabled` classification and performs no network work.
 
-`IEmailSender` uses `IOptionsMonitor<EmailOptions>`. When the configuration
+`IEmailSender` is bound to `Email:DefaultProfile`. Use `IEmailSenderFactory`
+when a workflow needs a named profile. When the configuration
 provider supports reload-on-change, each new batch uses the latest valid SMTP,
 sender, authentication and delivery-policy settings. A batch captures one
 configuration snapshot for its entire connection, so a reload cannot change an
@@ -58,67 +60,59 @@ services.AddEmailServices(options =>
 {
   "Email": {
     "Enabled": true,
-    "Smtp": {
-      "Host": "smtp.example.com",
-      "Port": 587,
-      "Security": "StartTls",
-      "TimeoutMilliseconds": 100000,
-      "CheckCertificateRevocation": true
-    },
-    "Authentication": {
-      "Type": "Anonymous",
-      "Login": {
-        "Username": "",
-        "Password": ""
+    "DefaultProfile": "Transactional",
+    "Profiles": {
+      "Transactional": {
+        "Enabled": true,
+        "Smtp": {
+          "Host": "smtp.example.com",
+          "Port": 587,
+          "Security": "StartTls",
+          "TimeoutMilliseconds": 100000,
+          "CheckCertificateRevocation": true
+        },
+        "Authentication": {
+          "Type": "Anonymous"
+        },
+        "Sender": {
+          "Address": "no-reply@example.com",
+          "Name": "CommandQ"
+        },
+        "DeliveryPolicy": {
+          "MaxRecipients": 100,
+          "MaxAttachmentCount": 20,
+          "MaxAttachmentBytes": 26214400,
+          "MaxTotalAttachmentBytes": 41943040,
+          "AllowedSenderDomains": [ "example.com" ]
+        }
       },
-      "Plain": {
-        "Username": "",
-        "Password": ""
-      },
-      "OAuth": {
-        "Username": "",
-        "AccessToken": ""
+      "Support": {
+        "Enabled": false
       }
-    },
-    "Sender": {
-      "Address": "no-reply@example.com",
-      "Name": "CommandQ"
-    },
-    "DeliveryPolicy": {
-      "MaxRecipients": 100,
-      "MaxAttachmentCount": 20,
-      "MaxAttachmentBytes": 26214400,
-      "MaxTotalAttachmentBytes": 41943040,
-      "AllowedSenderDomains": [ "example.com" ]
     }
   }
 }
 ```
+
+Each profile owns its SMTP endpoint, authentication, sender and delivery
+limits. Disabled profiles may remain incomplete. The legacy flat `Email`
+shape remains supported for compatibility and represents the default profile.
+Profile credentials are never passed to or persisted by the outbox.
 
 Keep SMTP credentials in user-secrets or the deployment secret store. The
 equivalent environment variables are:
 
 ```text
 Email__Enabled
-Email__Smtp__Host
-Email__Smtp__Port
-Email__Smtp__Security
-Email__Smtp__TimeoutMilliseconds
-Email__Smtp__CheckCertificateRevocation
-Email__Authentication__Type
-Email__Authentication__Login__Username
-Email__Authentication__Login__Password
-Email__Authentication__Plain__Username
-Email__Authentication__Plain__Password
-Email__Authentication__OAuth__Username
-Email__Authentication__OAuth__AccessToken
-Email__Sender__Address
-Email__Sender__Name
-Email__DeliveryPolicy__MaxRecipients
-Email__DeliveryPolicy__MaxAttachmentCount
-Email__DeliveryPolicy__MaxAttachmentBytes
-Email__DeliveryPolicy__MaxTotalAttachmentBytes
-Email__DeliveryPolicy__AllowedSenderDomains__0
+Email__DefaultProfile
+Email__Profiles__Transactional__Smtp__Host
+Email__Profiles__Transactional__Smtp__Port
+Email__Profiles__Transactional__Smtp__Security
+Email__Profiles__Transactional__Authentication__Type
+Email__Profiles__Transactional__Authentication__Login__Username
+Email__Profiles__Transactional__Authentication__Login__Password
+Email__Profiles__Transactional__Sender__Address
+Email__Profiles__Transactional__DeliveryPolicy__MaxRecipients
 ```
 
 Those names apply when `Email` is at the configuration root. The CommandQ
@@ -177,6 +171,13 @@ await emailSender.SendHtmlAsync(
     "HTML subject",
     "<p>The body is already rendered.</p>",
     cancellationToken);
+```
+
+For a non-default profile, resolve a profile-bound sender once and reuse it:
+
+```csharp
+IEmailSender supportSender = emailSenderFactory.Create("Support");
+await supportSender.SendAsync(message, cancellationToken);
 ```
 
 Pass file paths to attach existing files. MimeKit infers each content type and

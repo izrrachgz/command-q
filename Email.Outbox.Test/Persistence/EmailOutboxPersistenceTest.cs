@@ -53,7 +53,9 @@ namespace Email.Outbox.Test.Persistence
                     "correlation-1",
                     0,
                     utcNow,
-                    utcNow);
+                    utcNow,
+                    TraceParent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+                    TraceState: "vendor=value");
 
                 var first = await store.EnqueueAsync(record, TestContext.Current.CancellationToken);
                 var duplicate = await store.EnqueueAsync(
@@ -72,6 +74,8 @@ namespace Email.Outbox.Test.Persistence
                         utcNow.AddSeconds(1)),
                     TestContext.Current.CancellationToken);
                 var claimedRecord = Assert.Single(claimed);
+                Assert.Equal(record.TraceParent, claimedRecord.TraceParent);
+                Assert.Equal(record.TraceState, claimedRecord.TraceState);
 
                 var secondClaim = await store.ClaimPendingAsync(
                     new EmailOutboxClaimRequest(
