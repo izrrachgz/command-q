@@ -6,17 +6,32 @@ API and includes a standalone OpenIddict authorization-server host. That host ca
 be replaced by another standards-compatible issuer, but the API always requires
 a configured authority.
 
+The runtime is split into three local hosts:
+
+```text
+IdentityServer  ->  API  ->  Email.Outbox  ->  Email.Worker  ->  SMTP
+```
+
+IdentityServer issues tokens, the API owns application workflows and queues
+notifications, and Email.Worker performs durable delivery. The API does not
+send SMTP mail directly.
+
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-- [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-- [.NET 10 Hosting Bundle](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- A supported database engine for the hosts or tests you run: SQL Server,
+  PostgreSQL, MySQL or SQLite.
+- [smtp4dev](https://github.com/rnwood/smtp4dev) for local SMTP delivery and the
+  opt-in email integration test.
 
 ## Start A New Project From This Template
 
 1. Choose the backend modules you want to keep.
 
-   `Identity` and `Health` are core. `Files` is optional. `Contacts`, `Addresses`, `Events` and `Registers` are sample-oriented modules. See `docs/modules.md` before removing modules.
+   `Identity` and `Health` are core. `Notifications` is optional infrastructure
+   for durable email enqueueing. `Files` is optional. `Contacts`, `Addresses`,
+   `Events` and `Registers` are sample-oriented modules. See `docs/modules.md`
+   before removing modules.
 
 2. Configure local backend secrets.
 
@@ -25,9 +40,13 @@ a configured authority.
    ```powershell
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Engine" "MsSql"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:Engine" "MsSql"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
+   dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:EmailOutbox:Persistence:Engine" "MsSql"
+   dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Engine" "MsSql"
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
@@ -38,17 +57,21 @@ a configured authority.
 
    Create empty application and identity databases. In Development, each host applies only its pending migrations. While version 1 is still being shaped, manually drop/recreate the affected development database when its baseline migration changes.
 
-4. Build and run the database-independent test suites.
+4. Build and run the isolated test suites.
 
    ```powershell
    .\scripts\build.ps1
    dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj --no-build
    dotnet test .\Api.Test\Api.Test.csproj --no-build
+   dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Architecture --no-build
    dotnet test .\Email.Test\Email.Test.csproj --no-build
    dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj --no-build
-   dotnet test .\Email.IntegrationTest\Email.IntegrationTest.csproj --no-build
    dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj --no-build
    ```
+
+   `Email.IntegrationTest` is opt-in and requires a running smtp4dev instance.
+   Database-backed `Application.Test` cases require the test project's own
+   user-secrets and an up-to-date application database.
 
 5. Run the identity server, the API, and the email worker in separate terminals.
 
@@ -108,6 +131,7 @@ Application/
     Addresses/
     Files/
     Health/
+    Notifications/
 
 Domain/
   Modules/
@@ -157,7 +181,10 @@ Existing modules are documented in `docs/modules.md`, including which modules ar
 
 Identity includes a queryable account activity trail for business account actions. Use `IAccountActivityRecorder` or `RecordAccountActivityCommand` instead of writing per-account log files. Authentication security events are stored by IdentityServer.
 
-`IdentityServer` owns users, credentials, lockout, external logins, OAuth clients, scopes, grants and tokens. The API Identity module owns application profiles and maps them through `AccountIdentity` using the validated token issuer and subject. See `IdentityServer/README.md`.
+`IdentityServer` owns users, credentials, lockout, external logins, OAuth clients,
+scopes, grants and tokens. The API Identity module owns application profiles and
+maps them through `AccountIdentity` using the validated token issuer and subject.
+See `IdentityServer/README.md`.
 
 ## Package Management
 
@@ -182,9 +209,10 @@ thresholds are also reloadable through the standard host configuration pipeline.
 Changes affect new log events; they do not require rebuilding the host.
 
 Database providers, migrations, dependency-injection registrations, identity
-certificates and other infrastructure topology remain startup-bound. Memory
-cache size and SMTP retry policies should be treated as startup or deployment
-settings until a dedicated lifecycle manager is introduced.
+certificates and other infrastructure topology remain startup-bound. Outbox
+retry and migration policies are startup-bound. Email profile changes are
+monitored by the worker and apply to new batches; active SMTP connections keep
+their captured profile snapshot.
 
 ## Database Support
 
@@ -203,6 +231,7 @@ its engine independently through `Api:ConnectionStrings:Engine` or
 set for every provider.
 
 ## Configuration
+
 Select the engine through configuration and supply the real connection string
 through user-secrets in Development or the deployment environment's secret
 store. Keep credentials out of committed `appsettings*.json` files. The
@@ -266,10 +295,11 @@ host name. This also keeps environment variables unambiguous, for example
    ```sh
    dotnet build .\CommandQ.sln
    ```
-3. Run IdentityServer and then the API in separate terminals:
+3. Run IdentityServer, the API and Email.Worker in separate terminals:
    ```sh
    dotnet run --project .\IdentityServer\IdentityServer.csproj --launch-profile https
    dotnet run --project .\Api\Api.csproj --launch-profile https
+   dotnet run --project .\Email.Worker\Email.Worker.csproj --launch-profile Email.Worker
    ```
 
 Root helper scripts are also available:
@@ -286,12 +316,17 @@ Root helper scripts are also available:
 
 The backend run scripts bypass `launchSettings.json` deliberately so their
 `-Environment` and `-Urls` arguments are authoritative. Visual Studio uses the
-separate HTTPS launch profiles from `CommandQ.slnLaunch`. Use `Qa` when loading
-the committed `appsettings.Qa.json` files on case-sensitive hosts.
+solution launch profiles from `CommandQ.slnLaunch`; the recommended `Backend +
+Email Worker` profile starts all three hosts. Use `Qa` when loading the committed
+`appsettings.Qa.json` files on case-sensitive hosts.
 
 ## Postman
 
-Import the backend collection and the appropriate environment from [`postman/`](postman/README.md). The Development environment is prepared for IdentityServer, API, authorization code with PKCE and the former `TurboDecoder` / `admin@local.com` account values. Passwords, API-client keys and issued tokens are intentionally not committed.
+Import the backend collection and the appropriate environment from
+[`postman/`](postman/README.md). The collection exercises IdentityServer, the
+API and authorization code with PKCE. Passwords, API-client keys and issued
+tokens are intentionally not committed; follow the Postman README for local
+account setup.
 
 ## Migrations
 
@@ -438,21 +473,24 @@ SMTP authentication can be selected as anonymous, LOGIN, PLAIN or
 caller-supplied OAuth 2.0 bearer authentication.
 
 Email supports named SMTP profiles. Each profile owns its endpoint,
-authentication, sender validation and delivery limits. The outbox stores only
-the selected logical profile, groups delivery by profile and opens one SMTP
-connection per group. The durable `default` marker resolves to the worker's
-configured `Email:DefaultProfile`; a profile removed from configuration is
-dead-lettered as a permanent configuration failure. Application notifications
-allow the default marker by default; sensitive named profiles require an
-explicit application-provided `IEmailProfileSelectionPolicy`.
+authentication, sender validation and delivery limits, including raw content
+limits, attachment MIME-type and extension policies, unknown-content handling
+and exact serialized MIME-size limits. The outbox stores only the selected
+logical profile, groups delivery by profile and opens one SMTP connection per
+group. The durable `default` marker resolves to the worker's configured
+`Email:DefaultProfile`; a profile removed from configuration is dead-lettered as
+a permanent configuration failure. Application notifications allow the default
+marker by default; sensitive named profiles require an explicit application-
+provided `IEmailProfileSelectionPolicy`.
 
-The project is intentionally not referenced by API or IdentityServer. Immediate
-delivery consumers can register `services.AddEmailServices(configuration)`.
-Durable delivery uses `Email.Outbox`, its dedicated persistence adapter and the
-standalone `Email.Worker` host. Development targets local MsSql `command_q`,
-while PgSql, MySql and SqLite remain configurable and non-development hosts
-must supply a connection. See `Email/README.md`, `Email.Outbox/README.md`
-and `Email.Worker/README.md`.
+The API remains an outbox producer and does not compose SMTP delivery.
+Immediate-delivery consumers can register
+`services.AddEmailServices(configuration)`. Durable delivery uses
+`Email.Outbox`, its dedicated persistence adapter and the standalone
+`Email.Worker` host. Development targets local MsSql `command_q`, while PgSql,
+MySql and SqLite remain configurable and non-development hosts must supply a
+connection. See `Email/README.md`, `Email.Outbox/README.md` and
+`Email.Worker/README.md`.
 
 Development is prepared for smtp4dev on `localhost:25` and stores the independently
 migrated outbox schema in the local MsSql `command_q` database. Start the worker separately:
@@ -521,6 +559,7 @@ Application.Test/
     Identity/
     Contacts/
     Addresses/
+    Notifications/
     Common/
 
 Api.Test/
@@ -593,24 +632,17 @@ The `Common` project includes reusable helpers:
 - `HttpCall` for JSON, form and string HTTP calls.
 - `FileUploader` for multipart file uploads.
 - `TaskRunner` for bounded-concurrency asynchronous work.
+- `ITypedCache<TEntry>` and its memory-cache implementation for typed caches.
 
 The separate `Email` project contains SMTP-specific abstractions, MIME message
 construction and MailKit transport implementation so those dependencies do not
 expand the general-purpose `Common` project.
 
-## Cqrs
-
-Command Query Responsibility Segregation (CQRS) is a design pattern that segregates read and write operations
-for a data store into separate data models. This approach allows each model to be optimized independently
-and can improve the performance, scalability, and security of an application.
-
----
-For more details, refer to [Cqrs on microsoft](https://learn.microsoft.com/es-mx/azure/architecture/patterns/cqrs)
-
-
 ## Deployment
 
-For deployment instructions, ensure you install the **.NET 10 Hosting Bundle** on the target server and configure the environment variables accordingly.
-
----
-For more details, refer to the [official .NET 10 documentation](https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview).
+For deployment, provide host-scoped environment variables or secret-store
+values for database connections, IdentityServer issuer/certificates, API
+authentication and SMTP credentials. Do not copy local user-secrets into
+committed settings. See [`docs/local-secrets.md`](docs/local-secrets.md),
+[`IdentityServer/README.md`](IdentityServer/README.md) and
+[`Email.Worker/README.md`](Email.Worker/README.md).
