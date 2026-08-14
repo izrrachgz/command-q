@@ -177,6 +177,34 @@ namespace Email.Test.Configuration
             Assert.Contains(result.Failures, failure => failure.Contains("Authentication:Type", StringComparison.Ordinal));
         }
 
+        [Fact]
+        public void Validate_Should_Reject_Invalid_Content_Policy_Values()
+        {
+            var validator = new EmailOptionsValidator();
+            var options = CreateOptions(EmailAuthenticationType.Anonymous);
+            options.DeliveryPolicy.AllowedAttachmentContentTypes = new[] { "not-a-content-type" };
+            options.DeliveryPolicy.AllowedAttachmentExtensions = new[] { "pdf" };
+
+            var result = validator.Validate(null, options);
+
+            Assert.True(result.Failed);
+            Assert.Contains(result.Failures, failure => failure.Contains("AllowedAttachmentContentTypes", StringComparison.Ordinal));
+            Assert.Contains(result.Failures, failure => failure.Contains("AllowedAttachmentExtensions", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void Validate_Should_Accept_Content_Type_Wildcards()
+        {
+            var validator = new EmailOptionsValidator();
+            var options = CreateOptions(EmailAuthenticationType.Anonymous);
+            options.DeliveryPolicy.AllowedAttachmentContentTypes = new[] { "image/*" };
+            options.DeliveryPolicy.AllowedAttachmentExtensions = new[] { ".png" };
+
+            var result = validator.Validate(null, options);
+
+            Assert.True(result.Succeeded);
+        }
+
         private static EmailOptions CreateOptions(EmailAuthenticationType authenticationType)
         {
             return new EmailOptions

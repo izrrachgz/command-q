@@ -1,3 +1,4 @@
+using Email.Configuration;
 using Email.Outbox.Constants;
 using Microsoft.Extensions.Options;
 
@@ -8,6 +9,11 @@ namespace Email.Outbox.Configuration
         public ValidateOptionsResult Validate(string? name, EmailOutboxOptions options)
         {
             var failures = new List<string>();
+
+            EmailDeliveryPolicyOptionsValidator.Validate(
+                options.DeliveryPolicy,
+                $"{EmailOutboxConstants.ConfigurationSection}:DeliveryPolicy",
+                failures);
 
             if (options.MaxAttempts <= 0)
             {

@@ -15,5 +15,6 @@ namespace Email.Constants
         public const int DefaultMaxAttachmentCount = 20;
         public const long DefaultMaxAttachmentBytes = 25 * 1024 * 1024;
         public const long DefaultMaxTotalAttachmentBytes = 40 * 1024 * 1024;
+        public const long DefaultMaxMessageBytes = 64 * 1024 * 1024;
     }
 }

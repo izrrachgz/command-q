@@ -66,6 +66,7 @@ namespace Email.Extensions
             services.TryAddSingleton<MailKitAuthenticationMechanismFactory>();
             services.TryAddSingleton<MimeMessageFactory>();
             services.TryAddSingleton<EmailMessageValidator>();
+            services.TryAddSingleton<MimeMessageSizeCalculator>();
 
             return services;
         }

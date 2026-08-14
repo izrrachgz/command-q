@@ -203,6 +203,81 @@ namespace Email.Test.Services
         }
 
         [Fact]
+        public async Task SendAsync_Should_Reject_Mime_Message_That_Exceeds_Policy()
+        {
+            var transport = new RecordingSmtpTransport();
+            var sender = CreateSender(transport, configure: options => options.DeliveryPolicy.MaxMessageBytes = 100);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sender.SendAsync(
+                    CreateMessage("recipient@example.test", "Subject", "Body"),
+                    TestContext.Current.CancellationToken));
+
+            Assert.Equal(0, transport.ConnectCount);
+        }
+
+        [Fact]
+        public async Task SendAsync_Should_Enforce_Attachment_Content_And_Extension_Allowlists()
+        {
+            var transport = new RecordingSmtpTransport();
+            var sender = CreateSender(transport, configure: options =>
+            {
+                options.DeliveryPolicy.AllowedAttachmentContentTypes = new[] { "application/pdf" };
+                options.DeliveryPolicy.AllowedAttachmentExtensions = new[] { ".pdf" };
+            });
+            var message = CreateMessage("recipient@example.test", "Subject", "Body") with
+            {
+                Attachments = new[]
+                {
+                    EmailAttachment.FromBytes("notes.txt", "plain text"u8.ToArray(), "text/plain")
+                }
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sender.SendAsync(message, TestContext.Current.CancellationToken));
+
+            Assert.Equal(0, transport.ConnectCount);
+        }
+
+        [Fact]
+        public async Task SendAsync_Should_Reject_Unknown_Content_Type_By_Default()
+        {
+            var transport = new RecordingSmtpTransport();
+            var sender = CreateSender(transport);
+            var message = CreateMessage("recipient@example.test", "Subject", "Body") with
+            {
+                Attachments = new[]
+                {
+                    EmailAttachment.FromBytes("payload.unknown", new byte[] { 1, 2, 3 })
+                }
+            };
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                sender.SendAsync(message, TestContext.Current.CancellationToken));
+
+            Assert.Equal(0, transport.ConnectCount);
+        }
+
+        [Fact]
+        public async Task SendAsync_Should_Allow_Unknown_Content_Type_When_Configured()
+        {
+            var transport = new RecordingSmtpTransport();
+            var sender = CreateSender(transport, configure: options => options.DeliveryPolicy.AllowUnknownContentTypes = true);
+            var message = CreateMessage("recipient@example.test", "Subject", "Body") with
+            {
+                Attachments = new[]
+                {
+                    EmailAttachment.FromBytes("payload.unknown", new byte[] { 1, 2, 3 })
+                }
+            };
+
+            await sender.SendAsync(message, TestContext.Current.CancellationToken);
+
+            Assert.Equal(1, transport.ConnectCount);
+            Assert.Equal(1, transport.SendCount);
+        }
+
+        [Fact]
         public async Task SendHtmlTemplateAsync_Should_Read_Rendered_Html_And_Attach_Files()
         {
             var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"commandq-email-{Guid.NewGuid():N}");

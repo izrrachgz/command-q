@@ -83,6 +83,10 @@ services.AddEmailServices(options =>
           "MaxAttachmentCount": 20,
           "MaxAttachmentBytes": 26214400,
           "MaxTotalAttachmentBytes": 41943040,
+          "MaxMessageBytes": 67108864,
+          "AllowedAttachmentContentTypes": [ "application/pdf", "image/*" ],
+          "AllowedAttachmentExtensions": [ ".pdf", ".png", ".jpg" ],
+          "AllowUnknownContentTypes": false,
           "AllowedSenderDomains": [ "example.com" ]
         }
       },
@@ -113,6 +117,10 @@ Email__Profiles__Transactional__Authentication__Login__Username
 Email__Profiles__Transactional__Authentication__Login__Password
 Email__Profiles__Transactional__Sender__Address
 Email__Profiles__Transactional__DeliveryPolicy__MaxRecipients
+Email__Profiles__Transactional__DeliveryPolicy__MaxMessageBytes
+Email__Profiles__Transactional__DeliveryPolicy__AllowedAttachmentContentTypes
+Email__Profiles__Transactional__DeliveryPolicy__AllowedAttachmentExtensions
+Email__Profiles__Transactional__DeliveryPolicy__AllowUnknownContentTypes
 ```
 
 Those names apply when `Email` is at the configuration root. The CommandQ
@@ -125,8 +133,16 @@ Certificate validation is never bypassed by this library.
 
 All recipients, regular attachments and inline resources are validated before
 the SMTP connection opens. The configured policy limits recipient count,
-individual content size, total content size and sender domains. An empty
-`AllowedSenderDomains` collection allows any syntactically valid sender domain.
+individual content size, total content size, exact serialized MIME size,
+attachment content types, file extensions and sender domains. MIME size is
+measured after MimeKit builds the complete message, including Base64 encoding,
+boundaries and headers. An empty attachment allowlist permits all valid content
+types or extensions; an empty `AllowedSenderDomains` collection allows any
+syntactically valid sender domain.
+
+Unknown inferred content types are rejected unless `AllowUnknownContentTypes`
+is enabled. These checks use declared MIME types and file extensions as policy
+signals only; they do not replace file-signature inspection or malware scanning.
 
 ## Authentication
 

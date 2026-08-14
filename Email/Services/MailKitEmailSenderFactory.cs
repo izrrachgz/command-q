@@ -11,6 +11,7 @@ namespace Email.Services
         private readonly ISmtpTransportFactory _transportFactory;
         private readonly MimeMessageFactory _messageFactory;
         private readonly EmailMessageValidator _messageValidator;
+        private readonly MimeMessageSizeCalculator _messageSizeCalculator;
         private readonly ILoggerFactory _loggerFactory;
         private readonly Dictionary<string, MailKitEmailSender> _senders = new(StringComparer.OrdinalIgnoreCase);
         private readonly object _lock = new();
@@ -21,12 +22,14 @@ namespace Email.Services
             ISmtpTransportFactory transportFactory,
             MimeMessageFactory messageFactory,
             EmailMessageValidator messageValidator,
+            MimeMessageSizeCalculator messageSizeCalculator,
             ILoggerFactory loggerFactory)
         {
             _options = options;
             _transportFactory = transportFactory;
             _messageFactory = messageFactory;
             _messageValidator = messageValidator;
+            _messageSizeCalculator = messageSizeCalculator;
             _loggerFactory = loggerFactory;
             _configurationSubscription = options.OnChange(RemoveStaleSenders);
         }
@@ -48,7 +51,8 @@ namespace Email.Services
                     _transportFactory,
                     _messageFactory,
                     _messageValidator,
-                    _loggerFactory.CreateLogger<MailKitEmailSender>());
+                    _loggerFactory.CreateLogger<MailKitEmailSender>(),
+                    _messageSizeCalculator);
                 _senders.Add(name, sender);
                 return sender;
             }

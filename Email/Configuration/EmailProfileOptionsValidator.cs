@@ -61,40 +61,7 @@ namespace Email.Configuration
                 errors.Add($"{path}:Sender:Address must be a valid mailbox address.");
             }
 
-            ValidateDeliveryPolicy(profile.DeliveryPolicy, path, errors);
-        }
-
-        private static void ValidateDeliveryPolicy(EmailDeliveryPolicyOptions policy, string path, ICollection<string> errors)
-        {
-            if (policy.MaxRecipients <= 0)
-            {
-                errors.Add($"{path}:DeliveryPolicy:MaxRecipients must be greater than zero.");
-            }
-
-            if (policy.MaxAttachmentCount < 0)
-            {
-                errors.Add($"{path}:DeliveryPolicy:MaxAttachmentCount cannot be negative.");
-            }
-
-            if (policy.MaxAttachmentBytes <= 0)
-            {
-                errors.Add($"{path}:DeliveryPolicy:MaxAttachmentBytes must be greater than zero.");
-            }
-
-            if (policy.MaxTotalAttachmentBytes <= 0)
-            {
-                errors.Add($"{path}:DeliveryPolicy:MaxTotalAttachmentBytes must be greater than zero.");
-            }
-
-            if (policy.MaxTotalAttachmentBytes < policy.MaxAttachmentBytes)
-            {
-                errors.Add($"{path}:DeliveryPolicy:MaxTotalAttachmentBytes cannot be less than MaxAttachmentBytes.");
-            }
-
-            if (policy.AllowedSenderDomains is null || policy.AllowedSenderDomains.Any(string.IsNullOrWhiteSpace))
-            {
-                errors.Add($"{path}:DeliveryPolicy:AllowedSenderDomains cannot contain empty values.");
-            }
+            EmailDeliveryPolicyOptionsValidator.Validate(profile.DeliveryPolicy, $"{path}:DeliveryPolicy", errors);
         }
 
         private static void ValidateAuthentication(EmailAuthenticationOptions authentication, string path, ICollection<string> errors)

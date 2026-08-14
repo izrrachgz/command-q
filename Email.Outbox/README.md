@@ -43,7 +43,11 @@ adapter.
 File attachments and inline resources are read and copied into the serialized
 payload before enqueueing. The worker therefore does not depend on temporary
 source files remaining available. The default payload limit is 64 MiB and is
-configured through `EmailOutbox:MaxPayloadBytes`.
+configured through `EmailOutbox:MaxPayloadBytes`. The producer-side
+`EmailOutbox:DeliveryPolicy` applies the same recipient and content checks
+before the JSON payload is persisted. The worker's active
+`Email:Profiles:<name>:DeliveryPolicy` remains authoritative and revalidates
+the message before measuring and sending its final MIME representation.
 The reusable extension also accepts an `IConfigurationSection`, allowing each
 host to choose its own prefix without teaching the outbox library about host
 names.

@@ -19,6 +19,7 @@ namespace Email.Services
         private readonly ILogger<MailKitEmailSender> _logger;
         private readonly MimeMessageFactory _messageFactory;
         private readonly EmailMessageValidator _messageValidator;
+        private readonly MimeMessageSizeCalculator _messageSizeCalculator;
         private readonly ISmtpTransportFactory _transportFactory;
         private readonly IDisposable? _configurationSubscription;
 
@@ -27,14 +28,16 @@ namespace Email.Services
             ISmtpTransportFactory transportFactory,
             MimeMessageFactory messageFactory,
             EmailMessageValidator messageValidator,
-            ILogger<MailKitEmailSender> logger)
+            ILogger<MailKitEmailSender> logger,
+            MimeMessageSizeCalculator? messageSizeCalculator = null)
             : this(
                 EmailConstants.DefaultProfileName,
                 options,
                 transportFactory,
                 messageFactory,
                 messageValidator,
-                logger)
+                logger,
+                messageSizeCalculator)
         {
         }
 
@@ -44,13 +47,15 @@ namespace Email.Services
             ISmtpTransportFactory transportFactory,
             MimeMessageFactory messageFactory,
             EmailMessageValidator messageValidator,
-            ILogger<MailKitEmailSender> logger)
+            ILogger<MailKitEmailSender> logger,
+            MimeMessageSizeCalculator? messageSizeCalculator = null)
         {
             _profileName = profileName;
             _options = options;
             _transportFactory = transportFactory;
             _messageFactory = messageFactory;
             _messageValidator = messageValidator;
+            _messageSizeCalculator = messageSizeCalculator ?? new MimeMessageSizeCalculator();
             _logger = logger;
             _configurationSubscription = options.OnChange(LogConfigurationReloaded);
         }
@@ -96,11 +101,11 @@ namespace Email.Services
                 throw EmailDeliveryException.Disabled(batch.Count);
             }
 
-            foreach (var message in batch)
-            {
-                _messageValidator.Validate(message, options.Sender, options.DeliveryPolicy);
-            }
-
+            IReadOnlyList<MimeMessage> mimeMessages = await BuildMimeMessagesAsync(
+                batch,
+                options,
+                profileName,
+                cancellationToken);
             var sentMessages = new List<EmailSendResult>(batch.Count);
             string? currentMessageId = null;
             using var transport = _transportFactory.Create(options.Smtp);
@@ -155,56 +160,38 @@ namespace Email.Services
 
                 await transport.NoOpAsync(cancellationToken);
 
-                foreach (var source in batch)
+                foreach (MimeMessage message in mimeMessages)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    MimeMessage message;
-                    using (Activity? activity = StartActivity("email.mime.build", profileName))
+                    var messageId = message.MessageId ?? throw new InvalidOperationException(
+                        "The MIME message factory did not assign a message ID.");
+                    currentMessageId = messageId;
+
+                    string smtpResponse;
+                    using (Activity? activity = StartActivity("email.smtp.send", profileName))
                     {
                         try
                         {
-                            message = _messageFactory.Create(source, options.Sender, cancellationToken);
+                            smtpResponse = await transport.SendAsync(message, cancellationToken);
                             CompleteActivity(activity, "success");
                         }
                         catch (Exception exception)
                         {
-                            CompleteActivity(activity, "failure", exception, "mime");
+                            CompleteActivity(activity, "failure", exception, EmailFailureClassifier.Classify(exception).ToString());
                             throw;
                         }
                     }
 
-                    using (message)
-                    {
-                        var messageId = message.MessageId ?? throw new InvalidOperationException(
-                            "The MIME message factory did not assign a message ID.");
-                        currentMessageId = messageId;
+                    var result = new EmailSendResult(
+                        sentMessages.Count + 1,
+                        messageId,
+                        smtpResponse,
+                        DateTimeOffset.UtcNow);
 
-                        string smtpResponse;
-                        using (Activity? activity = StartActivity("email.smtp.send", profileName))
-                        {
-                            try
-                            {
-                                smtpResponse = await transport.SendAsync(message, cancellationToken);
-                                CompleteActivity(activity, "success");
-                            }
-                            catch (Exception exception)
-                            {
-                                CompleteActivity(activity, "failure", exception, EmailFailureClassifier.Classify(exception).ToString());
-                                throw;
-                            }
-                        }
-
-                        var result = new EmailSendResult(
-                            sentMessages.Count + 1,
-                            messageId,
-                            smtpResponse,
-                            DateTimeOffset.UtcNow);
-
-                        sentMessages.Add(result);
-                        _logger.MessageSent(sentMessages.Count, batch.Count);
-                        currentMessageId = null;
-                    }
+                    sentMessages.Add(result);
+                    _logger.MessageSent(sentMessages.Count, batch.Count);
+                    currentMessageId = null;
                 }
 
                 _logger.BatchCompleted(sentMessages.Count);
@@ -244,8 +231,70 @@ namespace Email.Services
             }
             finally
             {
+                foreach (MimeMessage message in mimeMessages)
+                {
+                    message.Dispose();
+                }
+
                 await DisconnectSafely(transport);
                 EmailTelemetry.SendDuration.Record(Stopwatch.GetElapsedTime(startedAt).TotalSeconds, tags);
+            }
+        }
+
+        private async Task<IReadOnlyList<MimeMessage>> BuildMimeMessagesAsync(
+            IReadOnlyList<EmailMessage> batch,
+            EmailProfileOptions options,
+            string profileName,
+            CancellationToken cancellationToken)
+        {
+            var mimeMessages = new List<MimeMessage>(batch.Count);
+
+            try
+            {
+                foreach (EmailMessage source in batch)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    _messageValidator.Validate(source, options.Sender, options.DeliveryPolicy);
+
+                    MimeMessage? message = null;
+                    using (Activity? activity = StartActivity("email.mime.build", profileName))
+                    {
+                        try
+                        {
+                            message = _messageFactory.Create(source, options.Sender, cancellationToken);
+                            long messageBytes = await _messageSizeCalculator.MeasureAsync(message, cancellationToken);
+
+                            if (messageBytes > options.DeliveryPolicy.MaxMessageBytes)
+                            {
+                                throw new ArgumentException(
+                                    $"The serialized MIME message is {messageBytes} bytes and exceeds the configured limit of " +
+                                    $"{options.DeliveryPolicy.MaxMessageBytes} bytes.",
+                                    nameof(source));
+                            }
+
+                            CompleteActivity(activity, "success");
+                        }
+                        catch (Exception exception)
+                        {
+                            CompleteActivity(activity, "failure", exception, "mime");
+                            message?.Dispose();
+                            throw;
+                        }
+                    }
+
+                    mimeMessages.Add(message);
+                }
+
+                return mimeMessages;
+            }
+            catch
+            {
+                foreach (MimeMessage message in mimeMessages)
+                {
+                    message.Dispose();
+                }
+
+                throw;
             }
         }
 

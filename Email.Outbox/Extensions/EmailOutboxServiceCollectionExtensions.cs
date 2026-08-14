@@ -1,3 +1,4 @@
+using Email.Services;
 using Email.Abstractions;
 using Email.Outbox.Services;
 using Email.Outbox.Constants;
@@ -46,6 +47,7 @@ namespace Email.Outbox.Extensions
                 .ValidateOnStart();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailOutboxOptions>, EmailOutboxOptionsValidator>());
+            services.TryAddSingleton<EmailMessageValidator>();
             services.TryAddSingleton<IEmailOutboxSerializer, EmailOutboxSerializer>();
             services.TryAddSingleton<IEmailOutbox, EmailOutboxService>();
 

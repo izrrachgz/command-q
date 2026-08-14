@@ -56,9 +56,12 @@ host should run migrations.
 `EmailWorker:Email:Profiles` contains the named SMTP configurations. Claimed
 outbox messages are grouped by their logical profile, so each profile group
 uses one SMTP connection. A message referencing a deleted profile is treated
-as a permanent profile configuration failure and is dead-lettered.
-Profile-specific sender and attachment limits are supported; profile-specific
-rate limiting remains a later extension.
+as a permanent profile configuration failure and is dead-lettered. Each profile
+policy supports recipient limits, raw content limits, MIME-size limits,
+attachment content-type and extension allowlists, unknown-type handling and
+sender-domain restrictions. The worker measures the complete serialized MIME
+message after Base64 encoding and multipart construction, before SMTP delivery.
+Profile-specific rate limiting remains a later extension.
 
 The OAuth SMTP option still expects a ready access token. Token acquisition and
 refresh remain the responsibility of the host's credential provider; the

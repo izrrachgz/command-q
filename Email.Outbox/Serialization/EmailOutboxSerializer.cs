@@ -1,5 +1,6 @@
 using System.Text;
 using Email.Models;
+using Email.Services;
 using System.Text.Json;
 using System.Diagnostics;
 using Email.Outbox.Telemetry;
@@ -8,15 +9,27 @@ using Microsoft.Extensions.Options;
 
 namespace Email.Outbox.Serialization
 {
-    internal sealed class EmailOutboxSerializer(IOptions<EmailOutboxOptions> options)
-        : IEmailOutboxSerializer
+    internal sealed class EmailOutboxSerializer : IEmailOutboxSerializer
     {
-        private readonly EmailOutboxOptions _options = options.Value;
+        private readonly EmailOutboxOptions _options;
+        private readonly EmailMessageValidator _messageValidator;
+
+        public EmailOutboxSerializer(IOptions<EmailOutboxOptions> options, EmailMessageValidator messageValidator)
+        {
+            _options = options.Value;
+            _messageValidator = messageValidator;
+        }
+
+        public EmailOutboxSerializer(IOptions<EmailOutboxOptions> options)
+            : this(options, new EmailMessageValidator())
+        {
+        }
 
         public async Task<string> SerializeAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(message);
             using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.serialize");
+            _messageValidator.ValidateContent(message, _options.DeliveryPolicy);
 
             var attachments = new List<EmailContentSnapshot>(message.Attachments.Count);
             foreach (var attachment in message.Attachments)
