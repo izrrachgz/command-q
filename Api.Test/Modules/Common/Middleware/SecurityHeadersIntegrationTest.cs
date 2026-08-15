@@ -9,7 +9,7 @@ namespace Api.Test.Modules.Common.Middleware
         public async Task Api_Response_Should_Include_Security_Headers()
         {
             using var client = factory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, "/Account/me");
+            using var request = new HttpRequestMessage(HttpMethod.Get, CommandQApiFactory.AccountMePath);
             request.Headers.Add(CommandQApiFactory.ApiClientHeaderName, CommandQApiFactory.ApiClientHeaderValue);
             request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
 

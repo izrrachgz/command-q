@@ -32,7 +32,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Resources\IdentityServerMessages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>IdentityServerMessages.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\IdentityServerMessages.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>IdentityServerMessages.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>IdentityServer.Resources</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Logs\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource
+      Include="Modules\Accounts\Templates\sign-in.html"
+      LogicalName="IdentityServer.Modules.Accounts.Templates.sign-in.html" />
   </ItemGroup>
 
 </Project>

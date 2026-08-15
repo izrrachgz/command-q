@@ -20,6 +20,8 @@ namespace Api.Test.Infrastructure
         public const string IdentityIssuer = "https://identity.test/";
         public const string ApiAudience = "command_q_api";
         public const string ApiScope = "command_q_api";
+        public const string AccountCreatePath = "/Account/create";
+        public const string AccountMePath = "/Account/me";
 
         private static readonly SymmetricSecurityKey SigningKey = new(
             Encoding.UTF8.GetBytes("CommandQ-test-signing-key-with-32-bytes-minimum"));
@@ -38,6 +40,8 @@ namespace Api.Test.Infrastructure
                     ["Api:Authentication:ApiScope"] = ApiScope,
                     ["Api:Authentication:RequireHttpsMetadata"] = "true",
                     ["Api:Authentication:ClockSkewSeconds"] = "60",
+                    ["Api:Cors:Enabled"] = "true",
+                    ["Api:Cors:AllowedOrigins:0"] = ApiClientOrigin,
                     ["Api:RateLimiting:Type"] = "None",
                     ["Api:RateLimiting:FixedWindow:PermitLimit"] = "4",
                     ["Api:RateLimiting:FixedWindow:WindowSeconds"] = "16",

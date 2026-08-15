@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using IdentityServer.Localization;
+using IdentityServer.Resources;
 using IdentityServer.Persistence.Providers;
 
 namespace IdentityServer.Persistence
@@ -46,7 +48,10 @@ namespace IdentityServer.Persistence
                         options => options.UseSqlite(settings.ConnectionString));
                     break;
                 default:
-                    throw new InvalidOperationException($"Unsupported IdentityServer database engine: {settings.Engine}.");
+                    throw new InvalidOperationException(
+                        IdentityServerText.Format(
+                            IdentityServerMessages.Configuration_UnsupportedIdentityServerDatabaseEngine,
+                            settings.Engine));
             }
 
             return services;

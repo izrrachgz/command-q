@@ -3,16 +3,27 @@ namespace IdentityServer.Modules.Accounts
     public static class AccountConstants
     {
         public const string DefaultRole = "User";
+        public const string DefaultReturnUrl = "/";
         public const string AuthenticationRateLimitPolicy = "IdentityAuthentication";
+        public const string ReturnUrlParameter = "returnUrl";
         public const int SecurityActivityLimit = 100;
+
+        public static class ContentTypes
+        {
+            public const string FormUrlEncoded = "application/x-www-form-urlencoded";
+            public const string Html = "text/html; charset=utf-8";
+            public const string Json = "application/json";
+        }
 
         public static class Routes
         {
             public const string Root = "account";
             public const string Register = "register";
             public const string SignIn = "sign-in";
+            public const string SignInPath = "/" + Root + "/" + SignIn;
             public const string SignOut = "sign-out";
             public const string Me = "me";
+            public const string MePath = "/" + Root + "/" + Me;
             public const string SecurityActivity = "security-activity";
             public const string External = "external/{provider}";
             public const string ExternalCallback = "external-callback";

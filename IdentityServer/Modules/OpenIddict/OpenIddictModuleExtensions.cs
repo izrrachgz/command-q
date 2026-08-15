@@ -1,6 +1,8 @@
 using OpenIddict.Server;
 using OpenIddict.Abstractions;
 using IdentityServer.Constants;
+using IdentityServer.Localization;
+using IdentityServer.Resources;
 using System.Security.Cryptography.X509Certificates;
 using IdentityServer.Modules.OpenIddict.Configuration;
 
@@ -15,7 +17,7 @@ namespace IdentityServer.Modules.OpenIddict
         {
             var serverOptions = GetAndValidateOptions(configuration, environment);
             services.AddOptions<AuthorizationServerOptions>()
-                .Bind(configuration.GetRequiredSection(ConfigKeys.OpenIddict.Section))
+                .Bind(configuration.GetRequiredSection(IdentityServerConfigKeys.OpenIddict.Section))
                 .ValidateOnStart();
 
             services.AddOpenIddict()
@@ -89,24 +91,32 @@ namespace IdentityServer.Modules.OpenIddict
         private static AuthorizationServerOptions GetAndValidateOptions(IConfiguration configuration, IHostEnvironment environment)
         {
             var options = configuration
-                .GetRequiredSection(ConfigKeys.OpenIddict.Section)
+                .GetRequiredSection(IdentityServerConfigKeys.OpenIddict.Section)
                 .Get<AuthorizationServerOptions>()
-                ?? throw new InvalidOperationException("OpenIddict configuration is required.");
+                ?? throw new InvalidOperationException(
+                    IdentityServerMessages.Configuration_OpenIddictRequired);
 
             if (!Uri.TryCreate(options.Issuer, UriKind.Absolute, out var issuer) ||
                 !string.Equals(issuer.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("IdentityServer:OpenIddict:Issuer must be an absolute HTTPS URI.");
+                throw new InvalidOperationException(
+                    IdentityServerText.Format(
+                        IdentityServerMessages.Configuration_OpenIddictIssuerMustBeHttps,
+                        IdentityServerConfigKeys.FullPath(IdentityServerConfigKeys.OpenIddict.Issuer)));
             }
 
             if (options.AccessTokenMinutes <= 0 || options.RefreshTokenDays <= 0)
             {
-                throw new InvalidOperationException("OpenIddict token lifetimes must be greater than zero.");
+                throw new InvalidOperationException(
+                    IdentityServerMessages.Configuration_OpenIddictTokenLifetimesMustBeGreaterThanZero);
             }
 
             if (string.IsNullOrWhiteSpace(options.ApiScope))
             {
-                throw new InvalidOperationException("IdentityServer:OpenIddict:ApiScope is required.");
+                throw new InvalidOperationException(
+                    IdentityServerText.Format(
+                        IdentityServerMessages.Configuration_Required,
+                        IdentityServerConfigKeys.FullPath(IdentityServerConfigKeys.OpenIddict.ApiScope)));
             }
 
             if (options.Clients.Any(client =>
@@ -116,19 +126,25 @@ namespace IdentityServer.Modules.OpenIddict
                 client.PostLogoutRedirectUris.Any(uri => !Uri.TryCreate(uri, UriKind.Absolute, out _)) ||
                 client.AllowClientCredentials && string.IsNullOrWhiteSpace(client.ClientSecret)))
             {
-                throw new InvalidOperationException("OpenIddict client configuration is invalid.");
+                throw new InvalidOperationException(
+                    IdentityServerMessages.Configuration_OpenIddictClientInvalid);
             }
 
             if (options.Certificates.UseDevelopmentCertificates && !environment.IsDevelopment())
             {
-                throw new InvalidOperationException("OpenIddict development certificates can only be used in Development.");
+                throw new InvalidOperationException(
+                    IdentityServerMessages.Configuration_OpenIddictDevelopmentCertificatesOnlyInDevelopment);
             }
 
             if (!options.Certificates.UseDevelopmentCertificates &&
                 (string.IsNullOrWhiteSpace(options.Certificates.Signing.Path) ||
                  string.IsNullOrWhiteSpace(options.Certificates.Encryption.Path)))
             {
-                throw new InvalidOperationException("OpenIddict signing and encryption certificate paths are required outside local Development.");
+                throw new InvalidOperationException(
+                    IdentityServerText.Format(
+                        IdentityServerMessages.Configuration_OpenIddictCertificatesRequiredOutsideDevelopment,
+                        IdentityServerConfigKeys.FullPath(IdentityServerConfigKeys.OpenIddict.Certificates.SigningPath),
+                        IdentityServerConfigKeys.FullPath(IdentityServerConfigKeys.OpenIddict.Certificates.EncryptionPath)));
             }
 
             return options;

@@ -3,10 +3,31 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "ng serve",
+      "name": "CommandQ Front (Development)",
       "type": "chrome",
       "request": "launch",
       "preLaunchTask": "npm: start",
+      "url": "http://localhost:4200/"
+    },
+    {
+      "name": "CommandQ Front (Testing)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "npm: start:testing",
+      "url": "http://localhost:4200/"
+    },
+    {
+      "name": "CommandQ Front (Staging)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "npm: start:staging",
+      "url": "http://localhost:4200/"
+    },
+    {
+      "name": "CommandQ Front (Production)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "npm: start:production",
       "url": "http://localhost:4200/"
     },
     {

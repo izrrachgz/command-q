@@ -9,6 +9,8 @@ namespace Application.Modules.Identity.Logging
         public const int AccountCreated = ApplicationEventIdRanges.Identity + 2;
         public const int AccountCreationAffectedNoRecords = ApplicationEventIdRanges.Identity + 3;
         public const int AccountCreationFailed = ApplicationEventIdRanges.Identity + 4;
+        public const int AccountProvisioningAlreadyLinked = ApplicationEventIdRanges.Identity + 5;
+        public const int AccountIdentityLinked = ApplicationEventIdRanges.Identity + 6;
 
         public const int AccountActivityRecorded = ApplicationEventIdRanges.Identity + 200;
         public const int AccountActivityRecordFailed = ApplicationEventIdRanges.Identity + 201;

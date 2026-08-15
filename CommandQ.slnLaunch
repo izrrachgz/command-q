@@ -1,5 +1,29 @@
 [
   {
+    "Name": "Full Stack (Backend + FrontApplication)",
+    "Projects": [
+      {
+        "Path": "IdentityServer\\IdentityServer.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "Api\\Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "Email.Worker\\Email.Worker.csproj",
+        "Action": "Start",
+        "DebugTarget": "Email.Worker"
+      },
+      {
+        "Path": "FrontApplication\\FrontApplication.esproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
     "Name": "Backend + Email Worker",
     "Projects": [
       {

@@ -1,0 +1,14 @@
+@switch (size) {
+  @case ('sm') {
+    <img [src]="logo" alt="" class="size-4 rounded" aria-hidden="true" />
+  }
+  @case ('lg') {
+    <img [src]="logo" alt="" class="size-9 rounded-md" aria-hidden="true" />
+  }
+  @case ('xl') {
+    <img [src]="logo" alt="" class="size-11 rounded-md" aria-hidden="true" />
+  }
+  @default {
+    <img [src]="logo" alt="" class="size-8 rounded-md" aria-hidden="true" />
+  }
+}

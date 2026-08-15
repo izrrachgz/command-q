@@ -5,6 +5,64 @@
     {
       "type": "npm",
       "script": "start",
+      "label": "npm: start",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "Changes detected"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation (complete|failed)"
+          }
+        }
+      }
+    },
+    {
+      "type": "npm",
+      "script": "start:testing",
+      "label": "npm: start:testing",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "Changes detected"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation (complete|failed)"
+          }
+        }
+      }
+    },
+    {
+      "type": "npm",
+      "script": "start:staging",
+      "label": "npm: start:staging",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "Changes detected"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation (complete|failed)"
+          }
+        }
+      }
+    },
+    {
+      "type": "npm",
+      "script": "start:production",
+      "label": "npm: start:production",
       "isBackground": true,
       "problemMatcher": {
         "owner": "typescript",
@@ -23,6 +81,7 @@
     {
       "type": "npm",
       "script": "test",
+      "label": "npm: test",
       "isBackground": true,
       "problemMatcher": {
         "owner": "typescript",

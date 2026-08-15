@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Configuration_CannotBeNegative" xml:space="preserve">
+    <value>{0} cannot be negative.</value>
+  </data>
+  <data name="Configuration_CorsAllowedOriginsInvalid" xml:space="preserve">
+    <value>{0} must contain absolute HTTP or HTTPS origins when CORS is enabled.</value>
+  </data>
+  <data name="Configuration_DataProtectionRequired" xml:space="preserve">
+    <value>DataProtection configuration is required.</value>
+  </data>
+  <data name="Configuration_DatabaseEngineMustBeOneOf" xml:space="preserve">
+    <value>{0} must be one of {1}.</value>
+  </data>
+  <data name="Configuration_ExternalProviderCredentialsRequired" xml:space="preserve">
+    <value>{0} external provider requires both ClientId and ClientSecret.</value>
+  </data>
+  <data name="Configuration_GreaterThanZero" xml:space="preserve">
+    <value>{0} must be greater than zero.</value>
+  </data>
+  <data name="Configuration_IdentityRequired" xml:space="preserve">
+    <value>Identity configuration is required.</value>
+  </data>
+  <data name="Configuration_MinimumValue" xml:space="preserve">
+    <value>{0} must be at least {1}.</value>
+  </data>
+  <data name="Configuration_OpenIddictCertificatesRequiredOutsideDevelopment" xml:space="preserve">
+    <value>{0} and {1} are required outside local Development.</value>
+  </data>
+  <data name="Configuration_OpenIddictClientInvalid" xml:space="preserve">
+    <value>OpenIddict client configuration is invalid.</value>
+  </data>
+  <data name="Configuration_OpenIddictDevelopmentCertificatesOnlyInDevelopment" xml:space="preserve">
+    <value>OpenIddict development certificates can only be used in Development.</value>
+  </data>
+  <data name="Configuration_OpenIddictIssuerMustBeHttps" xml:space="preserve">
+    <value>{0} must be an absolute HTTPS URI.</value>
+  </data>
+  <data name="Configuration_OpenIddictRequired" xml:space="preserve">
+    <value>OpenIddict configuration is required.</value>
+  </data>
+  <data name="Configuration_OpenIddictTokenLifetimesMustBeGreaterThanZero" xml:space="preserve">
+    <value>OpenIddict token lifetimes must be greater than zero.</value>
+  </data>
+  <data name="Configuration_Required" xml:space="preserve">
+    <value>{0} is required.</value>
+  </data>
+  <data name="Configuration_RequiredOutsideDevelopment" xml:space="preserve">
+    <value>{0} is required outside Development.</value>
+  </data>
+  <data name="Configuration_UnsupportedIdentityServerDatabaseEngine" xml:space="preserve">
+    <value>Unsupported IdentityServer database engine: {0}.</value>
+  </data>
+  <data name="OpenIddict_ApiScopeDisplayName" xml:space="preserve">
+    <value>CommandQ API</value>
+  </data>
+  <data name="OpenIddict_DefaultIdentityRoleCreateFailed" xml:space="preserve">
+    <value>The default identity role could not be created.</value>
+  </data>
+  <data name="Protocol_AuthorizationRequestUnavailable" xml:space="preserve">
+    <value>The OpenID Connect authorization request is unavailable.</value>
+  </data>
+  <data name="Protocol_ClientUnavailable" xml:space="preserve">
+    <value>The client application is unavailable.</value>
+  </data>
+  <data name="Protocol_IdentityAccountNoLongerAvailable" xml:space="preserve">
+    <value>The identity account is no longer available.</value>
+  </data>
+  <data name="Protocol_IdentityAccountUnavailable" xml:space="preserve">
+    <value>The identity account is unavailable.</value>
+  </data>
+  <data name="Protocol_TokenCouldNotBeAuthenticated" xml:space="preserve">
+    <value>The token could not be authenticated.</value>
+  </data>
+  <data name="Protocol_TokenRequestCouldNotBeAuthenticated" xml:space="preserve">
+    <value>The token request could not be authenticated.</value>
+  </data>
+  <data name="Protocol_TokenRequestUnavailable" xml:space="preserve">
+    <value>The OpenID Connect token request is unavailable.</value>
+  </data>
+  <data name="Protocol_UnsupportedGrantType" xml:space="preserve">
+    <value>The requested grant type is not supported.</value>
+  </data>
+  <data name="Protocol_UserNotSignedIn" xml:space="preserve">
+    <value>The user is not signed in.</value>
+  </data>
+  <data name="SignIn_BrandMark" xml:space="preserve">
+    <value>CQ</value>
+  </data>
+  <data name="SignIn_BrandName" xml:space="preserve">
+    <value>CommandQ</value>
+  </data>
+  <data name="SignIn_DocumentLanguage" xml:space="preserve">
+    <value>en</value>
+  </data>
+  <data name="SignIn_Heading" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="SignIn_InvalidCredentials" xml:space="preserve">
+    <value>The username or password is invalid.</value>
+  </data>
+  <data name="SignIn_Intro" xml:space="preserve">
+    <value>Use your CommandQ identity to continue.</value>
+  </data>
+  <data name="SignIn_LockedOut" xml:space="preserve">
+    <value>The account is locked. Try again later.</value>
+  </data>
+  <data name="SignIn_PageTitle" xml:space="preserve">
+    <value>CommandQ sign in</value>
+  </data>
+  <data name="SignIn_PasswordLabel" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="SignIn_RememberMeLabel" xml:space="preserve">
+    <value>Remember me</value>
+  </data>
+  <data name="SignIn_SubmitButton" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="SignIn_TemplateMissing" xml:space="preserve">
+    <value>Embedded sign-in page template '{0}' was not found.</value>
+  </data>
+  <data name="SignIn_UsernameOrEmailLabel" xml:space="preserve">
+    <value>Username or email</value>
+  </data>
+</root>

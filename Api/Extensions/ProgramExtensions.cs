@@ -61,8 +61,8 @@ namespace Api.Extensions
             // Add rate limiting policies
             builder.Services.AddRateLimitingPolicies(apiConfiguration);
 
-            // Add cache
             builder.Services.AddResponseCaching();
+            builder.Services.AddConfiguredCors(apiConfiguration, builder.Environment);
 
             if (builder.Environment.IsDevelopment())
             {
@@ -98,34 +98,6 @@ namespace Api.Extensions
                     "Every API client requires a name, id and absolute URI.")
                 .ValidateOnStart();
 
-            //Add Cors
-            if (builder.Environment.IsDevelopment())
-            {
-                builder.Services.AddCors(options =>
-                {
-                    options.AddDefaultPolicy(policy =>
-                    {
-                        var allowedOrigins = (clientsSection.Get<List<ApiClientOptions>>() ?? [])
-                            .Select(client => client.Uri.Trim().TrimEnd('/'))
-                            .Where(uri => uri.IsAbsoluteUri())
-                            .Distinct(StringComparer.OrdinalIgnoreCase)
-                            .ToArray();
-
-                        if (allowedOrigins.Length > 0)
-                        {
-                            policy.WithOrigins(allowedOrigins);
-                        }
-                        else
-                        {
-                            policy.SetIsOriginAllowed(_ => false);
-                        }
-
-                        policy.AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .AllowCredentials();
-                    });
-                });
-            }
         }
 
         public static void ValidateStartupConfiguration(this WebApplication app)
@@ -139,6 +111,7 @@ namespace Api.Extensions
             _ = services.GetRequiredService<IOptions<CacheOptions>>().Value;
             _ = services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             _ = services.GetRequiredService<IOptions<BearerAuthenticationOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<CorsOptions>>().Value;
             _ = services.GetRequiredService<IOptions<List<ApiClientOptions>>>().Value;
         }
 
@@ -157,6 +130,10 @@ namespace Api.Extensions
         /// features.</param>
         public static void ConfigurePipeline(this WebApplication app, IConfiguration configuration, IHostEnvironment env)
         {
+            app.UseRouting();
+
+            app.UseCors();
+
             // Add rate limiting
             app.UseRateLimiter();
 
@@ -181,7 +158,6 @@ namespace Api.Extensions
                 // Prefer not to use swagger gen unless it's strictly necessary
                 // app.UseSwagger();
                 // app.UseSwaggerUI();
-                app.UseCors();
             }
 
             app.UseHttpsRedirection();
@@ -317,6 +293,65 @@ namespace Api.Extensions
                 .Validate(options => !string.IsNullOrWhiteSpace(options.Db), "Api:ConnectionStrings:Db is required.")
                 .ValidateOnStart();
 
+        }
+
+        private static void AddConfiguredCors(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+        {
+            services.AddOptions<CorsOptions>()
+                .Bind(configuration.GetSection(ApiConfigKeys.Cors.Section))
+                .Validate(options => IsValidCorsConfiguration(options, environment), "Api:Cors:AllowedOrigins must contain absolute HTTP or HTTPS origins when CORS is enabled.")
+                .ValidateOnStart();
+
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.SetIsOriginAllowed(origin => IsAllowedCorsOrigin(origin, configuration, environment))
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            });
+        }
+
+        private static string[] GetAllowedCorsOrigins(CorsOptions options)
+        {
+            return options.AllowedOrigins
+                .Where(origin => !string.IsNullOrWhiteSpace(origin))
+                .Select(origin => origin.Trim().TrimEnd('/'))
+                .Where(IsHttpOrigin)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+
+        private static bool IsHttpOrigin(string origin)
+        {
+            return Uri.TryCreate(origin, UriKind.Absolute, out var uri) &&
+                (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) &&
+                string.IsNullOrEmpty(uri.AbsolutePath.Trim('/')) &&
+                string.IsNullOrEmpty(uri.Query) &&
+                string.IsNullOrEmpty(uri.Fragment);
+        }
+
+        private static bool IsValidCorsConfiguration(CorsOptions options, IHostEnvironment environment)
+        {
+            return !ShouldUseCors(options, environment) ||
+                (options.AllowedOrigins.All(origin =>
+                    !string.IsNullOrWhiteSpace(origin) &&
+                    IsHttpOrigin(origin.Trim().TrimEnd('/'))) &&
+                 GetAllowedCorsOrigins(options).Length > 0);
+        }
+
+        private static bool IsAllowedCorsOrigin(string origin, IConfiguration configuration, IHostEnvironment environment)
+        {
+            var options = configuration.GetSection(ApiConfigKeys.Cors.Section).Get<CorsOptions>() ?? new CorsOptions();
+
+            return ShouldUseCors(options, environment) &&
+                GetAllowedCorsOrigins(options).Contains(origin.Trim().TrimEnd('/'), StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static bool ShouldUseCors(CorsOptions options, IHostEnvironment environment)
+        {
+            return environment.IsDevelopment() || options.Enabled;
         }
 
         private static bool IsValidRateLimit(RateLimitingOptions options)

@@ -48,10 +48,11 @@ namespace Api.Services
         /// </summary>
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            foreach (var subscription in subscriptions)
-                subscription?.Dispose();
-
+            IDisposable?[] snapshot = [.. subscriptions];
             subscriptions.Clear();
+
+            foreach (var subscription in snapshot)
+                subscription?.Dispose();
 
             return Task.CompletedTask;
         }

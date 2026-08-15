@@ -6,7 +6,7 @@ API and includes a standalone OpenIddict authorization-server host. That host ca
 be replaced by another standards-compatible issuer, but the API always requires
 a configured authority.
 
-The runtime is split into three local hosts:
+The backend runtime is split into three local hosts:
 
 ```text
 IdentityServer  ->  API  ->  Email.Outbox  ->  Email.Worker  ->  SMTP
@@ -15,6 +15,10 @@ IdentityServer  ->  API  ->  Email.Outbox  ->  Email.Worker  ->  SMTP
 IdentityServer issues tokens, the API owns application workflows and queues
 notifications, and Email.Worker performs durable delivery. The API does not
 send SMTP mail directly.
+
+The Angular SPA lives in `FrontApplication` and is included in the solution for
+developer convenience. Backend hosts stay independently runnable and do not
+require the SPA process.
 
 ## Prerequisites
 
@@ -87,15 +91,14 @@ send SMTP mail directly.
    `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own
    `ConnectionStrings` user-secrets configured in step 2.
 
-6. Optionally run the frontend.
-
-   The backend does not require the frontend. If you keep `FrontApplication`, run:
+6. Run the frontend when you need the browser client.
 
    ```powershell
-   .\scripts\run-front.ps1
+   .\scripts\run-front.ps1 -Environment Development
    ```
 
-   The frontend is not required by either backend host.
+   `npm start` inside `FrontApplication` does the same Development launch and
+   starts the local-only frontend log writer.
 
 7. Provision an application profile after the first identity login.
 
@@ -109,9 +112,9 @@ send SMTP mail directly.
 
    For application persistence, add `migration-X.sql` under `Application.Migrations/Migrations/{Engine}/{Module}` for each supported engine you intend to keep. Migration IDs must be unique per engine and scripts must move forward only. The project embeds these scripts in its assembly, so no runtime migration-files path is required. For IdentityServer, run `.\scripts\add-identity-migration.ps1 -Name MigrationName` to generate the EF migration for all four providers.
 
-10. Add localized validation text.
+10. Add user-facing text and reusable constants.
 
-   Validators should use `ValidationTextProvider`. Add reusable validation templates to `Localization/Resources/ValidationText*.resx`, field display names to `Localization/Resources/FieldNames*.resx`, and operation messages to `Localization/Resources/Messages*.resx`.
+   Backend validators should use `ValidationTextProvider`. Add reusable validation templates to `Localization/Resources/ValidationText*.resx`, field display names to `Localization/Resources/FieldNames*.resx`, and operation messages to `Localization/Resources/Messages*.resx`. IdentityServer-owned UI/configuration text lives in `IdentityServer/Resources/IdentityServerMessages.resx`. The SPA keeps UI text in `FrontApplication/src/app/core/i18n/translations.ts`, TypeScript keys in `TextKeys`, and route/API/storage/protocol/report strings in owned constants.
 
 ## Solution Layout
 
@@ -159,7 +162,7 @@ IdentityServer.Test/
 Email.Test/
 Email.IntegrationTest/
 Email.Outbox.Test/
-FrontApplication/  (optional; not referenced by CommandQ.sln)
+FrontApplication/  (Angular SPA included for local development)
 ```
 
 Feature-owned code should live under the matching module folder. Cross-cutting infrastructure remains at project root, for example `Api/Middleware`, `Common/System`, `Persistence/Repository`, and root logging for general infrastructure events.
@@ -312,7 +315,7 @@ Root helper scripts are also available:
 | `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\run-email-worker.ps1` | Development email outbox worker using the independently migrated outbox schema in local MsSql `command_q`; accepts `-Environment` and `-NoBuild`. |
 | `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
-| `.\scripts\run-front.ps1` | Optional frontend runner; accepts `-Install`. |
+| `.\scripts\run-front.ps1` | Frontend runner for `FrontApplication`; accepts `-Environment` and `-Install`. |
 
 The backend run scripts bypass `launchSettings.json` deliberately so their
 `-Environment` and `-Urls` arguments are authoritative. Visual Studio uses the
@@ -548,6 +551,23 @@ For example, API route segments live under `Api/Modules/{Module}`, reusable
 HTTP/API constants live under `Api/Constants`, and module-specific limits or
 activity names live under `Application/Modules/{Module}`. Use configuration
 instead of constants for values that vary by environment or need runtime tuning.
+
+## Text Resources And Constants
+
+Use resource providers for backend text that can reach users, operators or
+clients. Application validation and operation messages live in the shared
+`Localization` project. IdentityServer keeps its host-owned sign-in page,
+configuration and protocol response messages in
+`IdentityServer/Resources/IdentityServerMessages.resx` so future localization
+can extend the same keys.
+
+Keep externally observable or repeated strings behind constants near their
+owner. Host configuration paths belong in `Constants/ConfigKeys.cs`; API route
+segments stay with the owning API module; reusable HTTP names stay under
+`Api/Constants`; frontend route, storage, OIDC protocol, API query/header,
+reporting and diagnostic strings stay under the matching `FrontApplication`
+`core` folder. Values that change by environment belong in configuration rather
+than constants.
 
 ## Tests
 

@@ -1,3 +1,4 @@
+using System.Data;
 using Public;
 using Common.Cqrs;
 using SqlKata.Execution;
@@ -22,12 +23,6 @@ namespace Application.Modules.Identity.Accounts.Commands
 
         public async Task<BasicResponse> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
         {
-            if (await AccountAlreadyExists(request, cancellationToken))
-            {
-                logger.AccountCreationDuplicate(request.Username);
-                return new(false, _messageAccountCannotCreate);
-            }
-
             var now = DateTime.UtcNow;
             var accountId = Guid.NewGuid();
 
@@ -36,6 +31,45 @@ namespace Application.Modules.Identity.Accounts.Commands
 
             try
             {
+                if (await IdentityAlreadyExists(request, transaction, cancellationToken))
+                {
+                    transaction.Commit();
+                    logger.AccountProvisioningAlreadyLinked(request.Username);
+                    return new(true, _messageAccountCreated);
+                }
+
+                var existingAccount = await GetExistingAccountByUsernameAndEmail(request, transaction, cancellationToken);
+
+                if (existingAccount is not null)
+                {
+                    if (await AccountHasAnyIdentity(existingAccount.Id, transaction, cancellationToken))
+                    {
+                        transaction.Rollback();
+                        logger.AccountCreationDuplicate(request.Username);
+                        return new(false, _messageAccountCannotCreate);
+                    }
+
+                    var linked = await LinkIdentity(existingAccount.Id, request, now, transaction, cancellationToken);
+
+                    if (linked <= 0)
+                    {
+                        transaction.Rollback();
+                        logger.AccountCreationVerificationFailed(request.Username);
+                        return new(false, _messageAccountCannotCreate);
+                    }
+
+                    transaction.Commit();
+                    logger.AccountIdentityLinked(existingAccount.Id, request.Username);
+                    return new(true, _messageAccountCreated);
+                }
+
+                if (await UsernameOrEmailAlreadyExists(request, transaction, cancellationToken))
+                {
+                    transaction.Rollback();
+                    logger.AccountCreationDuplicate(request.Username);
+                    return new(false, _messageAccountCannotCreate);
+                }
+
                 var account = new
                 {
                     Id = accountId,
@@ -112,25 +146,53 @@ namespace Application.Modules.Identity.Accounts.Commands
             }
         }
 
-        internal async Task<bool> AccountAlreadyExists(CreateAccountCommand request, CancellationToken cancellationToken)
+        private async Task<bool> IdentityAlreadyExists(CreateAccountCommand request, IDbTransaction transaction, CancellationToken cancellationToken)
         {
-            var identityExists = await repository.Db.Query(nameof(AccountIdentity))
+            return await repository.Db.Query(nameof(AccountIdentity))
                 .WhereNull(nameof(AccountIdentity.Deleted))
                 .Where(nameof(AccountIdentity.Issuer), request.IdentityIssuer)
                 .Where(nameof(AccountIdentity.Subject), request.IdentitySubject)
-                .ExistsAsync(cancellationToken: cancellationToken);
+                .ExistsAsync(transaction, cancellationToken: cancellationToken);
+        }
 
-            if (identityExists)
-            {
-                return true;
-            }
+        private async Task<Account?> GetExistingAccountByUsernameAndEmail(CreateAccountCommand request, IDbTransaction transaction, CancellationToken cancellationToken)
+        {
+            return await repository.Db.Query(nameof(Account))
+                .WhereNull(nameof(Account.Deleted))
+                .Where(nameof(Account.Username), request.Username.Trim())
+                .Where(nameof(Account.Email), request.Email.Trim())
+                .FirstOrDefaultAsync<Account>(transaction, cancellationToken: cancellationToken);
+        }
 
+        private async Task<bool> UsernameOrEmailAlreadyExists(CreateAccountCommand request, IDbTransaction transaction, CancellationToken cancellationToken)
+        {
             return await repository.Db.Query(nameof(Account))
                 .WhereNull(nameof(Account.Deleted))
                 .Where(query => query
                     .Where(nameof(Account.Username), request.Username.Trim())
                     .OrWhere(nameof(Account.Email), request.Email.Trim()))
-                .ExistsAsync(cancellationToken: cancellationToken);
+                .ExistsAsync(transaction, cancellationToken: cancellationToken);
+        }
+
+        private async Task<bool> AccountHasAnyIdentity(Guid accountId, IDbTransaction transaction, CancellationToken cancellationToken)
+        {
+            return await repository.Db.Query(nameof(AccountIdentity))
+                .WhereNull(nameof(AccountIdentity.Deleted))
+                .Where(nameof(AccountIdentity.AccountId), accountId)
+                .ExistsAsync(transaction, cancellationToken: cancellationToken);
+        }
+
+        private async Task<int> LinkIdentity(Guid accountId, CreateAccountCommand request, DateTime now, IDbTransaction transaction, CancellationToken cancellationToken)
+        {
+            return await repository.Db.Query(nameof(AccountIdentity))
+                .InsertAsync(new
+                {
+                    AccountId = accountId,
+                    Issuer = request.IdentityIssuer,
+                    Subject = request.IdentitySubject,
+                    Created = now,
+                    Modified = now
+                }, transaction, cancellationToken: cancellationToken);
         }
     }
 }

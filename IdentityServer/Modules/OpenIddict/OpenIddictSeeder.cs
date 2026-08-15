@@ -1,6 +1,7 @@
 using OpenIddict.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
+using IdentityServer.Resources;
 using IdentityServer.Modules.Accounts;
 using IdentityServer.Modules.OpenIddict.Configuration;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -37,7 +38,8 @@ namespace IdentityServer.Modules.OpenIddict
 
                 if (!result.Succeeded)
                 {
-                    throw new InvalidOperationException("The default identity role could not be created.");
+                    throw new InvalidOperationException(
+                        IdentityServerMessages.OpenIddict_DefaultIdentityRoleCreateFailed);
                 }
             }
         }
@@ -47,7 +49,7 @@ namespace IdentityServer.Modules.OpenIddict
             var descriptor = new OpenIddictScopeDescriptor
             {
                 Name = apiScope,
-                DisplayName = "CommandQ API",
+                DisplayName = IdentityServerMessages.OpenIddict_ApiScopeDisplayName,
                 Resources = { apiScope }
             };
 

@@ -74,6 +74,7 @@ continues to use `System.Data.SQLite` independently.
 The Development issuer is `https://localhost:7125/`. Important endpoints include:
 
 - `POST /account/register`
+- `GET /account/sign-in`
 - `POST /account/sign-in`
 - `POST /account/sign-out`
 - `GET /account/me`
@@ -88,9 +89,22 @@ The Development issuer is `https://localhost:7125/`. Important endpoints include
 - `GET /.well-known/openid-configuration`
 - `GET /health/live`, `GET /health/ready` and `GET /health/checks`
 
-The local `command_q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command_q_api`. The JSON sign-in endpoint establishes the IdentityServer cookie before authorization.
+The local `command_q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command_q_api`. Browser clients should use the hosted `GET /account/sign-in` page reached from the authorization challenge; JSON callers can still use `POST /account/sign-in` directly. In Development, the Angular SPA client allows the usual `localhost` and `127.0.0.1` Angular ports from `4200` through `4205`; restart IdentityServer after changing client redirect settings so the OpenIddict application seed is reconciled.
 
 Ending the browser session does not revoke an already issued refresh token. A client that stores a refresh token should call `POST /connect/revoke` before `GET|POST /connect/logout`; administrative global revocation remains a separate account-management concern.
+
+## Text Resources
+
+IdentityServer keeps host-owned user-facing and reusable operational messages in
+`Resources/IdentityServerMessages.resx`. Call sites use the generated
+`IdentityServerMessages.*` properties directly; parameterized text goes through
+`IdentityServerText.Format(...)`.
+
+Use those resources for sign-in page labels, validation summaries,
+configuration validation messages and OpenIddict protocol responses. Source-
+generated logging templates stay in logging classes because they are structured
+diagnostic events, not UI/protocol text. The host is still single-language for
+now, but centralizing these strings keeps the future localization path clean.
 
 ## Production Configuration
 

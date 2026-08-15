@@ -10,7 +10,7 @@ namespace Api.Test.Modules.Identity
         public async Task Me_Should_Return_Unauthorized_When_Request_Has_Valid_Api_Client_But_No_Access_Token()
         {
             using var client = factory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, "/Account/me");
+            using var request = new HttpRequestMessage(HttpMethod.Get, CommandQApiFactory.AccountMePath);
             request.Headers.Add(CommandQApiFactory.ApiClientHeaderName, CommandQApiFactory.ApiClientHeaderValue);
             request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
 
@@ -23,7 +23,7 @@ namespace Api.Test.Modules.Identity
         public async Task Me_Should_Return_Forbidden_When_Api_Client_Header_Is_Missing()
         {
             using var client = factory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, "/Account/me");
+            using var request = new HttpRequestMessage(HttpMethod.Get, CommandQApiFactory.AccountMePath);
             request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
 
             using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
@@ -35,7 +35,7 @@ namespace Api.Test.Modules.Identity
         public async Task Me_Should_Return_Forbidden_When_Access_Token_Does_Not_Have_Api_Scope()
         {
             using var client = factory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, "/Account/me");
+            using var request = new HttpRequestMessage(HttpMethod.Get, CommandQApiFactory.AccountMePath);
             request.Headers.Add(CommandQApiFactory.ApiClientHeaderName, CommandQApiFactory.ApiClientHeaderValue);
             request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
             request.Headers.Authorization = new("Bearer", CommandQApiFactory.CreateAccessToken(scope: null));
@@ -49,7 +49,7 @@ namespace Api.Test.Modules.Identity
         public async Task Me_Should_Return_Unauthorized_When_Access_Token_Has_Wrong_Audience()
         {
             using var client = factory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, "/Account/me");
+            using var request = new HttpRequestMessage(HttpMethod.Get, CommandQApiFactory.AccountMePath);
             request.Headers.Add(CommandQApiFactory.ApiClientHeaderName, CommandQApiFactory.ApiClientHeaderValue);
             request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
             request.Headers.Authorization = new(

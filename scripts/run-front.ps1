@@ -1,4 +1,6 @@
 param(
+    [ValidateSet("Development", "Testing", "Staging", "Production")]
+    [string]$Environment = "Development",
     [switch]$Install
 )
 
@@ -20,7 +22,14 @@ try {
         npm install
     }
 
-    npm start
+    $scriptName = switch ($Environment) {
+        "Testing" { "start:testing" }
+        "Staging" { "start:staging" }
+        "Production" { "start:production" }
+        default { "start" }
+    }
+
+    npm run $scriptName
 }
 finally {
     Pop-Location

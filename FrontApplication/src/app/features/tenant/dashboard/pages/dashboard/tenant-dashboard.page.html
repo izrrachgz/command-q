@@ -1,0 +1,55 @@
+    <app-page-header
+      [eyebrow]="'nav.tenant' | text"
+      [title]="'tenant.dashboard.title' | text"
+      [description]="'tenant.dashboard.profile' | text"
+    >
+      <button
+        type="button"
+        [disabled]="loading"
+        class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        (click)="loadActivity()"
+      >
+        <svg lucideIcon="refresh-cw" class="size-4" [class.animate-spin]="loading" aria-hidden="true"></svg>
+        {{ 'action.refresh' | text }}
+      </button>
+    </app-page-header>
+
+    <section class="grid gap-4 md:grid-cols-3">
+      <app-stat-card
+        [label]="'tenant.dashboard.profile' | text"
+        [value]="(auth.account$ | async)?.username ?? '-'"
+        icon="user"
+      />
+      <app-stat-card [label]="'tenant.dashboard.addresses' | text" [value]="addressCount" icon="building-2" />
+      <app-stat-card [label]="'tenant.dashboard.contacts' | text" [value]="contactCount" icon="mail" />
+    </section>
+
+    <section class="mt-6">
+      <h2 class="mb-3 text-lg font-semibold text-slate-950">{{ 'tenant.dashboard.activity' | text }}</h2>
+      @if (activity.length > 0) {
+        <div class="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
+          <table class="w-full table-fixed text-left text-sm">
+            <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-500">
+              <tr>
+                <th class="w-40 px-4 py-3">{{ 'table.module' | text }}</th>
+                <th class="w-40 px-4 py-3">{{ 'table.action' | text }}</th>
+                <th class="px-4 py-3">{{ 'table.message' | text }}</th>
+                <th class="w-48 px-4 py-3">{{ 'table.created' | text }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (item of activity; track item.id) {
+                <tr>
+                  <td class="truncate px-4 py-3 font-medium text-slate-900">{{ item.module }}</td>
+                  <td class="truncate px-4 py-3 text-slate-700">{{ item.action }}</td>
+                  <td class="truncate px-4 py-3 text-slate-600">{{ item.message }}</td>
+                  <td class="px-4 py-3 text-slate-600">{{ item.createdUtc | date: 'medium' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <app-empty-state icon="activity" [title]="'empty.title' | text" [message]="'tenant.dashboard.activity' | text" />
+      }
+    </section>

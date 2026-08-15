@@ -1,49 +1,30 @@
-import { Injectable } from '@angular/core';
-import {
-  CanActivate,
-  CanActivateChild,
-  CanLoad,
-  ActivatedRouteSnapshot,
-  RouterStateSnapshot,
-  Route,
-  UrlSegment,
-  Router,
-  UrlTree,
-} from '@angular/router';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { map } from 'rxjs';
 
-import { AuthService } from './auth.service';
+import { AuthFacade, AuthRealms, inferRealmFromUrl, sanitizeReturnUrl } from './auth.facade';
+import { AppRouteQueryParams } from '../routing/app-route-constants';
+import { AppRoutePaths } from '../routing/app-route-paths';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-  ) {}
+export const authGuard: CanActivateFn = (route, state) => {
+  const auth = inject(AuthFacade);
+  const router = inject(Router);
+  const realm = route.queryParamMap.get(AppRouteQueryParams.realm) === AuthRealms.admin
+    ? AuthRealms.admin
+    : inferRealmFromUrl(state.url);
+  const returnUrl = sanitizeReturnUrl(state.url, realm);
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
-    if (this.authService.isAuthenticated()) {
-      return true;
-    }
+  auth.setRealm(realm);
 
-    return this.redirectToLogin(state.url);
-  }
+  return auth.checkAuth().pipe(
+    map((session) => {
+      if (session.authenticated) {
+        return true;
+      }
 
-  canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
-    return this.canActivate(route, state);
-  }
-
-  canLoad(route: Route, segments: UrlSegment[]): boolean | UrlTree {
-    if (this.authService.isAuthenticated()) {
-      return true;
-    }
-
-    const url = '/' + segments.map((s) => s.path).join('/');
-    return this.redirectToLogin(url);
-  }
-
-  private redirectToLogin(returnUrl: string): UrlTree {
-    return this.router.createUrlTree(['/auth/login'], { queryParams: { returnUrl } });
-  }
-}
+      return router.createUrlTree([AppRoutePaths.auth.login], {
+        queryParams: { [AppRouteQueryParams.returnUrl]: returnUrl, [AppRouteQueryParams.realm]: realm },
+      });
+    }),
+  );
+};

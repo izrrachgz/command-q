@@ -2,7 +2,11 @@ using IdentityServer.Constants;
 using IdentityServer.Modules.Accounts.Configuration;
 using OpenIddict.Abstractions;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using IdentityServer.Localization;
+using IdentityServer.Resources;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace IdentityServer.Modules.Accounts
 {
@@ -10,22 +14,44 @@ namespace IdentityServer.Modules.Accounts
     {
         public static IdentityBuilder AddAccountsModule(this IServiceCollection services, IConfiguration configuration)
         {
-            var identitySection = configuration.GetRequiredSection(ConfigKeys.Identity.Section);
+            var identitySection = configuration.GetRequiredSection(IdentityServerConfigKeys.Identity.Section);
 
             services.AddOptions<IdentityConfigurationOptions>()
                 .Bind(identitySection)
-                .Validate(options => options.RequiredPasswordLength >= 8, "IdentityServer:Identity:RequiredPasswordLength must be at least eight.")
-                .Validate(options => options.MaxFailedAccessAttempts > 0, "IdentityServer:Identity:MaxFailedAccessAttempts must be greater than zero.")
-                .Validate(options => options.LockoutMinutes > 0, "IdentityServer:Identity:LockoutMinutes must be greater than zero.")
-                .Validate(options => options.CookieHours > 0, "IdentityServer:Identity:CookieHours must be greater than zero.")
-                .Validate(options => !string.IsNullOrWhiteSpace(options.CookieName), "IdentityServer:Identity:CookieName is required.")
-                .Validate(options => options.AuthenticationPermitLimit > 0, "IdentityServer:Identity:AuthenticationPermitLimit must be greater than zero.")
-                .Validate(options => options.AuthenticationWindowSeconds > 0, "IdentityServer:Identity:AuthenticationWindowSeconds must be greater than zero.")
-                .Validate(options => options.AuthenticationQueueLimit >= 0, "IdentityServer:Identity:AuthenticationQueueLimit cannot be negative.")
+                .Validate(
+                    options => options.RequiredPasswordLength >= 8,
+                    IdentityServerText.Format(
+                        IdentityServerMessages.Configuration_MinimumValue,
+                        IdentityPath(IdentityServerConfigKeys.Identity.RequiredPasswordLength),
+                        8))
+                .Validate(
+                    options => options.MaxFailedAccessAttempts > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.Identity.MaxFailedAccessAttempts))
+                .Validate(
+                    options => options.LockoutMinutes > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.Identity.LockoutMinutes))
+                .Validate(
+                    options => options.CookieHours > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.Identity.CookieHours))
+                .Validate(
+                    options => !string.IsNullOrWhiteSpace(options.CookieName),
+                    Required(IdentityServerConfigKeys.Identity.CookieName))
+                .Validate(
+                    options => options.AuthenticationPermitLimit > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.Identity.AuthenticationPermitLimit))
+                .Validate(
+                    options => options.AuthenticationWindowSeconds > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.Identity.AuthenticationWindowSeconds))
+                .Validate(
+                    options => options.AuthenticationQueueLimit >= 0,
+                    IdentityServerText.Format(
+                        IdentityServerMessages.Configuration_CannotBeNegative,
+                        IdentityPath(IdentityServerConfigKeys.Identity.AuthenticationQueueLimit)))
                 .ValidateOnStart();
 
             var identityOptions = identitySection.Get<IdentityConfigurationOptions>()
-                ?? throw new InvalidOperationException("Identity configuration is required.");
+                ?? throw new InvalidOperationException(
+                    IdentityServerMessages.Configuration_IdentityRequired);
 
             var identityBuilder = services.AddIdentity<IdentityUser, IdentityRole>(options =>
                 {
@@ -52,29 +78,38 @@ namespace IdentityServer.Modules.Accounts
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.LoginPath = AccountConstants.Routes.SignInPath;
+                options.ReturnUrlParameter = AccountConstants.ReturnUrlParameter;
                 options.ExpireTimeSpan = TimeSpan.FromHours(identityOptions.CookieHours);
                 options.SlidingExpiration = true;
                 options.Events.OnRedirectToLogin = context =>
                 {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return Task.CompletedTask;
+                    return RedirectOrStatusCode(context, StatusCodes.Status401Unauthorized);
                 };
                 options.Events.OnRedirectToAccessDenied = context =>
                 {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    return Task.CompletedTask;
+                    return RedirectOrStatusCode(context, StatusCodes.Status403Forbidden);
                 };
             });
 
             services.AddOptions<ExternalProviderOptions>()
-                .Bind(configuration.GetSection(ConfigKeys.ExternalProviders.Section))
-                .Validate(options => HasCompleteCredentials(options.Google), "Google external provider requires both ClientId and ClientSecret.")
-                .Validate(options => HasCompleteCredentials(options.Microsoft), "Microsoft external provider requires both ClientId and ClientSecret.")
+                .Bind(configuration.GetSection(IdentityServerConfigKeys.ExternalProviders.Section))
+                .Validate(
+                    options => HasCompleteCredentials(options.Google),
+                    IdentityServerText.Format(
+                        IdentityServerMessages.Configuration_ExternalProviderCredentialsRequired,
+                        "Google"))
+                .Validate(
+                    options => HasCompleteCredentials(options.Microsoft),
+                    IdentityServerText.Format(
+                        IdentityServerMessages.Configuration_ExternalProviderCredentialsRequired,
+                        "Microsoft"))
                 .ValidateOnStart();
 
             AddExternalProviders(services, configuration);
 
             services.AddHttpContextAccessor();
+            services.AddSingleton<ISignInPageRenderer, SignInPageRenderer>();
             services.AddScoped<IIdentitySecurityEventRecorder, IdentitySecurityEventRecorder>();
             services.AddRateLimiter(options =>
             {
@@ -96,7 +131,7 @@ namespace IdentityServer.Modules.Accounts
 
         private static void AddExternalProviders(IServiceCollection services, IConfiguration configuration)
         {
-            var providers = configuration.GetSection(ConfigKeys.ExternalProviders.Section).Get<ExternalProviderOptions>() ?? new();
+            var providers = configuration.GetSection(IdentityServerConfigKeys.ExternalProviders.Section).Get<ExternalProviderOptions>() ?? new();
             var authentication = services.AddAuthentication();
 
             if (IsConfigured(providers.Google))
@@ -129,6 +164,49 @@ namespace IdentityServer.Modules.Accounts
         private static bool IsConfigured(ExternalProviderCredentials credentials)
         {
             return !string.IsNullOrWhiteSpace(credentials.ClientId) || !string.IsNullOrWhiteSpace(credentials.ClientSecret);
+        }
+
+        private static Task RedirectOrStatusCode(RedirectContext<CookieAuthenticationOptions> context, int statusCode)
+        {
+            if (ExpectsApiResponse(context.Request))
+            {
+                context.Response.StatusCode = statusCode;
+                return Task.CompletedTask;
+            }
+
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        }
+
+        private static bool ExpectsApiResponse(HttpRequest request)
+        {
+            if (!HttpMethods.IsGet(request.Method) && !HttpMethods.IsHead(request.Method))
+            {
+                return true;
+            }
+
+            if (string.Equals(request.Headers.XRequestedWith, "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return request.Headers.Accept.Any(value =>
+                value?.Contains(AccountConstants.ContentTypes.Json, StringComparison.OrdinalIgnoreCase) == true);
+        }
+
+        private static string IdentityPath(string childPath)
+        {
+            return IdentityServerConfigKeys.FullPath(childPath);
+        }
+
+        private static string GreaterThanZero(string childPath)
+        {
+            return IdentityServerText.Format(IdentityServerMessages.Configuration_GreaterThanZero, IdentityPath(childPath));
+        }
+
+        private static string Required(string childPath)
+        {
+            return IdentityServerText.Format(IdentityServerMessages.Configuration_Required, IdentityPath(childPath));
         }
     }
 }

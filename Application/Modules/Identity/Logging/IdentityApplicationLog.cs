@@ -19,6 +19,12 @@ namespace Application.Modules.Identity.Logging
         [LoggerMessage(EventId = IdentityApplicationEventIds.AccountCreationFailed, Level = LogLevel.Error, Message = "Error creating account for Email: {Email}, Username: {Username}")]
         public static partial void AccountCreationFailed(this ILogger logger, Exception exception, string email, string username);
 
+        [LoggerMessage(EventId = IdentityApplicationEventIds.AccountProvisioningAlreadyLinked, Level = LogLevel.Information, Message = "Account provisioning skipped because identity is already linked. Username: {Username}.")]
+        public static partial void AccountProvisioningAlreadyLinked(this ILogger logger, string username);
+
+        [LoggerMessage(EventId = IdentityApplicationEventIds.AccountIdentityLinked, Level = LogLevel.Information, Message = "Account identity linked to existing account. AccountId: {AccountId}. Username: {Username}.")]
+        public static partial void AccountIdentityLinked(this ILogger logger, Guid accountId, string username);
+
         [LoggerMessage(EventId = IdentityApplicationEventIds.AccountActivityRecorded, Level = LogLevel.Information, Message = "Account activity recorded. AccountId: {AccountId}. Module: {Module}. Action: {Action}. EntityType: {EntityType}. EntityId: {EntityId}.")]
         public static partial void AccountActivityRecorded(this ILogger logger, Guid accountId, string module, string action, string? entityType, string? entityId);
 

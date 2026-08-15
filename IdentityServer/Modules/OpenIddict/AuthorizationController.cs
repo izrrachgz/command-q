@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Server.AspNetCore;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Identity;
+using IdentityServer.Resources;
 using IdentityServer.Modules.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
@@ -29,7 +30,8 @@ namespace IdentityServer.Modules.OpenIddict
         public async Task<IActionResult> AuthorizeEndpoint(CancellationToken cancellationToken)
         {
             var request = HttpContext.GetOpenIddictServerRequest()
-                ?? throw new InvalidOperationException("The OpenID Connect authorization request is unavailable.");
+                ?? throw new InvalidOperationException(
+                    IdentityServerMessages.Protocol_AuthorizationRequestUnavailable);
 
             var authentication = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
 
@@ -37,7 +39,7 @@ namespace IdentityServer.Modules.OpenIddict
             {
                 if (request.HasPromptValue(NonePrompt))
                 {
-                    return ProtocolForbid(Errors.LoginRequired, "The user is not signed in.");
+                    return ProtocolForbid(Errors.LoginRequired, IdentityServerMessages.Protocol_UserNotSignedIn);
                 }
 
                 return Challenge(IdentityConstants.ApplicationScheme);
@@ -47,7 +49,7 @@ namespace IdentityServer.Modules.OpenIddict
 
             if (user is null || !await signInManager.CanSignInAsync(user) || await userManager.IsLockedOutAsync(user))
             {
-                return ProtocolForbid(Errors.LoginRequired, "The identity account is unavailable.");
+                return ProtocolForbid(Errors.LoginRequired, IdentityServerMessages.Protocol_IdentityAccountUnavailable);
             }
 
             var principal = await CreateUserPrincipal(user, request.GetScopes(), cancellationToken);
@@ -60,7 +62,8 @@ namespace IdentityServer.Modules.OpenIddict
         public async Task<IActionResult> Exchange(CancellationToken cancellationToken)
         {
             var request = HttpContext.GetOpenIddictServerRequest()
-                ?? throw new InvalidOperationException("The OpenID Connect token request is unavailable.");
+                ?? throw new InvalidOperationException(
+                    IdentityServerMessages.Protocol_TokenRequestUnavailable);
 
             if (request.IsClientCredentialsGrantType())
             {
@@ -69,7 +72,7 @@ namespace IdentityServer.Modules.OpenIddict
 
             if (!request.IsAuthorizationCodeGrantType() && !request.IsRefreshTokenGrantType())
             {
-                return ProtocolForbid(Errors.UnsupportedGrantType, "The requested grant type is not supported.");
+                return ProtocolForbid(Errors.UnsupportedGrantType, IdentityServerMessages.Protocol_UnsupportedGrantType);
             }
 
             var authentication = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -77,7 +80,7 @@ namespace IdentityServer.Modules.OpenIddict
 
             if (!authentication.Succeeded || authenticatedPrincipal is null)
             {
-                return ProtocolForbid(Errors.InvalidGrant, "The token request could not be authenticated.");
+                return ProtocolForbid(Errors.InvalidGrant, IdentityServerMessages.Protocol_TokenRequestCouldNotBeAuthenticated);
             }
 
             var subject = authenticatedPrincipal?.GetClaim(Claims.Subject);
@@ -85,7 +88,7 @@ namespace IdentityServer.Modules.OpenIddict
 
             if (user is null || !await signInManager.CanSignInAsync(user) || await userManager.IsLockedOutAsync(user))
             {
-                return ProtocolForbid(Errors.InvalidGrant, "The identity account is no longer available.");
+                return ProtocolForbid(Errors.InvalidGrant, IdentityServerMessages.Protocol_IdentityAccountNoLongerAvailable);
             }
 
             var principal = await CreateUserPrincipal(
@@ -132,12 +135,19 @@ namespace IdentityServer.Modules.OpenIddict
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> UserInfo()
         {
-            var subject = User.GetClaim(Claims.Subject);
+            var authentication = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+
+            if (!authentication.Succeeded || authentication.Principal is null)
+            {
+                return ProtocolForbid(Errors.InvalidToken, IdentityServerMessages.Protocol_TokenCouldNotBeAuthenticated);
+            }
+
+            var subject = authentication.Principal.GetClaim(Claims.Subject);
             var user = string.IsNullOrWhiteSpace(subject) ? null : await userManager.FindByIdAsync(subject);
 
             if (user is null)
             {
-                return ProtocolForbid(Errors.InvalidToken, "The identity account is no longer available.");
+                return ProtocolForbid(Errors.InvalidToken, IdentityServerMessages.Protocol_IdentityAccountNoLongerAvailable);
             }
 
             return Ok(new Dictionary<string, object?>
@@ -155,7 +165,7 @@ namespace IdentityServer.Modules.OpenIddict
 
             if (application is null)
             {
-                return ProtocolForbid(Errors.InvalidClient, "The client application is unavailable.");
+                return ProtocolForbid(Errors.InvalidClient, IdentityServerMessages.Protocol_ClientUnavailable);
             }
 
             var identity = new ClaimsIdentity(

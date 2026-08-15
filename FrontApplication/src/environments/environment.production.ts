@@ -1,8 +1,47 @@
-export const environment = {
+import {
+  CommandQEnvironment,
+  createApiEndpoints,
+  createIdentityEndpoints,
+} from '../app/core/config/app-environment';
+import {
+  CommandQEnvironmentDefaults,
+  createPostLogoutRedirectUri,
+  createRedirectUrl,
+} from './environment-defaults';
+
+const applicationUrl = 'https://app.commandq.local';
+
+export const environment: CommandQEnvironment = {
+  name: 'production',
   production: true,
-  apiUrl: 'http://localhost:7000/',
-  client: {
-    name: 'location_family',
-    id: 'find_me',
+  applicationUrl,
+  api: {
+    baseUrl: 'https://api.commandq.local/',
+    clientHeaderName: 'X-CommandQ-Client',
+    clientId: 'replace-with-production-client-id',
+    endpoints: createApiEndpoints(),
+  },
+  identity: {
+    authority: 'https://identity.commandq.local/',
+    clientId: CommandQEnvironmentDefaults.spaClientId,
+    scope: CommandQEnvironmentDefaults.oidcScope,
+    redirectUrl: createRedirectUrl(applicationUrl),
+    postLogoutRedirectUri: createPostLogoutRedirectUri(applicationUrl),
+    endpoints: createIdentityEndpoints(),
+  },
+  localization: {
+    defaultCulture: 'en-US',
+    fallbackCulture: 'en-US',
+    supportedCultures: ['en-US', 'es-ES'],
+  },
+  logging: {
+    file: {
+      enabled: false,
+      endpoint: '',
+    },
+  },
+  build: {
+    compressReleaseAssets: true,
+    obfuscateReleaseAssets: false,
   },
 };

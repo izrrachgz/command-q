@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.5984942">
+  <PropertyGroup>
+    <StartupCommand>npm start</StartupCommand>
+    <StartupCommandWorkingDirectory>$(MSBuildProjectDirectory)</StartupCommandWorkingDirectory>
+    <BuildCommand>npm run build</BuildCommand>
+    <BuildCommandWorkingDirectory>$(MSBuildProjectDirectory)</BuildCommandWorkingDirectory>
+    <TestCommand>npm test -- --watch=false</TestCommand>
+    <PublishCommand>npm run build:release</PublishCommand>
+  </PropertyGroup>
+</Project>

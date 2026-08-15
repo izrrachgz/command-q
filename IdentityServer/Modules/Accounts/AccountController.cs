@@ -16,6 +16,7 @@ namespace IdentityServer.Modules.Accounts
         SignInManager<IdentityUser> signInManager,
         IdentityServerDbContext database,
         IIdentitySecurityEventRecorder securityEvents,
+        ISignInPageRenderer signInPageRenderer,
         ILogger<AccountController> logger) : ControllerBase
     {
         [AllowAnonymous, HttpPost(AccountConstants.Routes.Register)]
@@ -55,9 +56,54 @@ namespace IdentityServer.Modules.Accounts
             return CreatedAtAction(nameof(Me), new AccountResponse(user.Id, user.UserName, user.Email));
         }
 
+        [AllowAnonymous, HttpGet(AccountConstants.Routes.SignIn)]
+        public IActionResult SignInPage([FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl)
+        {
+            if (!IsSafeReturnUrl(returnUrl))
+            {
+                return BadRequest();
+            }
+
+            return User.Identity?.IsAuthenticated == true
+                ? LocalRedirect(returnUrl)
+                : Content(signInPageRenderer.Render(returnUrl), AccountConstants.ContentTypes.Html);
+        }
+
         [AllowAnonymous, HttpPost(AccountConstants.Routes.SignIn)]
+        [Consumes(AccountConstants.ContentTypes.Json)]
         [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
         public async Task<IActionResult> SignIn(SignInRequest request, CancellationToken cancellationToken)
+        {
+            var result = await PasswordSignIn(request, cancellationToken);
+
+            return result.Succeeded ? NoContent() : Unauthorized();
+        }
+
+        [AllowAnonymous, HttpPost(AccountConstants.Routes.SignIn)]
+        [Consumes(AccountConstants.ContentTypes.FormUrlEncoded)]
+        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        public async Task<IActionResult> SignInForm(
+            [FromForm] SignInRequest request,
+            [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl,
+            CancellationToken cancellationToken = default)
+        {
+            if (!IsSafeReturnUrl(returnUrl))
+            {
+                return BadRequest();
+            }
+
+            var result = await PasswordSignIn(request, cancellationToken);
+
+            if (result.Succeeded)
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Content(signInPageRenderer.Render(returnUrl, failed: true, lockedOut: result.LockedOut), AccountConstants.ContentTypes.Html);
+        }
+
+        private async Task<PasswordSignInResult> PasswordSignIn(SignInRequest request, CancellationToken cancellationToken)
         {
             var user = await FindUser(request.UsernameOrEmail);
 
@@ -65,7 +111,7 @@ namespace IdentityServer.Modules.Accounts
             {
                 logger.LoginFailed(request.UsernameOrEmail);
                 await securityEvents.Record(AccountConstants.Actions.LoginFailed, cancellationToken: cancellationToken);
-                return Unauthorized();
+                return new PasswordSignInResult(Succeeded: false, LockedOut: false);
             }
 
             var result = await signInManager.PasswordSignInAsync(
@@ -78,20 +124,20 @@ namespace IdentityServer.Modules.Accounts
             {
                 logger.LoginSucceeded(user.Id);
                 await securityEvents.Record(AccountConstants.Actions.LoginSucceeded, user.Id, cancellationToken: cancellationToken);
-                return NoContent();
+                return new PasswordSignInResult(Succeeded: true, LockedOut: false);
             }
 
             if (result.IsLockedOut)
             {
                 logger.LoginLockedOut(user.Id);
                 await securityEvents.Record(AccountConstants.Actions.LoginLockedOut, user.Id, cancellationToken: cancellationToken);
-                return Unauthorized();
+                return new PasswordSignInResult(Succeeded: false, LockedOut: true);
             }
 
             logger.LoginFailed(request.UsernameOrEmail);
             await securityEvents.Record(AccountConstants.Actions.LoginFailed, user.Id, cancellationToken: cancellationToken);
 
-            return Unauthorized();
+            return new PasswordSignInResult(Succeeded: false, LockedOut: false);
         }
 
         [Authorize, HttpPost(AccountConstants.Routes.SignOut)]
@@ -150,7 +196,7 @@ namespace IdentityServer.Modules.Accounts
 
         [AllowAnonymous, HttpGet(AccountConstants.Routes.External)]
         [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
-        public async Task<IActionResult> External(string provider, [FromQuery] string returnUrl = "/")
+        public async Task<IActionResult> External(string provider, [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl)
         {
             var scheme = (await signInManager.GetExternalAuthenticationSchemesAsync())
                 .SingleOrDefault(value => string.Equals(value.Name, provider, StringComparison.Ordinal));
@@ -168,7 +214,7 @@ namespace IdentityServer.Modules.Accounts
 
         [Authorize, HttpGet(AccountConstants.Routes.ExternalLink)]
         [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
-        public async Task<IActionResult> LinkExternal(string provider, [FromQuery] string returnUrl = "/")
+        public async Task<IActionResult> LinkExternal(string provider, [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl)
         {
             var user = await userManager.GetUserAsync(User);
             var scheme = (await signInManager.GetExternalAuthenticationSchemesAsync())
@@ -190,7 +236,7 @@ namespace IdentityServer.Modules.Accounts
 
         [Authorize, HttpGet(AccountConstants.Routes.ExternalLinkCallback)]
         public async Task<IActionResult> LinkExternalCallback(
-            [FromQuery] string returnUrl = "/",
+            [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl,
             CancellationToken cancellationToken = default)
         {
             var user = await userManager.GetUserAsync(User);
@@ -224,7 +270,7 @@ namespace IdentityServer.Modules.Accounts
 
         [AllowAnonymous, HttpGet(AccountConstants.Routes.ExternalCallback)]
         public async Task<IActionResult> ExternalCallback(
-            [FromQuery] string returnUrl = "/",
+            [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl,
             [FromQuery] string? remoteError = null,
             CancellationToken cancellationToken = default)
         {
@@ -344,6 +390,8 @@ namespace IdentityServer.Modules.Accounts
             var claim = principal.FindFirst("email_verified")?.Value;
             return bool.TryParse(claim, out var verified) && verified;
         }
+
+        private sealed record PasswordSignInResult(bool Succeeded, bool LockedOut);
 
         private static Dictionary<string, string[]> ToValidationErrors(IdentityResult result)
         {

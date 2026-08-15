@@ -9,13 +9,13 @@ builder.ConfigureServices();
 
 var app = builder.Build();
 IConfigurationSection identityServerConfiguration = app.Configuration
-    .GetRequiredSection(ConfigKeys.Section);
+    .GetRequiredSection(IdentityServerConfigKeys.Section);
 
 app.ConfigurePipeline();
 app.Logger.LogApplicationConfigurationConstants(identityServerConfiguration, app.Environment);
 
 if (app.Environment.IsDevelopment() ||
-    identityServerConfiguration.GetValue(ConfigKeys.Migrations.RunOnStartup, false))
+    identityServerConfiguration.GetValue(IdentityServerConfigKeys.Migrations.RunOnStartup, false))
 {
     await app.RunIdentityServerMigrations();
 }

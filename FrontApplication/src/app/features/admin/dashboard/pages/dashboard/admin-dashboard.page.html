@@ -1,0 +1,20 @@
+    <app-page-header
+      [eyebrow]="'nav.admin' | text"
+      [title]="'admin.dashboard.title' | text"
+      [description]="'admin.dashboard.pendingBackend' | text"
+    />
+
+    <section class="grid gap-4 md:grid-cols-3">
+      <app-stat-card [label]="'admin.dashboard.accounts' | text" value="-" [hint]="'admin.dashboard.metricPending' | text" icon="users-round" />
+      <app-stat-card [label]="'admin.dashboard.email' | text" value="-" [hint]="'admin.dashboard.metricPending' | text" icon="mail" />
+      <app-stat-card [label]="'admin.dashboard.health' | text" value="-" [hint]="'admin.dashboard.metricPending' | text" icon="activity" />
+    </section>
+
+    <section class="mt-6 rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-start gap-3">
+        <span class="grid size-10 place-items-center rounded-md bg-amber-50 text-amber-700">
+          <svg lucideIcon="circle-alert" class="size-5" aria-hidden="true"></svg>
+        </span>
+        <p class="text-sm leading-6 text-slate-600">{{ 'admin.dashboard.pendingBackend' | text }}</p>
+      </div>
+    </section>
