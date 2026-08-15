@@ -147,6 +147,9 @@
   <data name="Account_Unlocked" xml:space="preserve">
     <value>Account unlocked.</value>
   </data>
+  <data name="Admin_Cannot_Remove_Own_Role" xml:space="preserve">
+    <value>Administrators cannot remove their own Admin role.</value>
+  </data>
   <data name="Default_Address_Name" xml:space="preserve">
     <value>{0}'s Address.</value>
   </data>

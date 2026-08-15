@@ -37,6 +37,26 @@
           </label>
 
           <label class="flex items-center justify-between gap-4 rounded-md border border-slate-200 p-3 text-sm">
+            <span class="font-medium text-slate-700">{{ 'field.reduceMotion' | text }}</span>
+            <input
+              type="checkbox"
+              class="size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+              [ngModel]="prefs.reduceMotion"
+              (ngModelChange)="preferences.update({ reduceMotion: $event })"
+            />
+          </label>
+
+          <label class="flex items-center justify-between gap-4 rounded-md border border-slate-200 p-3 text-sm">
+            <span class="font-medium text-slate-700">{{ 'field.enhancedFocus' | text }}</span>
+            <input
+              type="checkbox"
+              class="size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+              [ngModel]="prefs.enhancedFocus"
+              (ngModelChange)="preferences.update({ enhancedFocus: $event })"
+            />
+          </label>
+
+          <label class="flex items-center justify-between gap-4 rounded-md border border-slate-200 p-3 text-sm">
             <span class="font-medium text-slate-700">{{ 'field.showDenseTables' | text }}</span>
             <input
               type="checkbox"

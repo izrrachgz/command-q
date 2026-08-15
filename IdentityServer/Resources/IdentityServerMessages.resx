@@ -115,6 +115,12 @@
   <data name="OpenIddict_DefaultIdentityRoleCreateFailed" xml:space="preserve">
     <value>The default identity role could not be created.</value>
   </data>
+  <data name="OpenIddict_IdentityRoleCreateFailed" xml:space="preserve">
+    <value>The identity role '{0}' could not be created.</value>
+  </data>
+  <data name="OpenIddict_IdentityRoleGrantFailed" xml:space="preserve">
+    <value>The identity role '{0}' could not be granted.</value>
+  </data>
   <data name="Protocol_AuthorizationRequestUnavailable" xml:space="preserve">
     <value>The OpenID Connect authorization request is unavailable.</value>
   </data>

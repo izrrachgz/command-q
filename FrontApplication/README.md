@@ -130,6 +130,7 @@ Reusable form controls live in `src/app/shared/forms`:
 - number
 - date
 - date-time
+- date-time range
 - time
 
 Controls implement `ControlValueAccessor` and surface common validation states through `ValidationMessageComponent`.
@@ -141,9 +142,40 @@ Brand artwork is packaged with the app under `public/assets`. Use
 repeating asset paths in feature templates. The current robot mark is an
 original local SVG and is not loaded from a CDN.
 
-## Admin Stubs
+The authenticated layout is responsive across common desktop, tablet and phone
+viewports. Desktop uses a fixed sidebar, while smaller screens use a drawer
+navigation opened from the header. Feature pages should continue using
+responsive Tailwind grid/flex utilities, avoid fixed widths below `320px`, and
+keep actions reachable without horizontal scrolling.
 
-Admin account and email pages are wired through actions, services, and stores. The UI is ready for backend endpoints, but the services intentionally point at future admin API routes and surface a backend-pending message instead of changing backend behavior in this pass.
+## Accessibility
+
+CommandQ relies on the user's operating-system or browser screen reader
+(Narrator, NVDA, JAWS, VoiceOver, TalkBack) rather than shipping its own
+narrator. The app provides the structure those tools need:
+
+- semantic landmarks for navigation and main content
+- keyboard-visible skip-to-content link
+- clear labels for inputs and icon-only buttons
+- persisted preferences for reduced motion and enhanced focus outlines
+- document language updates when the selected culture changes
+
+These preferences are available from both tenant and admin Preferences pages and
+are saved in local storage. New pages should keep controls keyboard reachable,
+avoid relying only on color, preserve visible focus states and keep dynamic
+status changes connected to translated text.
+
+## Admin Area
+
+Admin routes are protected by the `Admin` role claim from IdentityServer. The
+account page lists identity-backed accounts through the API's `/Admin/accounts`
+endpoint, and the role management page edits assignments through
+`/Admin/accounts/{accountId}/roles`. Buttons remain disabled while commands are
+in flight, and failed backend calls surface translated pending/unavailable
+messages through the feature actions and stores.
+
+Email administration remains UI-ready while backend email query endpoints are
+filled in later.
 
 ## Reporting
 

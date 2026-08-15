@@ -77,6 +77,15 @@ namespace Public {
                 return ResourceManager.GetString("Account_Unlocked", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Administrators cannot remove their own Admin role..
+        /// </summary>
+        public static string Admin_Cannot_Remove_Own_Role {
+            get {
+                return ResourceManager.GetString("Admin_Cannot_Remove_Own_Role", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Busca una cadena traducida similar a Cannot create {0}..

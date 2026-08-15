@@ -7,6 +7,7 @@
 - local registration and cookie sign-in
 - ASP.NET Core Identity password hashing, validation and lockout
 - persisted roles, claims, recovery tokens and external login links
+- internal API-key protected role administration for the application API
 - optional Google and Microsoft sign-in through secret-backed configuration
 - authorization code with PKCE, refresh token and client credentials flows
 - signed `at+jwt` access tokens and encrypted authorization/refresh tokens
@@ -18,6 +19,10 @@
 - health endpoints, security headers, rate limiting and source-generated logging
 
 IdentityServer does not write to the application database. After receiving a user access token for the first time, call authenticated `POST /Account/create`; the API creates its profile and links it through the token's `(iss, sub)` identity.
+
+Role management remains owned by IdentityServer. The browser does not call these
+internal endpoints directly; the application API exposes protected `/Admin/*`
+routes and calls IdentityServer with `Api:IdentityServerAdmin` settings.
 
 ## Run Locally
 
@@ -81,6 +86,10 @@ The Development issuer is `https://localhost:7125/`. Important endpoints include
 - `GET /account/security-activity`
 - `GET /account/external/{provider}`
 - `GET /account/external/{provider}/link`
+- `GET /internal/account-admin/users`
+- `GET /internal/account-admin/users/{userId}`
+- `PUT /internal/account-admin/users/{userId}/roles`
+- `GET /internal/account-admin/roles`
 - `GET|POST /connect/authorize`
 - `POST /connect/token`
 - `GET|POST /connect/logout`
@@ -113,12 +122,14 @@ QA and Production must supply these settings through deployment configuration:
 - `IdentityServer:ConnectionStrings:Engine`
 - `IdentityServer:OpenIddict:Issuer`
 - client IDs, redirect URIs and flow choices under `IdentityServer:OpenIddict:Clients`
+- `IdentityServer:AdminApi:Enabled` and `IdentityServer:AdminApi:ApiKeyHeaderName` when API role management is enabled
 - signing, encryption and Data Protection certificate paths
 - `IdentityServer:DataProtection:KeysPath` pointing to storage shared by every instance
 
 Supply these sensitive values through the deployment secret store:
 
 - `IdentityServer:ConnectionStrings:IdentityDb`
+- `IdentityServer:AdminApi:ApiKey`
 - signing, encryption and Data Protection certificate passwords
 - confidential client secrets and external provider credentials when enabled
 
@@ -152,6 +163,9 @@ one is unfinished, manually recreate the selected development identity database
 after changing the initial migration.
 
 IdentityServer seeds after migration handling on every startup. The seeder
-creates or updates the default `User` role, API scope and configured OpenIddict
-clients. If non-Development startup migrations are disabled, deploy the current
-schema before starting the host or seeding will fail against missing tables.
+creates or updates the default `User` role, the `Admin` role, API scope and
+configured OpenIddict clients. In Development only, when no admin user exists,
+the first identity user is granted `Admin` so the local SPA can reach protected
+admin pages after signing in again. If non-Development startup migrations are
+disabled, deploy the current schema before starting the host or seeding will
+fail against missing tables.

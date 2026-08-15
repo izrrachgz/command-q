@@ -6,14 +6,14 @@ import { PreferencesService, UserThemes } from './preferences.service';
 describe('PreferencesService', () => {
   beforeEach(() => {
     localStorage.clear();
-    document.documentElement.classList.remove('theme-dark', 'theme-light');
+    document.documentElement.classList.remove('a11y-enhanced-focus', 'a11y-reduce-motion', 'theme-dark', 'theme-light');
     document.documentElement.style.colorScheme = '';
     TestBed.configureTestingModule({});
   });
 
   afterEach(() => {
     localStorage.clear();
-    document.documentElement.classList.remove('theme-dark', 'theme-light');
+    document.documentElement.classList.remove('a11y-enhanced-focus', 'a11y-reduce-motion', 'theme-dark', 'theme-light');
     document.documentElement.style.colorScheme = '';
   });
 
@@ -33,5 +33,15 @@ describe('PreferencesService', () => {
     expect(document.documentElement.classList.contains('theme-light')).toBe(true);
     expect(document.documentElement.classList.contains('theme-dark')).toBe(false);
     expect(JSON.parse(localStorage.getItem(FrontendStorageKeys.preferences) || '{}').theme).toBe(UserThemes.light);
+  });
+
+  it('persists and applies accessibility preferences', () => {
+    const service = TestBed.inject(PreferencesService);
+
+    service.update({ enhancedFocus: true, reduceMotion: true });
+
+    expect(document.documentElement.classList.contains('a11y-enhanced-focus')).toBe(true);
+    expect(document.documentElement.classList.contains('a11y-reduce-motion')).toBe(true);
+    expect(JSON.parse(localStorage.getItem(FrontendStorageKeys.preferences) || '{}').reduceMotion).toBe(true);
   });
 });

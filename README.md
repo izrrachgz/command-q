@@ -187,6 +187,10 @@ Identity includes a queryable account activity trail for business account action
 `IdentityServer` owns users, credentials, lockout, external logins, OAuth clients,
 scopes, grants and tokens. The API Identity module owns application profiles and
 maps them through `AccountIdentity` using the validated token issuer and subject.
+Admin role management is exposed to the SPA through protected API endpoints under
+`/Admin/*`; the API calls IdentityServer through the server-side
+`Api:IdentityServerAdmin` integration and never exposes the internal admin key
+to the browser.
 See `IdentityServer/README.md`.
 
 ## Package Management
@@ -393,9 +397,11 @@ configured provider. Do not create one shared EF migration snapshot across
 providers.
 
 After migration handling, IdentityServer reconciles the default `User` role,
-configured API scope and configured OpenIddict clients on every startup. When
-startup migrations are disabled outside Development, the selected database must
-already contain the current schema before IdentityServer starts.
+the `Admin` role, configured API scope and configured OpenIddict clients on every
+startup. In Development only, if no admin user exists yet, the first existing
+identity user is granted `Admin` so a freshly migrated local account can manage
+roles. When startup migrations are disabled outside Development, the selected
+database must already contain the current schema before IdentityServer starts.
 
 ## Data Access
 
@@ -414,6 +420,7 @@ The persistence layer separates read and write entry points:
 - Access tokens are signed `at+jwt` tokens; the API validates issuer discovery keys, audience, lifetime, type and required scope.
 - The API does not store passwords, issue JWTs or handle refresh tokens.
 - IdentityServer authentication endpoints are rate limited and security events are persisted separately from application activity.
+- IdentityServer role administration is an internal server-to-server surface. Keep `IdentityServer:AdminApi:ApiKey` and `Api:IdentityServerAdmin:ApiKey` secret and matching in environments where role management is enabled.
 - Production signing, encryption and Data Protection certificates are required through deployment configuration.
 - API clients are validated on startup.
 - The API pipeline uses authentication before authorization.

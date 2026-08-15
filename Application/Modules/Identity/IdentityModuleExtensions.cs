@@ -15,6 +15,11 @@ using Application.Modules.Identity.AccountActivity.Queries;
 using Application.Modules.Identity.AccountActivity.Commands;
 using Application.Modules.Identity.AccountActivity.Mappings;
 using Application.Modules.Identity.AccountActivity.Services;
+using Application.Modules.Identity.Roles.Dtos;
+using Application.Modules.Identity.Roles.Queries;
+using Application.Modules.Identity.Roles.Commands;
+using Application.Modules.Identity.Roles.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Application.Modules.Identity
 {
@@ -32,6 +37,7 @@ namespace Application.Modules.Identity
         {
             services.AddScoped<AccountService>();
             services.AddScoped<IAccountActivityRecorder, AccountActivityRecorder>();
+            services.TryAddScoped<IIdentityRoleAdministrationClient, UnavailableIdentityRoleAdministrationClient>();
 
             services.AddTransient<IRequestHandler<CreateAccountCommand, BasicResponse>, CreateAccountCommandHandler>();
             services.AddTransient<IRequestHandler<GetAccountByIdentityQuery, DetailResponse<AccountModel>>, GetAccountByIdentityQueryHandler>();
@@ -39,6 +45,10 @@ namespace Application.Modules.Identity
             services.AddTransient<IRequestHandler<GetAccountByUsernameQuery, DetailResponse<AccountModel>>, GetAccountByUsernameQueryHandler>();
             services.AddTransient<IRequestHandler<RecordAccountActivityCommand, BasicResponse>, RecordAccountActivityCommandHandler>();
             services.AddTransient<IRequestHandler<GetAccountActivityQuery, PagedResponse<AccountActivityModel>>, GetAccountActivityQueryHandler>();
+            services.AddTransient<IRequestHandler<SearchIdentityUsersQuery, PagedResponse<IdentityUserRoleModel>>, SearchIdentityUsersQueryHandler>();
+            services.AddTransient<IRequestHandler<GetIdentityUserRolesQuery, DetailResponse<IdentityUserRoleModel>>, GetIdentityUserRolesQueryHandler>();
+            services.AddTransient<IRequestHandler<GetIdentityRolesQuery, DetailResponse<IdentityRoleListModel>>, GetIdentityRolesQueryHandler>();
+            services.AddTransient<IRequestHandler<UpdateIdentityUserRolesCommand, BasicResponse>, UpdateIdentityUserRolesCommandHandler>();
 
             services.AddScoped<IValidator<CreateAccountCommand>, CreateAccountCommandValidator>();
             services.AddScoped<IValidator<GetAccountByIdentityQuery>, GetAccountByIdentityQueryValidator>();
@@ -46,6 +56,8 @@ namespace Application.Modules.Identity
             services.AddScoped<IValidator<GetAccountByUsernameQuery>, GetAccountByUsernameQueryValidator>();
             services.AddScoped<IValidator<RecordAccountActivityCommand>, RecordAccountActivityCommandValidator>();
             services.AddScoped<IValidator<GetAccountActivityQuery>, GetAccountActivityQueryValidator>();
+            services.AddScoped<IValidator<GetIdentityUserRolesQuery>, GetIdentityUserRolesQueryValidator>();
+            services.AddScoped<IValidator<UpdateIdentityUserRolesCommand>, UpdateIdentityUserRolesCommandValidator>();
 
             services.AddSingleton<IMapper<Account, AccountModel>, AccountMapper>();
             services.AddSingleton<IMapper<Domain.Modules.Identity.AccountActivity, AccountActivityModel>, AccountActivityMapper>();

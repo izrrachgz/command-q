@@ -12,6 +12,7 @@ export const AppRoutePaths = {
     dashboard: routePath(AppRouteSegments.admin, AppRouteSegments.dashboard),
     email: routePath(AppRouteSegments.admin, AppRouteSegments.email),
     preferences: routePath(AppRouteSegments.admin, AppRouteSegments.preferences),
+    roles: routePath(AppRouteSegments.admin, AppRouteSegments.roles),
     root: routePath(AppRouteSegments.admin),
   },
   auth: {

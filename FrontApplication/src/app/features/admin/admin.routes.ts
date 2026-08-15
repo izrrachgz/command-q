@@ -24,6 +24,12 @@ export const ADMIN_ROUTES: Routes = [
     data: { [AppRouteDataKeys.titleKey]: AppRouteTitleKeys.adminEmail },
   },
   {
+    path: AppRouteSegments.roles,
+    loadComponent: () =>
+      import('./roles/pages/role-management/role-management.page').then((component) => component.RoleManagementPage),
+    data: { [AppRouteDataKeys.titleKey]: AppRouteTitleKeys.adminRoles },
+  },
+  {
     path: AppRouteSegments.preferences,
     loadComponent: () =>
       import('./preferences/pages/preferences/admin-preferences.page').then(

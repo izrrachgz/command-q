@@ -1,8 +1,20 @@
 export const TextKeys = {
+  accessibility: {
+    closeNavigation: 'accessibility.closeNavigation',
+    collapseNavigation: 'accessibility.collapseNavigation',
+    expandNavigation: 'accessibility.expandNavigation',
+    openNavigation: 'accessibility.openNavigation',
+    skipToContent: 'accessibility.skipToContent',
+  },
   action: {
+    cancel: 'action.cancel',
+    confirm: 'action.confirm',
     create: 'action.create',
     login: 'action.login',
+    logout: 'action.logout',
+    no: 'action.no',
     save: 'action.save',
+    yes: 'action.yes',
   },
   admin: {
     accounts: {
@@ -28,6 +40,13 @@ export const TextKeys = {
     preferences: {
       title: 'preferences.title',
     },
+    roles: {
+      available: 'admin.roles.available',
+      backendPending: 'admin.roles.backendPending',
+      empty: 'admin.roles.empty',
+      selectAccount: 'admin.roles.selectAccount',
+      title: 'admin.roles.title',
+    },
   },
   app: {
     brand: 'app.brand',
@@ -42,6 +61,14 @@ export const TextKeys = {
     signInFailed: 'auth.signInFailed',
     tenantLogin: 'auth.tenantLogin',
   },
+  confirmation: {
+    acceptLabel: 'confirmation.acceptLabel',
+    signOutMessage: 'confirmation.signOutMessage',
+    signOutTitle: 'confirmation.signOutTitle',
+    textLabel: 'confirmation.textLabel',
+    title: 'confirmation.title',
+    typeExpectedText: 'confirmation.typeExpectedText',
+  },
   provision: {
     title: 'provision.title',
   },
@@ -55,6 +82,7 @@ export const TextKeys = {
     email: 'nav.email',
     preferences: 'nav.preferences',
     profile: 'nav.profile',
+    roles: 'nav.roles',
     tenant: 'nav.tenant',
   },
   report: {
@@ -72,6 +100,8 @@ export const TextKeys = {
     },
   },
   validation: {
+    dateTimeRangeIncomplete: 'validation.dateTimeRangeIncomplete',
+    dateTimeRangeOrder: 'validation.dateTimeRangeOrder',
     email: 'validation.email',
     max: 'validation.max',
     maxlength: 'validation.maxlength',

@@ -14,6 +14,7 @@ using Application.Extensions;
 using Email.Outbox.Extensions;
 using Localization.Configuration;
 using Microsoft.Extensions.Options;
+using Application.Modules.Identity.Roles.Services;
 using Application.Migrations.Extensions;
 using Email.Outbox.Persistence.Extensions;
 using Microsoft.AspNetCore.DataProtection;
@@ -53,6 +54,7 @@ namespace Api.Extensions
             builder.Services.AddSingleton<IFeatureFlags, FeatureFlags>();
             builder.Services.AddHttpClient();
             builder.Services.AddSingleton<IExternalApiClientFactory, ExternalApiClientFactory>();
+            builder.Services.AddScoped<IIdentityRoleAdministrationClient, IdentityServerAdminClient>();
             builder.Services.AddHostedService<RuntimeConfigurationChangeMonitor>();
 
             // Add resource-server authentication backed by the standalone identity server.
@@ -112,6 +114,7 @@ namespace Api.Extensions
             _ = services.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             _ = services.GetRequiredService<IOptions<BearerAuthenticationOptions>>().Value;
             _ = services.GetRequiredService<IOptions<CorsOptions>>().Value;
+            _ = services.GetRequiredService<IOptions<IdentityServerAdminOptions>>().Value;
             _ = services.GetRequiredService<IOptions<List<ApiClientOptions>>>().Value;
         }
 
@@ -214,6 +217,12 @@ namespace Api.Extensions
             logger.StartupSetting("Authentication Audience", authentication.Audience);
             logger.StartupSetting("Authentication API Scope", authentication.ApiScope);
 
+            var identityServerAdmin = configuration
+                .GetSection(ApiConfigKeys.IdentityServerAdmin.Section)
+                .Get<IdentityServerAdminOptions>() ?? new IdentityServerAdminOptions();
+            logger.StartupSetting("IdentityServer Admin Client Enabled", identityServerAdmin.Enabled);
+            logger.StartupSetting("IdentityServer Admin Client Base URL", identityServerAdmin.BaseUrl);
+
             RateLimiting? rateLimiting = configuration.GetValue<RateLimiting?>(ApiConfigKeys.RateLimiting.Type);
             logger.StartupSetting("Rate Limiting", rateLimiting);
 
@@ -291,6 +300,22 @@ namespace Api.Extensions
                 .Bind(configuration.GetSection(ApiConfigKeys.Database.Section))
                 .Validate(options => Enum.IsDefined(options.Engine), "Api:ConnectionStrings:Engine must be a supported database engine.")
                 .Validate(options => !string.IsNullOrWhiteSpace(options.Db), "Api:ConnectionStrings:Db is required.")
+                .ValidateOnStart();
+
+            services.AddOptions<IdentityServerAdminOptions>()
+                .Bind(configuration.GetSection(ApiConfigKeys.IdentityServerAdmin.Section))
+                .Validate(
+                    options => !options.Enabled || options.BaseUrl.IsAbsoluteUri,
+                    "Api:IdentityServerAdmin:BaseUrl must be an absolute URI when IdentityServer admin integration is enabled.")
+                .Validate(
+                    options => !options.Enabled || !string.IsNullOrWhiteSpace(options.ApiKeyHeaderName),
+                    "Api:IdentityServerAdmin:ApiKeyHeaderName is required when IdentityServer admin integration is enabled.")
+                .Validate(
+                    options => !options.Enabled || !string.IsNullOrWhiteSpace(options.ApiKey),
+                    "Api:IdentityServerAdmin:ApiKey is required when IdentityServer admin integration is enabled.")
+                .Validate(
+                    options => !options.Enabled || options.TimeoutSeconds > 0,
+                    "Api:IdentityServerAdmin:TimeoutSeconds must be greater than zero when IdentityServer admin integration is enabled.")
                 .ValidateOnStart();
 
         }

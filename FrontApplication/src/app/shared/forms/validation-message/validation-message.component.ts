@@ -49,6 +49,14 @@ export class ValidationMessageComponent {
       return this.i18n.text(TextKeys.validation.passwordMismatch);
     }
 
+    if (errors['dateTimeRangeIncomplete']) {
+      return this.i18n.text(TextKeys.validation.dateTimeRangeIncomplete);
+    }
+
+    if (errors['dateTimeRangeOrder']) {
+      return this.i18n.text(TextKeys.validation.dateTimeRangeOrder);
+    }
+
     return this.i18n.text(TextKeys.validation.pattern);
   }
 }

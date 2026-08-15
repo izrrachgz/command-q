@@ -29,9 +29,11 @@ export interface ApiEndpointMap {
     readonly accounts: string;
     readonly accountDetails: (accountId: string) => string;
     readonly accountActivity: (accountId: string) => string;
+    readonly accountRoles: (accountId: string) => string;
     readonly lockAccount: (accountId: string) => string;
     readonly activateAccount: (accountId: string) => string;
     readonly email: string;
+    readonly roles: string;
   };
 }
 
@@ -83,6 +85,7 @@ const ApiEndpointSegments = {
   email: 'email',
   lock: 'lock',
   me: 'me',
+  roles: 'roles',
 } as const;
 
 const IdentityEndpointSegments = {
@@ -118,6 +121,13 @@ export const createApiEndpoints = (): ApiEndpointMap => ({
         encodeURIComponent(accountId),
         ApiEndpointSegments.activity,
       ),
+    accountRoles: (accountId) =>
+      endpointPath(
+        ApiEndpointSegments.admin,
+        ApiEndpointSegments.accounts,
+        encodeURIComponent(accountId),
+        ApiEndpointSegments.roles,
+      ),
     lockAccount: (accountId) =>
       endpointPath(
         ApiEndpointSegments.admin,
@@ -133,6 +143,7 @@ export const createApiEndpoints = (): ApiEndpointMap => ({
         ApiEndpointSegments.activate,
       ),
     email: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.email),
+    roles: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.roles),
   },
 });
 

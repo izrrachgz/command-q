@@ -1,23 +1,28 @@
 using OpenIddict.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using IdentityServer.Localization;
 using IdentityServer.Resources;
 using IdentityServer.Modules.Accounts;
 using IdentityServer.Modules.OpenIddict.Configuration;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
+using CommandQIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
 namespace IdentityServer.Modules.OpenIddict
 {
     internal sealed class OpenIddictSeeder(
         RoleManager<CommandQIdentityRole> roleManager,
+        UserManager<CommandQIdentityUser> userManager,
+        IHostEnvironment environment,
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictScopeManager scopeManager,
         IOptions<AuthorizationServerOptions> options)
     {
         public async Task Seed(CancellationToken cancellationToken = default)
         {
-            await SeedRoles();
+            await SeedRoles(cancellationToken);
             await SeedApiScope(options.Value.ApiScope, cancellationToken);
 
             foreach (var client in options.Value.Clients)
@@ -26,21 +31,72 @@ namespace IdentityServer.Modules.OpenIddict
             }
         }
 
-        private async Task SeedRoles()
+        private async Task SeedRoles(CancellationToken cancellationToken)
         {
-            if (!await roleManager.RoleExistsAsync(AccountConstants.DefaultRole))
-            {
-                var result = await roleManager.CreateAsync(new CommandQIdentityRole
-                {
-                    Id = Guid.NewGuid(),
-                    Name = AccountConstants.DefaultRole
-                });
+            await EnsureRole(AccountConstants.DefaultRole);
+            await EnsureRole(AccountConstants.AdminRole);
+            await GrantDevelopmentAdminRole(cancellationToken);
+        }
 
-                if (!result.Succeeded)
+        private async Task EnsureRole(string roleName)
+        {
+            if (await roleManager.RoleExistsAsync(roleName))
+            {
+                return;
+            }
+
+            var result = await roleManager.CreateAsync(new CommandQIdentityRole
+            {
+                Id = Guid.NewGuid(),
+                Name = roleName
+            });
+
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    IdentityServerText.Format(IdentityServerMessages.OpenIddict_IdentityRoleCreateFailed, roleName));
+            }
+        }
+
+        private async Task GrantDevelopmentAdminRole(CancellationToken cancellationToken)
+        {
+            if (!environment.IsDevelopment())
+            {
+                return;
+            }
+
+            if ((await userManager.GetUsersInRoleAsync(AccountConstants.AdminRole)).Count > 0)
+            {
+                return;
+            }
+
+            var user = await userManager.Users
+                .OrderBy(value => value.CreatedUtc)
+                .ThenBy(value => value.UserName)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (user is null)
+            {
+                return;
+            }
+
+            if (!await userManager.IsInRoleAsync(user, AccountConstants.DefaultRole))
+            {
+                var defaultRoleResult = await userManager.AddToRoleAsync(user, AccountConstants.DefaultRole);
+
+                if (!defaultRoleResult.Succeeded)
                 {
                     throw new InvalidOperationException(
-                        IdentityServerMessages.OpenIddict_DefaultIdentityRoleCreateFailed);
+                        IdentityServerText.Format(IdentityServerMessages.OpenIddict_IdentityRoleGrantFailed, AccountConstants.DefaultRole));
                 }
+            }
+
+            var result = await userManager.AddToRoleAsync(user, AccountConstants.AdminRole);
+
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    IdentityServerText.Format(IdentityServerMessages.OpenIddict_IdentityRoleGrantFailed, AccountConstants.AdminRole));
             }
         }
 

@@ -147,6 +147,9 @@
   <data name="Account_Unlocked" xml:space="preserve">
     <value>Cuenta desbloqueada.</value>
   </data>
+  <data name="Admin_Cannot_Remove_Own_Role" xml:space="preserve">
+    <value>Los administradores no pueden quitarse su propio rol Admin.</value>
+  </data>
   <data name="Default_Address_Name" xml:space="preserve">
     <value>Dirección de {0}.</value>
   </data>

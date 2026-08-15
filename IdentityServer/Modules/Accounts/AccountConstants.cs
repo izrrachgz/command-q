@@ -2,11 +2,13 @@ namespace IdentityServer.Modules.Accounts
 {
     public static class AccountConstants
     {
+        public const string AdminRole = "Admin";
         public const string DefaultRole = "User";
         public const string DefaultReturnUrl = "/";
         public const string AuthenticationRateLimitPolicy = "IdentityAuthentication";
         public const string ReturnUrlParameter = "returnUrl";
         public const int SecurityActivityLimit = 100;
+        public const int MaxAdminPageSize = 100;
 
         public static class ContentTypes
         {
@@ -18,6 +20,11 @@ namespace IdentityServer.Modules.Accounts
         public static class Routes
         {
             public const string Root = "account";
+            public const string InternalAdminRoot = "internal/account-admin";
+            public const string InternalAdminRoles = "roles";
+            public const string InternalAdminUsers = "users";
+            public const string InternalAdminUser = InternalAdminUsers + "/{userId:guid}";
+            public const string InternalAdminUserRoles = InternalAdminUser + "/roles";
             public const string Register = "register";
             public const string SignIn = "sign-in";
             public const string SignInPath = "/" + Root + "/" + SignIn;
@@ -41,6 +48,7 @@ namespace IdentityServer.Modules.Accounts
             public const string ExternalLoginSucceeded = nameof(ExternalLoginSucceeded);
             public const string ExternalAccountCreated = nameof(ExternalAccountCreated);
             public const string ExternalAccountLinked = nameof(ExternalAccountLinked);
+            public const string RolesUpdated = nameof(RolesUpdated);
             public const string TokenRefreshed = nameof(TokenRefreshed);
         }
     }

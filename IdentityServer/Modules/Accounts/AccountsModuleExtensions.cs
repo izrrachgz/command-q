@@ -106,6 +106,16 @@ namespace IdentityServer.Modules.Accounts
                         "Microsoft"))
                 .ValidateOnStart();
 
+            services.AddOptions<IdentityAdminApiOptions>()
+                .Bind(configuration.GetSection(IdentityServerConfigKeys.AdminApi.Section))
+                .Validate(
+                    options => !options.Enabled || !string.IsNullOrWhiteSpace(options.ApiKeyHeaderName),
+                    Required(IdentityServerConfigKeys.AdminApi.ApiKeyHeaderName))
+                .Validate(
+                    options => !options.Enabled || !string.IsNullOrWhiteSpace(options.ApiKey),
+                    Required(IdentityServerConfigKeys.AdminApi.ApiKey))
+                .ValidateOnStart();
+
             AddExternalProviders(services, configuration);
 
             services.AddHttpContextAccessor();

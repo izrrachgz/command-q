@@ -230,6 +230,24 @@ namespace IdentityServer.Resources {
                 return ResourceManager.GetString("OpenIddict_DefaultIdentityRoleCreateFailed", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a The identity role &apos;{0}&apos; could not be created..
+        /// </summary>
+        public static string OpenIddict_IdentityRoleCreateFailed {
+            get {
+                return ResourceManager.GetString("OpenIddict_IdentityRoleCreateFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a The identity role &apos;{0}&apos; could not be granted..
+        /// </summary>
+        public static string OpenIddict_IdentityRoleGrantFailed {
+            get {
+                return ResourceManager.GetString("OpenIddict_IdentityRoleGrantFailed", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Busca una cadena traducida similar a The OpenID Connect authorization request is unavailable..

@@ -1,4 +1,5 @@
 export * from './date-input/date-input.component';
+export * from './date-time-range-input/date-time-range-input.component';
 export * from './date-time-input/date-time-input.component';
 export * from './number-input/number-input.component';
 export * from './password-input/password-input.component';

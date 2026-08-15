@@ -17,6 +17,8 @@ export interface UserPreferences {
   readonly culture: SupportedCulture;
   readonly theme: UserTheme;
   readonly compactNavigation: boolean;
+  readonly enhancedFocus: boolean;
+  readonly reduceMotion: boolean;
   readonly showDenseTables: boolean;
 }
 
@@ -28,6 +30,7 @@ export class PreferencesService {
 
   constructor() {
     this.applyTheme(this.snapshot.theme);
+    this.applyAccessibility(this.snapshot);
   }
 
   get snapshot(): UserPreferences {
@@ -36,12 +39,14 @@ export class PreferencesService {
 
   initialize(): void {
     this.applyTheme(this.snapshot.theme);
+    this.applyAccessibility(this.snapshot);
   }
 
   update(patch: Partial<UserPreferences>): void {
     const next = { ...this.snapshot, ...patch };
     localStorage.setItem(FrontendStorageKeys.preferences, JSON.stringify(next));
     this.applyTheme(next.theme);
+    this.applyAccessibility(next);
     this.state.next(next);
   }
 
@@ -50,6 +55,8 @@ export class PreferencesService {
       culture: environment.localization.defaultCulture,
       theme: UserThemes.dark,
       compactNavigation: false,
+      enhancedFocus: prefersEnhancedFocus(),
+      reduceMotion: prefersReducedMotion(),
       showDenseTables: false,
     };
 
@@ -76,8 +83,22 @@ export class PreferencesService {
     root.classList.toggle('theme-light', theme === UserThemes.light);
     root.style.colorScheme = theme;
   }
+
+  private applyAccessibility(preferences: UserPreferences): void {
+    const root = this.document.documentElement;
+    root.classList.toggle('a11y-enhanced-focus', preferences.enhancedFocus);
+    root.classList.toggle('a11y-reduce-motion', preferences.reduceMotion);
+  }
 }
 
 const isUserTheme = (value: unknown): value is UserTheme => {
   return value === UserThemes.light || value === UserThemes.dark;
+};
+
+const prefersEnhancedFocus = (): boolean => {
+  return globalThis.matchMedia?.('(forced-colors: active)').matches ?? false;
+};
+
+const prefersReducedMotion = (): boolean => {
+  return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 };

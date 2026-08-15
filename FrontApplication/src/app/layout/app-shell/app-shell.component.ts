@@ -10,7 +10,7 @@ import { TextPipe } from '../../core/i18n/text.pipe';
 import { TextKeys } from '../../core/i18n/text-keys';
 import { AppRouteAreas, AppRouteArea, AppRouteDataKeys } from '../../core/routing/app-route-constants';
 import { AppRoutePaths } from '../../core/routing/app-route-paths';
-import { BrandMarkComponent } from '../../shared/components';
+import { BrandMarkComponent, YesNoConfirmationComponent } from '../../shared/components';
 
 interface NavigationItem {
   readonly labelKey: string;
@@ -21,12 +21,22 @@ interface NavigationItem {
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [BrandMarkComponent, LucideDynamicIcon, NgClass, RouterLink, RouterLinkActive, RouterOutlet, TextPipe],
+  imports: [
+    BrandMarkComponent,
+    LucideDynamicIcon,
+    NgClass,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    TextPipe,
+    YesNoConfirmationComponent,
+  ],
   templateUrl: './app-shell.component.html',
 })
 export class AppShellComponent {
   readonly auth = inject(AuthFacade);
   readonly i18n = inject(I18nService);
+  readonly textKeys = TextKeys;
 
   private readonly route = inject(ActivatedRoute);
 
@@ -40,11 +50,16 @@ export class AppShellComponent {
   readonly adminNavigation: readonly NavigationItem[] = [
     { labelKey: TextKeys.nav.dashboard, icon: 'layout-dashboard', route: [AppRoutePaths.admin.dashboard] },
     { labelKey: TextKeys.nav.accounts, icon: 'users-round', route: [AppRoutePaths.admin.accounts] },
+    { labelKey: TextKeys.nav.roles, icon: 'shield-check', route: [AppRoutePaths.admin.roles] },
     { labelKey: TextKeys.nav.email, icon: 'mail', route: [AppRoutePaths.admin.email] },
     { labelKey: TextKeys.nav.preferences, icon: 'settings', route: [AppRoutePaths.admin.preferences] },
   ];
 
   mobileNavOpen = false;
+  drawerCollapsed = false;
+  signOutConfirmationOpen = false;
+
+  readonly signOutAction = () => this.auth.logout();
 
   get navigation(): readonly NavigationItem[] {
     return this.area === AppRouteAreas.admin ? this.adminNavigation : this.tenantNavigation;
@@ -54,7 +69,29 @@ export class AppShellComponent {
     return this.i18n.text(this.area === AppRouteAreas.admin ? TextKeys.nav.admin : TextKeys.nav.tenant);
   }
 
+  get drawerToggleLabel(): string {
+    return this.i18n.text(
+      this.drawerCollapsed ? TextKeys.accessibility.expandNavigation : TextKeys.accessibility.collapseNavigation,
+    );
+  }
+
   changeCulture(event: Event): void {
     this.i18n.setCulture((event.target as HTMLSelectElement).value as SupportedCulture);
+  }
+
+  openMobileNavigation(): void {
+    this.mobileNavOpen = true;
+  }
+
+  closeMobileNavigation(): void {
+    this.mobileNavOpen = false;
+  }
+
+  toggleDrawer(): void {
+    this.drawerCollapsed = !this.drawerCollapsed;
+  }
+
+  requestSignOut(): void {
+    this.signOutConfirmationOpen = true;
   }
 }
