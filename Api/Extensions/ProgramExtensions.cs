@@ -1,3 +1,4 @@
+using MediatR;
 using Api.Logging;
 using Api.Modules;
 using Api.Services;
@@ -12,13 +13,15 @@ using Api.Modules.Health;
 using Common.Enumerations;
 using Application.Extensions;
 using Email.Outbox.Extensions;
+using Application.Configuration;
 using Localization.Configuration;
 using Microsoft.Extensions.Options;
-using Application.Modules.Identity.Roles.Services;
 using Application.Migrations.Extensions;
 using Email.Outbox.Persistence.Extensions;
 using Microsoft.AspNetCore.DataProtection;
 using Application.Modules.Health.Configuration;
+using Application.Modules.Configuration.Commands;
+using Application.Modules.Identity.Roles.Services;
 
 namespace Api.Extensions
 {
@@ -116,6 +119,26 @@ namespace Api.Extensions
             _ = services.GetRequiredService<IOptions<CorsOptions>>().Value;
             _ = services.GetRequiredService<IOptions<IdentityServerAdminOptions>>().Value;
             _ = services.GetRequiredService<IOptions<List<ApiClientOptions>>>().Value;
+            _ = services.GetRequiredService<IOptions<ApplicationOptions>>().Value;
+        }
+
+        /// <summary>Records the effective startup configuration after the application schema is ready.</summary>
+        public static async Task RecordApplicationConfiguration(this WebApplication app, CancellationToken cancellationToken = default)
+        {
+            await using var scope = app.Services.CreateAsyncScope();
+            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+            var options = scope.ServiceProvider.GetRequiredService<IOptions<ApplicationOptions>>().Value;
+            IConfigurationSection apiConfiguration = app.Configuration.GetRequiredSection(ApiConfigKeys.Section);
+
+            var response = await sender.Send(new SaveApplicationConfigurationCommand
+            {
+                ServerTimeZone = options.TimeZone,
+                Language = apiConfiguration.GetValue<string>(ApiConfigKeys.Localization.DefaultCulture) ?? "en-US",
+                Environment = app.Environment.EnvironmentName
+            }, cancellationToken);
+
+            if (!response.Success)
+                throw new InvalidOperationException(response.Message);
         }
 
         /// <summary>

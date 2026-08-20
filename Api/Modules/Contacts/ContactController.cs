@@ -7,7 +7,7 @@ using Application.Modules.Contacts.Commands;
 
 namespace Api.Modules.Contacts
 {
-    [ApiController, Authorize, Route(@"[controller]")]
+    [ApiController, Authorize, Route(ContactRouteConstants.Root)]
     public sealed class ContactController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : Controller
     {
         private readonly ISender _mediator = mediator;
@@ -19,7 +19,7 @@ namespace Api.Modules.Contacts
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>An IActionResult that represents the result of the create operation. Returns 200 OK with the response if
         /// successful; otherwise, returns 400 Bad Request with an error message.</returns>
-        [HttpPost(@"create")]
+        [HttpPost(ContactRouteConstants.Create)]
         public async Task<IActionResult> Create([FromBody] CreateContactCommand request, CancellationToken cancellationToken = default)
         {
             var currentAccount = await currentAccountAccessor.Get(cancellationToken);

@@ -34,7 +34,7 @@ namespace Application.Modules.Health.Checks
             try
             {
                 string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName);
-                string[] content = [DateTime.Now.ToString("G")];
+                string[] content = [DateTime.UtcNow.ToString("O")];
 
                 await File.AppendAllLinesAsync(filePath, content, cancellationToken);
 

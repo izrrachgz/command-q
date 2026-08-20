@@ -7,7 +7,7 @@ using Application.Modules.Addresses.Commands;
 
 namespace Api.Modules.Addresses
 {
-    [ApiController, Authorize, Route(@"[controller]")]
+    [ApiController, Authorize, Route(AddressRouteConstants.Root)]
     public sealed class AddressController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : Controller
     {
         private readonly ISender _mediator = mediator;
@@ -19,7 +19,7 @@ namespace Api.Modules.Addresses
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
         /// <returns>An IActionResult that represents the result of the create operation. Returns an HTTP 200 response with the
         /// created address information if successful; otherwise, returns an HTTP 400 response with an error message.</returns>
-        [HttpPost(@"create")]
+        [HttpPost(AddressRouteConstants.Create)]
         public async Task<IActionResult> Create([FromBody] CreateAddressCommand request, CancellationToken cancellationToken = default)
         {
             var currentAccount = await currentAccountAccessor.Get(cancellationToken);

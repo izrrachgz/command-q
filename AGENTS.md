@@ -299,6 +299,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `Logging` and Serilog level/threshold settings use the host configuration reload pipeline. Do not log configuration secrets while observing reloads.
 
 ## Coding Conventions
+- Use CRLF line endings for repository text files, following `.editorconfig`; do not introduce LF-only or mixed-line-ending files.
 - Prefer existing project patterns over new abstractions.
 - Follow `.editorconfig` for formatting, naming and analyzer preferences.
 - Keep method, constructor and primary-constructor declarations on one line when the complete declaration is at most 140 characters. Wrap parameters only when the declaration exceeds that limit or readability genuinely requires it.

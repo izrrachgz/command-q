@@ -92,6 +92,27 @@ ON AccountActivity (EntityType, EntityId)
 WHERE Deleted IS NULL AND EntityType IS NOT NULL AND EntityId IS NOT NULL;
 
 -- =========================
+-- AccountPreference
+-- =========================
+CREATE TABLE AccountPreference (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    AccountId BLOB NOT NULL,
+    Culture TEXT NOT NULL DEFAULT 'en-US' CHECK (length(Culture) <= 16),
+    Theme INTEGER NOT NULL DEFAULT 0 CHECK (Theme IN (0, 1)),
+    CompactNavigation INTEGER NOT NULL DEFAULT 0 CHECK (CompactNavigation IN (0, 1)),
+    EnhancedFocus INTEGER NOT NULL DEFAULT 0 CHECK (EnhancedFocus IN (0, 1)),
+    ReduceMotion INTEGER NOT NULL DEFAULT 0 CHECK (ReduceMotion IN (0, 1)),
+    ShowDenseTables INTEGER NOT NULL DEFAULT 0 CHECK (ShowDenseTables IN (0, 1)),
+    TimeZone TEXT NOT NULL DEFAULT 'America/Hermosillo' CHECK (length(TimeZone) <= 64),
+    Created TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    Modified TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    Deleted TEXT NULL,
+    FOREIGN KEY (AccountId) REFERENCES Account(Id)
+);
+CREATE UNIQUE INDEX UX_AccountPreference_AccountId ON AccountPreference (AccountId) WHERE Deleted IS NULL;
+CREATE INDEX IX_AccountPreference_TimeZone ON AccountPreference (TimeZone) WHERE Deleted IS NULL;
+
+-- =========================
 -- Address
 -- =========================
 CREATE TABLE Address (
@@ -293,6 +314,22 @@ WHERE Deleted IS NULL;
 CREATE INDEX IX_RegisterPlace_PlaceId
 ON RegisterPlace (PlaceId)
 WHERE Deleted IS NULL;
+
+-- =========================
+-- ApplicationConfiguration
+-- =========================
+CREATE TABLE ApplicationConfiguration (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT CHECK (Id <= 32767),
+    ServerTimeZone TEXT NOT NULL DEFAULT 'America/Hermosillo' CHECK (length(ServerTimeZone) <= 64),
+    ApplicationVersion TEXT NOT NULL CHECK (length(ApplicationVersion) <= 64),
+    Language TEXT NOT NULL DEFAULT 'en-US' CHECK (length(Language) <= 16),
+    Environment TEXT NOT NULL CHECK (length(Environment) <= 64),
+    Created TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    Modified TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    Deleted TEXT NULL
+);
+CREATE INDEX IX_ApplicationConfiguration_Created ON ApplicationConfiguration (Created DESC) WHERE Deleted IS NULL;
+CREATE INDEX IX_ApplicationConfiguration_Version ON ApplicationConfiguration (ApplicationVersion, Environment) WHERE Deleted IS NULL;
 
 -- =========================
 -- MigrationRecord

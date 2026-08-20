@@ -4,22 +4,27 @@ using FluentValidation;
 using Common.Models.Response;
 using Domain.Modules.Identity;
 using Application.Abstractions;
+using Application.Modules.Identity.Roles.Dtos;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Modules.Identity.Accounts.Dtos;
+using Application.Modules.Identity.Roles.Queries;
+using Application.Modules.Identity.Roles.Commands;
+using Application.Modules.Identity.Roles.Services;
 using Application.Modules.Identity.Accounts.Queries;
 using Application.Modules.Identity.Accounts.Commands;
 using Application.Modules.Identity.Accounts.Mappings;
 using Application.Modules.Identity.Accounts.Services;
 using Application.Modules.Identity.AccountActivity.Dtos;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Application.Modules.Identity.AccountActivity.Queries;
 using Application.Modules.Identity.AccountActivity.Commands;
 using Application.Modules.Identity.AccountActivity.Mappings;
 using Application.Modules.Identity.AccountActivity.Services;
-using Application.Modules.Identity.Roles.Dtos;
-using Application.Modules.Identity.Roles.Queries;
-using Application.Modules.Identity.Roles.Commands;
-using Application.Modules.Identity.Roles.Services;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Application.Modules.Identity.Accounts.Preferences.Dtos;
+using Application.Modules.Identity.Accounts.Preferences.Queries;
+using Application.Modules.Identity.Accounts.Preferences.Commands;
+using Application.Modules.Identity.Accounts.Preferences.Mappings;
+using Application.Modules.Identity.Accounts.Preferences.Services;
 
 namespace Application.Modules.Identity
 {
@@ -36,6 +41,7 @@ namespace Application.Modules.Identity
         public static IServiceCollection AddIdentityModule(this IServiceCollection services)
         {
             services.AddScoped<AccountService>();
+            services.AddScoped<AccountPreferenceService>();
             services.AddScoped<IAccountActivityRecorder, AccountActivityRecorder>();
             services.TryAddScoped<IIdentityRoleAdministrationClient, UnavailableIdentityRoleAdministrationClient>();
 
@@ -49,6 +55,10 @@ namespace Application.Modules.Identity
             services.AddTransient<IRequestHandler<GetIdentityUserRolesQuery, DetailResponse<IdentityUserRoleModel>>, GetIdentityUserRolesQueryHandler>();
             services.AddTransient<IRequestHandler<GetIdentityRolesQuery, DetailResponse<IdentityRoleListModel>>, GetIdentityRolesQueryHandler>();
             services.AddTransient<IRequestHandler<UpdateIdentityUserRolesCommand, BasicResponse>, UpdateIdentityUserRolesCommandHandler>();
+            services.AddTransient<IRequestHandler<SaveAccountPreferencesCommand, BasicResponse>, SaveAccountPreferencesCommandHandler>();
+            services.AddTransient<
+                IRequestHandler<GetAccountPreferencesQuery, DetailResponse<AccountPreferenceModel>>,
+                GetAccountPreferencesQueryHandler>();
 
             services.AddScoped<IValidator<CreateAccountCommand>, CreateAccountCommandValidator>();
             services.AddScoped<IValidator<GetAccountByIdentityQuery>, GetAccountByIdentityQueryValidator>();
@@ -58,9 +68,12 @@ namespace Application.Modules.Identity
             services.AddScoped<IValidator<GetAccountActivityQuery>, GetAccountActivityQueryValidator>();
             services.AddScoped<IValidator<GetIdentityUserRolesQuery>, GetIdentityUserRolesQueryValidator>();
             services.AddScoped<IValidator<UpdateIdentityUserRolesCommand>, UpdateIdentityUserRolesCommandValidator>();
+            services.AddScoped<IValidator<SaveAccountPreferencesCommand>, SaveAccountPreferencesCommandValidator>();
+            services.AddScoped<IValidator<GetAccountPreferencesQuery>, GetAccountPreferencesQueryValidator>();
 
             services.AddSingleton<IMapper<Account, AccountModel>, AccountMapper>();
             services.AddSingleton<IMapper<Domain.Modules.Identity.AccountActivity, AccountActivityModel>, AccountActivityMapper>();
+            services.AddSingleton<IMapper<AccountPreference, AccountPreferenceModel>, AccountPreferenceMapper>();
 
             return services;
         }

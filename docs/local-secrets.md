@@ -48,11 +48,18 @@ Api__ApiClients__0__Name
 Api__ApiClients__0__Id
 Api__ApiClients__0__Uri
 Api__Migrations__RunOnStartup
+Api__Application__TimeZone
 ```
 
 `Api__ApiClients__0__Uri` is the allowed origin outside Development, while
 `Api__ApiClients__0__Id` is the secret header value. Add additional clients by
 incrementing the array index.
+
+`Api:Application:TimeZone` defaults to `America/Hermosillo`. It is bound once,
+is not observed for runtime changes, and startup fails unless it is a valid
+NodaTime TZDB/IANA identifier. Account timezone preferences use the same ID
+format. Application entity timestamps are persisted as UTC; account-local
+conversion is an explicit application-layer operation.
 
 ## Standalone Identity Server
 

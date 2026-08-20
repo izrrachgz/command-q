@@ -39,7 +39,7 @@ namespace Application.Modules.Addresses.Commands
         /// whether the address was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateAddressCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             // Create transaction to ensure data integrity
             _repository.Db.Connection.Open();

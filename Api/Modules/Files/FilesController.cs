@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Modules.Files
 {
-    [ApiController, Authorize, Route(@"[controller]")]
+    [ApiController, Authorize, Route(FilesRouteConstants.Root)]
     public sealed class FilesController : ControllerBase
     {
         private readonly ISender _mediator;
@@ -29,7 +29,7 @@ namespace Api.Modules.Files
         /// <summary>
         /// Uploads a file to the server.
         /// </summary>
-        [HttpPost(@"upload"), Consumes(ContentTypes.MultipartFormData)]
+        [HttpPost(FilesRouteConstants.Upload), Consumes(ContentTypes.MultipartFormData)]
         [EnableRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Upload([FromForm] IFormFile file, CancellationToken cancellationToken)
         {
@@ -59,7 +59,7 @@ namespace Api.Modules.Files
         /// <summary>
         /// Gets file metadata for the authenticated account without returning file content.
         /// </summary>
-        [HttpGet(@"get")]
+        [HttpGet(FilesRouteConstants.Get)]
         public async Task<IActionResult> Get([FromQuery] SearchCriteria searchCriteria, CancellationToken cancellationToken)
         {
             var currentAccount = await _currentAccountAccessor.Get(cancellationToken);

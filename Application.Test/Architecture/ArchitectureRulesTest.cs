@@ -183,7 +183,8 @@ namespace Application.Test.Architecture
                 "Application.Modules.Addresses",
                 "Application.Modules.Files",
                 "Application.Modules.Health",
-                "Application.Modules.Notifications");
+                "Application.Modules.Notifications",
+                "Application.Modules.Configuration");
         }
 
         private static bool IsAllowedDomainModuleNamespace(string @namespace)
@@ -195,7 +196,8 @@ namespace Application.Test.Architecture
                 "Domain.Modules.Files",
                 "Domain.Modules.Health",
                 "Domain.Modules.Events",
-                "Domain.Modules.Registers");
+                "Domain.Modules.Registers",
+                "Domain.Modules.Configuration");
         }
 
         private static bool IsAllowedApiModuleNamespace(string @namespace)
@@ -205,7 +207,8 @@ namespace Application.Test.Architecture
                 "Api.Modules.Contacts",
                 "Api.Modules.Addresses",
                 "Api.Modules.Files",
-                "Api.Modules.Health");
+                "Api.Modules.Health",
+                "Api.Modules.Configuration");
         }
 
         private static bool StartsWithAny(string value, params string[] prefixes)

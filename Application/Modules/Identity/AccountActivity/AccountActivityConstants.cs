@@ -14,16 +14,19 @@ namespace Application.Modules.Identity.AccountActivity
         public static class Modules
         {
             public const string Files = nameof(Files);
+            public const string Accounts = nameof(Accounts);
         }
 
         public static class Actions
         {
             public const string FileUploaded = nameof(FileUploaded);
+            public const string PreferencesChanged = nameof(PreferencesChanged);
         }
 
         public static class Messages
         {
             public const string FileUploadedFormat = "File uploaded: {0}.";
+            public const string PreferencesChanged = "Account preferences changed.";
             public const string RecordSucceeded = "Account activity recorded.";
             public const string RecordFailed = "Account activity could not be recorded.";
         }

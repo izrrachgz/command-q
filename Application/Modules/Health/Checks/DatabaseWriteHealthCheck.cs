@@ -35,7 +35,7 @@ namespace Application.Modules.Health.Checks
         {
             try
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 var values = new
                 {
                     Created = now,

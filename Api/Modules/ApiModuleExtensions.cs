@@ -3,6 +3,7 @@ using Api.Modules.Files;
 using Api.Modules.Contacts;
 using Api.Modules.Identity;
 using Api.Modules.Addresses;
+using Api.Modules.Configuration;
 
 namespace Api.Modules
 {
@@ -14,6 +15,7 @@ namespace Api.Modules
 
             controllers
                 .MapIdentityModule()
+                .MapConfigurationModule()
                 .MapContactsModule()
                 .MapAddressesModule()
                 .MapFilesModule();

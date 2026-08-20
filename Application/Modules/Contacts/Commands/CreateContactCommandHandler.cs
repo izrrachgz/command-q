@@ -40,7 +40,7 @@ namespace Application.Modules.Contacts.Commands
         /// whether the contact was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateContactCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             // Create transaction to ensure data integrity
             _repository.Db.Connection.Open();

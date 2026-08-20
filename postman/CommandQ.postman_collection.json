@@ -15,6 +15,40 @@
       }
     ]
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const activeAccount = (pm.environment.get(\"activeAccount\") || \"tenant\").trim().toLowerCase();",
+          "if (![\"admin\", \"tenant\"].includes(activeAccount)) {",
+          "  throw new Error('activeAccount must be either \"admin\" or \"tenant\".');",
+          "}",
+          "",
+          "const accountAliases = {",
+          "  accountUsername: \"Username\",",
+          "  accountEmail: \"Email\",",
+          "  accountPassword: \"Password\",",
+          "  identityUserId: \"IdentityUserId\",",
+          "  accessToken: \"AccessToken\",",
+          "  refreshToken: \"RefreshToken\",",
+          "  idToken: \"IdToken\",",
+          "  accessTokenExpiresAt: \"AccessTokenExpiresAt\"",
+          "};",
+          "",
+          "for (const [alias, suffix] of Object.entries(accountAliases)) {",
+          "  const profileKey = `${activeAccount}${suffix}`;",
+          "  const profileValue = pm.environment.get(profileKey);",
+          "  const value = profileValue === undefined ? pm.environment.get(alias) : profileValue;",
+          "  pm.variables.set(alias, pm.variables.replaceIn(String(value || \"\")));",
+          "}",
+          "",
+          "pm.variables.set(\"activeAccount\", activeAccount);"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "00 - Service discovery",
@@ -185,7 +219,10 @@
                   "  pm.expect([201, 400]).to.include(pm.response.code);",
                   "});",
                   "if (pm.response.code === 201) {",
-                  "  pm.environment.set(\"identityUserId\", pm.response.json().id);",
+                  "  const identityUserId = pm.response.json().id;",
+                  "  const activeAccount = pm.variables.get(\"activeAccount\");",
+                  "  pm.environment.set(\"identityUserId\", identityUserId);",
+                  "  pm.environment.set(`${activeAccount}IdentityUserId`, identityUserId);",
                   "}"
                 ]
               }
@@ -280,7 +317,10 @@
                 "exec": [
                   "pm.test(\"Identity account is authenticated\", () => pm.response.to.have.status(200));",
                   "if (pm.response.code === 200) {",
-                  "  pm.environment.set(\"identityUserId\", pm.response.json().id);",
+                  "  const identityUserId = pm.response.json().id;",
+                  "  const activeAccount = pm.variables.get(\"activeAccount\");",
+                  "  pm.environment.set(\"identityUserId\", identityUserId);",
+                  "  pm.environment.set(`${activeAccount}IdentityUserId`, identityUserId);",
                   "}"
                 ]
               }
@@ -516,10 +556,16 @@
                   "pm.test(\"Authorization code was exchanged\", () => pm.response.to.have.status(200));",
                   "if (pm.response.code === 200) {",
                   "  const token = pm.response.json();",
+                  "  const activeAccount = pm.variables.get(\"activeAccount\");",
+                  "  const accessTokenExpiresAt = String(Date.now() + token.expires_in * 1000);",
                   "  pm.environment.set(\"accessToken\", token.access_token);",
                   "  pm.environment.set(\"refreshToken\", token.refresh_token || \"\");",
                   "  pm.environment.set(\"idToken\", token.id_token || \"\");",
-                  "  pm.environment.set(\"accessTokenExpiresAt\", String(Date.now() + token.expires_in * 1000));",
+                  "  pm.environment.set(\"accessTokenExpiresAt\", accessTokenExpiresAt);",
+                  "  pm.environment.set(`${activeAccount}AccessToken`, token.access_token);",
+                  "  pm.environment.set(`${activeAccount}RefreshToken`, token.refresh_token || \"\");",
+                  "  pm.environment.set(`${activeAccount}IdToken`, token.id_token || \"\");",
+                  "  pm.environment.set(`${activeAccount}AccessTokenExpiresAt`, accessTokenExpiresAt);",
                   "}"
                 ]
               }
@@ -621,10 +667,20 @@
                   "pm.test(\"Refresh token was exchanged\", () => pm.response.to.have.status(200));",
                   "if (pm.response.code === 200) {",
                   "  const token = pm.response.json();",
+                  "  const activeAccount = pm.variables.get(\"activeAccount\");",
+                  "  const accessTokenExpiresAt = String(Date.now() + token.expires_in * 1000);",
                   "  pm.environment.set(\"accessToken\", token.access_token);",
-                  "  if (token.refresh_token) pm.environment.set(\"refreshToken\", token.refresh_token);",
-                  "  if (token.id_token) pm.environment.set(\"idToken\", token.id_token);",
-                  "  pm.environment.set(\"accessTokenExpiresAt\", String(Date.now() + token.expires_in * 1000));",
+                  "  pm.environment.set(\"accessTokenExpiresAt\", accessTokenExpiresAt);",
+                  "  pm.environment.set(`${activeAccount}AccessToken`, token.access_token);",
+                  "  pm.environment.set(`${activeAccount}AccessTokenExpiresAt`, accessTokenExpiresAt);",
+                  "  if (token.refresh_token) {",
+                  "    pm.environment.set(\"refreshToken\", token.refresh_token);",
+                  "    pm.environment.set(`${activeAccount}RefreshToken`, token.refresh_token);",
+                  "  }",
+                  "  if (token.id_token) {",
+                  "    pm.environment.set(\"idToken\", token.id_token);",
+                  "    pm.environment.set(`${activeAccount}IdToken`, token.id_token);",
+                  "  }",
                   "}"
                 ]
               }
@@ -686,6 +742,7 @@
               "  throw new Error(\"Access token has no valid exp claim. Exchange a new authorization code.\");",
               "}",
               "pm.environment.set(\"accessTokenExpiresAt\", String(expiresAtMilliseconds));",
+              "pm.environment.set(`${pm.variables.get(\"activeAccount\")}AccessTokenExpiresAt`, String(expiresAtMilliseconds));",
               "if (Date.now() >= expiresAtMilliseconds) {",
               "  throw new Error(`Access token expired at ${new Date(expiresAtMilliseconds).toISOString()}. Run Refresh access token, or repeat the authorization-code flow.`);",
               "}",
@@ -768,6 +825,80 @@
               ]
             },
             {
+              "name": "Save account preferences",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"culture\": \"en-US\",\n  \"theme\": \"dark\",\n  \"compactNavigation\": false,\n  \"enhancedFocus\": false,\n  \"reduceMotion\": false,\n  \"showDenseTables\": false,\n  \"timeZone\": \"America/Hermosillo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{apiBaseUrl}}/Account/preferences",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "Account",
+                    "preferences"
+                  ]
+                },
+                "description": "Saves the authenticated account's complete preference set. AccountId is intentionally omitted because the API always uses the authenticated account."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Account preferences were saved\", () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get account preferences",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{apiBaseUrl}}/Account/preferences",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "Account",
+                    "preferences"
+                  ]
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Account preferences are available\", () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
               "name": "Get account activity",
               "request": {
                 "method": "GET",
@@ -808,6 +939,105 @@
                 }
               },
               "response": []
+            }
+          ]
+        },
+        {
+          "name": "Application configuration",
+          "item": [
+            {
+              "name": "Get application configuration history",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{apiBaseUrl}}/Admin/configurations?Page=1&Size=25&AscendingSort=false",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "Admin",
+                    "configurations"
+                  ],
+                  "query": [
+                    {
+                      "key": "Page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "Size",
+                      "value": "25"
+                    },
+                    {
+                      "key": "AscendingSort",
+                      "value": "false"
+                    },
+                    {
+                      "key": "SearchTerm",
+                      "value": "",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Returns application configuration snapshots. The access token must contain the Admin role."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Application configuration history is available\", () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Record application configuration",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"serverTimeZone\": \"America/Hermosillo\",\n  \"language\": \"en-US\",\n  \"environment\": \"Development\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{apiBaseUrl}}/Admin/configurations",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "Admin",
+                    "configurations"
+                  ]
+                },
+                "description": "Records an application configuration snapshot. The access token must contain the Admin role. ApplicationVersion is omitted so the API resolves it from the entry assembly."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Application configuration was recorded\", () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
@@ -1069,7 +1299,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Refresh token was revoked\", () => pm.response.to.have.status(200));",
-                  "if (pm.response.code === 200) pm.environment.set(\"refreshToken\", \"\");"
+                  "if (pm.response.code === 200) {",
+                  "  pm.environment.set(\"refreshToken\", \"\");",
+                  "  pm.environment.set(`${pm.variables.get(\"activeAccount\")}RefreshToken`, \"\");",
+                  "}"
                 ]
               }
             }

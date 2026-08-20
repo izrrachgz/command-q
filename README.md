@@ -184,6 +184,17 @@ Existing modules are documented in `docs/modules.md`, including which modules ar
 
 Identity includes a queryable account activity trail for business account actions. Use `IAccountActivityRecorder` or `RecordAccountActivityCommand` instead of writing per-account log files. Authentication security events are stored by IdentityServer.
 
+Account preferences are available to authenticated clients through `GET` and
+`PUT /Account/preferences`. The backend stores culture, theme, navigation and
+accessibility flags, dense-table display, and an IANA timezone identifier. A
+successful preference update also writes the serialized preference snapshot to
+account activity metadata.
+
+The API validates `Api:Application:TimeZone` once at startup with NodaTime and
+records the effective timezone, assembly version, language and environment in
+`ApplicationConfiguration`. Admin users can query or append configuration
+snapshots through `/Admin/configurations`.
+
 `IdentityServer` owns users, credentials, lockout, external logins, OAuth clients,
 scopes, grants and tokens. The API Identity module owns application profiles and
 maps them through `AccountIdentity` using the validated token issuer and subject.
@@ -358,7 +369,8 @@ In Development, the app invokes the migration runner regardless of the toggle
 so it can move the local database forward automatically. The runner reads the
 `MigrationRecord` table first and only applies pending scripts, so an
 already-applied `migration-1.sql` is skipped and the next pending script starts
-at `migration-2.sql`.
+at the next contiguous migration ID. The current pre-v1 schema remains entirely
+in `migration-1.sql`.
 
 Outside Development, enable `Api:Migrations:RunOnStartup` only in environments where the configured database is reachable and migrations should be applied by the app.
 

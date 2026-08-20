@@ -9,13 +9,15 @@ using Microsoft.AspNetCore.Authorization;
 using Application.Modules.Identity.Accounts.Queries;
 using Application.Modules.Identity.Accounts.Commands;
 using Application.Modules.Identity.AccountActivity.Queries;
+using Application.Modules.Identity.Accounts.Preferences.Queries;
+using Application.Modules.Identity.Accounts.Preferences.Commands;
 
 namespace Api.Modules.Identity
 {
-    [ApiController, Route("[controller]")]
+    [ApiController, Route(IdentityRouteConstants.AccountRoot)]
     public sealed class AccountController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
-        [Authorize, HttpPost("create")]
+        [Authorize, HttpPost(IdentityRouteConstants.Create)]
         [EnableRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName)]
         public async Task<IActionResult> Create(CancellationToken cancellationToken = default)
         {
@@ -43,7 +45,7 @@ namespace Api.Modules.Identity
             return response.Success ? Ok(response) : BadRequest(response.Message);
         }
 
-        [Authorize, HttpGet("me")]
+        [Authorize, HttpGet(IdentityRouteConstants.Me)]
         public async Task<IActionResult> Me(CancellationToken cancellationToken = default)
         {
             var currentAccount = await currentAccountAccessor.Get(cancellationToken);
@@ -61,7 +63,7 @@ namespace Api.Modules.Identity
             return response.Success ? Ok(response) : NotFound(response);
         }
 
-        [Authorize, HttpGet("activity")]
+        [Authorize, HttpGet(IdentityRouteConstants.Activity)]
         public async Task<IActionResult> Activity(
             [FromQuery] SearchCriteria searchCriteria,
             [FromQuery] string? module = null,
@@ -84,6 +86,37 @@ namespace Api.Modules.Identity
             }, cancellationToken);
 
             return Ok(response);
+        }
+
+        [Authorize, HttpGet(IdentityRouteConstants.Preferences)]
+        public async Task<IActionResult> Preferences(CancellationToken cancellationToken = default)
+        {
+            var currentAccount = await currentAccountAccessor.Get(cancellationToken);
+            if (currentAccount is null)
+                return Forbid();
+
+            var response = await mediator.Send(new GetAccountPreferencesQuery
+            {
+                AccountId = currentAccount.AccountId
+            }, cancellationToken);
+
+            return response.Success ? Ok(response) : NotFound(response);
+        }
+
+        [Authorize, HttpPut(IdentityRouteConstants.Preferences)]
+        public async Task<IActionResult> SavePreferences(
+            SaveAccountPreferencesCommand command,
+            CancellationToken cancellationToken = default)
+        {
+            var currentAccount = await currentAccountAccessor.Get(cancellationToken);
+            if (currentAccount is null)
+                return Forbid();
+
+            command = command with { AccountId = currentAccount.AccountId };
+
+            var response = await mediator.Send(command, cancellationToken);
+
+            return response.Success ? Ok(response) : BadRequest(response);
         }
     }
 }
