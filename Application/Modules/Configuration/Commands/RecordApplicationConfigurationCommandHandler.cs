@@ -3,21 +3,18 @@ using Common.Cqrs;
 using System.Reflection;
 using SqlKata.Execution;
 using Common.Models.Response;
-using Application.Abstractions;
 using Persistence.Abstractions;
 using Localization.Abstractions;
-using Application.Modules.Configuration.Dtos;
 
 namespace Application.Modules.Configuration.Commands
 {
-    internal sealed class SaveApplicationConfigurationCommandHandler(
+    internal sealed class RecordApplicationConfigurationCommandHandler(
         IWritableRepository repository,
-        IMapper<Domain.Modules.Configuration.ApplicationConfiguration, ApplicationConfigurationModel> mapper,
         ITextProvider messages)
-        : ICommandHandler<SaveApplicationConfigurationCommand, DetailResponse<ApplicationConfigurationModel>>
+        : ICommandHandler<RecordApplicationConfigurationCommand, BasicResponse>
     {
-        public async Task<DetailResponse<ApplicationConfigurationModel>> Handle(
-            SaveApplicationConfigurationCommand request,
+        public async Task<BasicResponse> Handle(
+            RecordApplicationConfigurationCommand request,
             CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
@@ -45,12 +42,10 @@ namespace Application.Modules.Configuration.Commands
             return entity.Id > 0
                 ? new(
                     true,
-                    messages.Get(nameof(Messages.Created), nameof(Domain.Modules.Configuration.ApplicationConfiguration)),
-                    mapper.Map(entity))
+                    messages.Get(nameof(Messages.Created), nameof(Domain.Modules.Configuration.ApplicationConfiguration)))
                 : new(
                     false,
-                    messages.Get(nameof(Messages.Cannot_Create), nameof(Domain.Modules.Configuration.ApplicationConfiguration)),
-                    null);
+                    messages.Get(nameof(Messages.Cannot_Create), nameof(Domain.Modules.Configuration.ApplicationConfiguration)));
         }
 
         private static string ResolveVersion(string? requestedVersion)

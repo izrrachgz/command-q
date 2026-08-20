@@ -1,6 +1,7 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { LucideDynamicIcon } from '@lucide/angular';
 
 import { I18nService } from '../../../../../core/i18n/i18n.service';
@@ -8,8 +9,15 @@ import { TextKeys } from '../../../../../core/i18n/text-keys';
 import { TextPipe } from '../../../../../core/i18n/text.pipe';
 import { ReportFileNames } from '../../../../../core/reporting/report-constants';
 import { ReportExportService } from '../../../../../core/reporting/report-export.service';
+import { AccountDatePipe } from '../../../../../core/time/account-date.pipe';
 import { EmptyStateComponent, PageHeaderComponent } from '../../../../../shared/components';
 import { DateInputComponent, TextInputComponent } from '../../../../../shared/forms';
+import {
+  trackByEntityId,
+  virtualTableBufferPixels,
+  virtualTableViewportHeight,
+  VirtualTableRowHeight,
+} from '../../../../../shared/tables';
 import { AdminEmailActions } from '../../actions/admin-email.actions';
 import { AdminEmailRecord } from '../../models/admin-email.model';
 import { AdminEmailStore } from '../../stores/admin-email.store';
@@ -19,12 +27,13 @@ import { AdminEmailStore } from '../../stores/admin-email.store';
   standalone: true,
   imports: [
     AsyncPipe,
+    AccountDatePipe,
     DateInputComponent,
-    DatePipe,
     EmptyStateComponent,
     LucideDynamicIcon,
     PageHeaderComponent,
     ReactiveFormsModule,
+    ScrollingModule,
     TextInputComponent,
     TextPipe,
   ],
@@ -32,6 +41,10 @@ import { AdminEmailStore } from '../../stores/admin-email.store';
 })
 export class EmailManagementPage {
   readonly store = inject(AdminEmailStore);
+  readonly trackByEntityId = trackByEntityId;
+  readonly virtualTableBufferPixels = virtualTableBufferPixels;
+  readonly virtualTableViewportHeight = virtualTableViewportHeight;
+  readonly virtualTableRowHeight = VirtualTableRowHeight;
 
   private readonly actions = inject(AdminEmailActions);
   private readonly fb = inject(FormBuilder);
@@ -60,11 +73,16 @@ export class EmailManagementPage {
   exportRecords(records: readonly AdminEmailRecord[]): void {
     const rows = records.map((record) => ({ ...record }));
 
-    void this.reports.exportXlsx(ReportFileNames.email, this.i18n.text(TextKeys.admin.email.sheetName), rows, [
-      { header: this.i18n.text(TextKeys.admin.email.subject), key: 'subject', width: 36 },
-      { header: this.i18n.text(TextKeys.admin.email.recipient), key: 'recipient', width: 34 },
-      { header: this.i18n.text(TextKeys.admin.email.status), key: 'status', width: 18 },
-      { header: this.i18n.text(TextKeys.admin.email.attempts), key: 'attempts', width: 12 },
-    ]);
+    void this.reports.exportXlsx(
+      ReportFileNames.email,
+      this.i18n.text(TextKeys.admin.email.sheetName),
+      rows,
+      [
+        { header: this.i18n.text(TextKeys.admin.email.subject), key: 'subject', width: 36 },
+        { header: this.i18n.text(TextKeys.admin.email.recipient), key: 'recipient', width: 34 },
+        { header: this.i18n.text(TextKeys.admin.email.status), key: 'status', width: 18 },
+        { header: this.i18n.text(TextKeys.admin.email.attempts), key: 'attempts', width: 12 },
+      ],
+    );
   }
 }

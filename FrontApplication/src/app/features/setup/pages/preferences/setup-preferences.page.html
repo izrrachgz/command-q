@@ -1,0 +1,21 @@
+<main class="min-h-screen bg-slate-100 px-4 py-8 text-slate-950 sm:py-12">
+  <div class="mx-auto w-full max-w-2xl cq-page-enter">
+    <header class="mb-6 text-center">
+      <div class="inline-flex items-center gap-3 text-lg font-semibold">
+        <app-brand-mark size="lg" />
+        <span>{{ 'app.brand' | text }}</span>
+      </div>
+      <p class="mt-6 text-xs font-semibold uppercase tracking-[0.2em] text-teal-700">
+        {{ 'setup.stepLabel' | text }}
+      </p>
+      <h1 class="mt-2 text-2xl font-bold text-slate-950 sm:text-3xl">
+        {{ 'setup.preferencesTitle' | text }}
+      </h1>
+      <p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-600">
+        {{ 'setup.preferencesCopy' | text }}
+      </p>
+    </header>
+
+    <app-preferences-form [setupMode]="true" (saved)="complete()" />
+  </div>
+</main>

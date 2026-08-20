@@ -9,6 +9,7 @@ export const AppRoutePaths = {
   },
   admin: {
     accounts: routePath(AppRouteSegments.admin, AppRouteSegments.accounts),
+    configurations: routePath(AppRouteSegments.admin, AppRouteSegments.configurations),
     dashboard: routePath(AppRouteSegments.admin, AppRouteSegments.dashboard),
     email: routePath(AppRouteSegments.admin, AppRouteSegments.email),
     preferences: routePath(AppRouteSegments.admin, AppRouteSegments.preferences),
@@ -20,6 +21,10 @@ export const AppRoutePaths = {
     login: routePath(AppRouteSegments.auth, AppRouteSegments.login),
     register: routePath(AppRouteSegments.auth, AppRouteSegments.register),
     root: routePath(AppRouteSegments.auth),
+  },
+  setup: {
+    preferences: routePath(AppRouteSegments.setup, AppRouteSegments.preferences),
+    root: routePath(AppRouteSegments.setup),
   },
   tenant: {
     dashboard: routePath(AppRouteSegments.tenant, AppRouteSegments.dashboard),

@@ -1,55 +1,94 @@
-    <app-page-header
-      [eyebrow]="'nav.tenant' | text"
-      [title]="'tenant.dashboard.title' | text"
-      [description]="'tenant.dashboard.profile' | text"
-    >
-      <button
-        type="button"
-        [disabled]="loading"
-        class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-        (click)="loadActivity()"
+<app-page-header
+  [eyebrow]="'nav.tenant' | text"
+  [title]="'tenant.dashboard.title' | text"
+  [description]="'tenant.dashboard.profile' | text"
+>
+  <button
+    type="button"
+    [disabled]="loading"
+    class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+    (click)="loadActivity()"
+  >
+    <svg
+      lucideIcon="refresh-cw"
+      class="size-4"
+      [class.animate-spin]="loading"
+      aria-hidden="true"
+    ></svg>
+    {{ 'action.refresh' | text }}
+  </button>
+</app-page-header>
+
+<section class="grid gap-4 md:grid-cols-3">
+  <app-stat-card
+    [label]="'tenant.dashboard.profile' | text"
+    [value]="(auth.account$ | async)?.username ?? '-'"
+    icon="user"
+  />
+  <app-stat-card
+    [label]="'tenant.dashboard.addresses' | text"
+    [value]="addressCount"
+    icon="building-2"
+  />
+  <app-stat-card [label]="'tenant.dashboard.contacts' | text" [value]="contactCount" icon="mail" />
+</section>
+
+<section class="mt-6">
+  <h2 class="mb-3 text-lg font-semibold text-slate-950">
+    {{ 'tenant.dashboard.activity' | text }}
+  </h2>
+  @if (activity.length > 0) {
+    <div class="overflow-x-auto rounded-md border border-slate-200 bg-white shadow-sm">
+      <div
+        role="table"
+        class="min-w-[720px] text-left text-sm"
+        [attr.aria-colcount]="4"
+        [attr.aria-rowcount]="activity.length"
       >
-        <svg lucideIcon="refresh-cw" class="size-4" [class.animate-spin]="loading" aria-hidden="true"></svg>
-        {{ 'action.refresh' | text }}
-      </button>
-    </app-page-header>
-
-    <section class="grid gap-4 md:grid-cols-3">
-      <app-stat-card
-        [label]="'tenant.dashboard.profile' | text"
-        [value]="(auth.account$ | async)?.username ?? '-'"
-        icon="user"
-      />
-      <app-stat-card [label]="'tenant.dashboard.addresses' | text" [value]="addressCount" icon="building-2" />
-      <app-stat-card [label]="'tenant.dashboard.contacts' | text" [value]="contactCount" icon="mail" />
-    </section>
-
-    <section class="mt-6">
-      <h2 class="mb-3 text-lg font-semibold text-slate-950">{{ 'tenant.dashboard.activity' | text }}</h2>
-      @if (activity.length > 0) {
-        <div class="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-          <table class="w-full table-fixed text-left text-sm">
-            <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-500">
-              <tr>
-                <th class="w-40 px-4 py-3">{{ 'table.module' | text }}</th>
-                <th class="w-40 px-4 py-3">{{ 'table.action' | text }}</th>
-                <th class="px-4 py-3">{{ 'table.message' | text }}</th>
-                <th class="w-48 px-4 py-3">{{ 'table.created' | text }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              @for (item of activity; track item.id) {
-                <tr>
-                  <td class="truncate px-4 py-3 font-medium text-slate-900">{{ item.module }}</td>
-                  <td class="truncate px-4 py-3 text-slate-700">{{ item.action }}</td>
-                  <td class="truncate px-4 py-3 text-slate-600">{{ item.message }}</td>
-                  <td class="px-4 py-3 text-slate-600">{{ item.createdUtc | date: 'medium' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+        <div
+          role="row"
+          aria-rowindex="1"
+          class="grid h-12 grid-cols-[160px_160px_minmax(240px,1fr)_208px] items-center bg-slate-50 text-xs font-semibold uppercase text-slate-500"
+        >
+          <div role="columnheader" class="px-4">{{ 'table.module' | text }}</div>
+          <div role="columnheader" class="px-4">{{ 'table.action' | text }}</div>
+          <div role="columnheader" class="px-4">{{ 'table.message' | text }}</div>
+          <div role="columnheader" class="px-4">{{ 'table.created' | text }}</div>
         </div>
-      } @else {
-        <app-empty-state icon="activity" [title]="'empty.title' | text" [message]="'tenant.dashboard.activity' | text" />
-      }
-    </section>
+        <cdk-virtual-scroll-viewport
+          role="rowgroup"
+          tabindex="0"
+          class="block max-h-[65vh] w-full"
+          [attr.aria-label]="'tenant.dashboard.activity' | text"
+          [itemSize]="virtualTableRowHeight"
+          [minBufferPx]="virtualTableBufferPixels(activityPageSize)"
+          [maxBufferPx]="virtualTableBufferPixels(activityPageSize) * 2"
+          [style.height.px]="virtualTableViewportHeight(activity.length, activityPageSize)"
+        >
+          <div
+            *cdkVirtualFor="let item of activity; let rowIndex = index; trackBy: trackByEntityId"
+            role="row"
+            [attr.aria-rowindex]="rowIndex + 2"
+            class="grid h-16 grid-cols-[160px_160px_minmax(240px,1fr)_208px] items-center border-t border-slate-100"
+            [class.bg-slate-50]="rowIndex % 2 === 1"
+          >
+            <div role="cell" class="truncate px-4 font-medium text-slate-900">
+              {{ item.module }}
+            </div>
+            <div role="cell" class="truncate px-4 text-slate-700">{{ item.action }}</div>
+            <div role="cell" class="truncate px-4 text-slate-600">{{ item.message }}</div>
+            <div role="cell" class="px-4 text-slate-600">
+              {{ item.createdUtc | accountDate }}
+            </div>
+          </div>
+        </cdk-virtual-scroll-viewport>
+      </div>
+    </div>
+  } @else {
+    <app-empty-state
+      icon="activity"
+      [title]="'empty.title' | text"
+      [message]="'tenant.dashboard.activity' | text"
+    />
+  }
+</section>

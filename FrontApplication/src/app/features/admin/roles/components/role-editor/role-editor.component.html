@@ -1,0 +1,23 @@
+<div class="flex items-start gap-3">
+  <div class="min-w-0">
+    <h3 class="truncate text-base font-semibold text-slate-950">{{ account.username }}</h3>
+    <p class="mt-1 break-all text-sm text-slate-600">{{ account.email }}</p>
+  </div>
+</div>
+
+<div class="mt-5 max-h-80 space-y-2 overflow-y-auto">
+  @for (role of roles; track role.id) {
+    <label
+      class="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-700"
+    >
+      <span class="font-medium">{{ role.name }}</span>
+      <input
+        type="checkbox"
+        class="size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600 disabled:cursor-not-allowed disabled:opacity-60"
+        [checked]="isSelected(role.name)"
+        [disabled]="disabled || isLocked(role.name)"
+        (change)="changeRole(role.name, $event)"
+      />
+    </label>
+  }
+</div>

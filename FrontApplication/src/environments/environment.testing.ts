@@ -35,6 +35,10 @@ export const environment: CommandQEnvironment = {
     fallbackCulture: 'en-US',
     supportedCultures: ['en-US', 'es-ES'],
   },
+  preferences: {
+    cacheLifetimeMinutes: CommandQEnvironmentDefaults.preferencesCacheLifetimeMinutes,
+    backendRetryDelaySeconds: CommandQEnvironmentDefaults.preferencesBackendRetryDelaySeconds,
+  },
   logging: {
     file: {
       enabled: false,

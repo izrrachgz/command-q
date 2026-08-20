@@ -6,4 +6,5 @@ export * from './password-input/password-input.component';
 export * from './text-input/text-input.component';
 export * from './textarea-input/textarea-input.component';
 export * from './time-input/time-input.component';
+export * from './time-zone-autocomplete/time-zone-autocomplete.component';
 export * from './validation-message/validation-message.component';

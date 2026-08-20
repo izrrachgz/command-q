@@ -130,7 +130,7 @@ namespace Api.Extensions
             var options = scope.ServiceProvider.GetRequiredService<IOptions<ApplicationOptions>>().Value;
             IConfigurationSection apiConfiguration = app.Configuration.GetRequiredSection(ApiConfigKeys.Section);
 
-            var response = await sender.Send(new SaveApplicationConfigurationCommand
+            var response = await sender.Send(new RecordApplicationConfigurationCommand
             {
                 ServerTimeZone = options.TimeZone,
                 Language = apiConfiguration.GetValue<string>(ApiConfigKeys.Localization.DefaultCulture) ?? "en-US",

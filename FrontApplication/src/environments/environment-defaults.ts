@@ -5,6 +5,8 @@ export const CommandQEnvironmentDefaults = {
   localApplicationUrl: 'http://localhost:4200',
   localIdentityAuthority: 'https://localhost:7125/',
   oidcScope: 'openid profile email roles offline_access command_q_api',
+  preferencesBackendRetryDelaySeconds: 30,
+  preferencesCacheLifetimeMinutes: 15,
   spaClientId: 'command_q_spa',
 } as const;
 

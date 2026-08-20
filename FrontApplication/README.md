@@ -100,6 +100,12 @@ API context headers are added in `core/api/api-context.interceptor.ts`:
 
 Application account provisioning is handled by `accountProvisionGuard` and `AccountProvisionService`, which calls `POST /Account/create` only when `/Account/me` cannot resolve an application profile yet.
 
+After provisioning, `preferencesRequiredGuard` loads `GET /Account/preferences`.
+Accounts without persisted preferences are redirected to the layout-free
+`/setup/preferences` flow before tenant or admin routes can activate. The setup
+form cannot be skipped by changing the URL and is structured as the first step
+of a feature-owned setup module so more required steps can be added later.
+
 ## Localization
 
 Supported cultures mirror the backend defaults: `en-US` and `es-ES`.
@@ -148,6 +154,17 @@ navigation opened from the header. Feature pages should continue using
 responsive Tailwind grid/flex utilities, avoid fixed widths below `320px`, and
 keep actions reachable without horizontal scrolling.
 
+Application data tables use striped, fixed-height rows inside Angular CDK
+virtual-scroll viewports. Column headers remain outside the scrolling row
+viewport, and each feature's existing items-per-page value supplies the default
+viewport height and render buffer. Keep row content truncated or otherwise
+bounded so it cannot exceed the shared fixed row height.
+
+Keep create and edit forms out of table side rails. Open reusable feature form
+components in the shared animated dialog from explicit Add or per-row Edit
+actions, and let the table use the full available content width. Read-only row
+details may use the same dialog shell without a confirmation action.
+
 ## Accessibility
 
 CommandQ relies on the user's operating-system or browser screen reader
@@ -161,9 +178,24 @@ narrator. The app provides the structure those tools need:
 - document language updates when the selected culture changes
 
 These preferences are available from both tenant and admin Preferences pages and
-are saved in local storage. New pages should keep controls keyboard reachable,
-avoid relying only on color, preserve visible focus states and keep dynamic
-status changes connected to translated text.
+are saved through `GET`/`PUT /Account/preferences`. An account-scoped local
+storage cache remains available for immediate rendering and offline fallback;
+it refreshes on login, expiry, explicit refresh and save. Cache lifetime and
+backend retry delay are configured through the frontend environment's
+`preferences` section. New pages should keep controls keyboard reachable, avoid
+relying only on color, preserve visible focus states and keep dynamic status
+changes connected to translated text.
+
+The first preference setup uses the browser timezone from native `Intl` as its
+default. Timezone selection uses the runtime's searchable IANA list and
+`@date-fns/tz` for offset-aware conversion. Frontend date/time helpers serialize
+all outbound instants as ISO-8601 UTC strings ending in `Z`; server UTC values
+are rendered in the selected account timezone.
+
+Confirmation dialogs and responsive navigation use short CSS enter/leave
+transitions. Both the persisted reduced-motion preference and the operating
+system `prefers-reduced-motion` setting reduce those transitions to effectively
+zero duration.
 
 ## Admin Area
 
@@ -173,6 +205,10 @@ endpoint, and the role management page edits assignments through
 `/Admin/accounts/{accountId}/roles`. Buttons remain disabled while commands are
 in flight, and failed backend calls surface translated pending/unavailable
 messages through the feature actions and stores.
+
+The application configuration page consumes `/Admin/configurations`, lists UTC
+startup snapshots in the account timezone, and is intentionally read-only. The
+API resolves and records effective server values during startup.
 
 Email administration remains UI-ready while backend email query endpoints are
 filled in later.

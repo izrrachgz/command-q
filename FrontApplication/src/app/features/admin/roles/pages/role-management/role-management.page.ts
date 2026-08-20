@@ -1,26 +1,46 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { LucideDynamicIcon } from '@lucide/angular';
+import { Observable } from 'rxjs';
 
 import { AuthFacade } from '../../../../../core/auth/auth.facade';
 import { TextPipe } from '../../../../../core/i18n/text.pipe';
-import { EmptyStateComponent, PageHeaderComponent } from '../../../../../shared/components';
+import { AccountDatePipe } from '../../../../../core/time/account-date.pipe';
+import {
+  ConfirmationDialogComponent,
+  EmptyStateComponent,
+  PageHeaderComponent,
+} from '../../../../../shared/components';
 import { TextInputComponent } from '../../../../../shared/forms';
+import {
+  trackByEntityId,
+  virtualTableBufferPixels,
+  virtualTableViewportHeight,
+  VirtualTableRowHeight,
+} from '../../../../../shared/tables';
 import { AdminRoleAccount, AdminRoleNames } from '../../models/admin-role.model';
 import { AdminRolesActions } from '../../actions/admin-roles.actions';
-import { AdminRolesState, AdminRolesStore } from '../../stores/admin-roles.store';
+import { AdminRolesStore } from '../../stores/admin-roles.store';
+import {
+  AdminRoleChange,
+  RoleEditorComponent,
+} from '../../components/role-editor/role-editor.component';
 
 @Component({
   selector: 'app-role-management-page',
   standalone: true,
   imports: [
     AsyncPipe,
-    DatePipe,
+    AccountDatePipe,
+    ConfirmationDialogComponent,
     EmptyStateComponent,
     LucideDynamicIcon,
     PageHeaderComponent,
     ReactiveFormsModule,
+    RoleEditorComponent,
+    ScrollingModule,
     TextInputComponent,
     TextPipe,
   ],
@@ -28,6 +48,12 @@ import { AdminRolesState, AdminRolesStore } from '../../stores/admin-roles.store
 })
 export class RoleManagementPage {
   readonly store = inject(AdminRolesStore);
+  readonly trackByEntityId = trackByEntityId;
+  readonly virtualTableBufferPixels = virtualTableBufferPixels;
+  readonly virtualTableViewportHeight = virtualTableViewportHeight;
+  readonly virtualTableRowHeight = VirtualTableRowHeight;
+  roleEditorOpen = false;
+  protectSelectedAdminRole = false;
 
   private readonly auth = inject(AuthFacade);
   private readonly actions = inject(AdminRolesActions);
@@ -49,40 +75,27 @@ export class RoleManagementPage {
     this.actions.applySearch(this.filterForm.controls.searchTerm.value).subscribe();
   }
 
-  select(account: AdminRoleAccount): void {
+  edit(account: AdminRoleAccount): void {
     this.actions.select(account);
+    this.protectSelectedAdminRole = this.isCurrentAdminAccount(account);
+    this.roleEditorOpen = true;
   }
 
-  save(commandRunning: boolean): void {
-    if (commandRunning) {
-      return;
-    }
-
-    this.actions.save().subscribe();
+  changeRole(change: AdminRoleChange): void {
+    this.actions.toggle(change.roleName, change.enabled);
   }
 
-  isRoleSelected(state: AdminRolesState, roleName: string): boolean {
-    return state.selectedRoleNames.some((selected) => selected.toLowerCase() === roleName.toLowerCase());
-  }
+  readonly saveRoles = (): Observable<void> => this.actions.save();
 
-  isBaselineRole(roleName: string): boolean {
-    return roleName.toLowerCase() === AdminRoleNames.user.toLowerCase();
-  }
-
-  isRoleLocked(state: AdminRolesState, roleName: string): boolean {
-    return this.isBaselineRole(roleName) || this.isSelectedSelfAdminRole(state, roleName);
-  }
-
-  toggleRole(roleName: string, event: Event): void {
-    this.actions.toggle(roleName, (event.target as HTMLInputElement).checked);
-  }
-
-  private isSelectedSelfAdminRole(state: AdminRolesState, roleName: string): boolean {
+  private isCurrentAdminAccount(account: AdminRoleAccount): boolean {
     const currentSubject = this.auth.snapshot.user?.subject;
 
-    return roleName.toLowerCase() === AdminRoleNames.admin.toLowerCase() &&
+    return (
       !!currentSubject &&
-      state.selected?.id.toLowerCase() === currentSubject.toLowerCase() &&
-      this.isRoleSelected(state, roleName);
+      account.id.toLowerCase() === currentSubject.toLowerCase() &&
+      account.roles.some(
+        (roleName) => roleName.toLowerCase() === AdminRoleNames.admin.toLowerCase(),
+      )
+    );
   }
 }

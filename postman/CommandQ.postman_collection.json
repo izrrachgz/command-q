@@ -993,51 +993,6 @@
                   }
                 }
               ]
-            },
-            {
-              "name": "Record application configuration",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json",
-                    "type": "text"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"serverTimeZone\": \"America/Hermosillo\",\n  \"language\": \"en-US\",\n  \"environment\": \"Development\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{apiBaseUrl}}/Admin/configurations",
-                  "host": [
-                    "{{apiBaseUrl}}"
-                  ],
-                  "path": [
-                    "Admin",
-                    "configurations"
-                  ]
-                },
-                "description": "Records an application configuration snapshot. The access token must contain the Admin role. ApplicationVersion is omitted so the API resolves it from the entry assembly."
-              },
-              "response": [],
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"Application configuration was recorded\", () => pm.response.to.have.status(200));"
-                    ]
-                  }
-                }
-              ]
             }
           ]
         },

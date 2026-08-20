@@ -192,8 +192,8 @@ account activity metadata.
 
 The API validates `Api:Application:TimeZone` once at startup with NodaTime and
 records the effective timezone, assembly version, language and environment in
-`ApplicationConfiguration`. Admin users can query or append configuration
-snapshots through `/Admin/configurations`.
+`ApplicationConfiguration`. Admin users can query the server-recorded startup
+history through `GET /Admin/configurations`; clients cannot append snapshots.
 
 `IdentityServer` owns users, credentials, lockout, external logins, OAuth clients,
 scopes, grants and tokens. The API Identity module owns application profiles and

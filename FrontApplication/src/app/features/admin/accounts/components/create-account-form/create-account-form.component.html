@@ -1,0 +1,28 @@
+<div class="space-y-4" [formGroup]="form">
+  <app-text-input
+    formControlName="username"
+    prefixIcon="user"
+    autocomplete="username"
+    [label]="'field.username' | text"
+  />
+  <app-text-input
+    formControlName="email"
+    type="email"
+    prefixIcon="mail"
+    autocomplete="email"
+    [label]="'field.email' | text"
+  />
+  <app-password-input
+    formControlName="temporaryPassword"
+    autocomplete="new-password"
+    [label]="'field.password' | text"
+  />
+  <label class="flex items-center gap-2 text-sm text-slate-700">
+    <input
+      type="checkbox"
+      formControlName="sendInvite"
+      class="size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+    />
+    {{ 'field.sendInvite' | text }}
+  </label>
+</div>

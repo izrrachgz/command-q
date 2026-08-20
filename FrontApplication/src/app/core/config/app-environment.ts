@@ -8,6 +8,7 @@ export interface CommandQEnvironment {
   readonly api: ApiEnvironment;
   readonly identity: IdentityEnvironment;
   readonly localization: LocalizationEnvironment;
+  readonly preferences: PreferencesEnvironment;
   readonly logging: LoggingEnvironment;
   readonly build: BuildEnvironment;
 }
@@ -24,6 +25,7 @@ export interface ApiEndpointMap {
     readonly create: string;
     readonly me: string;
     readonly activity: string;
+    readonly preferences: string;
   };
   readonly admin: {
     readonly accounts: string;
@@ -33,6 +35,7 @@ export interface ApiEndpointMap {
     readonly lockAccount: (accountId: string) => string;
     readonly activateAccount: (accountId: string) => string;
     readonly email: string;
+    readonly configurations: string;
     readonly roles: string;
   };
 }
@@ -61,6 +64,11 @@ export interface LocalizationEnvironment {
   readonly supportedCultures: readonly SupportedCulture[];
 }
 
+export interface PreferencesEnvironment {
+  readonly cacheLifetimeMinutes: number;
+  readonly backendRetryDelaySeconds: number;
+}
+
 export interface LoggingEnvironment {
   readonly file: FileLoggingEnvironment;
 }
@@ -81,10 +89,12 @@ const ApiEndpointSegments = {
   activate: 'activate',
   activity: 'activity',
   admin: 'Admin',
+  configurations: 'configurations',
   create: 'create',
   email: 'email',
   lock: 'lock',
   me: 'me',
+  preferences: 'preferences',
   roles: 'roles',
 } as const;
 
@@ -109,11 +119,16 @@ export const createApiEndpoints = (): ApiEndpointMap => ({
     create: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.create),
     me: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.me),
     activity: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.activity),
+    preferences: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.preferences),
   },
   admin: {
     accounts: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.accounts),
     accountDetails: (accountId) =>
-      endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.accounts, encodeURIComponent(accountId)),
+      endpointPath(
+        ApiEndpointSegments.admin,
+        ApiEndpointSegments.accounts,
+        encodeURIComponent(accountId),
+      ),
     accountActivity: (accountId) =>
       endpointPath(
         ApiEndpointSegments.admin,
@@ -143,6 +158,7 @@ export const createApiEndpoints = (): ApiEndpointMap => ({
         ApiEndpointSegments.activate,
       ),
     email: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.email),
+    configurations: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.configurations),
     roles: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.roles),
   },
 });
@@ -152,7 +168,10 @@ export const createIdentityEndpoints = (): IdentityEndpointMap => ({
   signIn: endpointPath(IdentityEndpointSegments.account, IdentityEndpointSegments.signIn),
   signOut: endpointPath(IdentityEndpointSegments.account, IdentityEndpointSegments.signOut),
   me: endpointPath(IdentityEndpointSegments.account, IdentityEndpointSegments.me),
-  securityActivity: endpointPath(IdentityEndpointSegments.account, IdentityEndpointSegments.securityActivity),
+  securityActivity: endpointPath(
+    IdentityEndpointSegments.account,
+    IdentityEndpointSegments.securityActivity,
+  ),
   external: (provider, returnUrl = '/') =>
     `${endpointPath(
       IdentityEndpointSegments.account,

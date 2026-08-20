@@ -34,6 +34,7 @@ export const AdminEmailQueryParamNames = {
 } as const;
 
 export const ApiSortFields = {
+  created: 'Created',
   createdUtc: 'CreatedUtc',
   username: 'Username',
 } as const;

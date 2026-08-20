@@ -3,15 +3,18 @@ import { CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 
 import { AccountProvisionService } from './account-provision.service';
-import { AuthFacade, inferRealmFromUrl, sanitizeReturnUrl } from './auth.facade';
+import { AuthFacade, AuthRealms, inferRealmFromUrl, sanitizeReturnUrl } from './auth.facade';
 import { AppRouteQueryParams } from '../routing/app-route-constants';
 import { AppRoutePaths } from '../routing/app-route-paths';
 
-export const accountProvisionGuard: CanActivateFn = (_route, state) => {
+export const accountProvisionGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthFacade);
   const provision = inject(AccountProvisionService);
   const router = inject(Router);
-  const realm = inferRealmFromUrl(state.url);
+  const realm =
+    route.queryParamMap.get(AppRouteQueryParams.realm) === AuthRealms.admin
+      ? AuthRealms.admin
+      : inferRealmFromUrl(state.url);
   const returnUrl = sanitizeReturnUrl(state.url, realm);
 
   auth.setRealm(realm);
@@ -25,7 +28,10 @@ export const accountProvisionGuard: CanActivateFn = (_route, state) => {
       account
         ? true
         : router.createUrlTree([AppRoutePaths.account.provision], {
-            queryParams: { [AppRouteQueryParams.realm]: realm, [AppRouteQueryParams.returnUrl]: returnUrl },
+            queryParams: {
+              [AppRouteQueryParams.realm]: realm,
+              [AppRouteQueryParams.returnUrl]: returnUrl,
+            },
           }),
     ),
   );

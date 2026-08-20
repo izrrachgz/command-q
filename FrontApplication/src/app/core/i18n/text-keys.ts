@@ -8,8 +8,10 @@ export const TextKeys = {
   },
   action: {
     cancel: 'action.cancel',
+    close: 'action.close',
     confirm: 'action.confirm',
     create: 'action.create',
+    edit: 'action.edit',
     login: 'action.login',
     logout: 'action.logout',
     no: 'action.no',
@@ -20,10 +22,15 @@ export const TextKeys = {
     accounts: {
       active: 'admin.accounts.active',
       backendPending: 'admin.accounts.backendPending',
+      detailsTitle: 'admin.accounts.detailsTitle',
       email: 'admin.accounts.email',
       locked: 'admin.accounts.locked',
       title: 'admin.accounts.title',
       username: 'admin.accounts.username',
+    },
+    configurations: {
+      loadFailed: 'admin.configurations.loadFailed',
+      title: 'admin.configurations.title',
     },
     dashboard: {
       title: 'admin.dashboard.title',
@@ -43,6 +50,7 @@ export const TextKeys = {
     roles: {
       available: 'admin.roles.available',
       backendPending: 'admin.roles.backendPending',
+      editTitle: 'admin.roles.editTitle',
       empty: 'admin.roles.empty',
       selectAccount: 'admin.roles.selectAccount',
       title: 'admin.roles.title',
@@ -77,6 +85,7 @@ export const TextKeys = {
   },
   nav: {
     accounts: 'nav.accounts',
+    configurations: 'nav.configurations',
     admin: 'nav.admin',
     dashboard: 'nav.dashboard',
     email: 'nav.email',
@@ -87,6 +96,9 @@ export const TextKeys = {
   },
   report: {
     accountsSheetName: 'report.accounts.sheetName',
+  },
+  setup: {
+    preferencesTitle: 'setup.preferencesTitle',
   },
   tenant: {
     dashboard: {

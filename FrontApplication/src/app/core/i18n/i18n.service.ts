@@ -18,6 +18,15 @@ export class I18nService {
 
   constructor() {
     this.applyDocumentCulture(this.currentCulture);
+    this.preferences.preferences$.subscribe((preferences) => {
+      if (preferences.culture === this.currentCulture) {
+        return;
+      }
+
+      this.culture.next(preferences.culture);
+      localStorage.setItem(FrontendStorageKeys.culture, preferences.culture);
+      this.applyDocumentCulture(preferences.culture);
+    });
   }
 
   get currentCulture(): SupportedCulture {

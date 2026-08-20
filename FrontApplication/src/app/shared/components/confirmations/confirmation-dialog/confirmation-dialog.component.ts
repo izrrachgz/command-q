@@ -25,6 +25,7 @@ export class ConfirmationDialogComponent {
   @Input() cancelLabel = 'action.cancel';
   @Input() icon = 'circle-alert';
   @Input() destructive = false;
+  @Input() showConfirm = true;
   @Input() confirmDisabled = false;
   @Input() confirmAction?: ConfirmationAction;
   @Input() onSuccess?: ConfirmationSuccessCallback;

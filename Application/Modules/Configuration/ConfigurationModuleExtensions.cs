@@ -26,12 +26,12 @@ namespace Application.Modules.Configuration
                 .ValidateOnStart();
 
             services.AddTransient<
-                IRequestHandler<SaveApplicationConfigurationCommand, DetailResponse<ApplicationConfigurationModel>>,
-                SaveApplicationConfigurationCommandHandler>();
+                IRequestHandler<RecordApplicationConfigurationCommand, BasicResponse>,
+                RecordApplicationConfigurationCommandHandler>();
             services.AddTransient<
                 IRequestHandler<GetApplicationConfigurationsQuery, PagedResponse<ApplicationConfigurationModel>>,
                 GetApplicationConfigurationsQueryHandler>();
-            services.AddScoped<IValidator<SaveApplicationConfigurationCommand>, SaveApplicationConfigurationCommandValidator>();
+            services.AddScoped<IValidator<RecordApplicationConfigurationCommand>, RecordApplicationConfigurationCommandValidator>();
             services.AddScoped<IValidator<GetApplicationConfigurationsQuery>, GetApplicationConfigurationsQueryValidator>();
             services.AddSingleton<
                 IMapper<Domain.Modules.Configuration.ApplicationConfiguration, ApplicationConfigurationModel>,

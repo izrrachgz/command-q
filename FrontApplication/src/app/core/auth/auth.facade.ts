@@ -2,7 +2,18 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { BehaviorSubject, catchError, finalize, firstValueFrom, map, Observable, of, shareReplay, switchMap, throwError } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  finalize,
+  firstValueFrom,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  switchMap,
+  throwError,
+} from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { FrontendStorageKeys } from '../config/frontend-storage-keys';
@@ -14,6 +25,7 @@ import {
   RegisterAccountRequest,
 } from '../models/account.model';
 import { DetailResponse, detailPayload } from '../models/api-response';
+import { PreferencesService } from '../preferences/preferences.service';
 import { AppRouteAreas } from '../routing/app-route-constants';
 import { AppRoutePaths } from '../routing/app-route-paths';
 
@@ -44,6 +56,7 @@ const DEFAULT_SESSION: AuthSession = {
   account: null,
 };
 const AUTH_PREFIX = `${AppRoutePaths.auth.root}/`;
+const SETUP_PREFIX = `${AppRoutePaths.setup.root}/`;
 
 @Injectable({ providedIn: 'root' })
 export class AuthFacade {
@@ -56,6 +69,7 @@ export class AuthFacade {
   constructor(
     private readonly http: HttpClient,
     private readonly oidc: OidcSecurityService,
+    private readonly preferences: PreferencesService,
     private readonly router: Router,
     private readonly diagnostics: AuthDiagnosticsService,
   ) {}
@@ -144,19 +158,23 @@ export class AuthFacade {
   }
 
   register(request: RegisterAccountRequest): Observable<IdentityAccountModel> {
-    return this.http.post<IdentityAccountModel>(
-      combineUrl(environment.identity.authority, environment.identity.endpoints.register),
-      request,
-    ).pipe(
-      catchError((error) => {
-        this.diagnostics.log('register', error);
-        return throwError(() => error);
-      }),
-    );
+    return this.http
+      .post<IdentityAccountModel>(
+        combineUrl(environment.identity.authority, environment.identity.endpoints.register),
+        request,
+      )
+      .pipe(
+        catchError((error) => {
+          this.diagnostics.log('register', error);
+          return throwError(() => error);
+        }),
+      );
   }
 
   finishCallback(): Observable<AuthSession> {
-    const realm = (sessionStorage.getItem(FrontendStorageKeys.authRealm) as AuthRealm | null) ?? AuthRealms.tenant;
+    const realm =
+      (sessionStorage.getItem(FrontendStorageKeys.authRealm) as AuthRealm | null) ??
+      AuthRealms.tenant;
     this.setRealm(realm);
 
     return this.checkAuth(globalThis.location?.href);
@@ -181,12 +199,16 @@ export class AuthFacade {
 
   hasAnyRole(roles: readonly string[]): boolean {
     const actualRoles = this.snapshot.user?.roles ?? [];
-    return roles.some((role) => actualRoles.some((actual) => actual.toLowerCase() === role.toLowerCase()));
+    return roles.some((role) =>
+      actualRoles.some((actual) => actual.toLowerCase() === role.toLowerCase()),
+    );
   }
 
   loadApplicationAccount(): Observable<AccountModel | null> {
     return this.http
-      .get<DetailResponse<AccountModel>>(combineUrl(environment.api.baseUrl, environment.api.endpoints.account.me))
+      .get<DetailResponse<AccountModel>>(
+        combineUrl(environment.api.baseUrl, environment.api.endpoints.account.me),
+      )
       .pipe(map((response) => detailPayload(response) ?? null));
   }
 
@@ -195,6 +217,7 @@ export class AuthFacade {
   }
 
   logout(): void {
+    this.preferences.resetSession();
     this.session.next(DEFAULT_SESSION);
     this.oidc.logoffAndRevokeTokens().subscribe({
       next: () => undefined,
@@ -204,7 +227,8 @@ export class AuthFacade {
 }
 
 const mapUserData = (userData: unknown): AuthUser => {
-  const data = (Array.isArray(userData) ? userData[0] : userData) as Record<string, unknown> | null | undefined;
+  const data = (Array.isArray(userData) ? userData[0] : userData) as
+    Record<string, unknown> | null | undefined;
   const roleClaim = data?.['role'] ?? data?.['roles'];
   const roles = Array.isArray(roleClaim)
     ? roleClaim.map((role) => String(role))
@@ -225,7 +249,9 @@ const isAuthCallbackUrl = (): boolean => {
 };
 
 export const inferRealmFromUrl = (url: string): AuthRealm => {
-  return url.toLowerCase().startsWith(AppRoutePaths.admin.root) ? AuthRealms.admin : AuthRealms.tenant;
+  return url.toLowerCase().startsWith(AppRoutePaths.admin.root)
+    ? AuthRealms.admin
+    : AuthRealms.tenant;
 };
 
 export const sanitizeReturnUrl = (url: string | null | undefined, realm: AuthRealm): string => {
@@ -235,6 +261,10 @@ export const sanitizeReturnUrl = (url: string | null | undefined, realm: AuthRea
 
   const normalizedPath = url.split(/[?#]/, 1)[0].toLowerCase();
 
+  if (normalizedPath === '/') {
+    return defaultReturnUrl(realm);
+  }
+
   if (normalizedPath === AppRoutePaths.auth.root || normalizedPath.startsWith(AUTH_PREFIX)) {
     return defaultReturnUrl(realm);
   }
@@ -243,9 +273,15 @@ export const sanitizeReturnUrl = (url: string | null | undefined, realm: AuthRea
     return defaultReturnUrl(realm);
   }
 
+  if (normalizedPath === AppRoutePaths.setup.root || normalizedPath.startsWith(SETUP_PREFIX)) {
+    return defaultReturnUrl(realm);
+  }
+
   return url;
 };
 
 const defaultReturnUrl = (realm: AuthRealm): string => {
-  return realm === AuthRealms.admin ? AppRoutePaths.admin.dashboard : AppRoutePaths.tenant.dashboard;
+  return realm === AuthRealms.admin
+    ? AppRoutePaths.admin.dashboard
+    : AppRoutePaths.tenant.dashboard;
 };

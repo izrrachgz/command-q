@@ -5,9 +5,24 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
-import { provideRouter, TitleStrategy, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
-import { AbstractLoggerService, AuthInterceptor, LogLevel, provideAuth } from 'angular-auth-oidc-client';
+import {
+  HTTP_INTERCEPTORS,
+  provideHttpClient,
+  withInterceptors,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
+import {
+  provideRouter,
+  TitleStrategy,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+} from '@angular/router';
+import {
+  AbstractLoggerService,
+  AuthInterceptor,
+  LogLevel,
+  provideAuth,
+} from 'angular-auth-oidc-client';
 import {
   LucideActivity,
   LucideBuilding2,
@@ -30,6 +45,7 @@ import {
   LucideMenu,
   LucidePanelLeftClose,
   LucidePanelLeftOpen,
+  LucidePencil,
   LucidePlus,
   LucideRefreshCw,
   LucideSave,
@@ -41,6 +57,7 @@ import {
   LucideUnlockKeyhole,
   LucideUser,
   LucideUserPlus,
+  LucideUserRoundSearch,
   LucideUsersRound,
   LucideX,
   provideLucideConfig,
@@ -51,7 +68,11 @@ import { APP_ROUTES } from './app.routes';
 import { apiContextInterceptor } from './core/api/api-context.interceptor';
 import { AuthFacade } from './core/auth/auth.facade';
 import { OidcConsoleLoggerService } from './core/auth/oidc-console-logger.service';
-import { OidcLocalProxy, OidcProtocolPaths, OidcResponseTypes } from './core/auth/oidc-protocol-constants';
+import {
+  OidcLocalProxy,
+  OidcProtocolPaths,
+  OidcResponseTypes,
+} from './core/auth/oidc-protocol-constants';
 import { combineUrl } from './core/config/url-builder';
 import { AppTitleStrategy } from './core/i18n/app-title.strategy';
 import { FrontendErrorHandler } from './core/logging/frontend-error.handler';
@@ -62,7 +83,8 @@ import { environment } from '../environments/environment';
 
 const oidcLogLevel = environment.production ? LogLevel.None : LogLevel.Debug;
 const identityAuthority = environment.identity.authority;
-const useLocalIdentityProxy = !environment.production && identityAuthority.startsWith('https://localhost:');
+const useLocalIdentityProxy =
+  !environment.production && identityAuthority.startsWith('https://localhost:');
 const oidcProtocolBase = useLocalIdentityProxy
   ? `${trimTrailingSlash(environment.applicationUrl)}/${OidcLocalProxy.segment}`
   : trimTrailingSlash(identityAuthority);
@@ -149,6 +171,7 @@ export const appConfig: ApplicationConfig = {
       LucideMenu,
       LucidePanelLeftClose,
       LucidePanelLeftOpen,
+      LucidePencil,
       LucidePlus,
       LucideRefreshCw,
       LucideSave,
@@ -160,6 +183,7 @@ export const appConfig: ApplicationConfig = {
       LucideUnlockKeyhole,
       LucideUser,
       LucideUserPlus,
+      LucideUserRoundSearch,
       LucideUsersRound,
       LucideX,
     ),

@@ -22,6 +22,63 @@ body {
   background: #f1f5f9;
 }
 
+@keyframes cq-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cq-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes cq-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cq-dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(0.25rem) scale(0.99);
+  }
+}
+
+.cq-fade-in {
+  animation: cq-fade-in 150ms ease-out;
+}
+
+.cq-fade-out {
+  animation: cq-fade-out 120ms ease-in;
+}
+
+.cq-dialog-enter,
+.cq-page-enter {
+  animation: cq-dialog-in 180ms ease-out;
+}
+
+.cq-dialog-leave {
+  animation: cq-dialog-out 120ms ease-in;
+}
+
 button,
 input,
 select,
@@ -52,6 +109,14 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }
 

@@ -1,145 +1,195 @@
-    @if (store.state$ | async; as state) {
-      <app-page-header [eyebrow]="'nav.admin' | text" [title]="'admin.accounts.title' | text">
-        <div class="flex flex-wrap gap-2">
-          <button
-            type="button"
-            [disabled]="state.status === 'loading'"
-            class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            (click)="load()"
-          >
-            <svg lucideIcon="refresh-cw" class="size-4" [class.animate-spin]="state.status === 'loading'" aria-hidden="true"></svg>
-            {{ 'action.refresh' | text }}
-          </button>
-          <button
-            type="button"
-            [disabled]="state.accounts.length === 0"
-            class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-            (click)="exportAccounts(state.accounts)"
-          >
-            <svg lucideIcon="file-spreadsheet" class="size-4" aria-hidden="true"></svg>
-            {{ 'action.export' | text }}
-          </button>
-        </div>
-      </app-page-header>
+@if (store.state$ | async; as state) {
+  <app-page-header [eyebrow]="'nav.admin' | text" [title]="'admin.accounts.title' | text">
+    <div class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        [disabled]="state.commandRunning"
+        class="inline-flex min-h-10 items-center gap-2 rounded-md bg-teal-700 px-3 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
+        (click)="openCreateAccount()"
+      >
+        <svg lucideIcon="plus" class="size-4" aria-hidden="true"></svg>
+        {{ 'action.add' | text }}
+      </button>
+      <button
+        type="button"
+        [disabled]="state.status === 'loading'"
+        class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        (click)="load()"
+      >
+        <svg
+          lucideIcon="refresh-cw"
+          class="size-4"
+          [class.animate-spin]="state.status === 'loading'"
+          aria-hidden="true"
+        ></svg>
+        {{ 'action.refresh' | text }}
+      </button>
+      <button
+        type="button"
+        [disabled]="state.accounts.length === 0"
+        class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        (click)="exportAccounts(state.accounts)"
+      >
+        <svg lucideIcon="file-spreadsheet" class="size-4" aria-hidden="true"></svg>
+        {{ 'action.export' | text }}
+      </button>
+    </div>
+  </app-page-header>
 
-      <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div>
-          <form class="mb-4 flex flex-col gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:flex-row" [formGroup]="filterForm" (ngSubmit)="search()">
-            <div class="min-w-0 flex-1">
-              <app-text-input formControlName="searchTerm" prefixIcon="search" [label]="'field.search' | text" />
-            </div>
-            <button
-              type="submit"
-              [disabled]="state.status === 'loading'"
-              class="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-6"
-            >
-              <svg lucideIcon="search" class="size-4" aria-hidden="true"></svg>
-              {{ 'action.search' | text }}
-            </button>
-          </form>
+  <section>
+    <form
+      class="mb-4 flex flex-col gap-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:flex-row"
+      [formGroup]="filterForm"
+      (ngSubmit)="search()"
+    >
+      <div class="min-w-0 flex-1">
+        <app-text-input
+          formControlName="searchTerm"
+          prefixIcon="search"
+          [label]="'field.search' | text"
+        />
+      </div>
+      <button
+        type="submit"
+        [disabled]="state.status === 'loading'"
+        class="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-6"
+      >
+        <svg lucideIcon="search" class="size-4" aria-hidden="true"></svg>
+        {{ 'action.search' | text }}
+      </button>
+    </form>
 
-          @if (state.message) {
-            <p class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              {{ state.message | text }}
-            </p>
-          }
-
-          @if (state.accounts.length > 0) {
-            <div class="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-              <table class="w-full table-fixed text-left text-sm">
-                <thead class="bg-slate-50 text-xs font-semibold uppercase text-slate-500">
-                  <tr>
-                    <th class="px-4 py-3">{{ 'admin.accounts.username' | text }}</th>
-                    <th class="px-4 py-3">{{ 'admin.accounts.email' | text }}</th>
-                    <th class="w-28 px-4 py-3">{{ 'admin.accounts.status' | text }}</th>
-                    <th class="w-52 px-4 py-3">{{ 'admin.accounts.created' | text }}</th>
-                    <th class="w-44 px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  @for (account of state.accounts; track account.id) {
-                    <tr>
-                      <td class="truncate px-4 py-3 font-medium text-slate-900">{{ account.username }}</td>
-                      <td class="truncate px-4 py-3 text-slate-700">{{ account.email }}</td>
-                      <td class="px-4 py-3">
-                        <span class="rounded-md px-2 py-1 text-xs font-semibold" [class]="account.locked ? 'bg-red-50 text-red-700' : 'bg-teal-50 text-teal-700'">
-                          {{ (account.locked ? 'admin.accounts.locked' : 'action.activate') | text }}
-                        </span>
-                      </td>
-                      <td class="px-4 py-3 text-slate-600">{{ account.createdUtc | date: 'medium' }}</td>
-                      <td class="px-4 py-3">
-                        <div class="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            class="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
-                            [disabled]="state.commandRunning"
-                            [attr.aria-label]="'action.details' | text"
-                            [title]="'action.details' | text"
-                            (click)="select(account)"
-                          >
-                            <svg lucideIcon="search" class="size-4" aria-hidden="true"></svg>
-                          </button>
-                          <button
-                            type="button"
-                            class="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                            [disabled]="state.commandRunning"
-                            [attr.aria-label]="(account.locked ? 'action.activate' : 'action.lock') | text"
-                            [title]="(account.locked ? 'action.activate' : 'action.lock') | text"
-                            (click)="account.locked ? activate(account) : lock(account)"
-                          >
-                            <svg [lucideIcon]="account.locked ? 'unlock-keyhole' : 'lock'" class="size-4" aria-hidden="true"></svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            <app-empty-state icon="users-round" [title]="'empty.title' | text" [message]="'admin.accounts.empty' | text" />
-          }
-        </div>
-
-        <aside class="space-y-4">
-          <section class="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-            <h2 class="text-base font-semibold text-slate-950">{{ 'admin.accounts.addTitle' | text }}</h2>
-            <form class="mt-4 space-y-4" [formGroup]="createForm" (ngSubmit)="create(state.commandRunning)">
-              <app-text-input formControlName="username" prefixIcon="user" [label]="'field.username' | text" />
-              <app-text-input formControlName="email" type="email" prefixIcon="mail" [label]="'field.email' | text" />
-              <app-password-input formControlName="temporaryPassword" [label]="'field.password' | text" />
-              <label class="flex items-center gap-2 text-sm text-slate-700">
-                <input type="checkbox" formControlName="sendInvite" class="size-4 rounded border-slate-300 text-teal-700 focus:ring-teal-600" />
-                {{ 'field.sendInvite' | text }}
-              </label>
-              <button
-                type="submit"
-                [disabled]="state.commandRunning || createForm.invalid"
-                class="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-teal-700 px-4 text-sm font-semibold text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <svg lucideIcon="plus" class="size-4" aria-hidden="true"></svg>
-                {{ 'action.add' | text }}
-              </button>
-            </form>
-          </section>
-
-          @if (state.selected) {
-            <section class="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 class="text-base font-semibold text-slate-950">{{ state.selected.username }}</h2>
-              <p class="mt-1 break-all text-sm text-slate-600">{{ state.selected.email }}</p>
-              <h3 class="mt-5 text-sm font-semibold text-slate-900">{{ 'admin.accounts.activity' | text }}</h3>
-              <div class="mt-3 space-y-3">
-                @for (activity of state.activity; track activity.id) {
-                  <div class="rounded-md bg-slate-50 p-3 text-sm">
-                    <p class="font-medium text-slate-900">{{ activity.module }} / {{ activity.action }}</p>
-                    <p class="mt-1 text-slate-600">{{ activity.message }}</p>
-                  </div>
-                } @empty {
-                  <p class="text-sm text-slate-500">{{ 'empty.title' | text }}</p>
-                }
-              </div>
-            </section>
-          }
-        </aside>
-      </section>
+    @if (state.message) {
+      <p
+        class="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
+      >
+        {{ state.message | text }}
+      </p>
     }
+
+    @if (state.accounts.length > 0) {
+      <div class="overflow-x-auto rounded-md border border-slate-200 bg-white shadow-sm">
+        <div
+          role="table"
+          class="min-w-[900px] text-left text-sm"
+          [attr.aria-colcount]="5"
+          [attr.aria-rowcount]="state.accounts.length"
+        >
+          <div
+            role="row"
+            aria-rowindex="1"
+            class="grid h-12 grid-cols-[minmax(180px,1fr)_minmax(220px,1fr)_112px_208px_176px] items-center bg-slate-50 text-xs font-semibold uppercase text-slate-500"
+          >
+            <div role="columnheader" class="px-4">{{ 'admin.accounts.username' | text }}</div>
+            <div role="columnheader" class="px-4">{{ 'admin.accounts.email' | text }}</div>
+            <div role="columnheader" class="px-4">{{ 'admin.accounts.status' | text }}</div>
+            <div role="columnheader" class="px-4">{{ 'admin.accounts.created' | text }}</div>
+            <div role="columnheader" class="px-4"></div>
+          </div>
+          <cdk-virtual-scroll-viewport
+            role="rowgroup"
+            tabindex="0"
+            class="block max-h-[65vh] w-full"
+            [attr.aria-label]="'admin.accounts.title' | text"
+            [itemSize]="virtualTableRowHeight"
+            [minBufferPx]="virtualTableBufferPixels(state.filters.size)"
+            [maxBufferPx]="virtualTableBufferPixels(state.filters.size) * 2"
+            [style.height.px]="
+              virtualTableViewportHeight(state.accounts.length, state.filters.size)
+            "
+          >
+            <div
+              *cdkVirtualFor="
+                let account of state.accounts;
+                let rowIndex = index;
+                trackBy: trackByEntityId
+              "
+              role="row"
+              [attr.aria-rowindex]="rowIndex + 2"
+              class="grid h-16 grid-cols-[minmax(180px,1fr)_minmax(220px,1fr)_112px_208px_176px] items-center border-t border-slate-100"
+              [class.bg-slate-50]="rowIndex % 2 === 1"
+            >
+              <div role="cell" class="truncate px-4 font-medium text-slate-900">
+                {{ account.username }}
+              </div>
+              <div role="cell" class="truncate px-4 text-slate-700">{{ account.email }}</div>
+              <div role="cell" class="px-4">
+                <span
+                  class="rounded-md px-2 py-1 text-xs font-semibold"
+                  [class]="account.locked ? 'bg-red-50 text-red-700' : 'bg-teal-50 text-teal-700'"
+                >
+                  {{ (account.locked ? 'admin.accounts.locked' : 'action.activate') | text }}
+                </span>
+              </div>
+              <div role="cell" class="px-4 text-slate-600">
+                {{ account.createdUtc | accountDate }}
+              </div>
+              <div role="cell" class="px-4">
+                <div class="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    class="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50"
+                    [disabled]="state.commandRunning"
+                    [attr.aria-label]="'action.details' | text"
+                    [title]="'action.details' | text"
+                    (click)="select(account)"
+                  >
+                    <svg lucideIcon="search" class="size-4" aria-hidden="true"></svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    [disabled]="state.commandRunning"
+                    [attr.aria-label]="(account.locked ? 'action.activate' : 'action.lock') | text"
+                    [title]="(account.locked ? 'action.activate' : 'action.lock') | text"
+                    (click)="account.locked ? activate(account) : lock(account)"
+                  >
+                    <svg
+                      [lucideIcon]="account.locked ? 'unlock-keyhole' : 'lock'"
+                      class="size-4"
+                      aria-hidden="true"
+                    ></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </cdk-virtual-scroll-viewport>
+        </div>
+      </div>
+    } @else {
+      <app-empty-state
+        icon="users-round"
+        [title]="'empty.title' | text"
+        [message]="'admin.accounts.empty' | text"
+      />
+    }
+  </section>
+
+  <app-confirmation-dialog
+    [(open)]="createAccountOpen"
+    title="admin.accounts.addTitle"
+    confirmLabel="action.add"
+    icon="user-plus"
+    [confirmAction]="createAccount"
+    [confirmDisabled]="state.commandRunning || createAccountForm.invalid"
+    [onSuccess]="accountCreated"
+  >
+    <app-create-account-form #createAccountForm [disabled]="state.commandRunning" />
+  </app-confirmation-dialog>
+
+  @if (state.selected) {
+    <app-confirmation-dialog
+      [(open)]="accountDetailsOpen"
+      title="admin.accounts.detailsTitle"
+      cancelLabel="action.close"
+      icon="user-round-search"
+      [showConfirm]="false"
+    >
+      <app-account-details
+        [account]="state.selected"
+        [activity]="state.activity"
+        [loading]="state.commandRunning"
+      />
+    </app-confirmation-dialog>
+  }
+}

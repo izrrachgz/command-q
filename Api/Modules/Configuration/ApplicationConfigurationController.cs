@@ -4,7 +4,6 @@ using Common.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Application.Modules.Configuration.Queries;
-using Application.Modules.Configuration.Commands;
 
 namespace Api.Modules.Configuration
 {
@@ -19,13 +18,6 @@ namespace Api.Modules.Configuration
             {
                 SearchCriteria = searchCriteria ?? new()
             }, cancellationToken));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Save(SaveApplicationConfigurationCommand command, CancellationToken cancellationToken)
-        {
-            var response = await mediator.Send(command, cancellationToken);
-            return response.Success ? Ok(response) : BadRequest(response);
         }
     }
 }
