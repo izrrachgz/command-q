@@ -138,4 +138,13 @@
   <data name="Field_Minimum_Length" xml:space="preserve">
     <value>{0} has to be at least {1} characters.</value>
   </data>
+  <data name="Search_Date_Must_Be_Utc" xml:space="preserve">
+    <value>{0} must be a UTC value with zero offset.</value>
+  </data>
+  <data name="Search_Date_Range_Order" xml:space="preserve">
+    <value>{0} cannot be before {1}.</value>
+  </data>
+  <data name="Search_TimeZone_Invalid" xml:space="preserve">
+    <value>{0} must be a valid IANA/TZDB timezone identifier.</value>
+  </data>
 </root>

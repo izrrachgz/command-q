@@ -1,11 +1,11 @@
 using SqlKata;
 using Common.Cqrs;
 using Common.Enumerations;
-using System.Globalization;
 using Common.Models.Response;
 using Application.Abstractions;
 using Persistence.Abstractions;
 using Application.Modules.Files.Dtos;
+using Persistence.Repository.Extensions;
 
 namespace Application.Modules.Files.Queries
 {
@@ -43,10 +43,10 @@ namespace Application.Modules.Files.Queries
                 .Where($@"{nameof(AccountFile.AccountId)}", request.AccountId);
 
             if (criteria.StartDate.HasValue)
-                query.Where($@"{nameof(AccountFile.Created)}", ">=", FormatDateFilter(criteria.StartDate.Value, engine));
+                query.Where($@"{nameof(AccountFile.Created)}", ">=", criteria.StartDate.Value.ToDateTimeFilterValue(engine));
 
             if (criteria.EndDate.HasValue)
-                query.Where($@"{nameof(AccountFile.Created)}", "<=", FormatDateFilter(criteria.EndDate.Value, engine));
+                query.Where($@"{nameof(AccountFile.Created)}", "<=", criteria.EndDate.Value.ToDateTimeFilterValue(engine));
 
             if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
             {
@@ -59,14 +59,6 @@ namespace Application.Modules.Files.Queries
             }
 
             return query;
-        }
-
-        private static object FormatDateFilter(DateTime value, DatabaseEngine engine)
-        {
-            if (engine != DatabaseEngine.SqLite)
-                return value;
-
-            return value.ToString(@"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         }
 
         private static void ApplySorting(Query query, string? sortBy, bool ascendingSort)

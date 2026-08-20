@@ -122,5 +122,32 @@ namespace Public {
                 return ResourceManager.GetString("Field_Minimum_Length", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} must be a UTC value with zero offset..
+        /// </summary>
+        public static string Search_Date_Must_Be_Utc {
+            get {
+                return ResourceManager.GetString("Search_Date_Must_Be_Utc", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} cannot be before {1}..
+        /// </summary>
+        public static string Search_Date_Range_Order {
+            get {
+                return ResourceManager.GetString("Search_Date_Range_Order", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a {0} must be a valid IANA/TZDB timezone identifier..
+        /// </summary>
+        public static string Search_TimeZone_Invalid {
+            get {
+                return ResourceManager.GetString("Search_TimeZone_Invalid", resourceCulture);
+            }
+        }
     }
 }

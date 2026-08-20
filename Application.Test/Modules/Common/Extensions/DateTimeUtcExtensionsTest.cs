@@ -17,6 +17,16 @@ namespace Application.Test.Modules.Common.Extensions
         }
 
         [Fact]
+        public void ToAccountTime_Should_Convert_DateTimeOffset_Instant_To_Account_TimeZone()
+        {
+            var utc = new DateTimeOffset(2026, 1, 15, 18, 30, 0, TimeSpan.Zero);
+
+            var local = utc.ToAccountTime("America/Hermosillo");
+
+            Assert.Equal(new DateTime(2026, 1, 15, 11, 30, 0, DateTimeKind.Unspecified), local);
+        }
+
+        [Fact]
         public void ToUtcFromAccountTime_Should_Roundtrip_An_Unambiguous_Value()
         {
             var local = new DateTime(2026, 1, 15, 11, 30, 0, DateTimeKind.Unspecified);

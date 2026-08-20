@@ -16,6 +16,7 @@ Command runners:
 
 Database engines:
 - Supported engines are MsSql, MySql, SqLite and PgSql.
+- `DateTimeFilterExtensions.ToDateTimeFilterValue` centralizes UTC normalization and the SQLite datetime representation used by provider-aware query predicates.
 - Persistence does not own an application schema, SQL migration scripts, migration ledger or startup policy.
 - Application migrations live in Application.Migrations, which references Persistence and uses IWritableRepository to execute its embedded scripts.
 

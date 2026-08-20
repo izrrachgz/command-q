@@ -9,6 +9,7 @@ namespace IdentityServer.Modules.Accounts
         public const string ReturnUrlParameter = "returnUrl";
         public const int SecurityActivityLimit = 100;
         public const int MaxAdminPageSize = 100;
+        public const int MaxTimeZoneLength = 64;
 
         public static class ContentTypes
         {

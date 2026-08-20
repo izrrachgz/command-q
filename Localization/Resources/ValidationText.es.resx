@@ -138,4 +138,13 @@
   <data name="Field_Minimum_Length" xml:space="preserve">
     <value>{0} tiene que tener al menos {1} caracteres.</value>
   </data>
+  <data name="Search_Date_Must_Be_Utc" xml:space="preserve">
+    <value>{0} debe ser un valor UTC con desplazamiento cero.</value>
+  </data>
+  <data name="Search_Date_Range_Order" xml:space="preserve">
+    <value>{0} no puede ser anterior a {1}.</value>
+  </data>
+  <data name="Search_TimeZone_Invalid" xml:space="preserve">
+    <value>{0} debe ser un identificador de zona horaria IANA/TZDB valido.</value>
+  </data>
 </root>

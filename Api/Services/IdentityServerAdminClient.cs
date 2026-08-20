@@ -144,6 +144,17 @@ namespace Api.Services
 
             AddOptionalQuery(query, "SearchTerm", criteria.SearchTerm);
             AddOptionalQuery(query, "SortBy", criteria.SortBy);
+            AddOptionalQuery(query, "TimeZone", criteria.TimeZone);
+
+            if (criteria.StartDate.HasValue)
+            {
+                query.Add(Query("StartDate", FormatUtc(criteria.StartDate.Value)));
+            }
+
+            if (criteria.EndDate.HasValue)
+            {
+                query.Add(Query("EndDate", FormatUtc(criteria.EndDate.Value)));
+            }
 
             var path = $"{options.UsersPath}?{string.Join('&', query)}";
 
@@ -166,6 +177,11 @@ namespace Api.Services
         private static string Query(string name, string value)
         {
             return $"{Uri.EscapeDataString(name)}={Uri.EscapeDataString(value)}";
+        }
+
+        private static string FormatUtc(DateTimeOffset value)
+        {
+            return value.UtcDateTime.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
         }
 
         private sealed class IdentityAdminPagedResponse<T>

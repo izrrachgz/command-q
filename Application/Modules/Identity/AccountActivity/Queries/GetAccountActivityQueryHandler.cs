@@ -1,10 +1,10 @@
 using SqlKata;
 using Common.Cqrs;
 using Common.Enumerations;
-using System.Globalization;
 using Common.Models.Response;
 using Application.Abstractions;
 using Persistence.Abstractions;
+using Persistence.Repository.Extensions;
 using Application.Modules.Identity.AccountActivity.Dtos;
 
 namespace Application.Modules.Identity.AccountActivity.Queries
@@ -37,10 +37,10 @@ namespace Application.Modules.Identity.AccountActivity.Queries
                 query.Where(nameof(Domain.Modules.Identity.AccountActivity.Action), request.Action.Trim());
 
             if (criteria.StartDate.HasValue)
-                query.Where(nameof(Domain.Modules.Identity.AccountActivity.CreatedUtc), ">=", FormatDateFilter(criteria.StartDate.Value, engine));
+                query.Where(nameof(Domain.Modules.Identity.AccountActivity.CreatedUtc), ">=", criteria.StartDate.Value.ToDateTimeFilterValue(engine));
 
             if (criteria.EndDate.HasValue)
-                query.Where(nameof(Domain.Modules.Identity.AccountActivity.CreatedUtc), "<=", FormatDateFilter(criteria.EndDate.Value, engine));
+                query.Where(nameof(Domain.Modules.Identity.AccountActivity.CreatedUtc), "<=", criteria.EndDate.Value.ToDateTimeFilterValue(engine));
 
             if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
             {
@@ -55,14 +55,6 @@ namespace Application.Modules.Identity.AccountActivity.Queries
             }
 
             return query;
-        }
-
-        private static object FormatDateFilter(DateTime value, DatabaseEngine engine)
-        {
-            if (engine != DatabaseEngine.SqLite)
-                return value;
-
-            return value.ToString(@"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         }
 
         private static void ApplySorting(Query query, string? sortBy, bool ascendingSort)

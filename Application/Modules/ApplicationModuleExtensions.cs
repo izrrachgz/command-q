@@ -1,6 +1,9 @@
+using FluentValidation;
+using Common.Models.Request;
+using Application.Validation;
+using Application.Modules.Contacts;
 using Application.Modules.Files;
 using Application.Modules.Health;
-using Application.Modules.Contacts;
 using Application.Modules.Identity;
 using Application.Modules.Addresses;
 using Application.Modules.Configuration;
@@ -23,6 +26,8 @@ namespace Application.Modules
         /// <returns>The configured service collection.</returns>
         public static IServiceCollection AddApplicationModules(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddScoped<IValidator<SearchCriteria>, SearchCriteriaValidator>();
+
             services.AddIdentityModule();
             services.AddHealthModule(configuration);
             services.AddContactsModule();

@@ -4,6 +4,7 @@ using Common.Models.Response;
 using Application.Abstractions;
 using Persistence.Abstractions;
 using Application.Modules.Configuration.Dtos;
+using Persistence.Repository.Extensions;
 
 namespace Application.Modules.Configuration.Queries
 {
@@ -19,6 +20,22 @@ namespace Application.Modules.Configuration.Queries
             var criteria = request.SearchCriteria;
             var query = new Query(nameof(Domain.Modules.Configuration.ApplicationConfiguration))
                 .WhereNull(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Deleted));
+
+            if (criteria.StartDate.HasValue)
+            {
+                query.Where(
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.Created),
+                    ">=",
+                    criteria.StartDate.Value.ToDateTimeFilterValue(repository.Engine));
+            }
+
+            if (criteria.EndDate.HasValue)
+            {
+                query.Where(
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.Created),
+                    "<=",
+                    criteria.EndDate.Value.ToDateTimeFilterValue(repository.Engine));
+            }
 
             if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
             {

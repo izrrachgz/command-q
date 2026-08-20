@@ -38,6 +38,18 @@ namespace IdentityServer.Modules.Accounts
                     user.Email != null && EF.Functions.Like(user.Email, searchTerm));
             }
 
+            if (criteria.StartDate.HasValue)
+            {
+                var startDateUtc = criteria.StartDate.Value.UtcDateTime;
+                query = query.Where(user => user.CreatedUtc >= startDateUtc);
+            }
+
+            if (criteria.EndDate.HasValue)
+            {
+                var endDateUtc = criteria.EndDate.Value.UtcDateTime;
+                query = query.Where(user => user.CreatedUtc <= endDateUtc);
+            }
+
             var total = await query.LongCountAsync(cancellationToken);
             var users = await ApplySorting(query, criteria.SortBy, criteria.AscendingSort)
                 .Skip((page - 1) * pageSize)

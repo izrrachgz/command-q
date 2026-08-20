@@ -66,6 +66,7 @@ namespace Application.Modules.Identity
             services.AddScoped<IValidator<GetAccountByUsernameQuery>, GetAccountByUsernameQueryValidator>();
             services.AddScoped<IValidator<RecordAccountActivityCommand>, RecordAccountActivityCommandValidator>();
             services.AddScoped<IValidator<GetAccountActivityQuery>, GetAccountActivityQueryValidator>();
+            services.AddScoped<IValidator<SearchIdentityUsersQuery>, SearchIdentityUsersQueryValidator>();
             services.AddScoped<IValidator<GetIdentityUserRolesQuery>, GetIdentityUserRolesQueryValidator>();
             services.AddScoped<IValidator<UpdateIdentityUserRolesCommand>, UpdateIdentityUserRolesCommandValidator>();
             services.AddScoped<IValidator<SaveAccountPreferencesCommand>, SaveAccountPreferencesCommandValidator>();

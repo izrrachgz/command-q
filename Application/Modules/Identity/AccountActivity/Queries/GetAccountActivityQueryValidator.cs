@@ -1,12 +1,13 @@
 using Public;
 using FluentValidation;
+using Common.Models.Request;
 using Localization.Providers;
 
 namespace Application.Modules.Identity.AccountActivity.Queries
 {
     internal sealed class GetAccountActivityQueryValidator : AbstractValidator<GetAccountActivityQuery>
     {
-        public GetAccountActivityQueryValidator(ValidationTextProvider messages)
+        public GetAccountActivityQueryValidator(ValidationTextProvider messages, IValidator<SearchCriteria> searchCriteriaValidator)
         {
             RuleFor(x => x.AccountId)
                 .NotEmpty()
@@ -19,6 +20,10 @@ namespace Application.Modules.Identity.AccountActivity.Queries
             RuleFor(x => x.Action)
                 .MaximumLength(AccountActivityConstants.ActionMaxLength)
                 .WithMessage(messages.Get(nameof(ValidationText.Field_Cannot_Exceed), nameof(GetAccountActivityQuery.Action), AccountActivityConstants.ActionMaxLength));
+
+            RuleFor(x => x.SearchCriteria)
+                .NotNull()
+                .SetValidator(searchCriteriaValidator);
         }
     }
 }

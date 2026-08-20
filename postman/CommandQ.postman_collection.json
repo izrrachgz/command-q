@@ -926,6 +926,21 @@
                       "value": "false"
                     },
                     {
+                      "key": "StartDate",
+                      "value": "2026-08-17T18:00:00Z",
+                      "disabled": true
+                    },
+                    {
+                      "key": "EndDate",
+                      "value": "2026-08-18T18:00:00Z",
+                      "disabled": true
+                    },
+                    {
+                      "key": "TimeZone",
+                      "value": "America/Hermosillo",
+                      "disabled": true
+                    },
+                    {
                       "key": "module",
                       "value": "",
                       "disabled": true
@@ -975,6 +990,21 @@
                     {
                       "key": "SearchTerm",
                       "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "StartDate",
+                      "value": "2026-08-17T18:00:00Z",
+                      "disabled": true
+                    },
+                    {
+                      "key": "EndDate",
+                      "value": "2026-08-18T18:00:00Z",
+                      "disabled": true
+                    },
+                    {
+                      "key": "TimeZone",
+                      "value": "America/Hermosillo",
                       "disabled": true
                     }
                   ]
@@ -1168,6 +1198,21 @@
                     {
                       "key": "SearchTerm",
                       "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "StartDate",
+                      "value": "2026-08-17T18:00:00Z",
+                      "disabled": true
+                    },
+                    {
+                      "key": "EndDate",
+                      "value": "2026-08-18T18:00:00Z",
+                      "disabled": true
+                    },
+                    {
+                      "key": "TimeZone",
+                      "value": "America/Hermosillo",
                       "disabled": true
                     }
                   ]

@@ -20,6 +20,14 @@ namespace Application.Extensions
                 .ToDateTimeUnspecified();
         }
 
+        /// <summary>Converts a UTC-offset instant to the local wall-clock time in the specified timezone.</summary>
+        public static DateTime ToAccountTime(this DateTimeOffset utcValue, string timeZoneId)
+        {
+            return Instant.FromDateTimeOffset(utcValue.ToUniversalTime())
+                .InZone(GetTimeZone(timeZoneId))
+                .ToDateTimeUnspecified();
+        }
+
         /// <summary>Converts an account-local wall-clock value to UTC, resolving DST gaps and ambiguity leniently.</summary>
         public static DateTime ToUtcFromAccountTime(this DateTime localValue, string timeZoneId)
         {
