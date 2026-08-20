@@ -7,8 +7,9 @@ namespace Application.Modules.Configuration.Commands
     public sealed record RecordApplicationConfigurationCommand : ICommand<BasicResponse>
     {
         public string ServerTimeZone { get; init; } = string.Empty;
-        public string? ApplicationVersion { get; init; }
+        public string ApplicationVersion { get; init; } = string.Empty;
         public string Language { get; init; } = string.Empty;
         public string Environment { get; init; } = string.Empty;
+        public string InstanceName { get; init; } = string.Empty;
     }
 }

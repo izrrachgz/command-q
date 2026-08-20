@@ -1,12 +1,12 @@
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text.Json;
 using Api.Configuration;
-using Application.Modules.Identity.Roles.Dtos;
-using Application.Modules.Identity.Roles.Services;
+using System.Net.Http.Json;
 using Common.Models.Request;
 using Common.Models.Response;
+using System.Net.Http.Headers;
 using Microsoft.Extensions.Options;
+using Application.Modules.Identity.Roles.Dtos;
+using Application.Modules.Identity.Roles.Services;
 
 namespace Api.Services
 {
@@ -144,8 +144,6 @@ namespace Api.Services
 
             AddOptionalQuery(query, "SearchTerm", criteria.SearchTerm);
             AddOptionalQuery(query, "SortBy", criteria.SortBy);
-            AddOptionalQuery(query, "TimeZone", criteria.TimeZone);
-
             if (criteria.StartDate.HasValue)
             {
                 query.Add(Query("StartDate", FormatUtc(criteria.StartDate.Value)));

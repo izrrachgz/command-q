@@ -8,14 +8,10 @@ namespace Application.Extensions
         /// <summary>Converts a UTC <see cref="DateTime"/> to the local wall-clock time in the specified timezone.</summary>
         public static DateTime ToAccountTime(this DateTime utcValue, string timeZoneId)
         {
-            DateTime normalizedUtc = utcValue.Kind switch
-            {
-                DateTimeKind.Utc => utcValue,
-                DateTimeKind.Local => utcValue.ToUniversalTime(),
-                _ => DateTime.SpecifyKind(utcValue, DateTimeKind.Utc)
-            };
+            if (utcValue.Kind != DateTimeKind.Utc)
+                throw new ArgumentException("The supplied value must have DateTimeKind.Utc.", nameof(utcValue));
 
-            return Instant.FromDateTimeUtc(normalizedUtc)
+            return Instant.FromDateTimeUtc(utcValue)
                 .InZone(GetTimeZone(timeZoneId))
                 .ToDateTimeUnspecified();
         }
@@ -28,11 +24,27 @@ namespace Application.Extensions
                 .ToDateTimeUnspecified();
         }
 
-        /// <summary>Converts an account-local wall-clock value to UTC, resolving DST gaps and ambiguity leniently.</summary>
+        /// <summary>Converts an unambiguous account-local wall-clock value to UTC.</summary>
+        /// <exception cref="ArgumentException">The value is not unspecified, or it is ambiguous or skipped in the timezone.</exception>
         public static DateTime ToUtcFromAccountTime(this DateTime localValue, string timeZoneId)
         {
-            var localDateTime = LocalDateTime.FromDateTime(DateTime.SpecifyKind(localValue, DateTimeKind.Unspecified));
-            return GetTimeZone(timeZoneId).AtLeniently(localDateTime).ToInstant().ToDateTimeUtc();
+            if (localValue.Kind != DateTimeKind.Unspecified)
+                throw new ArgumentException("The supplied wall-clock value must have DateTimeKind.Unspecified.", nameof(localValue));
+
+            var localDateTime = LocalDateTime.FromDateTime(localValue);
+
+            try
+            {
+                return GetTimeZone(timeZoneId).AtStrictly(localDateTime).ToInstant().ToDateTimeUtc();
+            }
+            catch (AmbiguousTimeException exception)
+            {
+                throw new ArgumentException("The supplied wall-clock value is ambiguous in the selected timezone.", nameof(localValue), exception);
+            }
+            catch (SkippedTimeException exception)
+            {
+                throw new ArgumentException("The supplied wall-clock value does not exist in the selected timezone.", nameof(localValue), exception);
+            }
         }
 
         /// <summary>Returns whether the supplied identifier exists in NodaTime's TZDB provider.</summary>

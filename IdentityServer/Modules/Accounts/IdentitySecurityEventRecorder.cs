@@ -6,6 +6,7 @@ namespace IdentityServer.Modules.Accounts
     internal sealed class IdentitySecurityEventRecorder(
         IdentityServerDbContext database,
         IHttpContextAccessor httpContextAccessor,
+        TimeProvider timeProvider,
         ILogger<IdentitySecurityEventRecorder> logger) : IIdentitySecurityEventRecorder
     {
         public async Task Record(
@@ -24,7 +25,7 @@ namespace IdentityServer.Modules.Accounts
                 IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = request?.Headers.UserAgent.ToString(),
                 DetailsJson = detailsJson,
-                OccurredUtc = DateTime.UtcNow
+                OccurredUtc = timeProvider.GetUtcNow().UtcDateTime
             };
 
             try

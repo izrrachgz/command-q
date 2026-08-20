@@ -191,16 +191,16 @@ successful preference update also writes the serialized preference snapshot to
 account activity metadata.
 
 The API validates `Api:Application:TimeZone` once at startup with NodaTime and
-records the effective timezone, assembly version, language and environment in
+records the effective timezone, assembly version, language, environment and
+server instance name in
 `ApplicationConfiguration`. Admin users can query the server-recorded startup
 history through `GET /Admin/configurations`; clients cannot append snapshots.
 
 Paged backend searches accept an optional `StartDate`/`EndDate` range as
-ISO-8601 UTC instants and an accompanying IANA/TZDB `TimeZone`. Supply all three
-values together; both timestamps must have zero offset (normally serialized
-with a trailing `Z`) and `EndDate` cannot precede `StartDate`. Database filters
-remain in UTC. The timezone is validated with NodaTime and is available only
-for conversions that explicitly require account-local wall-clock values.
+ISO-8601 UTC instants. Supply both values together; both timestamps must have
+zero offset (normally serialized with a trailing `Z`) and `EndDate` cannot
+precede `StartDate`. Database filters remain in UTC. Account-local conversion
+uses the timezone stored in account preferences rather than a per-search value.
 
 `IdentityServer` owns users, credentials, lockout, external logins, OAuth clients,
 scopes, grants and tokens. The API Identity module owns application profiles and

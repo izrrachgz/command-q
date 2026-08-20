@@ -11,8 +11,8 @@ namespace Application.Migrations.Models
         public string Name { get; set; } = string.Empty;
         public string Checksum { get; set; } = string.Empty;
         public DateTime AppliedUtc { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Modified { get; set; }
-        public DateTime? Deleted { get; set; }
+        public DateTime CreatedUtc { get; set; }
+        public DateTime ModifiedUtc { get; set; }
+        public DateTime? DeletedUtc { get; set; }
     }
 }

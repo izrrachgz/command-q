@@ -206,9 +206,10 @@ endpoint, and the role management page edits assignments through
 in flight, and failed backend calls surface translated pending/unavailable
 messages through the feature actions and stores.
 
-The application configuration page consumes `/Admin/configurations`, lists UTC
-startup snapshots in the account timezone, and is intentionally read-only. The
-API resolves and records effective server values during startup.
+The application configuration page consumes `/Admin/configurations`, lists
+fixed newest-first UTC startup snapshots in the account timezone, includes the
+recording server instance, and is intentionally read-only. The API resolves and
+records effective server values during startup.
 
 Email administration remains UI-ready while backend email query endpoints are
 filled in later.

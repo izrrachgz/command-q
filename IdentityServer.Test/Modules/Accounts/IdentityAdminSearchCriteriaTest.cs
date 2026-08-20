@@ -11,8 +11,7 @@ namespace IdentityServer.Test.Modules.Accounts
             var criteria = new IdentityAdminSearchCriteria
             {
                 StartDate = new DateTimeOffset(2026, 8, 17, 18, 0, 0, TimeSpan.Zero),
-                EndDate = new DateTimeOffset(2026, 8, 18, 18, 0, 0, TimeSpan.Zero),
-                TimeZone = "America/Hermosillo"
+                EndDate = new DateTimeOffset(2026, 8, 18, 18, 0, 0, TimeSpan.Zero)
             };
 
             var results = Validate(criteria);
@@ -21,7 +20,7 @@ namespace IdentityServer.Test.Modules.Accounts
         }
 
         [Fact]
-        public void Validate_Should_Reject_Incomplete_NonUtc_Range_Without_TimeZone()
+        public void Validate_Should_Reject_Incomplete_NonUtc_Range()
         {
             var criteria = new IdentityAdminSearchCriteria
             {
@@ -32,7 +31,6 @@ namespace IdentityServer.Test.Modules.Accounts
 
             Assert.Contains(results, result => result.MemberNames.Contains(nameof(IdentityAdminSearchCriteria.EndDate)));
             Assert.Contains(results, result => result.MemberNames.Contains(nameof(IdentityAdminSearchCriteria.StartDate)));
-            Assert.Contains(results, result => result.MemberNames.Contains(nameof(IdentityAdminSearchCriteria.TimeZone)));
         }
 
         private static IReadOnlyList<ValidationResult> Validate(IdentityAdminSearchCriteria criteria)

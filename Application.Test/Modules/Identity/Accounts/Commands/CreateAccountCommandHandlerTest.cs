@@ -1,9 +1,9 @@
+using SqlKata.Execution;
 using Common.Enumerations;
+using Persistence.Repository;
 using Domain.Modules.Identity;
 using Localization.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Persistence.Repository;
-using SqlKata.Execution;
 using Application.Modules.Identity.Accounts.Commands;
 
 namespace Application.Test.Modules.Identity.Accounts.Commands
@@ -92,7 +92,11 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
 
             public CreateAccountCommandHandler CreateHandler()
             {
-                return new(TestTextProvider.Instance, repository, NullLogger<CreateAccountCommandHandler>.Instance);
+                return new(
+                    TestTextProvider.Instance,
+                    repository,
+                    TimeProvider.System,
+                    NullLogger<CreateAccountCommandHandler>.Instance);
             }
 
             public async Task InsertAccountAsync(Guid accountId, string username, string email)
@@ -104,8 +108,8 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
                         Id = accountId,
                         Username = username,
                         Email = email,
-                        Created = now,
-                        Modified = now
+                        CreatedUtc = now,
+                        ModifiedUtc = now
                     });
             }
 
@@ -118,15 +122,15 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
                         AccountId = accountId,
                         Issuer = issuer,
                         Subject = subject,
-                        Created = now,
-                        Modified = now
+                        CreatedUtc = now,
+                        ModifiedUtc = now
                     });
             }
 
             public async Task<bool> IdentityExistsAsync(Guid accountId, string issuer, string subject)
             {
                 return await repository.Db.Query(nameof(AccountIdentity))
-                    .WhereNull(nameof(AccountIdentity.Deleted))
+                    .WhereNull(nameof(AccountIdentity.DeletedUtc))
                     .Where(nameof(AccountIdentity.AccountId), accountId)
                     .Where(nameof(AccountIdentity.Issuer), issuer)
                     .Where(nameof(AccountIdentity.Subject), subject)
@@ -151,32 +155,32 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
                             Id BLOB NOT NULL PRIMARY KEY,
                             Username TEXT NOT NULL,
                             Email TEXT NOT NULL,
-                            Created TEXT NOT NULL,
-                            Modified TEXT NOT NULL,
-                            Deleted TEXT NULL
+                            CreatedUtc TEXT NOT NULL,
+                            ModifiedUtc TEXT NOT NULL,
+                            DeletedUtc TEXT NULL
                         );
 
                         CREATE UNIQUE INDEX UX_Account_Username
                         ON Account (Username)
-                        WHERE Deleted IS NULL;
+                        WHERE DeletedUtc IS NULL;
 
                         CREATE UNIQUE INDEX UX_Account_Email
                         ON Account (Email)
-                        WHERE Deleted IS NULL;
+                        WHERE DeletedUtc IS NULL;
 
                         CREATE TABLE AccountIdentity (
                             Id INTEGER PRIMARY KEY AUTOINCREMENT,
                             AccountId BLOB NOT NULL,
                             Issuer TEXT NOT NULL,
                             Subject TEXT NOT NULL,
-                            Created TEXT NOT NULL,
-                            Modified TEXT NOT NULL,
-                            Deleted TEXT NULL
+                            CreatedUtc TEXT NOT NULL,
+                            ModifiedUtc TEXT NOT NULL,
+                            DeletedUtc TEXT NULL
                         );
 
                         CREATE UNIQUE INDEX UX_AccountIdentity_Issuer_Subject
                         ON AccountIdentity (Issuer, Subject)
-                        WHERE Deleted IS NULL;
+                        WHERE DeletedUtc IS NULL;
                         """;
                     await Task.Run(command.ExecuteNonQuery);
                 }

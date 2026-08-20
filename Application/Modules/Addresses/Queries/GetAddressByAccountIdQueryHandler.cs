@@ -37,9 +37,9 @@ namespace Application.Modules.Addresses.Queries
         public async Task<DetailResponse<AddressModel>> Handle(GetAddressByAccountIdQuery request, CancellationToken cancellationToken)
         {
             var query = _repository.Query($@"{nameof(Address)}")
-                .WhereNull($@"{nameof(Address.Deleted)}")
+                .WhereNull($@"{nameof(Address.DeletedUtc)}")
                 .Where($@"{nameof(Address.AccountId)}", request.AccountId)
-                .OrderByDesc($@"{nameof(Address.Modified)}")
+                .OrderByDesc($@"{nameof(Address.ModifiedUtc)}")
                 .Take(1);
 
             var record = await _repository.FirstOrDefaultAsync<Address>(query, cancellationToken);

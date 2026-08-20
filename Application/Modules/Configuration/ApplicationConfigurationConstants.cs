@@ -6,5 +6,6 @@ namespace Application.Modules.Configuration
         public const int VersionMaxLength = 64;
         public const int LanguageMaxLength = 16;
         public const int EnvironmentMaxLength = 64;
+        public const int InstanceNameMaxLength = 128;
     }
 }

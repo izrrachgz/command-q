@@ -3,8 +3,8 @@ using Common.Cqrs;
 using Common.Models.Response;
 using Application.Abstractions;
 using Persistence.Abstractions;
-using Application.Modules.Configuration.Dtos;
 using Persistence.Repository.Extensions;
+using Application.Modules.Configuration.Dtos;
 
 namespace Application.Modules.Configuration.Queries
 {
@@ -19,23 +19,11 @@ namespace Application.Modules.Configuration.Queries
         {
             var criteria = request.SearchCriteria;
             var query = new Query(nameof(Domain.Modules.Configuration.ApplicationConfiguration))
-                .WhereNull(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Deleted));
-
-            if (criteria.StartDate.HasValue)
-            {
-                query.Where(
-                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.Created),
-                    ">=",
-                    criteria.StartDate.Value.ToDateTimeFilterValue(repository.Engine));
-            }
-
-            if (criteria.EndDate.HasValue)
-            {
-                query.Where(
-                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.Created),
-                    "<=",
-                    criteria.EndDate.Value.ToDateTimeFilterValue(repository.Engine));
-            }
+                .WhereNull(nameof(Domain.Modules.Configuration.ApplicationConfiguration.DeletedUtc))
+                .ApplyUtcRange(
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.CreatedUtc),
+                    criteria,
+                    repository.Engine);
 
             if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
             {
@@ -44,10 +32,11 @@ namespace Application.Modules.Configuration.Queries
                     .WhereLike(nameof(Domain.Modules.Configuration.ApplicationConfiguration.ApplicationVersion), term)
                     .OrWhereLike(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Environment), term)
                     .OrWhereLike(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Language), term)
-                    .OrWhereLike(nameof(Domain.Modules.Configuration.ApplicationConfiguration.ServerTimeZone), term));
+                    .OrWhereLike(nameof(Domain.Modules.Configuration.ApplicationConfiguration.ServerTimeZone), term)
+                    .OrWhereLike(nameof(Domain.Modules.Configuration.ApplicationConfiguration.InstanceName), term));
             }
 
-            query.OrderByDesc(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Created));
+            query.OrderByDesc(nameof(Domain.Modules.Configuration.ApplicationConfiguration.CreatedUtc));
             var page = await repository.PaginateAsync<Domain.Modules.Configuration.ApplicationConfiguration>(
                 query, criteria.Page, criteria.Size, cancellationToken);
 

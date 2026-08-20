@@ -17,6 +17,7 @@ namespace Application.Migrations.Test.Services
             var runner = new ApplicationMigrationRunner(
                 repository,
                 new EmbeddedMigrationScriptSource(),
+                TimeProvider.System,
                 NullLogger<ApplicationMigrationRunner>.Instance);
 
             await runner.RunAsync(TestContext.Current.CancellationToken);
@@ -43,6 +44,7 @@ namespace Application.Migrations.Test.Services
             var runner = new ApplicationMigrationRunner(
                 repository,
                 new StubMigrationScriptSource(scripts),
+                TimeProvider.System,
                 NullLogger<ApplicationMigrationRunner>.Instance);
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -58,6 +60,7 @@ namespace Application.Migrations.Test.Services
             var runner = new ApplicationMigrationRunner(
                 repository,
                 new EmbeddedMigrationScriptSource(),
+                TimeProvider.System,
                 NullLogger<ApplicationMigrationRunner>.Instance);
 
             await runner.RunAsync(TestContext.Current.CancellationToken);
@@ -69,7 +72,7 @@ namespace Application.Migrations.Test.Services
                     Name = "migration-2",
                     Checksum = "test",
                     AppliedUtc = DateTime.UtcNow,
-                    Deleted = (DateTime?)null
+                    DeletedUtc = (DateTime?)null
                 },
                 cancellationToken: TestContext.Current.CancellationToken);
 

@@ -53,20 +53,23 @@
         <div class="overflow-x-auto rounded-md border border-slate-200 bg-white shadow-sm">
           <div
             role="table"
-            class="min-w-[760px] text-left text-sm"
-            [attr.aria-colcount]="5"
+            class="min-w-[920px] text-left text-sm"
+            [attr.aria-colcount]="6"
             [attr.aria-rowcount]="state.records.length"
           >
             <div
               role="row"
               aria-rowindex="1"
-              class="grid h-12 grid-cols-[minmax(150px,1fr)_minmax(140px,1fr)_120px_minmax(190px,1fr)_208px] items-center bg-slate-50 text-xs font-semibold uppercase text-slate-500"
+              class="grid h-12 grid-cols-[minmax(150px,1fr)_minmax(140px,1fr)_minmax(150px,1fr)_120px_minmax(190px,1fr)_208px] items-center bg-slate-50 text-xs font-semibold uppercase text-slate-500"
             >
               <div role="columnheader" class="px-4">
                 {{ 'admin.configurations.version' | text }}
               </div>
               <div role="columnheader" class="px-4">
                 {{ 'admin.configurations.environment' | text }}
+              </div>
+              <div role="columnheader" class="px-4">
+                {{ 'admin.configurations.instance' | text }}
               </div>
               <div role="columnheader" class="px-4">{{ 'field.language' | text }}</div>
               <div role="columnheader" class="px-4">{{ 'field.timeZone' | text }}</div>
@@ -92,7 +95,7 @@
                 "
                 role="row"
                 [attr.aria-rowindex]="rowIndex + 2"
-                class="grid h-16 grid-cols-[minmax(150px,1fr)_minmax(140px,1fr)_120px_minmax(190px,1fr)_208px] items-center border-t border-slate-100"
+                class="grid h-16 grid-cols-[minmax(150px,1fr)_minmax(140px,1fr)_minmax(150px,1fr)_120px_minmax(190px,1fr)_208px] items-center border-t border-slate-100"
                 [class.bg-slate-50]="rowIndex % 2 === 1"
               >
                 <div role="cell" class="truncate px-4 font-medium text-slate-900">
@@ -101,12 +104,15 @@
                 <div role="cell" class="truncate px-4 text-slate-700">
                   {{ record.environment }}
                 </div>
+                <div role="cell" class="truncate px-4 text-slate-700">
+                  {{ record.instanceName }}
+                </div>
                 <div role="cell" class="px-4 text-slate-700">{{ record.language }}</div>
                 <div role="cell" class="truncate px-4 text-slate-700">
                   {{ record.serverTimeZone }}
                 </div>
                 <div role="cell" class="px-4 text-slate-600">
-                  {{ record.created | accountDate }}
+                  {{ record.createdUtc | accountDate }}
                 </div>
               </div>
             </cdk-virtual-scroll-viewport>

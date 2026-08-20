@@ -7,8 +7,6 @@ namespace IdentityServer.Modules.Accounts
         public DateTimeOffset? StartDate { get; init; }
         public DateTimeOffset? EndDate { get; init; }
 
-        [StringLength(AccountConstants.MaxTimeZoneLength)]
-        public string? TimeZone { get; init; }
         public string? SearchTerm { get; init; }
         public int Page { get; init; } = 1;
         public int Size { get; init; } = 25;
@@ -22,13 +20,6 @@ namespace IdentityServer.Modules.Accounts
                 yield return new ValidationResult(
                     "StartDate and EndDate must be provided together.",
                     [nameof(StartDate), nameof(EndDate)]);
-            }
-
-            if ((StartDate.HasValue || EndDate.HasValue) && string.IsNullOrWhiteSpace(TimeZone))
-            {
-                yield return new ValidationResult(
-                    "TimeZone is required when a date range is supplied.",
-                    [nameof(TimeZone)]);
             }
 
             if (StartDate.HasValue && StartDate.Value.Offset != TimeSpan.Zero)

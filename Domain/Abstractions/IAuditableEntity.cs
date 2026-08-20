@@ -9,11 +9,11 @@ namespace Domain.Abstractions
         /// <summary>
         /// Date and time when the entity was created.
         /// </summary>
-        DateTime Created { get; set; }
+        DateTime CreatedUtc { get; set; }
 
         /// <summary>
         /// Date and time when the entity was last modified.
         /// </summary>
-        DateTime Modified { get; set; }
+        DateTime ModifiedUtc { get; set; }
     }
 }

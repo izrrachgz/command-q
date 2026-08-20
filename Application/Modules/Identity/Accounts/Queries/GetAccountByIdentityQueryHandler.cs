@@ -22,8 +22,8 @@ namespace Application.Modules.Identity.Accounts.Queries
             var query = repository.Query($"{nameof(AccountIdentity)} as identity")
                 .Join($"{nameof(Account)} as account", "account.Id", "identity.AccountId")
                 .Select("account.*")
-                .WhereNull("identity.Deleted")
-                .WhereNull("account.Deleted")
+                .WhereNull("identity.DeletedUtc")
+                .WhereNull("account.DeletedUtc")
                 .Where("identity.Issuer", request.Issuer)
                 .Where("identity.Subject", request.Subject)
                 .Limit(1);

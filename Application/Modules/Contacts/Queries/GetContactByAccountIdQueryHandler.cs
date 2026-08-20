@@ -37,9 +37,9 @@ namespace Application.Modules.Contacts.Queries
         public async Task<DetailResponse<ContactModel>> Handle(GetContactByAccountIdQuery request, CancellationToken cancellationToken)
         {
             var query = _repository.Query($@"{nameof(Contact)}")
-                .WhereNull($@"{nameof(Contact.Deleted)}")
+                .WhereNull($@"{nameof(Contact.DeletedUtc)}")
                 .Where($@"{nameof(Contact.AccountId)}", request.AccountId)
-                .OrderByDesc($@"{nameof(Contact.Modified)}")
+                .OrderByDesc($@"{nameof(Contact.ModifiedUtc)}")
                 .Limit(1);
 
             var record = await _repository.FirstOrDefaultAsync<Contact>(query, cancellationToken);

@@ -60,11 +60,11 @@ local account` before creating a new authorization code. Sign out first when
 you want to make the cookie transition explicit. Existing persona access and
 refresh tokens remain stored independently.
 
-In Development, the first registered user is granted the `Admin` role by the
-IdentityServer startup reconciliation when no administrator exists. Restart
-IdentityServer after registering that first account, then repeat sign-in and
-the authorization-code flow so the new access token contains the `Admin` role.
-Role changes never modify an access token that was already issued.
+In Development, the first registered user is granted the `Admin` role
+immediately when no administrator exists; startup reconciliation remains a
+recovery path. No IdentityServer restart is required. Complete sign-in and the
+authorization-code flow after registration so the access token contains the
+current roles. Later role changes never modify an access token already issued.
 
 ## Initial Account Flow
 
@@ -88,9 +88,21 @@ After provisioning, run `Save account preferences` before `Get account
 preferences`; the save request intentionally omits `accountId` because the API
 always replaces it with the authenticated account ID. The application
 configuration requests under `03 - Application API / Application
-configuration` require an access token containing the `Admin` role. The record
-request omits `applicationVersion` so the API resolves it from its entry
-assembly.
+configuration` and the identity-administration requests require an access token
+containing the `Admin` role. Application configuration history is read-only;
+the API records authoritative server values during startup.
+
+## Paged Search Filters
+
+Search requests include disabled examples for `StartDate` and `EndDate`. Enable
+both together when filtering by date. Both timestamps must be ISO-8601 UTC
+instants with a zero offset, preferably serialized with a trailing `Z`, and
+`EndDate` must not precede `StartDate`. Database comparisons remain in UTC;
+account timezone is a saved preference and is not repeated on UTC searches.
+
+The examples remain disabled so the requests return their normal unfiltered
+first page after import. Keep `Page` and `Size` enabled, then opt into the date
+range explicitly when testing it.
 
 If IdentityServer was reset while the application database was retained, the
 new user has a different token subject and the old `AccountIdentity` mapping is

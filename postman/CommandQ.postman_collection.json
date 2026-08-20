@@ -936,11 +936,6 @@
                       "disabled": true
                     },
                     {
-                      "key": "TimeZone",
-                      "value": "America/Hermosillo",
-                      "disabled": true
-                    },
-                    {
                       "key": "module",
                       "value": "",
                       "disabled": true
@@ -951,28 +946,29 @@
                       "disabled": true
                     }
                   ]
-                }
+                },
+                "description": "Returns account activity for the authenticated account. Enable StartDate and EndDate together to filter by an ISO-8601 UTC range."
               },
               "response": []
             }
           ]
         },
         {
-          "name": "Application configuration",
+          "name": "Identity administration",
           "item": [
             {
-              "name": "Get application configuration history",
+              "name": "Search identity accounts",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Admin/configurations?Page=1&Size=25&AscendingSort=false",
+                  "raw": "{{apiBaseUrl}}/Admin/accounts?Page=1&Size=25&AscendingSort=false",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
                     "Admin",
-                    "configurations"
+                    "accounts"
                   ],
                   "query": [
                     {
@@ -1001,15 +997,70 @@
                       "key": "EndDate",
                       "value": "2026-08-18T18:00:00Z",
                       "disabled": true
+                    }
+                  ]
+                },
+                "description": "Searches IdentityServer-backed accounts through the API. The access token must contain the Admin role. Enable StartDate and EndDate together to filter creation time by an ISO-8601 UTC range."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Identity accounts are available\", () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Application configuration",
+          "item": [
+            {
+              "name": "Get application configuration history",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{apiBaseUrl}}/Admin/configurations?Page=1&Size=25",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "Admin",
+                    "configurations"
+                  ],
+                  "query": [
+                    {
+                      "key": "Page",
+                      "value": "1"
                     },
                     {
-                      "key": "TimeZone",
-                      "value": "America/Hermosillo",
+                      "key": "Size",
+                      "value": "25"
+                    },
+                    {
+                      "key": "SearchTerm",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "StartDate",
+                      "value": "2026-08-17T18:00:00Z",
+                      "disabled": true
+                    },
+                    {
+                      "key": "EndDate",
+                      "value": "2026-08-18T18:00:00Z",
                       "disabled": true
                     }
                   ]
                 },
-                "description": "Returns application configuration snapshots. The access token must contain the Admin role."
+                "description": "Returns newest-first application configuration snapshots, including the recording server instance. The access token must contain the Admin role. Enable StartDate and EndDate together to filter startup time by an ISO-8601 UTC range."
               },
               "response": [],
               "event": [
@@ -1209,14 +1260,10 @@
                       "key": "EndDate",
                       "value": "2026-08-18T18:00:00Z",
                       "disabled": true
-                    },
-                    {
-                      "key": "TimeZone",
-                      "value": "America/Hermosillo",
-                      "disabled": true
                     }
                   ]
-                }
+                },
+                "description": "Returns file metadata for the authenticated account. Enable StartDate and EndDate together to filter creation time by an ISO-8601 UTC range."
               },
               "response": []
             }

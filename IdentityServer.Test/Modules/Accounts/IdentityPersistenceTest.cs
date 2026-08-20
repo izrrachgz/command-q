@@ -1,14 +1,16 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authentication;
 using OpenIddict.Abstractions;
-using IdentityServer.Test.Constants;
+using Microsoft.AspNetCore.Http;
 using IdentityServer.Persistence;
-using IdentityServer.Modules.OpenIddict;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using IdentityServer.Modules.Accounts;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using IdentityServer.Test.Constants;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using IdentityServer.Modules.Accounts;
+using IdentityServer.Modules.OpenIddict;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
@@ -100,6 +102,33 @@ namespace IdentityServer.Test.Modules.Accounts
         }
 
         [Fact]
+        public async Task Development_First_User_Should_Receive_Admin_Without_Restart()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<CommandQIdentityUser>>();
+            var roleManager = services.GetRequiredService<RoleManager<CommandQIdentityRole>>();
+            Assert.True((await roleManager.CreateAsync(new CommandQIdentityRole
+            {
+                Id = Guid.NewGuid(),
+                Name = AccountConstants.DefaultRole
+            })).Succeeded);
+            Assert.True((await roleManager.CreateAsync(new CommandQIdentityRole
+            {
+                Id = Guid.NewGuid(),
+                Name = AccountConstants.AdminRole
+            })).Succeeded);
+            var user = CreateUser();
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+            Assert.True((await userManager.AddToRoleAsync(user, AccountConstants.DefaultRole)).Succeeded);
+            var assigner = new DevelopmentAdminRoleAssigner(userManager, new DevelopmentEnvironment());
+
+            var result = await assigner.AssignIfRequired(user);
+
+            Assert.True(result.Succeeded);
+            Assert.True(await userManager.IsInRoleAsync(user, AccountConstants.AdminRole));
+        }
+
+        [Fact]
         public void Configured_Application_Cookie_Should_Support_First_Party_Identity_Sign_In()
         {
             using var services = CreateConfiguredIdentityServices();
@@ -157,6 +186,7 @@ namespace IdentityServer.Test.Modules.Accounts
             };
 
             services.AddLogging();
+            services.AddSingleton(TimeProvider.System);
             services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
             services.AddDbContext<TestIdentityServerDbContext>(options =>
             {
@@ -250,6 +280,14 @@ namespace IdentityServer.Test.Modules.Accounts
         private sealed class TestIdentityServerDbContext(DbContextOptions<TestIdentityServerDbContext> options)
             : IdentityServerDbContext(options)
         {
+        }
+
+        private sealed class DevelopmentEnvironment : IHostEnvironment
+        {
+            public string EnvironmentName { get; set; } = Environments.Development;
+            public string ApplicationName { get; set; } = "IdentityServer.Test";
+            public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+            public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
         }
     }
 }

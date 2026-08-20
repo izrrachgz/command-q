@@ -1,5 +1,6 @@
 using Public;
 using Common.Cqrs;
+using System.Data;
 using System.Text.Json;
 using SqlKata.Execution;
 using Common.Models.Response;
@@ -14,13 +15,14 @@ namespace Application.Modules.Identity.Accounts.Preferences.Commands
     internal sealed class SaveAccountPreferencesCommandHandler(
         IWritableRepository repository,
         IAccountActivityRecorder activityRecorder,
+        TimeProvider timeProvider,
         ITextProvider messages) : ICommandHandler<SaveAccountPreferencesCommand, BasicResponse>
     {
         public async Task<BasicResponse> Handle(SaveAccountPreferencesCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
             var query = repository.Db.Query(nameof(AccountPreference))
-                .WhereNull(nameof(AccountPreference.Deleted))
+                .WhereNull(nameof(AccountPreference.DeletedUtc))
                 .Where(nameof(AccountPreference.AccountId), request.AccountId);
 
             var values = new
@@ -32,29 +34,10 @@ namespace Application.Modules.Identity.Accounts.Preferences.Commands
                 request.ReduceMotion,
                 request.ShowDenseTables,
                 TimeZone = request.TimeZone.Trim(),
-                Modified = now
+                ModifiedUtc = now
             };
 
-            int affected = await query.ExistsAsync(cancellationToken: cancellationToken)
-                ? await query.UpdateAsync(values, cancellationToken: cancellationToken)
-                : await repository.Db.Query(nameof(AccountPreference)).InsertAsync(new
-                {
-                    request.AccountId,
-                    values.Culture,
-                    values.Theme,
-                    values.CompactNavigation,
-                    values.EnhancedFocus,
-                    values.ReduceMotion,
-                    values.ShowDenseTables,
-                    values.TimeZone,
-                    Created = now,
-                    Modified = now
-                }, cancellationToken: cancellationToken);
-
-            if (affected <= 0)
-                return new(false, messages.Get(nameof(Messages.Cannot_Update), nameof(AccountPreference)));
-
-            await activityRecorder.RecordAsync(new RecordAccountActivityCommand
+            var activity = new RecordAccountActivityCommand
             {
                 AccountId = request.AccountId,
                 Module = AccountActivityConstants.Modules.Accounts,
@@ -72,9 +55,50 @@ namespace Application.Modules.Identity.Accounts.Preferences.Commands
                     values.ShowDenseTables,
                     values.TimeZone
                 })
-            }, cancellationToken);
+            };
 
-            return new(true, messages.Get(nameof(Messages.Updated), nameof(AccountPreference)));
+            repository.Db.Connection.Open();
+            using var transaction = repository.Db.Connection.BeginTransaction(IsolationLevel.Serializable);
+
+            try
+            {
+                var affected = await query.UpdateAsync(values, transaction, cancellationToken: cancellationToken);
+
+                if (affected == 0)
+                {
+                    affected = await repository.Db.Query(nameof(AccountPreference)).InsertAsync(new
+                    {
+                        request.AccountId,
+                        values.Culture,
+                        values.Theme,
+                        values.CompactNavigation,
+                        values.EnhancedFocus,
+                        values.ReduceMotion,
+                        values.ShowDenseTables,
+                        values.TimeZone,
+                        CreatedUtc = now,
+                        ModifiedUtc = now
+                    }, transaction, cancellationToken: cancellationToken);
+                }
+
+                if (affected <= 0 || !await activityRecorder.RecordAsync(activity, transaction, cancellationToken))
+                {
+                    transaction.Rollback();
+                    return new(false, messages.Get(nameof(Messages.Cannot_Update), nameof(AccountPreference)));
+                }
+
+                transaction.Commit();
+                return new(true, messages.Get(nameof(Messages.Updated), nameof(AccountPreference)));
+            }
+            catch
+            {
+                transaction.Rollback();
+                return new(false, messages.Get(nameof(Messages.Cannot_Update), nameof(AccountPreference)));
+            }
+            finally
+            {
+                repository.Db.Connection.Close();
+            }
         }
     }
 }

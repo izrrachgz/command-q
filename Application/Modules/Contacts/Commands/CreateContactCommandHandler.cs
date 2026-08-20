@@ -13,16 +13,22 @@ namespace Application.Modules.Contacts.Commands
     {
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<CreateContactCommandHandler> _logger;
 
         private readonly string _message_contact_created;
         private readonly string _message_contact_cannot_create;
 
-        public CreateContactCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateContactCommandHandler> logger)
+        public CreateContactCommandHandler(
+            ITextProvider textProvider,
+            IWritableRepository repository,
+            TimeProvider timeProvider,
+            ILogger<CreateContactCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
+            _timeProvider = timeProvider;
 
             _message_contact_created = _messages.Get(nameof(Messages.Created), nameof(Contact));
             _message_contact_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(Contact));
@@ -40,7 +46,7 @@ namespace Application.Modules.Contacts.Commands
         /// whether the contact was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateContactCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             // Create transaction to ensure data integrity
             _repository.Db.Connection.Open();
@@ -55,7 +61,7 @@ namespace Application.Modules.Contacts.Commands
                     request.EmailAddress,
                     request.Description,
                     request.PhoneNumber,
-                    Modified = now
+                    ModifiedUtc = now
                 };
 
                 // Insert new contact record

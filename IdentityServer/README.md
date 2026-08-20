@@ -98,9 +98,19 @@ The Development issuer is `https://localhost:7125/`. Important endpoints include
 - `GET /.well-known/openid-configuration`
 - `GET /health/live`, `GET /health/ready` and `GET /health/checks`
 
+The internal user search accepts the shared paging and search fields plus an
+optional `StartDate`/`EndDate` creation range. The application API forwards both
+dates as ISO-8601 UTC instants ending in `Z`; both values are required together
+and the database comparison remains in UTC.
+
 The local `command_q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command_q_api`. Browser clients should use the hosted `GET /account/sign-in` page reached from the authorization challenge; JSON callers can still use `POST /account/sign-in` directly. In Development, the Angular SPA client allows the usual `localhost` and `127.0.0.1` Angular ports from `4200` through `4205`; restart IdentityServer after changing client redirect settings so the OpenIddict application seed is reconciled.
 
 Ending the browser session does not revoke an already issued refresh token. A client that stores a refresh token should call `POST /connect/revoke` before `GET|POST /connect/logout`; administrative global revocation remains a separate account-management concern.
+
+Local and external registration always assign the default `User` role. In
+Development, the first account is also granted `Admin` immediately when no
+administrator exists; startup role reconciliation remains a recovery path and
+registration does not require a host restart.
 
 ## Text Resources
 

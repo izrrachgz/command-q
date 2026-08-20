@@ -10,7 +10,10 @@ namespace Application.Modules.Health.Checks
     /// <summary>
     /// Verifies that the application database can accept a health-check write.
     /// </summary>
-    internal sealed class DatabaseWriteHealthCheck(IWritableRepository repository, ILogger<DatabaseWriteHealthCheck> logger) : IHealthCheck
+    internal sealed class DatabaseWriteHealthCheck(
+        IWritableRepository repository,
+        TimeProvider timeProvider,
+        ILogger<DatabaseWriteHealthCheck> logger) : IHealthCheck
     {
         private const string HealthyMessage = "Application is able to write health check data.";
         private const string UnhealthyMessage = "Application is unable to write health check data.";
@@ -35,11 +38,11 @@ namespace Application.Modules.Health.Checks
         {
             try
             {
-                var now = DateTime.UtcNow;
+                var now = timeProvider.GetUtcNow().UtcDateTime;
                 var values = new
                 {
-                    Created = now,
-                    Modified = now
+                    CreatedUtc = now,
+                    ModifiedUtc = now
                 };
 
                 int affected = await repository.Db.Query(nameof(HealthCheckLog))

@@ -8,12 +8,12 @@ namespace Application.Modules.Configuration.Mappings
     internal partial class ApplicationConfigurationMapper
         : IMapper<Domain.Modules.Configuration.ApplicationConfiguration, ApplicationConfigurationModel>
     {
-        [MapperIgnoreTarget(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Modified))]
-        [MapperIgnoreTarget(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Deleted))]
+        [MapperIgnoreTarget(nameof(Domain.Modules.Configuration.ApplicationConfiguration.ModifiedUtc))]
+        [MapperIgnoreTarget(nameof(Domain.Modules.Configuration.ApplicationConfiguration.DeletedUtc))]
         public partial Domain.Modules.Configuration.ApplicationConfiguration Map(ApplicationConfigurationModel model);
 
-        [MapperIgnoreSource(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Modified))]
-        [MapperIgnoreSource(nameof(Domain.Modules.Configuration.ApplicationConfiguration.Deleted))]
+        [MapperIgnoreSource(nameof(Domain.Modules.Configuration.ApplicationConfiguration.ModifiedUtc))]
+        [MapperIgnoreSource(nameof(Domain.Modules.Configuration.ApplicationConfiguration.DeletedUtc))]
         public partial ApplicationConfigurationModel Map(Domain.Modules.Configuration.ApplicationConfiguration entity);
     }
 }

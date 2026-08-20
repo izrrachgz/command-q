@@ -1,11 +1,12 @@
 using System.Globalization;
-using IdentityServer.Constants;
 using IdentityServer.Logging;
 using IdentityServer.Modules;
-using IdentityServer.Middleware;
-using IdentityServer.Configuration;
-using IdentityServer.Localization;
+using IdentityServer.Constants;
 using IdentityServer.Resources;
+using IdentityServer.Middleware;
+using IdentityServer.Localization;
+using IdentityServer.Configuration;
+using IdentityServer.Serialization;
 using IdentityServer.Modules.OpenIddict;
 using IdentityServer.Modules.OpenIddict.Configuration;
 
@@ -17,10 +18,17 @@ namespace IdentityServer.Extensions
 
         public static void ConfigureServices(this IHostApplicationBuilder builder)
         {
+            builder.Services.AddSingleton(TimeProvider.System);
+
             IConfigurationSection identityServerConfiguration = builder.Configuration
                 .GetRequiredSection(IdentityServerConfigKeys.Section);
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeJsonConverter());
+                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter());
+                });
             builder.Services.AddConfiguredCors(identityServerConfiguration, builder.Environment);
             builder.Services.AddAuthorization();
             builder.Services.AddIdentityServerDataProtection(identityServerConfiguration, builder.Environment);

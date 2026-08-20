@@ -1,15 +1,16 @@
 using FluentValidation;
 using Common.Models.Request;
 using Application.Validation;
-using Application.Modules.Contacts;
 using Application.Modules.Files;
 using Application.Modules.Health;
+using Application.Modules.Contacts;
 using Application.Modules.Identity;
 using Application.Modules.Addresses;
 using Application.Modules.Configuration;
 using Application.Modules.Notifications;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Application.Modules
 {
@@ -26,6 +27,7 @@ namespace Application.Modules
         /// <returns>The configured service collection.</returns>
         public static IServiceCollection AddApplicationModules(this IServiceCollection services, IConfiguration configuration)
         {
+            services.TryAddSingleton(TimeProvider.System);
             services.AddScoped<IValidator<SearchCriteria>, SearchCriteriaValidator>();
 
             services.AddIdentityModule();

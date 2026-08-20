@@ -7,7 +7,7 @@ namespace Application.Modules.Health.Checks
     /// <summary>
     /// Verifies that the application can write a small health-check file to local storage.
     /// </summary>
-    internal sealed class LocalStorageWriteHealthCheck(ILogger<LocalStorageWriteHealthCheck> logger) : IHealthCheck
+    internal sealed class LocalStorageWriteHealthCheck(TimeProvider timeProvider, ILogger<LocalStorageWriteHealthCheck> logger) : IHealthCheck
     {
         private const string FileName = "HealthCheckLog.log";
         private const string HealthyMessage = "Application is able to write health check data to local storage.";
@@ -34,7 +34,7 @@ namespace Application.Modules.Health.Checks
             try
             {
                 string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName);
-                string[] content = [DateTime.UtcNow.ToString("O")];
+                string[] content = [timeProvider.GetUtcNow().UtcDateTime.ToString("O")];
 
                 await File.AppendAllLinesAsync(filePath, content, cancellationToken);
 

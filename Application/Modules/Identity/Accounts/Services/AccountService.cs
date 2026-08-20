@@ -19,7 +19,7 @@ namespace Application.Modules.Identity.Accounts.Services
         public async Task<Account?> GetAccount(Guid accountId, CancellationToken cancellationToken = default)
         {
             var query = _repository.Query($@"{nameof(Account)}")
-                .WhereNull($@"{nameof(Account.Deleted)}")
+                .WhereNull($@"{nameof(Account.DeletedUtc)}")
                 .Where($@"{nameof(Account.Id)}", accountId)
                 .Limit(1);
 

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { ApiSortFields } from '../../../../core/api/api-constants';
 import {
   ApplicationConfigurationFilters,
   ApplicationConfigurationModel,
@@ -20,7 +19,7 @@ export interface ApplicationConfigurationsState {
 
 const InitialState: ApplicationConfigurationsState = {
   status: 'idle',
-  filters: { page: 1, size: 25, sortBy: ApiSortFields.created, ascendingSort: false },
+  filters: { page: 1, size: 25 },
   records: [],
   total: 0,
   totalPages: 0,

@@ -6,7 +6,8 @@ export interface ApplicationConfigurationModel {
   readonly applicationVersion: string;
   readonly language: string;
   readonly environment: string;
-  readonly created: string;
+  readonly instanceName: string;
+  readonly createdUtc: string;
 }
 
 export interface ApplicationConfigurationFilters extends SearchCriteria {}

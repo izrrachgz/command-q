@@ -13,16 +13,22 @@ namespace Application.Modules.Addresses.Commands
     {
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<CreateAddressCommandHandler> _logger;
 
         private readonly string _message_address_created;
         private readonly string _message_address_cannot_create;
 
-        public CreateAddressCommandHandler(ITextProvider textProvider, IWritableRepository repository, ILogger<CreateAddressCommandHandler> logger)
+        public CreateAddressCommandHandler(
+            ITextProvider textProvider,
+            IWritableRepository repository,
+            TimeProvider timeProvider,
+            ILogger<CreateAddressCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
+            _timeProvider = timeProvider;
             _message_address_created = _messages.Get(nameof(Messages.Created), nameof(Address));
             _message_address_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(Address));
         }
@@ -39,7 +45,7 @@ namespace Application.Modules.Addresses.Commands
         /// whether the address was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateAddressCommand request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             // Create transaction to ensure data integrity
             _repository.Db.Connection.Open();
@@ -56,7 +62,7 @@ namespace Application.Modules.Addresses.Commands
                     request.PostalCode,
                     request.Country,
                     request.EmailAddress,
-                    Modified = now
+                    ModifiedUtc = now
                 };
 
                 int affected = await _repository.Db.Query($@"{nameof(Address)}")

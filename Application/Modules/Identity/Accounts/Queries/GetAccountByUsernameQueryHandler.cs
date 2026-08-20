@@ -36,7 +36,7 @@ namespace Application.Modules.Identity.Accounts.Queries
         public async Task<DetailResponse<AccountModel>> Handle(GetAccountByUsernameQuery request, CancellationToken cancellationToken)
         {
             var query = _repository.Query($@"{nameof(Account)}")
-                .WhereNull($@"{nameof(Account.Deleted)}")
+                .WhereNull($@"{nameof(Account.DeletedUtc)}")
                 .Where($@"{nameof(Account.Username)}", request.Username)
                 .Limit(1);
 

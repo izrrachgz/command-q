@@ -1,11 +1,12 @@
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using IdentityServer.Modules.Accounts.Configuration;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using IdentityServer.Persistence;
 using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using IdentityServer.Modules.Accounts.Configuration;
 
 namespace IdentityServer.Modules.Accounts
 {
@@ -13,7 +14,9 @@ namespace IdentityServer.Modules.Accounts
     public sealed class IdentityAdminController(
         UserManager<IdentityUser> userManager,
         RoleManager<IdentityRole> roleManager,
+        IdentityServerDbContext database,
         IIdentitySecurityEventRecorder securityEvents,
+        TimeProvider timeProvider,
         IOptions<IdentityAdminApiOptions> options) : ControllerBase
     {
         [HttpGet(AccountConstants.Routes.InternalAdminUsers)]
@@ -56,11 +59,28 @@ namespace IdentityServer.Modules.Accounts
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
+            var userIds = users.Select(user => user.Id).ToArray();
+            var roleAssignments = await (
+                from userRole in database.UserRoles.AsNoTracking()
+                join role in database.Roles.AsNoTracking() on userRole.RoleId equals role.Id
+                where userIds.Contains(userRole.UserId)
+                select new { userRole.UserId, Role = role.Name ?? string.Empty })
+                .ToListAsync(cancellationToken);
+            var rolesByUser = roleAssignments
+                .GroupBy(assignment => assignment.UserId)
+                .ToDictionary(
+                    group => group.Key,
+                    group => (IReadOnlyList<string>)group
+                        .Select(assignment => assignment.Role)
+                        .Where(role => role.Length > 0)
+                        .Order(StringComparer.OrdinalIgnoreCase)
+                        .ToArray());
             var response = new List<IdentityAdminUserResponse>(users.Count);
 
             foreach (var user in users)
             {
-                response.Add(await MapUser(user));
+                rolesByUser.TryGetValue(user.Id, out var roles);
+                response.Add(MapUser(user, roles ?? []));
             }
 
             return Ok(CreatePage(response, total, page, pageSize));
@@ -76,7 +96,11 @@ namespace IdentityServer.Modules.Accounts
 
             var user = await userManager.FindByIdAsync(userId.ToString());
 
-            return user is null ? NotFound() : Ok(await MapUser(user));
+            if (user is null)
+                return NotFound();
+
+            var roles = await userManager.GetRolesAsync(user);
+            return Ok(MapUser(user, roles.Order(StringComparer.OrdinalIgnoreCase).ToArray()));
         }
 
         [HttpGet(AccountConstants.Routes.InternalAdminRoles)]
@@ -168,7 +192,7 @@ namespace IdentityServer.Modules.Accounts
                 return BadRequest(new ValidationProblemDetails(ToValidationErrors(addResult)));
             }
 
-            user.ModifiedUtc = DateTime.UtcNow;
+            user.ModifiedUtc = timeProvider.GetUtcNow().UtcDateTime;
             var updateResult = await userManager.UpdateAsync(user);
 
             if (!updateResult.Succeeded)
@@ -200,10 +224,9 @@ namespace IdentityServer.Modules.Accounts
                 FixedTimeEquals(provided.Trim(), currentOptions.ApiKey);
         }
 
-        private async Task<IdentityAdminUserResponse> MapUser(IdentityUser user)
+        private IdentityAdminUserResponse MapUser(IdentityUser user, IReadOnlyList<string> roles)
         {
-            var roles = await userManager.GetRolesAsync(user);
-            var locked = await userManager.IsLockedOutAsync(user);
+            var locked = user.LockoutEnabled && user.LockoutEnd > timeProvider.GetUtcNow();
 
             return new(
                 user.Id,
@@ -211,7 +234,7 @@ namespace IdentityServer.Modules.Accounts
                 user.Email ?? string.Empty,
                 !locked,
                 locked,
-                roles.Order(StringComparer.OrdinalIgnoreCase).ToArray(),
+                roles,
                 user.CreatedUtc,
                 user.LockoutEnd);
         }

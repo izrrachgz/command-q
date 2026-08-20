@@ -19,18 +19,25 @@ namespace Application.Modules.Files.Commands
         private readonly ITextProvider _messages;
         private readonly IWritableRepository _repository;
         private readonly IAccountActivityRecorder _activityRecorder;
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<UploadFileCommandHandler> _logger;
 
         private readonly string _message_file_created;
         private readonly string _message_file_cannot_create;
         private static readonly string _fileStoragePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileUploadConstants.StorageRootFolderName);
 
-        public UploadFileCommandHandler(ITextProvider textProvider, IWritableRepository repository, IAccountActivityRecorder activityRecorder, ILogger<UploadFileCommandHandler> logger)
+        public UploadFileCommandHandler(
+            ITextProvider textProvider,
+            IWritableRepository repository,
+            IAccountActivityRecorder activityRecorder,
+            TimeProvider timeProvider,
+            ILogger<UploadFileCommandHandler> logger)
         {
             _logger = logger;
             _repository = repository;
             _messages = textProvider;
             _activityRecorder = activityRecorder;
+            _timeProvider = timeProvider;
             _message_file_created = _messages.Get(nameof(Messages.Created), nameof(AccountFile));
             _message_file_cannot_create = _messages.Get(nameof(Messages.Cannot_Create), nameof(AccountFile));
         }
@@ -87,7 +94,7 @@ namespace Application.Modules.Files.Commands
                 return new(false, _message_file_cannot_create);
             }
 
-            var now = DateTime.UtcNow;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             #region setup file storage destination path
 
@@ -120,8 +127,8 @@ namespace Application.Modules.Files.Commands
                     Path = Path.GetRelativePath(AppDomain.CurrentDomain.BaseDirectory, destination),
                     ContentType = request.ContentType,
                     Size = request.FileData.CanSeek ? request.FileData.Length : 0,
-                    Created = now,
-                    Modified = now
+                    CreatedUtc = now,
+                    ModifiedUtc = now
                 };
 
                 var accountFileId = await _repository.Db.Query($@"{nameof(AccountFile)}")
@@ -132,8 +139,8 @@ namespace Application.Modules.Files.Commands
                         accountFile.Path,
                         accountFile.ContentType,
                         accountFile.Size,
-                        accountFile.Created,
-                        accountFile.Modified
+                        accountFile.CreatedUtc,
+                        accountFile.ModifiedUtc
                     }, cancellationToken: cancellationToken);
 
                 _logger.FileMetadataSaved(request.AccountId, accountFileId, safeFileName, accountFile.Size, request.ContentType);
@@ -152,7 +159,7 @@ namespace Application.Modules.Files.Commands
                         request.ContentType,
                         accountFile.Size
                     })
-                }, cancellationToken);
+                }, cancellationToken: cancellationToken);
 
                 return new(true, _message_file_created);
             }

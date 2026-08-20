@@ -1,12 +1,12 @@
-using IdentityServer.Constants;
-using IdentityServer.Modules.Accounts.Configuration;
 using OpenIddict.Abstractions;
+using IdentityServer.Constants;
+using IdentityServer.Resources;
+using IdentityServer.Localization;
+using Microsoft.AspNetCore.Identity;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
-using IdentityServer.Localization;
-using IdentityServer.Resources;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using IdentityServer.Modules.Accounts.Configuration;
 
 namespace IdentityServer.Modules.Accounts
 {
@@ -121,6 +121,7 @@ namespace IdentityServer.Modules.Accounts
             services.AddHttpContextAccessor();
             services.AddSingleton<ISignInPageRenderer, SignInPageRenderer>();
             services.AddScoped<IIdentitySecurityEventRecorder, IdentitySecurityEventRecorder>();
+            services.AddScoped<DevelopmentAdminRoleAssigner>();
             services.AddRateLimiter(options =>
             {
                 options.AddPolicy(AccountConstants.AuthenticationRateLimitPolicy, context =>

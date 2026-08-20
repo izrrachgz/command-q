@@ -13,6 +13,7 @@ namespace Application.Migrations.Extensions
     {
         public static IServiceCollection AddApplicationMigrations(this IServiceCollection services)
         {
+            services.TryAddSingleton(TimeProvider.System);
             services.TryAddSingleton<IMigrationScriptSource, EmbeddedMigrationScriptSource>();
             services.TryAddScoped<ApplicationMigrationRunner>();
 

@@ -21,7 +21,5 @@ namespace Domain.Modules.Identity
         public string? IpAddress { get; set; }
 
         public string? UserAgent { get; set; }
-
-        public DateTime CreatedUtc { get; set; }
     }
 }

@@ -7,8 +7,10 @@ using Api.Middleware;
 using Api.Abstractions;
 using Api.Enumerations;
 using Common.Constants;
-using Common.Extensions;
 using Api.Configuration;
+using Api.Serialization;
+using Common.Extensions;
+using System.Reflection;
 using Api.Modules.Health;
 using Common.Enumerations;
 using Application.Extensions;
@@ -42,7 +44,12 @@ namespace Api.Extensions
             IConfigurationSection apiConfiguration = builder.Configuration.GetRequiredSection(ApiConfigKeys.Section);
 
             // Add controllers
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeJsonConverter());
+                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter());
+                });
             builder.AddApiOpenTelemetry();
 
             // Endpoints explorer (Swagger generation kept commented as original)
@@ -133,12 +140,22 @@ namespace Api.Extensions
             var response = await sender.Send(new RecordApplicationConfigurationCommand
             {
                 ServerTimeZone = options.TimeZone,
+                ApplicationVersion = ResolveApplicationVersion(),
                 Language = apiConfiguration.GetValue<string>(ApiConfigKeys.Localization.DefaultCulture) ?? "en-US",
-                Environment = app.Environment.EnvironmentName
+                Environment = app.Environment.EnvironmentName,
+                InstanceName = Environment.MachineName
             }, cancellationToken);
 
             if (!response.Success)
                 throw new InvalidOperationException(response.Message);
+        }
+
+        private static string ResolveApplicationVersion()
+        {
+            var assembly = Assembly.GetEntryAssembly();
+            return assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+                ?? assembly?.GetName().Version?.ToString()
+                ?? "unknown";
         }
 
         /// <summary>

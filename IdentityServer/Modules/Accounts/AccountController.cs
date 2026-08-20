@@ -17,13 +17,15 @@ namespace IdentityServer.Modules.Accounts
         IdentityServerDbContext database,
         IIdentitySecurityEventRecorder securityEvents,
         ISignInPageRenderer signInPageRenderer,
+        DevelopmentAdminRoleAssigner adminRoleAssigner,
+        TimeProvider timeProvider,
         ILogger<AccountController> logger) : ControllerBase
     {
         [AllowAnonymous, HttpPost(AccountConstants.Routes.Register)]
         [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
         public async Task<IActionResult> Register(RegisterAccountRequest request, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
             var user = new IdentityUser
             {
                 Id = Guid.NewGuid(),
@@ -48,6 +50,15 @@ namespace IdentityServer.Modules.Accounts
                 await userManager.DeleteAsync(user);
                 logger.AccountRegistrationFailed(request.Username);
                 return BadRequest(new ValidationProblemDetails(ToValidationErrors(roleResult)));
+            }
+
+            var adminRoleResult = await adminRoleAssigner.AssignIfRequired(user);
+
+            if (!adminRoleResult.Succeeded)
+            {
+                await userManager.DeleteAsync(user);
+                logger.AccountRegistrationFailed(request.Username);
+                return BadRequest(new ValidationProblemDetails(ToValidationErrors(adminRoleResult)));
             }
 
             logger.AccountRegistered(user.Id);
@@ -316,7 +327,7 @@ namespace IdentityServer.Modules.Accounts
                 return Conflict();
             }
 
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
             var user = new IdentityUser
             {
                 Id = Guid.NewGuid(),
@@ -336,11 +347,19 @@ namespace IdentityServer.Modules.Accounts
 
             var addLoginResult = await userManager.AddLoginAsync(user, login);
             var addRoleResult = await userManager.AddToRoleAsync(user, AccountConstants.DefaultRole);
+            var addAdminRoleResult = addRoleResult.Succeeded
+                ? await adminRoleAssigner.AssignIfRequired(user)
+                : IdentityResult.Success;
 
-            if (!addLoginResult.Succeeded || !addRoleResult.Succeeded)
+            if (!addLoginResult.Succeeded || !addRoleResult.Succeeded || !addAdminRoleResult.Succeeded)
             {
                 await userManager.DeleteAsync(user);
-                return BadRequest(new ValidationProblemDetails(ToValidationErrors(!addLoginResult.Succeeded ? addLoginResult : addRoleResult)));
+                var failedResult = !addLoginResult.Succeeded
+                    ? addLoginResult
+                    : !addRoleResult.Succeeded
+                        ? addRoleResult
+                        : addAdminRoleResult;
+                return BadRequest(new ValidationProblemDetails(ToValidationErrors(failedResult)));
             }
 
             if (!await signInManager.CanSignInAsync(user))

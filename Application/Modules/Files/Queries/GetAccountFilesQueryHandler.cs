@@ -39,14 +39,9 @@ namespace Application.Modules.Files.Queries
         {
             var criteria = request.SearchCriteria ?? new();
             var query = new Query($@"{nameof(AccountFile)}")
-                .WhereNull($@"{nameof(AccountFile.Deleted)}")
-                .Where($@"{nameof(AccountFile.AccountId)}", request.AccountId);
-
-            if (criteria.StartDate.HasValue)
-                query.Where($@"{nameof(AccountFile.Created)}", ">=", criteria.StartDate.Value.ToDateTimeFilterValue(engine));
-
-            if (criteria.EndDate.HasValue)
-                query.Where($@"{nameof(AccountFile.Created)}", "<=", criteria.EndDate.Value.ToDateTimeFilterValue(engine));
+                .WhereNull($@"{nameof(AccountFile.DeletedUtc)}")
+                .Where($@"{nameof(AccountFile.AccountId)}", request.AccountId)
+                .ApplyUtcRange(nameof(AccountFile.CreatedUtc), criteria, engine);
 
             if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
             {
@@ -68,9 +63,9 @@ namespace Application.Modules.Files.Queries
                 nameof(AccountFile.FileName) => nameof(AccountFile.FileName),
                 nameof(AccountFile.ContentType) => nameof(AccountFile.ContentType),
                 nameof(AccountFile.Size) => nameof(AccountFile.Size),
-                nameof(AccountFile.Created) => nameof(AccountFile.Created),
-                nameof(AccountFile.Modified) => nameof(AccountFile.Modified),
-                _ => nameof(AccountFile.Created)
+                nameof(AccountFile.CreatedUtc) => nameof(AccountFile.CreatedUtc),
+                nameof(AccountFile.ModifiedUtc) => nameof(AccountFile.ModifiedUtc),
+                _ => nameof(AccountFile.CreatedUtc)
             };
 
             if (ascendingSort)

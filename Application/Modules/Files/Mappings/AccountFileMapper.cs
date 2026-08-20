@@ -9,7 +9,7 @@ namespace Application.Modules.Files.Mappings
     {
         [MapperIgnoreSource(nameof(AccountFile.AccountId))]
         [MapperIgnoreSource(nameof(AccountFile.Path))]
-        [MapperIgnoreSource(nameof(AccountFile.Deleted))]
+        [MapperIgnoreSource(nameof(AccountFile.DeletedUtc))]
         public partial AccountFileModel Map(AccountFile entity);
 
         public AccountFile Map(AccountFileModel model)

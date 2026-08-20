@@ -13,8 +13,8 @@ namespace Application.Modules.Files.Dtos
 
         public long Size { get; init; }
 
-        public DateTime Created { get; init; }
+        public DateTime CreatedUtc { get; init; }
 
-        public DateTime Modified { get; init; }
+        public DateTime ModifiedUtc { get; init; }
     }
 }

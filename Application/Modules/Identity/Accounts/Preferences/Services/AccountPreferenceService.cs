@@ -8,7 +8,7 @@ namespace Application.Modules.Identity.Accounts.Preferences.Services
         public async Task<AccountPreference?> Get(Guid accountId, CancellationToken cancellationToken = default)
         {
             var query = repository.Query(nameof(AccountPreference))
-                .WhereNull(nameof(AccountPreference.Deleted))
+                .WhereNull(nameof(AccountPreference.DeletedUtc))
                 .Where(nameof(AccountPreference.AccountId), accountId)
                 .Limit(1);
 

@@ -27,20 +27,15 @@ namespace Application.Modules.Identity.AccountActivity.Queries
         {
             var criteria = request.SearchCriteria ?? new();
             var query = new Query(nameof(Domain.Modules.Identity.AccountActivity))
-                .WhereNull(nameof(Domain.Modules.Identity.AccountActivity.Deleted))
-                .Where(nameof(Domain.Modules.Identity.AccountActivity.AccountId), request.AccountId);
+                .WhereNull(nameof(Domain.Modules.Identity.AccountActivity.DeletedUtc))
+                .Where(nameof(Domain.Modules.Identity.AccountActivity.AccountId), request.AccountId)
+                .ApplyUtcRange(nameof(Domain.Modules.Identity.AccountActivity.CreatedUtc), criteria, engine);
 
             if (!string.IsNullOrWhiteSpace(request.Module))
                 query.Where(nameof(Domain.Modules.Identity.AccountActivity.Module), request.Module.Trim());
 
             if (!string.IsNullOrWhiteSpace(request.Action))
                 query.Where(nameof(Domain.Modules.Identity.AccountActivity.Action), request.Action.Trim());
-
-            if (criteria.StartDate.HasValue)
-                query.Where(nameof(Domain.Modules.Identity.AccountActivity.CreatedUtc), ">=", criteria.StartDate.Value.ToDateTimeFilterValue(engine));
-
-            if (criteria.EndDate.HasValue)
-                query.Where(nameof(Domain.Modules.Identity.AccountActivity.CreatedUtc), "<=", criteria.EndDate.Value.ToDateTimeFilterValue(engine));
 
             if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
             {

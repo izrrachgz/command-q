@@ -9,16 +9,16 @@ namespace Application.Modules.Identity.Accounts.Preferences.Mappings
     {
         [MapperIgnoreTarget(nameof(AccountPreference.Id))]
         [MapperIgnoreTarget(nameof(AccountPreference.AccountId))]
-        [MapperIgnoreTarget(nameof(AccountPreference.Created))]
-        [MapperIgnoreTarget(nameof(AccountPreference.Modified))]
-        [MapperIgnoreTarget(nameof(AccountPreference.Deleted))]
+        [MapperIgnoreTarget(nameof(AccountPreference.CreatedUtc))]
+        [MapperIgnoreTarget(nameof(AccountPreference.ModifiedUtc))]
+        [MapperIgnoreTarget(nameof(AccountPreference.DeletedUtc))]
         public partial AccountPreference Map(AccountPreferenceModel model);
 
         [MapperIgnoreSource(nameof(AccountPreference.Id))]
         [MapperIgnoreSource(nameof(AccountPreference.AccountId))]
-        [MapperIgnoreSource(nameof(AccountPreference.Created))]
-        [MapperIgnoreSource(nameof(AccountPreference.Modified))]
-        [MapperIgnoreSource(nameof(AccountPreference.Deleted))]
+        [MapperIgnoreSource(nameof(AccountPreference.CreatedUtc))]
+        [MapperIgnoreSource(nameof(AccountPreference.ModifiedUtc))]
+        [MapperIgnoreSource(nameof(AccountPreference.DeletedUtc))]
         public partial AccountPreferenceModel Map(AccountPreference entity);
     }
 }

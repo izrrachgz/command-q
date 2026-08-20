@@ -25,6 +25,7 @@ namespace Persistence.Repository
             if (engine == DatabaseEngine.SqLite)
             {
                 SqlMapper.AddTypeHandler(SqliteGuidTypeHandler.Instance);
+                SqlMapper.AddTypeHandler(SqliteUtcDateTimeTypeHandler.Instance);
             }
 
             return engine switch

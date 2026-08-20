@@ -2,7 +2,6 @@ using Public;
 using FluentValidation;
 using Application.Constants;
 using Common.Models.Request;
-using Application.Extensions;
 using Localization.Providers;
 
 namespace Application.Validation
@@ -43,24 +42,6 @@ namespace Application.Validation
                     nameof(ValidationText.Search_Date_Range_Order),
                     nameof(SearchCriteria.EndDate),
                     nameof(SearchCriteria.StartDate)));
-            RuleFor(x => x.TimeZone)
-                .NotEmpty()
-                .When(HasDateRangeValue)
-                .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), nameof(SearchCriteria.TimeZone)));
-            RuleFor(x => x.TimeZone)
-                .MaximumLength(ValidationLimits.TimeZoneMaxLength)
-                .WithMessage(messages.Get(
-                    nameof(ValidationText.Field_Cannot_Exceed),
-                    nameof(SearchCriteria.TimeZone),
-                    ValidationLimits.TimeZoneMaxLength))
-                .Must(DateTimeUtcExtensions.IsValidTimeZone)
-                .When(x => !string.IsNullOrWhiteSpace(x.TimeZone))
-                .WithMessage(messages.Get(nameof(ValidationText.Search_TimeZone_Invalid), nameof(SearchCriteria.TimeZone)));
-        }
-
-        private static bool HasDateRangeValue(SearchCriteria criteria)
-        {
-            return criteria.StartDate.HasValue || criteria.EndDate.HasValue;
         }
 
         private static bool IsUtc(DateTimeOffset? value)

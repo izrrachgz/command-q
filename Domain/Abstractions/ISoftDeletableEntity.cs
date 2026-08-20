@@ -9,6 +9,6 @@ namespace Domain.Abstractions
         /// <summary>
         /// Date and time when the entity was soft-deleted, when applicable.
         /// </summary>
-        DateTime? Deleted { get; set; }
+        DateTime? DeletedUtc { get; set; }
     }
 }

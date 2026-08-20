@@ -44,6 +44,7 @@ export const TRANSLATIONS: Record<SupportedCulture, Record<string, string>> = {
     'admin.configurations.empty':
       'No application configuration snapshots match the current filters.',
     'admin.configurations.environment': 'Environment',
+    'admin.configurations.instance': 'Instance',
     'admin.configurations.loadFailed': 'Application configuration history could not be loaded.',
     'admin.configurations.title': 'Application configuration history',
     'admin.configurations.total': 'Total snapshots',
@@ -209,6 +210,7 @@ export const TRANSLATIONS: Record<SupportedCulture, Record<string, string>> = {
     'admin.accounts.username': 'Usuario',
     'admin.configurations.empty': 'No hay configuraciones de aplicacion con los filtros actuales.',
     'admin.configurations.environment': 'Entorno',
+    'admin.configurations.instance': 'Instancia',
     'admin.configurations.loadFailed':
       'No se pudo cargar el historial de configuracion de la aplicacion.',
     'admin.configurations.title': 'Historial de configuracion de la aplicacion',

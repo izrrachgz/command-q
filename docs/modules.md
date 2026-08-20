@@ -69,7 +69,7 @@ Use this checklist when removing a module.
 - Keep `Identity` and `Health` unless the replacement module is already in place.
 - Use Identity account activity as the queryable audit trail for business account actions instead of per-account application log files. IdentityServer keeps authentication security events in its own database.
 - Account preferences are soft-deletable and have one active row per account. `PUT /Account/preferences` records the complete saved preference payload in account activity metadata; `GET /Account/preferences` returns the active row.
-- Application configuration history is read-only and admin-only at `GET /Admin/configurations`. Startup records authoritative server values after application migrations complete; clients cannot append snapshots.
+- Application configuration history is read-only and admin-only at `GET /Admin/configurations`. Startup records authoritative server values and the server instance name after application migrations complete; clients cannot append snapshots.
 - The Notifications module references only the reusable email and outbox contracts. Producer hosts select and register `IEmailOutboxStore`; `Email.Worker` owns delivery and retries.
 - Removing IdentityServer requires replacing the API `Authentication:Authority` with another standards-compatible issuer; do not move credentials back into the API.
 - Treat `Contacts`, `Addresses`, `Events` and `Registers` as examples until a product needs them.

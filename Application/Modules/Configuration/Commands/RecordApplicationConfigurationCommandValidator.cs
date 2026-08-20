@@ -26,6 +26,10 @@ namespace Application.Modules.Configuration.Commands
                     nameof(RecordApplicationConfigurationCommand.ServerTimeZone),
                     "invalid"));
             RuleFor(x => x.ApplicationVersion)
+                .NotEmpty()
+                .WithMessage(messages.Get(
+                    nameof(ValidationText.Field_Is_Required),
+                    nameof(RecordApplicationConfigurationCommand.ApplicationVersion)))
                 .MaximumLength(ApplicationConfigurationConstants.VersionMaxLength)
                 .WithMessage(messages.Get(
                     nameof(ValidationText.Field_Cannot_Exceed),
@@ -54,6 +58,16 @@ namespace Application.Modules.Configuration.Commands
                     nameof(ValidationText.Field_Cannot_Exceed),
                     nameof(RecordApplicationConfigurationCommand.Environment),
                     ApplicationConfigurationConstants.EnvironmentMaxLength));
+            RuleFor(x => x.InstanceName)
+                .NotEmpty()
+                .WithMessage(messages.Get(
+                    nameof(ValidationText.Field_Is_Required),
+                    nameof(RecordApplicationConfigurationCommand.InstanceName)))
+                .MaximumLength(ApplicationConfigurationConstants.InstanceNameMaxLength)
+                .WithMessage(messages.Get(
+                    nameof(ValidationText.Field_Cannot_Exceed),
+                    nameof(RecordApplicationConfigurationCommand.InstanceName),
+                    ApplicationConfigurationConstants.InstanceNameMaxLength));
         }
 
         private static bool IsValidCulture(string culture)

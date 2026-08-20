@@ -10,6 +10,7 @@ namespace Application.Migrations.Services
     internal sealed class ApplicationMigrationRunner(
         IWritableRepository repository,
         IMigrationScriptSource scriptSource,
+        TimeProvider timeProvider,
         ILogger<ApplicationMigrationRunner> logger)
     {
         private const long FirstMigrationId = 1;
@@ -126,7 +127,7 @@ namespace Application.Migrations.Services
             {
                 var query = repository.Db.Query(nameof(MigrationRecord))
                     .Select(nameof(MigrationRecord.MigrationId))
-                    .WhereNull(nameof(MigrationRecord.Deleted))
+                    .WhereNull(nameof(MigrationRecord.DeletedUtc))
                     .OrderByDesc(nameof(MigrationRecord.MigrationId))
                     .Limit(1);
 
@@ -145,7 +146,7 @@ namespace Application.Migrations.Services
             }
         }
 
-        private static object CreateMigrationRecord(MigrationScript script)
+        private object CreateMigrationRecord(MigrationScript script)
         {
             return new
             {
@@ -153,8 +154,8 @@ namespace Application.Migrations.Services
                 script.Module,
                 script.Name,
                 script.Checksum,
-                AppliedUtc = DateTime.UtcNow,
-                Deleted = (DateTime?)null
+                AppliedUtc = timeProvider.GetUtcNow().UtcDateTime,
+                DeletedUtc = (DateTime?)null
             };
         }
     }

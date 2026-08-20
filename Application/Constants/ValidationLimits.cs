@@ -7,7 +7,5 @@ namespace Application.Constants
         public const int MinLength = 8;
 
         public const int MaxSearchPageSize = 100;
-
-        public const int TimeZoneMaxLength = 64;
     }
 }

@@ -1,6 +1,5 @@
 using Public;
 using Common.Cqrs;
-using System.Reflection;
 using SqlKata.Execution;
 using Common.Models.Response;
 using Persistence.Abstractions;
@@ -10,6 +9,7 @@ namespace Application.Modules.Configuration.Commands
 {
     internal sealed class RecordApplicationConfigurationCommandHandler(
         IWritableRepository repository,
+        TimeProvider timeProvider,
         ITextProvider messages)
         : ICommandHandler<RecordApplicationConfigurationCommand, BasicResponse>
     {
@@ -17,26 +17,28 @@ namespace Application.Modules.Configuration.Commands
             RecordApplicationConfigurationCommand request,
             CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = timeProvider.GetUtcNow().UtcDateTime;
             var entity = new Domain.Modules.Configuration.ApplicationConfiguration
             {
                 ServerTimeZone = request.ServerTimeZone.Trim(),
-                ApplicationVersion = ResolveVersion(request.ApplicationVersion),
+                ApplicationVersion = request.ApplicationVersion.Trim(),
                 Language = request.Language.Trim(),
                 Environment = request.Environment.Trim(),
-                Created = now,
-                Modified = now
+                InstanceName = request.InstanceName.Trim(),
+                CreatedUtc = now,
+                ModifiedUtc = now
             };
 
             entity.Id = await repository.Db.Query(nameof(Domain.Modules.Configuration.ApplicationConfiguration))
-                .InsertGetIdAsync<short>(new
+                .InsertGetIdAsync<int>(new
                 {
                     entity.ServerTimeZone,
                     entity.ApplicationVersion,
                     entity.Language,
                     entity.Environment,
-                    entity.Created,
-                    entity.Modified
+                    entity.InstanceName,
+                    entity.CreatedUtc,
+                    entity.ModifiedUtc
                 }, cancellationToken: cancellationToken);
 
             return entity.Id > 0
@@ -48,14 +50,5 @@ namespace Application.Modules.Configuration.Commands
                     messages.Get(nameof(Messages.Cannot_Create), nameof(Domain.Modules.Configuration.ApplicationConfiguration)));
         }
 
-        private static string ResolveVersion(string? requestedVersion)
-        {
-            if (!string.IsNullOrWhiteSpace(requestedVersion))
-                return requestedVersion.Trim();
-
-            return Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-                ?? Assembly.GetEntryAssembly()?.GetName().Version?.ToString()
-                ?? "unknown";
-        }
     }
 }

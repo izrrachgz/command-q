@@ -5,11 +5,11 @@ SET time_zone = '+00:00';
 -- =========================
 CREATE TABLE HealthCheckLog (
     Id BIGINT NOT NULL AUTO_INCREMENT,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
-    INDEX IX_HealthCheckLog_Created (Deleted, Created)
+    INDEX IX_HealthCheckLog_CreatedUtc (DeletedUtc, CreatedUtc)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -19,14 +19,14 @@ CREATE TABLE Account (
     Id CHAR(36) NOT NULL,
     Username VARCHAR(256) NOT NULL,
     Email VARCHAR(256) NOT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
-    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN DeletedUtc IS NULL THEN 1 ELSE NULL END) STORED,
     PRIMARY KEY (Id),
     UNIQUE KEY UX_Account_Username (Username, ActiveRecord),
     UNIQUE KEY UX_Account_Email (Email, ActiveRecord),
-    INDEX IX_Account_Active (Deleted, Username, Email, Created)
+    INDEX IX_Account_Active (DeletedUtc, Username, Email, CreatedUtc)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -37,14 +37,14 @@ CREATE TABLE AccountIdentity (
     AccountId CHAR(36) NOT NULL,
     Issuer VARCHAR(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
     Subject VARCHAR(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
-    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN DeletedUtc IS NULL THEN 1 ELSE NULL END) STORED,
     PRIMARY KEY (Id),
     CONSTRAINT FK_AccountIdentity_Account
         FOREIGN KEY (AccountId) REFERENCES Account(Id),
-    INDEX IX_AccountIdentity_AccountId (Deleted, AccountId),
+    INDEX IX_AccountIdentity_AccountId (DeletedUtc, AccountId),
     UNIQUE KEY UX_AccountIdentity_Issuer_Subject (Issuer, Subject, ActiveRecord)
 ) ENGINE=InnoDB;
 
@@ -63,14 +63,13 @@ CREATE TABLE AccountActivity (
     IpAddress VARCHAR(64) NULL,
     UserAgent VARCHAR(512) NULL,
     CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
     FOREIGN KEY (AccountId) REFERENCES Account(Id),
-    INDEX IX_AccountActivity_AccountId_CreatedUtc (Deleted, AccountId, CreatedUtc),
-    INDEX IX_AccountActivity_Module_Action (Deleted, `Module`, `Action`, CreatedUtc),
-    INDEX IX_AccountActivity_Entity (Deleted, EntityType, EntityId)
+    INDEX IX_AccountActivity_AccountId_CreatedUtc (DeletedUtc, AccountId, CreatedUtc),
+    INDEX IX_AccountActivity_Module_Action (DeletedUtc, `Module`, `Action`, CreatedUtc),
+    INDEX IX_AccountActivity_Entity (DeletedUtc, EntityType, EntityId)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -86,15 +85,14 @@ CREATE TABLE AccountPreference (
     ReduceMotion BOOLEAN NOT NULL DEFAULT FALSE,
     ShowDenseTables BOOLEAN NOT NULL DEFAULT FALSE,
     TimeZone VARCHAR(64) NOT NULL DEFAULT 'America/Hermosillo',
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
-    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN DeletedUtc IS NULL THEN 1 ELSE NULL END) STORED,
     PRIMARY KEY (Id),
     CONSTRAINT FK_AccountPreference_Account FOREIGN KEY (AccountId) REFERENCES Account(Id),
     CONSTRAINT CK_AccountPreference_Theme CHECK (Theme IN (0, 1)),
-    UNIQUE KEY UX_AccountPreference_AccountId (AccountId, ActiveRecord),
-    INDEX IX_AccountPreference_TimeZone (Deleted, TimeZone)
+    UNIQUE KEY UX_AccountPreference_AccountId (AccountId, ActiveRecord)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -115,14 +113,14 @@ CREATE TABLE Address (
     Country VARCHAR(128) NOT NULL,
     Phone VARCHAR(24) NULL,
     EmailAddress VARCHAR(256) NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
     FOREIGN KEY (AccountId) REFERENCES Account(Id),
-    INDEX IX_Address_AccountId (Deleted, AccountId),
-    INDEX IX_Address_Location (Deleted, Country, City, PostalCode),
-    INDEX IX_Address_Created (Deleted, Created)
+    INDEX IX_Address_AccountId (DeletedUtc, AccountId),
+    INDEX IX_Address_Location (DeletedUtc, Country, City, PostalCode),
+    INDEX IX_Address_CreatedUtc (DeletedUtc, CreatedUtc)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -135,13 +133,13 @@ CREATE TABLE Contact (
     Description TEXT NULL,
     EmailAddress VARCHAR(256) NULL,
     PhoneNumber VARCHAR(256) NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
     FOREIGN KEY (AccountId) REFERENCES Account(Id),
-    INDEX IX_Contact_AccountId (Deleted, AccountId),
-    INDEX IX_Contact_Email (Deleted, EmailAddress)
+    INDEX IX_Contact_AccountId (DeletedUtc, AccountId),
+    INDEX IX_Contact_Email (DeletedUtc, EmailAddress)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -154,14 +152,14 @@ CREATE TABLE AccountFile (
     Path VARCHAR(1024) NOT NULL,
     ContentType VARCHAR(256) NULL,
     Size BIGINT NOT NULL DEFAULT 0,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
     FOREIGN KEY (AccountId) REFERENCES Account(Id),
-    INDEX IX_AccountFile_AccountId (Deleted, AccountId),
-    INDEX IX_AccountFile_Created (Deleted, Created),
-    INDEX IX_AccountFile_FileName (Deleted, FileName)
+    INDEX IX_AccountFile_AccountId (DeletedUtc, AccountId),
+    INDEX IX_AccountFile_CreatedUtc (DeletedUtc, CreatedUtc),
+    INDEX IX_AccountFile_FileName (DeletedUtc, FileName)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -171,14 +169,14 @@ CREATE TABLE Event (
     Id BIGINT NOT NULL AUTO_INCREMENT,
     Name VARCHAR(256) NOT NULL,
     Description TEXT NULL,
-    `Start` DATETIME(6) NOT NULL,
-    `End` DATETIME(6) NOT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    StartUtc DATETIME(6) NOT NULL,
+    EndUtc DATETIME(6) NOT NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
-    INDEX IX_Event_Start_End (Deleted, `Start`, `End`),
-    INDEX IX_Event_Name (Deleted, Name)
+    INDEX IX_Event_StartUtc_EndUtc (DeletedUtc, StartUtc, EndUtc),
+    INDEX IX_Event_Name (DeletedUtc, Name)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -188,11 +186,11 @@ CREATE TABLE Place (
     Id BIGINT NOT NULL AUTO_INCREMENT,
     Name VARCHAR(256) NOT NULL,
     Description TEXT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
-    INDEX IX_Place_Name (Deleted, Name)
+    INDEX IX_Place_Name (DeletedUtc, Name)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -202,14 +200,14 @@ CREATE TABLE `Register` (
     Id BIGINT NOT NULL AUTO_INCREMENT,
     AccountId CHAR(36) NOT NULL,
     Action SMALLINT NOT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
     FOREIGN KEY (AccountId) REFERENCES Account(Id),
-    INDEX IX_Register_AccountId (Deleted, AccountId),
-    INDEX IX_Register_Created (Deleted, Created),
-    INDEX IX_Register_Action (Deleted, Action, Created)
+    INDEX IX_Register_AccountId (DeletedUtc, AccountId),
+    INDEX IX_Register_CreatedUtc (DeletedUtc, CreatedUtc),
+    INDEX IX_Register_Action (DeletedUtc, Action, CreatedUtc)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -219,16 +217,16 @@ CREATE TABLE RegisterEvent (
     Id BIGINT NOT NULL AUTO_INCREMENT,
     RegisterId BIGINT NOT NULL,
     EventId BIGINT NOT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
-    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN DeletedUtc IS NULL THEN 1 ELSE NULL END) STORED,
     FOREIGN KEY (RegisterId) REFERENCES `Register`(Id),
     FOREIGN KEY (EventId) REFERENCES Event(Id),
     UNIQUE KEY UX_RegisterEvent_Unique (RegisterId, EventId, ActiveRecord),
-    INDEX IX_RegisterEvent_RegisterId (Deleted, RegisterId),
-    INDEX IX_RegisterEvent_EventId (Deleted, EventId)
+    INDEX IX_RegisterEvent_RegisterId (DeletedUtc, RegisterId),
+    INDEX IX_RegisterEvent_EventId (DeletedUtc, EventId)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -238,33 +236,33 @@ CREATE TABLE RegisterPlace (
     Id BIGINT NOT NULL AUTO_INCREMENT,
     RegisterId BIGINT NOT NULL,
     PlaceId BIGINT NOT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
-    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN DeletedUtc IS NULL THEN 1 ELSE NULL END) STORED,
     FOREIGN KEY (RegisterId) REFERENCES `Register`(Id),
     FOREIGN KEY (PlaceId) REFERENCES Place(Id),
     UNIQUE KEY UX_RegisterPlace_Unique (RegisterId, PlaceId, ActiveRecord),
-    INDEX IX_RegisterPlace_RegisterId (Deleted, RegisterId),
-    INDEX IX_RegisterPlace_PlaceId (Deleted, PlaceId)
+    INDEX IX_RegisterPlace_RegisterId (DeletedUtc, RegisterId),
+    INDEX IX_RegisterPlace_PlaceId (DeletedUtc, PlaceId)
 ) ENGINE=InnoDB;
 
 -- =========================
 -- ApplicationConfiguration
 -- =========================
 CREATE TABLE ApplicationConfiguration (
-    Id SMALLINT NOT NULL AUTO_INCREMENT,
+    Id INT NOT NULL AUTO_INCREMENT,
     ServerTimeZone VARCHAR(64) NOT NULL DEFAULT 'America/Hermosillo',
     ApplicationVersion VARCHAR(64) NOT NULL,
     Language VARCHAR(16) NOT NULL DEFAULT 'en-US',
     Environment VARCHAR(64) NOT NULL,
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
+    InstanceName VARCHAR(128) NOT NULL,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
     PRIMARY KEY (Id),
-    INDEX IX_ApplicationConfiguration_Created (Deleted, Created),
-    INDEX IX_ApplicationConfiguration_Version (Deleted, ApplicationVersion, Environment)
+    INDEX IX_ApplicationConfiguration_CreatedUtc (DeletedUtc, CreatedUtc)
 ) ENGINE=InnoDB;
 
 -- =========================
@@ -277,14 +275,14 @@ CREATE TABLE MigrationRecord (
     `Name` VARCHAR(256) NOT NULL,
     Checksum VARCHAR(128) NOT NULL,
     AppliedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Created DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Modified DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
-    Deleted DATETIME(6) NULL,
-    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN Deleted IS NULL THEN 1 ELSE NULL END) STORED,
+    CreatedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    ModifiedUtc DATETIME(6) NOT NULL DEFAULT (UTC_TIMESTAMP(6)),
+    DeletedUtc DATETIME(6) NULL,
+    ActiveRecord TINYINT GENERATED ALWAYS AS (CASE WHEN DeletedUtc IS NULL THEN 1 ELSE NULL END) STORED,
     PRIMARY KEY (Id),
     UNIQUE KEY UX_MigrationRecord_MigrationId (MigrationId, ActiveRecord)
 ) ENGINE=InnoDB;
 
-INSERT INTO MigrationRecord (MigrationId, `Module`, `Name`, Checksum, AppliedUtc, Deleted)
+INSERT INTO MigrationRecord (MigrationId, `Module`, `Name`, Checksum, AppliedUtc, DeletedUtc)
 VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', UTC_TIMESTAMP(6), NULL);
 

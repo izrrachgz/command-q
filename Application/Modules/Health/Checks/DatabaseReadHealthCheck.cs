@@ -37,8 +37,8 @@ namespace Application.Modules.Health.Checks
             try
             {
                 var query = readOnlyRepository.Query(nameof(HealthCheckLog))
-                    .WhereNull(nameof(HealthCheckLog.Deleted))
-                    .OrderByDesc(nameof(HealthCheckLog.Modified))
+                    .WhereNull(nameof(HealthCheckLog.DeletedUtc))
+                    .OrderByDesc(nameof(HealthCheckLog.ModifiedUtc))
                     .Limit(1);
 
                 HealthCheckLog? record = await readOnlyRepository.FirstOrDefaultAsync<HealthCheckLog>(query, cancellationToken);
@@ -50,7 +50,7 @@ namespace Application.Modules.Health.Checks
                     return HealthCheckResult.Healthy(HealthyMessage);
                 }
 
-                string detail = $"Application is able to read health check data, last record modified at: {record.Modified:G}.";
+                string detail = $"Application is able to read health check data, last record modified at: {record.ModifiedUtc:G}.";
 
                 return HealthCheckResult.Healthy(detail);
             }
