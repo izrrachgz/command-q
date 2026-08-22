@@ -9,7 +9,7 @@ namespace Api.Modules.Configuration
 {
     [ApiController, Route(ConfigurationRouteConstants.Root)]
     [Authorize(Roles = AuthorizationRoles.Admin)]
-    public sealed class ApplicationConfigurationController(ISender mediator) : ControllerBase
+    public sealed class ConfigurationController(ISender mediator) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] SearchCriteria searchCriteria, CancellationToken cancellationToken)

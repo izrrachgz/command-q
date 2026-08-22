@@ -1018,10 +1018,10 @@
           ]
         },
         {
-          "name": "Application configuration",
+          "name": "Configuration",
           "item": [
             {
-              "name": "Get application configuration history",
+              "name": "Get configuration history",
               "request": {
                 "method": "GET",
                 "header": [],
@@ -1060,7 +1060,7 @@
                     }
                   ]
                 },
-                "description": "Returns newest-first application configuration snapshots, including the recording server instance. The access token must contain the Admin role. Enable StartDate and EndDate together to filter startup time by an ISO-8601 UTC range."
+                "description": "Returns newest-first configuration snapshots, including the recording server instance. The access token must contain the Admin role. Enable StartDate and EndDate together to filter startup time by an ISO-8601 UTC range."
               },
               "response": [],
               "event": [
@@ -1069,7 +1069,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test(\"Application configuration history is available\", () => pm.response.to.have.status(200));"
+                      "pm.test(\"Configuration history is available\", () => pm.response.to.have.status(200));"
                     ]
                   }
                 }

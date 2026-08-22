@@ -87,9 +87,9 @@ IdentityServer sign-in and API authorization are separate. Identity account endp
 After provisioning, run `Save account preferences` before `Get account
 preferences`; the save request intentionally omits `accountId` because the API
 always replaces it with the authenticated account ID. The application
-configuration requests under `03 - Application API / Application
-configuration` and the identity-administration requests require an access token
-containing the `Admin` role. Application configuration history is read-only;
+configuration requests under `03 - Application API / Configuration` and the
+identity-administration requests require an access token
+containing the `Admin` role. Configuration history is read-only;
 the API records authoritative server values during startup.
 
 ## Paged Search Filters
