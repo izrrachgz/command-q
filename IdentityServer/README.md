@@ -76,6 +76,13 @@ Connector/NET package families as application persistence. EF Core's SQLite
 provider uses `Microsoft.Data.Sqlite`; the application's SqlKata implementation
 continues to use `System.Data.SQLite` independently.
 
+All EF `DateTime` properties, including nullable OpenIddict timestamps, use the
+IdentityServer UTC converter. It rejects non-UTC values before persistence and
+restores `DateTimeKind.Utc` when providers return timezone-neutral values.
+`DateTimeOffset` remains in use for ASP.NET Identity and OpenIddict contracts
+that own that type. This convention applies to all four provider models without
+changing their relational column types.
+
 The Development issuer is `https://localhost:7125/`. Important endpoints include:
 
 - `POST /account/register`

@@ -65,6 +65,7 @@ This file captures practical repository knowledge for coding agents working in t
 - OpenIddict uses an isolated database named `command_q_identity` through EF Core stores.
 - IdentityServer supports `PgSql`, `MsSql`, `MySql` and `SqLite` through `IdentityServer:ConnectionStrings:Engine`.
 - Keep IdentityServer on EF Core. Do not introduce SqlKata into this host or share the application's persistence registration.
+- Every EF `DateTime` property uses the IdentityServer UTC converter, including nullable OpenIddict timestamps. It rejects non-UTC writes and restores `DateTimeKind.Utc` after provider reads; keep this convention active for all four provider models.
 - The shared Identity/OpenIddict model lives in `IdentityServerDbContext`; provider-specific contexts under `IdentityServer/Persistence/Providers` select the EF provider and migration set.
 - ASP.NET Core Identity owns local users, password hashing, lockout, roles, claims and external login links.
 - OpenIddict owns clients, scopes, authorizations, access/refresh tokens and revocation. Access tokens are signed `at+jwt` tokens; authorization and refresh tokens remain encrypted.

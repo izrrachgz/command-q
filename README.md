@@ -647,9 +647,9 @@ application migrations to have been applied. Architecture and helper tests can
 still be run independently with `--filter` when no database is available.
 
 `IdentityServer.Test` verifies authorization-server dependency boundaries,
-provider selection, provider migration snapshots, SQLite migration execution,
-password hashing, lockout, external-login persistence and security-event
-storage.
+provider selection, provider migration snapshots, UTC conversion across all
+provider models, SQLite migration and UTC round-trip behavior, password hashing,
+lockout, external-login persistence and security-event storage.
 
 `Email.Test` verifies project dependency and logging rules, configuration
 validation, MIME message construction, policy limits, structured delivery

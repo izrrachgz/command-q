@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using IdentityServer.Modules.Accounts;
+using IdentityServer.Persistence.Converters;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace IdentityServer.Persistence
@@ -8,6 +9,12 @@ namespace IdentityServer.Persistence
         : IdentityDbContext<IdentityUser, IdentityRole, Guid>(options)
     {
         public DbSet<IdentitySecurityEvent> SecurityEvents => Set<IdentitySecurityEvent>();
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            base.ConfigureConventions(configurationBuilder);
+            configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
