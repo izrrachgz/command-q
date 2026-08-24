@@ -1,3 +1,4 @@
+using NodaTime;
 using Email.Outbox.Constants;
 
 namespace Email.Outbox.Models
@@ -20,7 +21,7 @@ namespace Email.Outbox.Models
         string LockId,
         int AttemptCount,
         string? CorrelationId,
-        DateTime CreatedUtc = default,
+        Instant CreatedUtc,
         string ProfileName = EmailOutboxConstants.DefaultProfileName,
         string? TraceParent = null,
         string? TraceState = null);

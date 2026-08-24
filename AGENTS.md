@@ -223,6 +223,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Supported SMTP authentication types are `Anonymous`, `Login`, `Plain` and `OAuth`. Only the selected authentication section is consumed. OAuth expects an already-issued access token and does not acquire, refresh or persist tokens.
 - Authenticated modes require `StartTls` or `SslOnConnect`; do not weaken this validation or bypass certificate validation.
 - `IEmailSender` returns `EmailSendResult`/`EmailBatchResult` with message IDs and SMTP responses. `EmailDeliveryException` exposes failure classification and messages accepted before a partial batch failure.
+- Email timestamps use NodaTime `Instant`, current-time reads use the DI-provided `TimeProvider`, and the canonical email timezone is UTC. Register test or host providers before email services so `TryAddSingleton(TimeProvider.System)` preserves the override.
 - `IEmailSender` monitors `EmailOptions`; SMTP endpoint, sender, authentication, delivery limits and supplied OAuth tokens apply to the next batch. Each batch captures one valid options snapshot and creates its own transport. Reload logs contain safe metadata only.
 - `IEmailSender.SendAsync(IEnumerable<EmailMessage>)` validates the full batch and configured delivery limits, opens one connection, authenticates once, sends sequentially, disconnects once and disposes the SMTP client.
 - File, byte and copied-stream attachments are supported. HTML messages may include `EmailInlineResource` items referenced through `cid:` URLs. Caller-owned streams are copied and are never retained or disposed by the library.
@@ -240,6 +241,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `IEmailOutboxProcessor` sends a claimed batch through one `IEmailSender` batch call, handles partial acceptance, schedules exponential retries and dead-letters permanent or exhausted failures.
 - Delivery is at least once. A crash between SMTP acceptance and the database update can produce a duplicate; message workflows must tolerate this.
 - Complete bodies and attachments are stored in the outbox database. Treat that database according to the sensitivity of its content.
+- Outbox timestamps and scheduling boundaries use NodaTime `Instant`; lease and retry intervals use `Duration`. Do not reintroduce `DateTime.UtcNow`, local timestamps or offset-dependent contracts.
 - Configuration uses the `EmailOutbox` section. See `Email.Outbox/README.md`.
 - Application workflows normally enqueue through the Notifications module. A producer host must register both the outbox core and an `IEmailOutboxStore` implementation before executing those commands.
 - Producer-only hosts use `AddEmailOutboxProducer(configuration)`. Consumer hosts use `AddEmailOutbox(configuration)` or explicitly add `AddEmailOutboxProcessor()` and must also register `IEmailSender`.
@@ -247,6 +249,8 @@ This file captures practical repository knowledge for coding agents working in t
 ### Email.Outbox.Persistence
 - SqlKata implementation of `IEmailOutboxStore` using the reusable `Persistence` project through an adapter boundary.
 - Owns its schema, embedded provider scripts, `EmailOutboxMigrationRecord` ledger and migration runner. It does not use `Application.Migrations` or the application database ledger.
+- Version 1 keeps one consolidated `migration-1.sql` baseline per provider. Fold schema changes into that baseline and recreate development outbox databases until version 1 is finalized.
+- Persistence maps NodaTime instants to native UTC provider values; SQLite uses the shared seven-digit UTC text pattern ending in `Z`.
 - Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; the worker's Development settings target local MsSql `command_q`.
 - Reusable persistence options contain only `Engine` and `ConnectionString`. The CommandQ worker supplies them from `EmailWorker:EmailOutbox:Persistence`.
 - SQLite relative paths resolve against the consuming host content root, and the database directory is created when needed.
@@ -261,6 +265,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Base, QA and Production settings disable delivery and polling and leave the outbox connection empty. QA/Production also disable startup migrations until explicitly enabled.
 - Worker settings live under `EmailWorker:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`. Startup migration policy lives separately under `EmailWorker:Migrations:RunOnStartup`.
 - Worker settings are monitored at runtime. Changes apply to new polling cycles; disabling pauses the worker and re-enabling resumes it. Active batches are not reconfigured mid-flight.
+- The worker shares the registered `TimeProvider` with Email, Email.Outbox and Email.Outbox.Persistence; all current values are converted to NodaTime instants immediately.
 - Run independently with `.\scripts\run-email-worker.ps1`. The shared Visual Studio backend launch profile also starts it alongside API and IdentityServer.
 - The `Email.Worker` Visual Studio launch profile and run script set `DOTNET_ENVIRONMENT=Development`, allowing the generic host to load the worker project's user-secrets. Do not load user-secrets explicitly outside Development.
 - OAuth token acquisition and refresh remain external to the worker.

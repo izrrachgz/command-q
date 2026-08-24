@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Email.Outbox.Models;
 using System.Diagnostics.Metrics;
 
 namespace Email.Outbox.Telemetry
@@ -17,6 +18,41 @@ namespace Email.Outbox.Telemetry
         /// Gets the meter name used by the email outbox library.
         /// </summary>
         public const string MeterName = "CommandQ.Email.Outbox";
+
+        /// <summary>
+        /// Gets the activity name for enqueue operations.
+        /// </summary>
+        public const string EnqueueActivityName = "email.outbox.enqueue";
+
+        /// <summary>
+        /// Gets the activity name for batch-processing operations.
+        /// </summary>
+        public const string ProcessActivityName = "email.outbox.process";
+
+        /// <summary>
+        /// Gets the activity name for profile-specific batch processing.
+        /// </summary>
+        public const string ProfileProcessActivityName = "email.outbox.profile.process";
+
+        /// <summary>
+        /// Gets the activity name for message serialization.
+        /// </summary>
+        public const string SerializeActivityName = "email.outbox.serialize";
+
+        /// <summary>
+        /// Gets the activity name for persistence claim operations.
+        /// </summary>
+        public const string ClaimActivityName = "email.outbox.claim";
+
+        /// <summary>
+        /// Gets the activity name for retry scheduling.
+        /// </summary>
+        public const string RetryActivityName = "email.outbox.retry";
+
+        /// <summary>
+        /// Gets the activity name for dead-letter operations.
+        /// </summary>
+        public const string DeadLetterActivityName = "email.outbox.dead_letter";
 
         /// <summary>
         /// Gets the activity source used for durable queue operations.
@@ -89,5 +125,72 @@ namespace Email.Outbox.Telemetry
         /// Contains the low-cardinality tag name for an operation outcome.
         /// </summary>
         public const string OutcomeTag = "outcome";
+
+        /// <summary>
+        /// Represents a successful operation.
+        /// </summary>
+        public const string SuccessOutcome = "success";
+
+        /// <summary>
+        /// Represents a failed operation.
+        /// </summary>
+        public const string FailureOutcome = "failure";
+
+        /// <summary>
+        /// Represents an operation with no available work.
+        /// </summary>
+        public const string EmptyOutcome = "empty";
+
+        /// <summary>
+        /// Represents a newly enqueued message.
+        /// </summary>
+        public const string EnqueuedOutcome = "enqueued";
+
+        /// <summary>
+        /// Represents an enqueue request resolved through idempotency.
+        /// </summary>
+        public const string DuplicateOutcome = "duplicate";
+
+        /// <summary>
+        /// Represents a batch containing both completed and failed work.
+        /// </summary>
+        public const string PartialOutcome = "partial";
+
+        /// <summary>
+        /// Represents a batch in which every payload failed deserialization.
+        /// </summary>
+        public const string SerializationFailureOutcome = "serialization_failure";
+
+        /// <summary>
+        /// Represents an operation scheduled for another attempt.
+        /// </summary>
+        public const string RetryOutcome = "retry";
+
+        /// <summary>
+        /// Represents an operation moved to the dead-letter state.
+        /// </summary>
+        public const string DeadLetterOutcome = "dead_letter";
+
+        /// <summary>
+        /// Converts a failure kind to its stable, low-cardinality telemetry value.
+        /// </summary>
+        /// <param name="failureKind">The classified outbox delivery failure.</param>
+        /// <returns>A stable snake-case value suitable for traces and metrics.</returns>
+        public static string GetFailureCategory(EmailOutboxFailureKind failureKind)
+        {
+            return failureKind switch
+            {
+                EmailOutboxFailureKind.Disabled => "disabled",
+                EmailOutboxFailureKind.Authentication => "authentication",
+                EmailOutboxFailureKind.Connectivity => "connectivity",
+                EmailOutboxFailureKind.TransientSmtp => "transient_smtp",
+                EmailOutboxFailureKind.PermanentSmtp => "permanent_smtp",
+                EmailOutboxFailureKind.Protocol => "protocol",
+                EmailOutboxFailureKind.Serialization => "serialization",
+                EmailOutboxFailureKind.Validation => "validation",
+                EmailOutboxFailureKind.ProfileNotFound => "profile_not_found",
+                _ => "unknown"
+            };
+        }
     }
 }

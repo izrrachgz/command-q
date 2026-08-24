@@ -57,6 +57,7 @@ namespace Email.Extensions
 
         private static IServiceCollection AddEmailCore(IServiceCollection services)
         {
+            services.TryAddSingleton(TimeProvider.System);
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailOptions>, EmailOptionsValidator>());
             services.TryAddSingleton<MailKitEmailSenderFactory>();

@@ -1,3 +1,5 @@
+using NodaTime;
+using Email.Time;
 using System.Diagnostics;
 using Email.Outbox.Models;
 using Email.Worker.Logging;
@@ -54,8 +56,8 @@ namespace Email.Worker.Services
                     }
 
                     long startedAt = Stopwatch.GetTimestamp();
-                    using Activity? pollActivity = EmailWorkerTelemetry.ActivitySource.StartActivity("email.worker.poll");
-                    using Activity? batchActivity = EmailWorkerTelemetry.ActivitySource.StartActivity("email.worker.batch");
+                    using Activity? pollActivity = EmailWorkerTelemetry.ActivitySource.StartActivity(EmailWorkerTelemetry.PollActivityName);
+                    using Activity? batchActivity = EmailWorkerTelemetry.ActivitySource.StartActivity(EmailWorkerTelemetry.BatchActivityName);
 
                     try
                     {
@@ -63,8 +65,8 @@ namespace Email.Worker.Services
                             new EmailOutboxClaimRequest(
                                 currentOptions.BatchSize,
                                 _workerId,
-                                TimeSpan.FromSeconds(currentOptions.LeaseSeconds),
-                                timeProvider.GetUtcNow().UtcDateTime),
+                                Duration.FromSeconds(currentOptions.LeaseSeconds),
+                                timeProvider.GetCurrentInstant()),
                             stoppingToken);
 
                         if (result.ClaimedCount > 0)
@@ -75,11 +77,11 @@ namespace Email.Worker.Services
                                 result.RetryCount,
                                 result.DeadLetterCount,
                                 result.ReleasedCount);
-                            batchActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, "success");
-                            pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, "success");
+                            batchActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.SuccessOutcome);
+                            pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.SuccessOutcome);
                             EmailWorkerTelemetry.PollDuration.Record(
                                 Stopwatch.GetElapsedTime(startedAt).TotalSeconds,
-                                new TagList { { EmailWorkerTelemetry.OutcomeTag, "success" } });
+                                new TagList { { EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.SuccessOutcome } });
                             continue;
                         }
 
@@ -87,10 +89,10 @@ namespace Email.Worker.Services
                             TimeSpan.FromSeconds(currentOptions.PollIntervalSeconds),
                             timeProvider,
                             stoppingToken);
-                        pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, "empty");
+                        pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.EmptyOutcome);
                         EmailWorkerTelemetry.PollDuration.Record(
                             Stopwatch.GetElapsedTime(startedAt).TotalSeconds,
-                            new TagList { { EmailWorkerTelemetry.OutcomeTag, "empty" } });
+                            new TagList { { EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.EmptyOutcome } });
                     }
                     catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                     {
@@ -98,12 +100,13 @@ namespace Email.Worker.Services
                     }
                     catch (Exception exception)
                     {
-                        batchActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, "failure");
-                        batchActivity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
-                        pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, "failure");
+                        batchActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.FailureOutcome);
+                        batchActivity?.SetStatus(ActivityStatusCode.Error);
+                        pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.FailureOutcome);
+                        pollActivity?.SetStatus(ActivityStatusCode.Error);
                         EmailWorkerTelemetry.PollDuration.Record(
                             Stopwatch.GetElapsedTime(startedAt).TotalSeconds,
-                            new TagList { { EmailWorkerTelemetry.OutcomeTag, "failure" } });
+                            new TagList { { EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.FailureOutcome } });
                         logger.PollFailed(exception);
                         await Task.Delay(
                             TimeSpan.FromSeconds(currentOptions.ErrorDelaySeconds),

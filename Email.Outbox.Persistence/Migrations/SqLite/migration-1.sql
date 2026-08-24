@@ -1,18 +1,21 @@
 CREATE TABLE EmailOutboxMessage (
     Id TEXT NOT NULL PRIMARY KEY,
     Payload TEXT NOT NULL,
+    ProfileName TEXT NOT NULL DEFAULT 'default',
     IdempotencyKey TEXT NULL,
     AccountReference TEXT NULL,
     CorrelationId TEXT NULL,
+    TraceParent TEXT NULL,
+    TraceState TEXT NULL,
     Status INTEGER NOT NULL,
     AttemptCount INTEGER NOT NULL DEFAULT 0,
-    CreatedUtc DATETIME NOT NULL,
-    ModifiedUtc DATETIME NOT NULL,
-    NextAttemptUtc DATETIME NOT NULL,
-    LockedUntilUtc DATETIME NULL,
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    NextAttemptUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    LockedUntilUtc TEXT NULL,
     LockId TEXT NULL,
-    SentUtc DATETIME NULL,
-    DeadLetterUtc DATETIME NULL,
+    SentUtc TEXT NULL,
+    DeadLetterUtc TEXT NULL,
     LastFailureKind INTEGER NULL,
     LastError TEXT NULL,
     MessageId TEXT NULL,
@@ -34,8 +37,8 @@ CREATE TABLE EmailOutboxMigrationRecord (
     MigrationId INTEGER NOT NULL,
     Name TEXT NOT NULL,
     Checksum TEXT NOT NULL,
-    AppliedUtc DATETIME NOT NULL,
-    DeletedUtc DATETIME NULL
+    AppliedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    DeletedUtc TEXT NULL
 );
 
 CREATE UNIQUE INDEX UX_EmailOutboxMigrationRecord_MigrationId
@@ -45,4 +48,4 @@ WHERE DeletedUtc IS NULL;
 INSERT INTO EmailOutboxMigrationRecord
     (MigrationId, Name, Checksum, AppliedUtc, DeletedUtc)
 VALUES
-    (1, 'migration-1.sql', 'seeded-by-migration-1', CURRENT_TIMESTAMP, NULL);
+    (1, 'migration-1.sql', 'seeded-by-migration-1', strftime('%Y-%m-%d %H:%M:%f0000Z', 'now'), NULL);

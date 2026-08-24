@@ -1,3 +1,4 @@
+using Dapper;
 using System.Data.Common;
 using Common.Enumerations;
 using Persistence.Repository;
@@ -21,6 +22,7 @@ namespace Email.Outbox.Persistence.Storage
             IHostEnvironment environment,
             ILogger<WritableRepository> logger)
         {
+            SqlMapper.AddTypeHandler(UtcInstantTypeHandler.Instance);
             _engine = options.Value.Engine;
             _connectionString = ResolveConnectionString(
                 options.Value,

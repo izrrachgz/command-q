@@ -1,3 +1,4 @@
+using NodaTime;
 using Email.Outbox.Models;
 using Email.Outbox.Abstractions;
 using Microsoft.Extensions.Hosting;
@@ -44,7 +45,7 @@ namespace Email.Outbox.Test.Persistence
                 Assert.Contains("email-outbox-persistence", healthReport.Entries.Keys);
 
                 var store = host.Services.GetRequiredService<IEmailOutboxStore>();
-                DateTime utcNow = DateTime.UtcNow;
+                Instant utcNow = SystemClock.Instance.GetCurrentInstant();
                 var record = new EmailOutboxRecord(
                     Guid.NewGuid(),
                     "{\"message\":\"test\"}",
@@ -70,8 +71,8 @@ namespace Email.Outbox.Test.Persistence
                     new EmailOutboxClaimRequest(
                         10,
                         "worker-one",
-                        TimeSpan.FromMinutes(5),
-                        utcNow.AddSeconds(1)),
+                        Duration.FromMinutes(5),
+                        utcNow + Duration.FromSeconds(1)),
                     TestContext.Current.CancellationToken);
                 var claimedRecord = Assert.Single(claimed);
                 Assert.Equal(record.TraceParent, claimedRecord.TraceParent);
@@ -81,8 +82,8 @@ namespace Email.Outbox.Test.Persistence
                     new EmailOutboxClaimRequest(
                         10,
                         "worker-two",
-                        TimeSpan.FromMinutes(5),
-                        utcNow.AddSeconds(2)),
+                        Duration.FromMinutes(5),
+                        utcNow + Duration.FromSeconds(2)),
                     TestContext.Current.CancellationToken);
                 Assert.Empty(secondClaim);
 
@@ -93,7 +94,7 @@ namespace Email.Outbox.Test.Persistence
                         1,
                         "message-id",
                         "Accepted",
-                        utcNow.AddSeconds(3)),
+                        utcNow + Duration.FromSeconds(3)),
                     TestContext.Current.CancellationToken);
                 Assert.True(markedSent);
 
@@ -101,8 +102,8 @@ namespace Email.Outbox.Test.Persistence
                     new EmailOutboxClaimRequest(
                         10,
                         "worker-three",
-                        TimeSpan.FromMinutes(5),
-                        utcNow.AddMinutes(10)),
+                        Duration.FromMinutes(5),
+                        utcNow + Duration.FromMinutes(10)),
                     TestContext.Current.CancellationToken);
                 Assert.Empty(afterCompletion);
 

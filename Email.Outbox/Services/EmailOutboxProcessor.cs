@@ -1,3 +1,4 @@
+using Email.Time;
 using Email.Models;
 using Email.Exceptions;
 using System.Diagnostics;
@@ -18,7 +19,8 @@ namespace Email.Outbox.Services
         IEmailSenderFactory senderFactory,
         IEmailOutboxSerializer serializer,
         IOptions<EmailOutboxOptions> options,
-        ILogger<EmailOutboxProcessor> logger)
+        ILogger<EmailOutboxProcessor> logger,
+        TimeProvider timeProvider)
         : IEmailOutboxProcessor
     {
         private readonly EmailOutboxOptions _options = options.Value;
@@ -27,17 +29,17 @@ namespace Email.Outbox.Services
             EmailOutboxClaimRequest request,
             CancellationToken cancellationToken = default)
         {
-            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.process");
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity(EmailOutboxTelemetry.ProcessActivityName);
             IReadOnlyList<ClaimedEmailOutboxRecord> claimed;
 
             try
             {
                 claimed = await store.ClaimPendingAsync(request, cancellationToken);
             }
-            catch (Exception exception)
+            catch (Exception)
             {
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "failure");
-                activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.FailureOutcome);
+                activity?.SetStatus(ActivityStatusCode.Error);
                 throw;
             }
 
@@ -45,7 +47,7 @@ namespace Email.Outbox.Services
 
             if (claimed.Count == 0)
             {
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "empty");
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.EmptyOutcome);
                 return EmailOutboxBatchResult.Empty;
             }
 
@@ -74,7 +76,7 @@ namespace Email.Outbox.Services
             if (deliverable.Count == 0)
             {
                 EmailOutboxBatchResult emptyDeliveryResult = result.ToResult();
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "serialization_failure");
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.SerializationFailureOutcome);
                 return emptyDeliveryResult;
             }
 
@@ -97,7 +99,9 @@ namespace Email.Outbox.Services
             EmailOutboxBatchResult batchResult = result.ToResult();
             activity?.SetTag(
                 EmailOutboxTelemetry.OutcomeTag,
-                batchResult.RetryCount > 0 || batchResult.DeadLetterCount > 0 ? "partial" : "success");
+                batchResult.RetryCount > 0 || batchResult.DeadLetterCount > 0
+                    ? EmailOutboxTelemetry.PartialOutcome
+                    : EmailOutboxTelemetry.SuccessOutcome);
             return batchResult;
         }
 
@@ -107,7 +111,7 @@ namespace Email.Outbox.Services
             CancellationToken cancellationToken)
         {
             string profileName = profileBatch[0].Record.ProfileName;
-            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.profile.process");
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity(EmailOutboxTelemetry.ProfileProcessActivityName);
             activity?.SetTag(EmailOutboxTelemetry.ProfileTag, profileName);
             AddTraceLinks(activity, profileBatch);
 
@@ -129,7 +133,7 @@ namespace Email.Outbox.Services
                         cancellationToken);
                 }
 
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "dead_letter");
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.DeadLetterOutcome);
                 return;
             }
 
@@ -149,7 +153,7 @@ namespace Email.Outbox.Services
                     await MarkSent(profileBatch[index].Record, sendResult.Messages[index], result, cancellationToken);
                 }
 
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "success");
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.SuccessOutcome);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -172,7 +176,7 @@ namespace Email.Outbox.Services
                         cancellationToken);
                 }
 
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "dead_letter");
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.DeadLetterOutcome);
             }
             catch (EmailDeliveryException exception)
             {
@@ -200,7 +204,7 @@ namespace Email.Outbox.Services
                         cancellationToken);
                 }
 
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "partial");
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.PartialOutcome);
             }
             catch (Exception exception)
             {
@@ -218,7 +222,7 @@ namespace Email.Outbox.Services
                     profileBatch.Skip(1).Select(item => item.Record).ToArray(),
                     result,
                     cancellationToken);
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "partial");
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.PartialOutcome);
             }
         }
 
@@ -235,7 +239,7 @@ namespace Email.Outbox.Services
                     record.AttemptCount + 1,
                     sendResult.MessageId,
                     sendResult.SmtpResponse,
-                    sendResult.AcceptedAtUtc.UtcDateTime),
+                    sendResult.AcceptedAtUtc),
                 cancellationToken);
 
             if (updated)
@@ -254,18 +258,23 @@ namespace Email.Outbox.Services
         {
             int attemptCount = record.AttemptCount + 1;
             bool isDeadLetter = isPermanent || attemptCount >= _options.MaxAttempts;
-            DateTime failedUtc = DateTime.UtcNow;
-            DateTime nextAttemptUtc = isDeadLetter
+            var failedUtc = timeProvider.GetCurrentInstant();
+            var nextAttemptUtc = isDeadLetter
                 ? failedUtc
-                : failedUtc.Add(CalculateRetryDelay(attemptCount));
+                : failedUtc + CalculateRetryDelay(attemptCount);
             string error = Truncate(exception.GetBaseException().Message, _options.MaxErrorLength);
             using Activity? failureActivity = EmailOutboxTelemetry.ActivitySource.StartActivity(
-                isDeadLetter ? "email.outbox.dead_letter" : "email.outbox.retry");
+                isDeadLetter
+                    ? EmailOutboxTelemetry.DeadLetterActivityName
+                    : EmailOutboxTelemetry.RetryActivityName);
+            string failureCategory = EmailOutboxTelemetry.GetFailureCategory(failureKind);
             failureActivity?.SetTag(EmailOutboxTelemetry.ProfileTag, record.ProfileName);
-            failureActivity?.SetTag(EmailOutboxTelemetry.FailureCategoryTag, failureKind.ToString());
+            failureActivity?.SetTag(EmailOutboxTelemetry.FailureCategoryTag, failureCategory);
             failureActivity?.SetTag(
                 EmailOutboxTelemetry.OutcomeTag,
-                isDeadLetter ? "dead_letter" : "retry");
+                isDeadLetter
+                    ? EmailOutboxTelemetry.DeadLetterOutcome
+                    : EmailOutboxTelemetry.RetryOutcome);
 
             bool updated = await store.MarkFailedAsync(
                 new EmailOutboxFailedUpdate(
@@ -287,8 +296,8 @@ namespace Email.Outbox.Services
                     EmailOutboxTelemetry.DeadLettered.Add(1, new TagList
                     {
                         { EmailOutboxTelemetry.ProfileTag, record.ProfileName },
-                        { EmailOutboxTelemetry.FailureCategoryTag, failureKind.ToString() },
-                        { EmailOutboxTelemetry.OutcomeTag, "dead_letter" }
+                        { EmailOutboxTelemetry.FailureCategoryTag, failureCategory },
+                        { EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.DeadLetterOutcome }
                     });
                 }
                 else
@@ -297,8 +306,8 @@ namespace Email.Outbox.Services
                     EmailOutboxTelemetry.Retried.Add(1, new TagList
                     {
                         { EmailOutboxTelemetry.ProfileTag, record.ProfileName },
-                        { EmailOutboxTelemetry.FailureCategoryTag, failureKind.ToString() },
-                        { EmailOutboxTelemetry.OutcomeTag, "retry" }
+                        { EmailOutboxTelemetry.FailureCategoryTag, failureCategory },
+                        { EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.RetryOutcome }
                     });
                 }
             }
@@ -316,7 +325,10 @@ namespace Email.Outbox.Services
                 return;
             }
 
-            int released = await store.ReleaseAsync(records, DateTime.UtcNow, cancellationToken);
+            int released = await store.ReleaseAsync(
+                records,
+                timeProvider.GetCurrentInstant(),
+                cancellationToken);
             result.ReleasedCount += released;
             logger.RecordsReleased(released);
         }
@@ -339,14 +351,14 @@ namespace Email.Outbox.Services
             }
         }
 
-        private TimeSpan CalculateRetryDelay(int attemptCount)
+        private NodaTime.Duration CalculateRetryDelay(int attemptCount)
         {
             double multiplier = Math.Pow(2, Math.Max(0, attemptCount - 1));
             double seconds = Math.Min(
                 _options.BaseRetryDelaySeconds * multiplier,
                 _options.MaxRetryDelaySeconds);
 
-            return TimeSpan.FromSeconds(seconds);
+            return NodaTime.Duration.FromSeconds(seconds);
         }
 
         private static bool IsPermanent(EmailOutboxFailureKind failureKind)

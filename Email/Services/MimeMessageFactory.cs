@@ -1,17 +1,20 @@
 using MimeKit;
+using Email.Time;
 using Email.Models;
 using MimeKit.Utils;
 using Email.Configuration;
 
 namespace Email.Services
 {
-    internal sealed class MimeMessageFactory
+    internal sealed class MimeMessageFactory(TimeProvider timeProvider)
     {
         public MimeMessage Create(EmailMessage source, EmailSenderOptions defaultSender, CancellationToken cancellationToken)
         {
             var message = new MimeMessage
             {
-                Date = DateTimeOffset.UtcNow,
+                Date = timeProvider.GetCurrentInstant()
+                    .InZone(EmailTimeDefaults.TimeZone)
+                    .ToDateTimeOffset(),
                 MessageId = MimeUtils.GenerateMessageId(),
                 Subject = source.Subject
             };

@@ -1,3 +1,4 @@
+using Email.Models;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
@@ -17,6 +18,36 @@ namespace Email.Telemetry
         /// Gets the meter name used by the email library.
         /// </summary>
         public const string MeterName = "CommandQ.Email";
+
+        /// <summary>
+        /// Gets the activity name for an email delivery batch.
+        /// </summary>
+        public const string SendActivityName = "email.send";
+
+        /// <summary>
+        /// Gets the activity name for SMTP connection operations.
+        /// </summary>
+        public const string SmtpConnectActivityName = "email.smtp.connect";
+
+        /// <summary>
+        /// Gets the activity name for SMTP authentication operations.
+        /// </summary>
+        public const string SmtpAuthenticateActivityName = "email.smtp.authenticate";
+
+        /// <summary>
+        /// Gets the activity name for SMTP message delivery operations.
+        /// </summary>
+        public const string SmtpSendActivityName = "email.smtp.send";
+
+        /// <summary>
+        /// Gets the activity name for SMTP disconnect operations.
+        /// </summary>
+        public const string SmtpDisconnectActivityName = "email.smtp.disconnect";
+
+        /// <summary>
+        /// Gets the activity name for MIME construction operations.
+        /// </summary>
+        public const string MimeBuildActivityName = "email.mime.build";
 
         /// <summary>
         /// Gets the activity source used for SMTP and MIME operations.
@@ -70,5 +101,50 @@ namespace Email.Telemetry
         /// Contains the low-cardinality tag name for an operation outcome.
         /// </summary>
         public const string OutcomeTag = "outcome";
+
+        /// <summary>
+        /// Represents a successful operation.
+        /// </summary>
+        public const string SuccessOutcome = "success";
+
+        /// <summary>
+        /// Represents a failed operation.
+        /// </summary>
+        public const string FailureOutcome = "failure";
+
+        /// <summary>
+        /// Represents an operation skipped because email delivery is disabled.
+        /// </summary>
+        public const string DisabledOutcome = "disabled";
+
+        /// <summary>
+        /// Represents an operation cancelled by its caller.
+        /// </summary>
+        public const string CancelledOutcome = "cancelled";
+
+        /// <summary>
+        /// Identifies failures that occur while constructing MIME content.
+        /// </summary>
+        public const string MimeFailureCategory = "mime";
+
+        /// <summary>
+        /// Converts a failure kind to its stable, low-cardinality telemetry value.
+        /// </summary>
+        /// <param name="failureKind">The classified delivery failure.</param>
+        /// <returns>A stable snake-case value suitable for traces and metrics.</returns>
+        public static string GetFailureCategory(EmailFailureKind failureKind)
+        {
+            return failureKind switch
+            {
+                EmailFailureKind.Disabled => "disabled",
+                EmailFailureKind.Authentication => "authentication",
+                EmailFailureKind.Connectivity => "connectivity",
+                EmailFailureKind.TransientSmtp => "transient_smtp",
+                EmailFailureKind.PermanentSmtp => "permanent_smtp",
+                EmailFailureKind.Protocol => "protocol",
+                EmailFailureKind.ProfileNotFound => "profile_not_found",
+                _ => "unknown"
+            };
+        }
     }
 }

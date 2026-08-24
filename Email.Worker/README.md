@@ -27,6 +27,13 @@ migrations, and stores the queue in the local `command_q` database through its
 independent `EmailOutboxMigrationRecord` ledger. The smtp4dev web UI remains
 available at `http://localhost:5000`.
 
+The worker, SMTP sender, outbox processor and migration runner share the
+DI-provided `TimeProvider`. Current values are converted immediately to
+NodaTime `Instant`; all scheduling, leases, queue age, SMTP acceptance and
+persisted lifecycle timestamps therefore remain UTC. The default timezone is
+NodaTime UTC, and SQLite uses the shared fixed seven-digit `...Z` persistence
+pattern.
+
 Base, QA and Production settings keep delivery and polling disabled. Enable
 both `EmailWorker:Email:Enabled` and `EmailWorker:Worker:Enabled` only after
 supplying valid SMTP configuration. QA and Production also require an explicit
@@ -47,6 +54,11 @@ OpenTelemetry is disabled by default. When enabled, configure
 polling instrumentation and the `Email`, `Email.Outbox` and persistence
 instrumentation sources. Recipients, subjects, bodies, tokens, correlation
 IDs and outbox IDs are never emitted as telemetry tags.
+
+Activity names, tag keys, outcome values, failure categories and persistence
+engine values are centralized by the component that owns them. Exported values
+are stable and low-cardinality; failed activities do not expose exception type
+names or exception messages in their status descriptions.
 
 The worker passes those exact subsections to the reusable libraries. The
 persistence adapter therefore knows how to migrate, but does not decide when a

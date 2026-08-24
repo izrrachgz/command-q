@@ -484,6 +484,11 @@ telemetry uses only low-cardinality profile, engine, failure-category and
 outcome tags. Recipients, subjects, bodies, tokens, correlation IDs and outbox
 IDs are never emitted as tags.
 
+Email telemetry contracts use component-owned constants and stable snake-case
+values instead of runtime enum or exception names. Failed activities are marked
+as errors without exporting exception messages or implementation type names in
+their status descriptions.
+
 The current instrumentation measures email SMTP connection, authentication,
 MIME construction, send and disconnect operations; outbox enqueue, duplicate
 enqueue, serialize, claim, process, retry, dead-letter, batch size and queue
@@ -492,6 +497,13 @@ telemetry tags and outbox records persist only the logical profile name. The
 outbox also persists W3C trace-parent and trace-state values when an enqueue
 activity has a W3C context; the worker uses those contexts as links on the
 profile processing activity without exposing them as metric tags.
+
+The email delivery stack uses injectable `TimeProvider` instances for current
+time and NodaTime `Instant`/`Duration` contracts for timestamps and scheduling.
+Its canonical timezone is UTC. SQL Server, PostgreSQL and MySQL receive native
+UTC values, while SQLite stores the shared fixed seven-digit UTC pattern ending
+in `Z`. During version-1 development, the complete outbox schema remains folded
+into one `migration-1.sql` baseline per provider.
 
 ## Email Delivery
 

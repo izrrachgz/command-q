@@ -1,4 +1,5 @@
 using SqlKata;
+using NodaTime;
 using SqlKata.Execution;
 using System.Diagnostics;
 using Email.Outbox.Models;
@@ -7,6 +8,7 @@ using Email.Outbox.Abstractions;
 using Microsoft.Extensions.Logging;
 using Email.Outbox.Persistence.Logging;
 using Email.Outbox.Persistence.Constants;
+using Email.Outbox.Persistence.Telemetry;
 
 namespace Email.Outbox.Persistence.Storage
 {
@@ -84,14 +86,15 @@ namespace Email.Outbox.Persistence.Storage
                 throw new ArgumentOutOfRangeException(nameof(request), "The email outbox batch size must be greater than zero.");
             }
 
-            if (request.LeaseDuration <= TimeSpan.Zero)
+            if (request.LeaseDuration <= Duration.Zero)
             {
                 throw new ArgumentOutOfRangeException(nameof(request), "The email outbox lease duration must be greater than zero.");
             }
 
             using var repository = repositoryFactory.Create();
-            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.claim");
-            activity?.SetTag(EmailOutboxTelemetry.EngineTag, repositoryFactory.Engine.ToString());
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity(EmailOutboxTelemetry.ClaimActivityName);
+            string engine = EmailOutboxPersistenceTelemetry.GetEngine(repositoryFactory.Engine);
+            activity?.SetTag(EmailOutboxTelemetry.EngineTag, engine);
             int candidateLimit = request.BatchSize > int.MaxValue / EmailOutboxPersistenceConstants.CandidateMultiplier
                 ? int.MaxValue
                 : request.BatchSize * EmailOutboxPersistenceConstants.CandidateMultiplier;
@@ -115,7 +118,7 @@ namespace Email.Outbox.Persistence.Storage
                 }
 
                 string lockId = Guid.NewGuid().ToString("N");
-                DateTime lockedUntilUtc = request.UtcNow.Add(request.LeaseDuration);
+                Instant lockedUntilUtc = request.UtcNow + request.LeaseDuration;
                 Query claimQuery = ApplyClaimableFilter(
                     repository.Db.Query(EmailOutboxPersistenceConstants.OutboxTable)
                         .Where(nameof(EmailOutboxStorageRecord.Id), candidate.Id),
@@ -150,7 +153,7 @@ namespace Email.Outbox.Persistence.Storage
             {
                 var tags = new TagList
                 {
-                    { EmailOutboxTelemetry.EngineTag, repositoryFactory.Engine.ToString() },
+                    { EmailOutboxTelemetry.EngineTag, engine },
                     { EmailOutboxTelemetry.ProfileTag, profileBatch.Key }
                 };
                 EmailOutboxTelemetry.BatchSize.Record(profileBatch.Count(), tags);
@@ -162,7 +165,7 @@ namespace Email.Outbox.Persistence.Storage
                 }
             }
 
-            activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "success");
+            activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.SuccessOutcome);
             return claimed;
         }
 
@@ -181,7 +184,7 @@ namespace Email.Outbox.Persistence.Storage
                         update.SmtpResponse,
                         update.SentUtc,
                         ModifiedUtc = update.SentUtc,
-                        LockedUntilUtc = (DateTime?)null,
+                        LockedUntilUtc = (Instant?)null,
                         LockId = (string?)null,
                         LastFailureKind = (int?)null,
                         LastError = (string?)null
@@ -212,9 +215,9 @@ namespace Email.Outbox.Persistence.Storage
                         LastFailureKind = (int)update.FailureKind,
                         LastError = update.Error,
                         update.NextAttemptUtc,
-                        DeadLetterUtc = update.IsDeadLetter ? update.FailedUtc : (DateTime?)null,
+                        DeadLetterUtc = update.IsDeadLetter ? update.FailedUtc : (Instant?)null,
                         ModifiedUtc = update.FailedUtc,
-                        LockedUntilUtc = (DateTime?)null,
+                        LockedUntilUtc = (Instant?)null,
                         LockId = (string?)null
                     },
                     cancellationToken: cancellationToken);
@@ -229,7 +232,7 @@ namespace Email.Outbox.Persistence.Storage
 
         public async Task<int> ReleaseAsync(
             IReadOnlyCollection<ClaimedEmailOutboxRecord> records,
-            DateTime nextAttemptUtc,
+            Instant nextAttemptUtc,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(records);
@@ -246,7 +249,7 @@ namespace Email.Outbox.Persistence.Storage
                             Status = (int)EmailOutboxStatus.Pending,
                             NextAttemptUtc = nextAttemptUtc,
                             ModifiedUtc = nextAttemptUtc,
-                            LockedUntilUtc = (DateTime?)null,
+                        LockedUntilUtc = (Instant?)null,
                             LockId = (string?)null
                         },
                         cancellationToken: cancellationToken);
@@ -286,7 +289,7 @@ namespace Email.Outbox.Persistence.Storage
                 .Where(nameof(EmailOutboxStorageRecord.LockId), lockId);
         }
 
-        private static Query ApplyClaimableFilter(Query query, DateTime utcNow)
+        private static Query ApplyClaimableFilter(Query query, Instant utcNow)
         {
             return query.Where(eligible => eligible
                 .Where(pending => pending

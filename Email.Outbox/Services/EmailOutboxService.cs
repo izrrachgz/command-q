@@ -5,10 +5,14 @@ using Email.Outbox.Constants;
 using Email.Outbox.Telemetry;
 using Email.Outbox.Abstractions;
 using Email.Outbox.Serialization;
+using Email.Time;
 
 namespace Email.Outbox.Services
 {
-    internal sealed class EmailOutboxService(IEmailOutboxStore store, IEmailOutboxSerializer serializer)
+    internal sealed class EmailOutboxService(
+        IEmailOutboxStore store,
+        IEmailOutboxSerializer serializer,
+        TimeProvider timeProvider)
         : IEmailOutbox
     {
         public Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailMessage message, CancellationToken cancellationToken = default)
@@ -23,7 +27,7 @@ namespace Email.Outbox.Services
             ArgumentNullException.ThrowIfNull(request);
             ArgumentNullException.ThrowIfNull(request.Message);
 
-            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.enqueue");
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity(EmailOutboxTelemetry.EnqueueActivityName);
             Activity? traceActivity = activity ?? Activity.Current;
             string? traceParent = traceActivity?.IdFormat == ActivityIdFormat.W3C
                 ? traceActivity.Id
@@ -35,7 +39,7 @@ namespace Email.Outbox.Services
             try
             {
                 string payload = await serializer.SerializeAsync(request.Message, cancellationToken);
-                DateTime utcNow = DateTime.UtcNow;
+                var utcNow = timeProvider.GetCurrentInstant();
                 string profileName = Normalize(
                     request.ProfileName,
                     EmailOutboxConstants.MaxProfileNameLength,
@@ -63,7 +67,9 @@ namespace Email.Outbox.Services
                     traceState);
 
                 EmailOutboxEnqueueResult result = await store.EnqueueAsync(record, cancellationToken);
-                string outcome = result.WasDuplicate ? "duplicate" : "enqueued";
+                string outcome = result.WasDuplicate
+                    ? EmailOutboxTelemetry.DuplicateOutcome
+                    : EmailOutboxTelemetry.EnqueuedOutcome;
                 activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, outcome);
                 TagList tags = new()
                 {
@@ -82,10 +88,10 @@ namespace Email.Outbox.Services
 
                 return result;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
-                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "failure");
-                activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+                activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.FailureOutcome);
+                activity?.SetStatus(ActivityStatusCode.Error);
                 throw;
             }
         }

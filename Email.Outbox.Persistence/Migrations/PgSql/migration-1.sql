@@ -2,14 +2,17 @@ CREATE TABLE "EmailOutboxMessage"
 (
     "Id" CHAR(36) NOT NULL PRIMARY KEY,
     "Payload" TEXT NOT NULL,
+    "ProfileName" VARCHAR(64) NOT NULL DEFAULT 'default',
     "IdempotencyKey" VARCHAR(256) NULL,
     "AccountReference" VARCHAR(128) NULL,
     "CorrelationId" VARCHAR(128) NULL,
+    "TraceParent" VARCHAR(55) NULL,
+    "TraceState" VARCHAR(512) NULL,
     "Status" INTEGER NOT NULL,
     "AttemptCount" INTEGER NOT NULL DEFAULT 0,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL,
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL,
-    "NextAttemptUtc" TIMESTAMPTZ NOT NULL,
+    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "NextAttemptUtc" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "LockedUntilUtc" TIMESTAMPTZ NULL,
     "LockId" VARCHAR(64) NULL,
     "SentUtc" TIMESTAMPTZ NULL,
@@ -36,7 +39,7 @@ CREATE TABLE "EmailOutboxMigrationRecord"
     "MigrationId" BIGINT NOT NULL,
     "Name" VARCHAR(256) NOT NULL,
     "Checksum" VARCHAR(128) NOT NULL,
-    "AppliedUtc" TIMESTAMPTZ NOT NULL,
+    "AppliedUtc" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "DeletedUtc" TIMESTAMPTZ NULL
 );
 

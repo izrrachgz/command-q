@@ -1,3 +1,0 @@
-ALTER TABLE "EmailOutboxMessage"
-    ADD COLUMN "TraceParent" VARCHAR(55) NULL,
-    ADD COLUMN "TraceState" VARCHAR(512) NULL;

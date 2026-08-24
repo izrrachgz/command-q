@@ -1,5 +1,6 @@
 using MediatR;
 using Serilog;
+using NodaTime;
 using Common.Cqrs;
 using Email.Models;
 using FluentValidation;
@@ -53,7 +54,7 @@ namespace Application.Test
 
             public Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailOutboxRequest request, CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(new EmailOutboxEnqueueResult(Guid.Empty, false, DateTime.UtcNow));
+                return Task.FromResult(new EmailOutboxEnqueueResult(Guid.Empty, false, SystemClock.Instance.GetCurrentInstant()));
             }
         }
     }

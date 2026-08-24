@@ -29,6 +29,7 @@ namespace Email.Outbox.Persistence.Extensions
             services.AddOptions<EmailOutboxPersistenceOptions>()
                 .Bind(section)
                 .ValidateOnStart();
+            services.TryAddSingleton(TimeProvider.System);
             services.TryAddEnumerable(ServiceDescriptor.Singleton<
                 IValidateOptions<EmailOutboxPersistenceOptions>,
                 EmailOutboxPersistenceOptionsValidator>());

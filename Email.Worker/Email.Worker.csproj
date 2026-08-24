@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NodaTime" />
     <PackageReference Include="OpenTelemetry" />
     <ProjectReference Include="..\Email\Email.csproj" />
     <ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />

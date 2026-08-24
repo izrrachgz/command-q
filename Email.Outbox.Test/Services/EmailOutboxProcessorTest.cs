@@ -1,3 +1,4 @@
+using NodaTime;
 using Email.Models;
 using Email.Exceptions;
 using Email.Abstractions;
@@ -101,7 +102,7 @@ namespace Email.Outbox.Test.Services
                 1,
                 "accepted-message",
                 "Accepted",
-                DateTimeOffset.UtcNow);
+                SystemClock.Instance.GetCurrentInstant());
             var deliveryException = new EmailDeliveryException(
                 "Second message failed.",
                 EmailFailureKind.TransientSmtp,
@@ -131,7 +132,8 @@ namespace Email.Outbox.Test.Services
                 new FixedSenderFactory(sender),
                 serializer,
                 Options.Create(new EmailOutboxOptions()),
-                NullLogger<EmailOutboxProcessor>.Instance);
+                NullLogger<EmailOutboxProcessor>.Instance,
+                TimeProvider.System);
         }
 
         private static EmailOutboxProcessor CreateProcessor(
@@ -144,7 +146,8 @@ namespace Email.Outbox.Test.Services
                 senderFactory,
                 serializer,
                 Options.Create(new EmailOutboxOptions()),
-                NullLogger<EmailOutboxProcessor>.Instance);
+                NullLogger<EmailOutboxProcessor>.Instance,
+                TimeProvider.System);
         }
 
         private static EmailOutboxSerializer CreateSerializer()
@@ -154,7 +157,11 @@ namespace Email.Outbox.Test.Services
 
         private static EmailOutboxClaimRequest CreateClaimRequest()
         {
-            return new EmailOutboxClaimRequest(10, "test-worker", TimeSpan.FromMinutes(1), DateTime.UtcNow);
+            return new EmailOutboxClaimRequest(
+                10,
+                "test-worker",
+                Duration.FromMinutes(1),
+                SystemClock.Instance.GetCurrentInstant());
         }
 
         private static async Task<ClaimedEmailOutboxRecord> CreateClaimedRecord(
@@ -178,7 +185,7 @@ namespace Email.Outbox.Test.Services
                 Guid.NewGuid().ToString("N"),
                 0,
                 null,
-                DateTime.UtcNow,
+                SystemClock.Instance.GetCurrentInstant(),
                 profileName);
         }
 
@@ -211,7 +218,10 @@ namespace Email.Outbox.Test.Services
                 return Task.FromResult(true);
             }
 
-            public Task<int> ReleaseAsync(IReadOnlyCollection<ClaimedEmailOutboxRecord> records, DateTime nextAttemptUtc, CancellationToken cancellationToken = default)
+            public Task<int> ReleaseAsync(
+                IReadOnlyCollection<ClaimedEmailOutboxRecord> records,
+                Instant nextAttemptUtc,
+                CancellationToken cancellationToken = default)
             {
                 ReleasedRecords.AddRange(records);
                 return Task.FromResult(records.Count);
@@ -238,7 +248,7 @@ namespace Email.Outbox.Test.Services
                         index + 1,
                         $"message-{index + 1}",
                         "Accepted",
-                        DateTimeOffset.UtcNow)).ToArray()));
+                        SystemClock.Instance.GetCurrentInstant())).ToArray()));
             }
 
             public Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken cancellationToken = default) => throw new NotSupportedException();

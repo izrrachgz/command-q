@@ -1,3 +1,4 @@
+using NodaTime;
 using SqlKata.Execution;
 using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,8 @@ namespace Email.Outbox.Persistence.Migrations
     internal sealed class EmailOutboxMigrationRunner(
         EmailOutboxRepositoryFactory repositoryFactory,
         IEmailOutboxMigrationScriptSource scriptSource,
-        ILogger<EmailOutboxMigrationRunner> logger)
+        ILogger<EmailOutboxMigrationRunner> logger,
+        TimeProvider timeProvider)
     {
         private const long FirstMigrationId = 1;
 
@@ -70,8 +72,8 @@ namespace Email.Outbox.Persistence.Migrations
                                     script.MigrationId,
                                     script.Name,
                                     script.Checksum,
-                                    AppliedUtc = DateTime.UtcNow,
-                                    DeletedUtc = (DateTime?)null
+                                    AppliedUtc = Instant.FromDateTimeOffset(timeProvider.GetUtcNow()),
+                                    DeletedUtc = (Instant?)null
                                 },
                                 cancellationToken: cancellationToken);
                     }

@@ -45,6 +45,7 @@ namespace Email.Outbox.Extensions
             services.AddOptions<EmailOutboxOptions>()
                 .Bind(section)
                 .ValidateOnStart();
+            services.TryAddSingleton(TimeProvider.System);
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailOutboxOptions>, EmailOutboxOptionsValidator>());
             services.TryAddSingleton<EmailMessageValidator>();

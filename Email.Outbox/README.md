@@ -23,7 +23,14 @@ var result = await emailOutbox.EnqueueAsync(new EmailOutboxRequest
 ```
 
 `EmailOutboxEnqueueResult` returns the durable record ID and indicates whether
-the idempotency key resolved to an existing record.
+the idempotency key resolved to an existing record. Creation, claim, lease,
+retry, sent and dead-letter timestamps use NodaTime `Instant`; lease and retry
+intervals use `Duration`. These types make UTC semantics part of the contract
+instead of relying on `DateTimeKind` or caller offsets.
+
+Producer and processor registration use the host's existing `TimeProvider`, or
+register `TimeProvider.System` when none exists. Register a custom provider
+before `AddEmailOutboxProducer` when deterministic time is required.
 
 Enqueue instrumentation distinguishes newly persisted messages from duplicate
 idempotency hits. Duplicate attempts increment `email.outbox.duplicates`, while

@@ -23,31 +23,13 @@ namespace Email.Outbox.Test.Persistence
                 engine,
                 TestContext.Current.CancellationToken);
 
-            Assert.Equal(3, scripts.Count);
-            Assert.Collection(
-                scripts,
-                baseline =>
-                {
-                    Assert.Equal(1, baseline.MigrationId);
-                    Assert.Equal("migration-1.sql", baseline.Name);
-                    Assert.False(string.IsNullOrWhiteSpace(baseline.Content));
-                    Assert.Equal(64, baseline.Checksum.Length);
-                },
-                profiles =>
-                {
-                    Assert.Equal(2, profiles.MigrationId);
-                    Assert.Equal("migration-2.sql", profiles.Name);
-                    Assert.Contains("ProfileName", profiles.Content, StringComparison.Ordinal);
-                    Assert.Equal(64, profiles.Checksum.Length);
-                },
-                traces =>
-                {
-                    Assert.Equal(3, traces.MigrationId);
-                    Assert.Equal("migration-3.sql", traces.Name);
-                    Assert.Contains("TraceParent", traces.Content, StringComparison.Ordinal);
-                    Assert.Contains("TraceState", traces.Content, StringComparison.Ordinal);
-                    Assert.Equal(64, traces.Checksum.Length);
-                });
+            var baseline = Assert.Single(scripts);
+            Assert.Equal(1, baseline.MigrationId);
+            Assert.Equal("migration-1.sql", baseline.Name);
+            Assert.Contains("ProfileName", baseline.Content, StringComparison.Ordinal);
+            Assert.Contains("TraceParent", baseline.Content, StringComparison.Ordinal);
+            Assert.Contains("TraceState", baseline.Content, StringComparison.Ordinal);
+            Assert.Equal(64, baseline.Checksum.Length);
         }
     }
 }

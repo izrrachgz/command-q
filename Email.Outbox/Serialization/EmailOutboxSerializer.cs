@@ -28,7 +28,7 @@ namespace Email.Outbox.Serialization
         public async Task<string> SerializeAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(message);
-            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity("email.outbox.serialize");
+            using Activity? activity = EmailOutboxTelemetry.ActivitySource.StartActivity(EmailOutboxTelemetry.SerializeActivityName);
             _messageValidator.ValidateContent(message, _options.DeliveryPolicy);
 
             var attachments = new List<EmailContentSnapshot>(message.Attachments.Count);
@@ -74,7 +74,7 @@ namespace Email.Outbox.Serialization
                     $"of {_options.MaxPayloadBytes} bytes.");
             }
 
-            activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, "success");
+            activity?.SetTag(EmailOutboxTelemetry.OutcomeTag, EmailOutboxTelemetry.SuccessOutcome);
             return payload;
         }
 

@@ -1,3 +1,4 @@
+using NodaTime;
 using Email.Models;
 using FluentValidation;
 using Email.Outbox.Models;
@@ -16,7 +17,7 @@ namespace Application.Test.Modules.Notifications.Commands
         [Fact]
         public async Task Handle_Should_Queue_Prepared_Message_With_Metadata()
         {
-            var createdUtc = DateTime.UtcNow;
+            Instant createdUtc = SystemClock.Instance.GetCurrentInstant();
             var expectedResult = new EmailOutboxEnqueueResult(Guid.NewGuid(), false, createdUtc);
             var outbox = new CapturingEmailOutbox(expectedResult);
             var service = CreateService(outbox);
@@ -53,7 +54,7 @@ namespace Application.Test.Modules.Notifications.Commands
         public async Task QueueHtmlAsync_Should_Build_A_Prepared_Html_Message()
         {
             var outbox = new CapturingEmailOutbox(
-                new EmailOutboxEnqueueResult(Guid.NewGuid(), true, DateTime.UtcNow));
+                new EmailOutboxEnqueueResult(Guid.NewGuid(), true, SystemClock.Instance.GetCurrentInstant()));
             var service = CreateService(outbox);
 
             QueuedEmailResult result = await service.QueueHtmlAsync(
@@ -76,7 +77,7 @@ namespace Application.Test.Modules.Notifications.Commands
         public async Task QueueAsync_Should_Reject_Invalid_Message_Before_Outbox_Write()
         {
             var outbox = new CapturingEmailOutbox(
-                new EmailOutboxEnqueueResult(Guid.NewGuid(), false, DateTime.UtcNow));
+                new EmailOutboxEnqueueResult(Guid.NewGuid(), false, SystemClock.Instance.GetCurrentInstant()));
             var service = CreateService(outbox);
             var message = new EmailMessage
             {
@@ -96,7 +97,7 @@ namespace Application.Test.Modules.Notifications.Commands
         public async Task QueueAsync_Should_Reject_Named_Profile_Without_Explicit_Policy()
         {
             var outbox = new CapturingEmailOutbox(
-                new EmailOutboxEnqueueResult(Guid.NewGuid(), false, DateTime.UtcNow));
+                new EmailOutboxEnqueueResult(Guid.NewGuid(), false, SystemClock.Instance.GetCurrentInstant()));
             var service = CreateService(outbox);
             var request = new ApplicationEmailRequest
             {

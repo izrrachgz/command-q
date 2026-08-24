@@ -358,9 +358,10 @@ namespace Email.Test.Services
             return new MailKitEmailSender(
                 new TestOptionsMonitor<EmailOptions>(options.Value),
                 new RecordingSmtpTransportFactory(transport),
-                new MimeMessageFactory(),
+                new MimeMessageFactory(TimeProvider.System),
                 new EmailMessageValidator(),
-                NullLogger<MailKitEmailSender>.Instance);
+                NullLogger<MailKitEmailSender>.Instance,
+                TimeProvider.System);
         }
 
         private sealed class TestOptionsMonitor<T>(T value) : IOptionsMonitor<T>

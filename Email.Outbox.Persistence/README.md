@@ -29,6 +29,18 @@ The adapter stores provider scripts as embedded resources under
 `Migrations/{Engine}`. Its private `EmailOutboxMigrationRecord` ledger makes
 execution forward-only and skips already-applied migrations.
 
+Version 1 is intentionally represented by one `migration-1.sql` baseline per
+provider. That baseline includes profile selection, W3C trace context and every
+UTC column. While version 1 remains under development, schema changes are
+folded into migration 1; existing development outbox databases must be dropped
+and recreated after a baseline change.
+
+Persistence accepts NodaTime `Instant` values. SQL Server uses `DATETIME2(7)`,
+PostgreSQL uses `TIMESTAMPTZ`, MySQL uses UTC-session `DATETIME(6)`, and SQLite
+uses fixed seven-digit UTC text ending in `Z`. Database defaults and migration
+ledger writes are UTC for every provider. The adapter converts native database
+values at its boundary and rejects local `DateTime` materialization.
+
 `RunEmailOutboxMigrations` applies pending migrations when the consuming host
 calls it. Startup policy is intentionally not part of persistence options. The
 CommandQ worker owns that decision through

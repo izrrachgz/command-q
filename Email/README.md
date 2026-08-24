@@ -42,6 +42,20 @@ services.AddEmailServices(
 This keeps the reusable library independent of the host's chosen prefix. The
 CommandQ worker uses this form.
 
+## UTC and Time Providers
+
+The email stack represents absolute timestamps with NodaTime `Instant`. SMTP
+acceptance results expose `AcceptedAtUtc` as an `Instant`, and MIME `Date`
+headers are derived from the same UTC value as a zero-offset
+`DateTimeOffset`. There are no local or unspecified timestamp states in the
+email contracts.
+
+`AddEmailServices` uses `TryAddSingleton(TimeProvider.System)`. A host or test
+can register its own `TimeProvider` before email registration to control every
+current-time read without replacing delivery services. The shared email time
+defaults use NodaTime's UTC zone and the fixed persistence pattern
+`uuuu-MM-dd HH:mm:ss.fffffff'Z'`.
+
 Configuration can also be supplied directly for tests or programmatic hosts:
 
 ```csharp

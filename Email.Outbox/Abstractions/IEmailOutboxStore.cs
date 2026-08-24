@@ -1,3 +1,4 @@
+using NodaTime;
 using Email.Outbox.Models;
 
 namespace Email.Outbox.Abstractions
@@ -16,7 +17,7 @@ namespace Email.Outbox.Abstractions
 
         Task<int> ReleaseAsync(
             IReadOnlyCollection<ClaimedEmailOutboxRecord> records,
-            DateTime nextAttemptUtc,
+            Instant nextAttemptUtc,
             CancellationToken cancellationToken = default);
     }
 }
