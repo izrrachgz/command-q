@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Api.Configuration;
+using System.Net.Mime;
 using System.Net.Http.Json;
 using Common.Models.Request;
 using Common.Models.Response;
@@ -103,7 +104,7 @@ namespace Api.Services
             IdentityServerAdminOptions currentOptions)
         {
             var request = new HttpRequestMessage(method, uri);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeNames.Application.Json));
             request.Headers.TryAddWithoutValidation(currentOptions.ApiKeyHeaderName, currentOptions.ApiKey);
 
             return request;

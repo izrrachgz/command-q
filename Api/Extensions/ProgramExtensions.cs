@@ -10,6 +10,7 @@ using Common.Constants;
 using Api.Configuration;
 using Api.Serialization;
 using Common.Extensions;
+using System.Net.Mime;
 using System.Reflection;
 using Api.Modules.Health;
 using Common.Enumerations;
@@ -71,7 +72,7 @@ namespace Api.Extensions
 
                         return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(problem)
                         {
-                            ContentTypes = { "application/problem+json", "application/json" }
+                            ContentTypes = { MediaTypeNames.Application.ProblemJson, MediaTypeNames.Application.Json }
                         };
                     };
                 });

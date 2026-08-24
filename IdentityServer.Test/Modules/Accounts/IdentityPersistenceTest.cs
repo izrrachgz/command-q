@@ -13,6 +13,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using HeaderNames = Microsoft.Net.Http.Headers.HeaderNames;
 using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
 using CommandQIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
@@ -174,7 +175,7 @@ namespace IdentityServer.Test.Modules.Accounts
             await options.Events.RedirectToLogin(context);
 
             Assert.Equal(StatusCodes.Status401Unauthorized, context.Response.StatusCode);
-            Assert.False(context.Response.Headers.ContainsKey("Location"));
+            Assert.False(context.Response.Headers.ContainsKey(HeaderNames.Location));
         }
 
         private static ServiceProvider CreateServices()

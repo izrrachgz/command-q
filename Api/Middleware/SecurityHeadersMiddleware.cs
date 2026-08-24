@@ -1,3 +1,6 @@
+using Api.Constants;
+using Microsoft.Net.Http.Headers;
+
 namespace Api.Middleware
 {
     internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
@@ -6,14 +9,14 @@ namespace Api.Middleware
         {
             var headers = context.Response.Headers;
 
-            headers.TryAdd("X-Content-Type-Options", "nosniff");
-            headers.TryAdd("X-Frame-Options", "DENY");
-            headers.TryAdd("Referrer-Policy", "no-referrer");
-            headers.TryAdd("X-Permitted-Cross-Domain-Policies", "none");
+            headers.TryAdd(HeaderNames.XContentTypeOptions, SecurityHeaderValues.NoSniff);
+            headers.TryAdd(HeaderNames.XFrameOptions, SecurityHeaderValues.Deny);
+            headers.TryAdd(SecurityHeaderNames.ReferrerPolicy, SecurityHeaderValues.NoReferrer);
+            headers.TryAdd(SecurityHeaderNames.XPermittedCrossDomainPolicies, SecurityHeaderValues.None);
 
             if (context.Request.IsHttps)
             {
-                headers.TryAdd("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+                headers.TryAdd(HeaderNames.StrictTransportSecurity, SecurityHeaderValues.HstsOneYearIncludeSubDomains);
             }
 
             await next(context);

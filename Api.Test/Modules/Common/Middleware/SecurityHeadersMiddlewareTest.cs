@@ -1,5 +1,7 @@
+using Api.Constants;
 using Api.Middleware;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Net.Http.Headers;
 
 namespace Api.Test.Modules.Common.Middleware
 {
@@ -11,14 +13,15 @@ namespace Api.Test.Modules.Common.Middleware
             var context = new DefaultHttpContext();
             context.Response.Body = new MemoryStream();
 
-            var middleware = new SecurityHeadersMiddleware(async httpContext => await httpContext.Response.WriteAsync("ok", TestContext.Current.CancellationToken));
+            var middleware = new SecurityHeadersMiddleware(
+                async httpContext => await httpContext.Response.WriteAsync("ok", TestContext.Current.CancellationToken));
 
             await middleware.Invoke(context);
 
-            Assert.Equal("nosniff", context.Response.Headers["X-Content-Type-Options"]);
-            Assert.Equal("DENY", context.Response.Headers["X-Frame-Options"]);
-            Assert.Equal("no-referrer", context.Response.Headers["Referrer-Policy"]);
-            Assert.Equal("none", context.Response.Headers["X-Permitted-Cross-Domain-Policies"]);
+            Assert.Equal(SecurityHeaderValues.NoSniff, context.Response.Headers[HeaderNames.XContentTypeOptions]);
+            Assert.Equal(SecurityHeaderValues.Deny, context.Response.Headers[HeaderNames.XFrameOptions]);
+            Assert.Equal(SecurityHeaderValues.NoReferrer, context.Response.Headers[SecurityHeaderNames.ReferrerPolicy]);
+            Assert.Equal(SecurityHeaderValues.None, context.Response.Headers[SecurityHeaderNames.XPermittedCrossDomainPolicies]);
         }
 
         [Fact]
@@ -28,11 +31,14 @@ namespace Api.Test.Modules.Common.Middleware
             context.Request.Scheme = "https";
             context.Response.Body = new MemoryStream();
 
-            var middleware = new SecurityHeadersMiddleware(async httpContext => await httpContext.Response.WriteAsync("ok", TestContext.Current.CancellationToken));
+            var middleware = new SecurityHeadersMiddleware(
+                async httpContext => await httpContext.Response.WriteAsync("ok", TestContext.Current.CancellationToken));
 
             await middleware.Invoke(context);
 
-            Assert.Equal("max-age=31536000; includeSubDomains", context.Response.Headers["Strict-Transport-Security"]);
+            Assert.Equal(
+                SecurityHeaderValues.HstsOneYearIncludeSubDomains,
+                context.Response.Headers[HeaderNames.StrictTransportSecurity]);
         }
     }
 }

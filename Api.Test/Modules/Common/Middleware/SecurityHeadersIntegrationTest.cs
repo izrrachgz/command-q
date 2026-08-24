@@ -1,3 +1,4 @@
+using Api.Constants;
 using Api.Test.Infrastructure;
 using Microsoft.Net.Http.Headers;
 
@@ -15,10 +16,12 @@ namespace Api.Test.Modules.Common.Middleware
 
             using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
-            Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
-            Assert.Equal("DENY", response.Headers.GetValues("X-Frame-Options").Single());
-            Assert.Equal("no-referrer", response.Headers.GetValues("Referrer-Policy").Single());
-            Assert.Equal("none", response.Headers.GetValues("X-Permitted-Cross-Domain-Policies").Single());
+            Assert.Equal(SecurityHeaderValues.NoSniff, response.Headers.GetValues(HeaderNames.XContentTypeOptions).Single());
+            Assert.Equal(SecurityHeaderValues.Deny, response.Headers.GetValues(HeaderNames.XFrameOptions).Single());
+            Assert.Equal(SecurityHeaderValues.NoReferrer, response.Headers.GetValues(SecurityHeaderNames.ReferrerPolicy).Single());
+            Assert.Equal(
+                SecurityHeaderValues.None,
+                response.Headers.GetValues(SecurityHeaderNames.XPermittedCrossDomainPolicies).Single());
         }
     }
 }

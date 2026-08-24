@@ -1,11 +1,13 @@
 using IdentityServer.Modules.Accounts;
 using IdentityServer.Modules.OpenIddict;
 
+using System.Net.Mime;
+
 namespace IdentityServer.Test.Constants
 {
     internal static class IdentityServerTestConstants
     {
-        public const string BrowserAccept = "text/html";
+        public const string BrowserAccept = MediaTypeNames.Text.Html;
         public const string ExternalLoginProviderKey = "provider-subject";
         public const string ExternalLoginProviderName = "Google";
         public const string ExternalAppOrigin = "https://app.example.com";

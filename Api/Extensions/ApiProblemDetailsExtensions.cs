@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Net.Mime;
 using Api.Constants;
 using Localization.Abstractions;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +36,7 @@ namespace Api.Extensions
             return new ObjectResult(problem)
             {
                 StatusCode = statusCode,
-                ContentTypes = { "application/problem+json", "application/json" }
+                ContentTypes = { MediaTypeNames.Application.ProblemJson, MediaTypeNames.Application.Json }
             };
         }
 

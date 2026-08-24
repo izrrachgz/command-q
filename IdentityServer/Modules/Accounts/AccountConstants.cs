@@ -1,3 +1,5 @@
+using System.Net.Mime;
+
 namespace IdentityServer.Modules.Accounts
 {
     public static class AccountConstants
@@ -13,9 +15,9 @@ namespace IdentityServer.Modules.Accounts
 
         public static class ContentTypes
         {
-            public const string FormUrlEncoded = "application/x-www-form-urlencoded";
+            public const string FormUrlEncoded = MediaTypeNames.Application.FormUrlEncoded;
             public const string Html = "text/html; charset=utf-8";
-            public const string Json = "application/json";
+            public const string Json = MediaTypeNames.Application.Json;
         }
 
         public static class Routes
