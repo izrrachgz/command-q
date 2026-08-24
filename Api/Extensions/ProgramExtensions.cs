@@ -17,6 +17,7 @@ using Application.Extensions;
 using Email.Outbox.Extensions;
 using Application.Configuration;
 using Localization.Configuration;
+using Localization.Abstractions;
 using Microsoft.Extensions.Options;
 using Application.Migrations.Extensions;
 using Email.Outbox.Persistence.Extensions;
@@ -24,6 +25,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Application.Modules.Health.Configuration;
 using Application.Modules.Configuration.Commands;
 using Application.Modules.Identity.Roles.Services;
+using Public;
 
 namespace Api.Extensions
 {
@@ -49,16 +51,43 @@ namespace Api.Extensions
                 {
                     options.JsonSerializerOptions.Converters.Add(new UtcDateTimeJsonConverter());
                     options.JsonSerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter());
+                })
+                .ConfigureApiBehaviorOptions(options =>
+                {
+                    options.InvalidModelStateResponseFactory = actionContext =>
+                    {
+                        var messages = actionContext.HttpContext.RequestServices.GetRequiredService<ITextProvider>();
+                        var problem = new Microsoft.AspNetCore.Mvc.ValidationProblemDetails(actionContext.ModelState)
+                        {
+                            Status = StatusCodes.Status400BadRequest,
+                            Title = messages.Get(nameof(Messages.Invalid_Model)),
+                            Instance = actionContext.HttpContext.Request.Path
+                        };
+
+                        ApiProblemDetailsExtensions.Enrich(
+                            problem,
+                            actionContext.HttpContext,
+                            ApiProblemCodes.ValidationFailed);
+
+                        return new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(problem)
+                        {
+                            ContentTypes = { "application/problem+json", "application/json" }
+                        };
+                    };
                 });
+
+            builder.Services.AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = context =>
+                    ApiProblemDetailsExtensions.Enrich(context.ProblemDetails, context.HttpContext);
+            });
+            builder.Services.AddExceptionHandler<ApiExceptionHandler>();
             builder.AddApiOpenTelemetry();
 
             // Endpoints explorer (Swagger generation kept commented as original)
             builder.Services.AddEndpointsApiExplorer();
             // Prefer not to use swagger gen unless it's strictly necessary
             // builder.Services.AddSwaggerGen();
-
-            // Register exception handler service
-            builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
             builder.Services.ValidateApplicationConfiguration(apiConfiguration);
             builder.Services.AddSingleton<IFeatureFlags, FeatureFlags>();
@@ -193,6 +222,10 @@ namespace Api.Extensions
                 options.SetDefaultCulture(defaultCulture);
             });
 
+            // Convert downstream exceptions and bodyless error status codes to the shared localized problem-details contract.
+            app.UseExceptionHandler();
+            app.UseStatusCodePages();
+
             app.MapHealthEndpoints();
 
             // Configure the HTTP request pipeline.
@@ -212,9 +245,6 @@ namespace Api.Extensions
 
             // Adds cache control headers to responses based on the configured cache settings
             app.UseMiddleware<CacheMiddleware>();
-
-            // Check for exceptions
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             // Check for api keys presence
             app.UseMiddleware<CheckApiClientMiddleware>();

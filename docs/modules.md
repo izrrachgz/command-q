@@ -68,8 +68,10 @@ Use this checklist when removing a module.
 - Prefer removing entire modules instead of leaving half-empty folders.
 - Keep `Identity` and `Health` unless the replacement module is already in place.
 - Use Identity account activity as the queryable audit trail for business account actions instead of per-account application log files. IdentityServer keeps authentication security events in its own database.
-- Account preferences are soft-deletable and have one active row per account. `PUT /Account/preferences` records the complete saved preference payload in account activity metadata; `GET /Account/preferences` returns the active row.
-- Configuration history is read-only and admin-only at `GET /Admin/configurations`. Startup records authoritative server values and the server instance name after application migrations complete; clients cannot append snapshots.
+- Account preferences are soft-deletable and have one active row per account. `PUT /accounts/me/preferences` records the complete saved preference payload in account activity metadata; `GET /accounts/me/preferences` returns the active row.
+- Configuration history is read-only and admin-only at `GET /admin/configurations`. Startup records authoritative server values and the server instance name after application migrations complete; clients cannot append snapshots.
+- API modules own transport-only request DTOs under their `Requests` folders. Controllers map those requests to application commands after applying authenticated-account and transport policies.
+- `POST /files` accepts common documents, images, audio, video and ZIP files up to 200 MB. Reusable category policies remain in the API Files module for specialized future endpoints.
 - The Notifications module references only the reusable email and outbox contracts. Producer hosts select and register `IEmailOutboxStore`; `Email.Worker` owns delivery and retries.
 - Removing IdentityServer requires replacing the API `Authentication:Authority` with another standards-compatible issuer; do not move credentials back into the API.
 - Treat `Contacts`, `Addresses`, `Events` and `Registers` as examples until a product needs them.

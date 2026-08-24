@@ -769,16 +769,15 @@
                 "method": "POST",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Account/create",
+                  "raw": "{{apiBaseUrl}}/accounts",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Account",
-                    "create"
+                    "accounts"
                   ]
                 },
-                "description": "Creates the application-owned account profile and links it to the exact token (iss, sub). A 400 response is expected if the profile was already provisioned."
+                "description": "Creates the application-owned account profile and links it to the exact token (iss, sub). A 409 problem response is expected when the profile conflicts with an existing account."
               },
               "response": [],
               "event": [
@@ -788,7 +787,7 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test(\"Profile was provisioned or already exists\", () => {",
-                      "  pm.expect([200, 400]).to.include(pm.response.code);",
+                      "  pm.expect([201, 409]).to.include(pm.response.code);",
                       "});"
                     ]
                   }
@@ -801,12 +800,12 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Account/me",
+                  "raw": "{{apiBaseUrl}}/accounts/me",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Account",
+                    "accounts",
                     "me"
                   ]
                 }
@@ -845,12 +844,13 @@
                   }
                 },
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Account/preferences",
+                  "raw": "{{apiBaseUrl}}/accounts/me/preferences",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Account",
+                    "accounts",
+                    "me",
                     "preferences"
                   ]
                 },
@@ -863,7 +863,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test(\"Account preferences were saved\", () => pm.response.to.have.status(200));"
+                      "pm.test(\"Account preferences were saved\", () => pm.response.to.have.status(204));"
                     ]
                   }
                 }
@@ -875,12 +875,13 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Account/preferences",
+                  "raw": "{{apiBaseUrl}}/accounts/me/preferences",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Account",
+                    "accounts",
+                    "me",
                     "preferences"
                   ]
                 }
@@ -904,12 +905,13 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Account/activity?Page=1&Size=25&AscendingSort=false",
+                  "raw": "{{apiBaseUrl}}/accounts/me/activity?Page=1&Size=25&AscendingSort=false",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Account",
+                    "accounts",
+                    "me",
                     "activity"
                   ],
                   "query": [
@@ -962,12 +964,12 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Admin/accounts?Page=1&Size=25&AscendingSort=false",
+                  "raw": "{{apiBaseUrl}}/admin/accounts?Page=1&Size=25&AscendingSort=false",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Admin",
+                    "admin",
                     "accounts"
                   ],
                   "query": [
@@ -1026,12 +1028,12 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Admin/configurations?Page=1&Size=25",
+                  "raw": "{{apiBaseUrl}}/admin/configurations?Page=1&Size=25",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Admin",
+                    "admin",
                     "configurations"
                   ],
                   "query": [
@@ -1086,12 +1088,12 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Contact",
+                  "raw": "{{apiBaseUrl}}/contacts",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Contact"
+                    "contacts"
                   ]
                 }
               },
@@ -1118,13 +1120,12 @@
                   }
                 },
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Contact/create",
+                  "raw": "{{apiBaseUrl}}/contacts",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Contact",
-                    "create"
+                    "contacts"
                   ]
                 }
               },
@@ -1141,12 +1142,12 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Address",
+                  "raw": "{{apiBaseUrl}}/addresses",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Address"
+                    "addresses"
                   ]
                 }
               },
@@ -1173,13 +1174,12 @@
                   }
                 },
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Address/create",
+                  "raw": "{{apiBaseUrl}}/addresses",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Address",
-                    "create"
+                    "addresses"
                   ]
                 }
               },
@@ -1206,16 +1206,15 @@
                   ]
                 },
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Files/upload",
+                  "raw": "{{apiBaseUrl}}/files",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Files",
-                    "upload"
+                    "files"
                   ]
                 },
-                "description": "Select a local file in the request's form-data file field before sending."
+                "description": "Select a supported document, image, audio, short video or ZIP file no larger than 200 MB in the request's form-data file field before sending."
               },
               "response": []
             },
@@ -1225,13 +1224,12 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{apiBaseUrl}}/Files/get?Page=1&Size=25&AscendingSort=false",
+                  "raw": "{{apiBaseUrl}}/files?Page=1&Size=25&AscendingSort=false",
                   "host": [
                     "{{apiBaseUrl}}"
                   ],
                   "path": [
-                    "Files",
-                    "get"
+                    "files"
                   ],
                   "query": [
                     {

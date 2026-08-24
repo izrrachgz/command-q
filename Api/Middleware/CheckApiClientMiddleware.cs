@@ -1,8 +1,8 @@
 using Api.Configuration;
 using Api.Logging;
 using System.Text;
-using Api.Constants;
 using Api.Middleware.Exceptions;
+using Api.Modules.Health;
 using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
@@ -16,7 +16,7 @@ namespace Api.Middleware
     {
         public async Task Invoke(HttpContext context)
         {
-            if (context.Request.Path.StartsWithSegments(RouteConstants.HealthPrefix))
+            if (context.Request.Path.StartsWithSegments(HealthRoute.Root))
             {
                 await next(context);
                 return;

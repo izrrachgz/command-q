@@ -92,6 +92,14 @@ identity-administration requests require an access token
 containing the `Admin` role. Configuration history is read-only;
 the API records authoritative server values during startup.
 
+Application API paths use lowercase resource names. Profile provisioning uses
+`POST /accounts`, current-account resources use `/accounts/me`, and admin
+resources use `/admin`. The general `POST /files` request accepts supported
+documents, images, audio, short videos and ZIP files no larger than 200 MB.
+Successful resource queries return their resource directly, paged requests use
+an `items` collection, and errors use `application/problem+json` with stable
+`errorCode` and `traceId` fields.
+
 ## Paged Search Filters
 
 Search requests include disabled examples for `StartDate` and `EndDate`. Enable

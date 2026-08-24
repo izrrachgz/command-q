@@ -160,6 +160,51 @@ namespace Public {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The file cannot exceed {0} MB..
+        /// </summary>
+        public static string File_Exceeds_Maximum_Size {
+            get {
+                return ResourceManager.GetString("File_Exceeds_Maximum_Size", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The file extension and content type are not allowed..
+        /// </summary>
+        public static string File_Type_Not_Allowed {
+            get {
+                return ResourceManager.GetString("File_Type_Not_Allowed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Bad Gateway.
+        /// </summary>
+        public static string Bad_Gateway {
+            get {
+                return ResourceManager.GetString("Bad_Gateway", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Conflict.
+        /// </summary>
+        public static string Conflict {
+            get {
+                return ResourceManager.GetString("Conflict", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Service Unavailable.
+        /// </summary>
+        public static string Service_Unavailable {
+            get {
+                return ResourceManager.GetString("Service_Unavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Busca una cadena traducida similar a Forbidden.
         /// </summary>
         public static string Forbidden {

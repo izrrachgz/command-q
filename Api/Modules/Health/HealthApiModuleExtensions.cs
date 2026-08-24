@@ -1,4 +1,3 @@
-using Api.Constants;
 using Application.Modules.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -18,17 +17,17 @@ namespace Api.Modules.Health
         {
             ArgumentNullException.ThrowIfNull(endpoints);
 
-            endpoints.MapHealthChecks(RouteConstants.HealthLive, new HealthCheckOptions
+            endpoints.MapHealthChecks(HealthRoute.Live, new HealthCheckOptions
             {
                 Predicate = healthCheck => healthCheck.Tags.Contains(HealthCheckConstants.LiveTag)
             });
 
-            endpoints.MapHealthChecks(RouteConstants.HealthReady, new HealthCheckOptions
+            endpoints.MapHealthChecks(HealthRoute.Ready, new HealthCheckOptions
             {
                 Predicate = healthCheck => healthCheck.Tags.Contains(HealthCheckConstants.ReadyTag)
             });
 
-            endpoints.MapHealthChecks(RouteConstants.HealthChecks);
+            endpoints.MapHealthChecks(HealthRoute.Checks);
 
             return endpoints;
         }

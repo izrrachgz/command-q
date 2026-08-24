@@ -187,5 +187,5 @@ the corresponding development database manually.
 Recreating the IdentityServer database gives newly registered users new `sub`
 values. Existing application `AccountIdentity` rows will still point to the old
 subjects. During pre-v1 development, reset the corresponding application profile
-or application database before provisioning it again with `POST /Account/create`.
+or application database before provisioning it again with `POST /accounts`.
 Do not reconnect identities automatically by email.

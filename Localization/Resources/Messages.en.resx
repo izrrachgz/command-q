@@ -159,6 +159,21 @@
   <data name="File_Is_Required" xml:space="preserve">
     <value>A file is required.</value>
   </data>
+  <data name="File_Exceeds_Maximum_Size" xml:space="preserve">
+    <value>The file cannot exceed {0} MB.</value>
+  </data>
+  <data name="File_Type_Not_Allowed" xml:space="preserve">
+    <value>The file extension and content type are not allowed.</value>
+  </data>
+  <data name="Bad_Gateway" xml:space="preserve">
+    <value>Bad Gateway</value>
+  </data>
+  <data name="Conflict" xml:space="preserve">
+    <value>Conflict</value>
+  </data>
+  <data name="Service_Unavailable" xml:space="preserve">
+    <value>Service Unavailable</value>
+  </data>
   <data name="Forbidden" xml:space="preserve">
     <value>Forbidden</value>
   </data>

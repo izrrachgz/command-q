@@ -102,7 +102,7 @@ require the SPA process.
 
 7. Provision an application profile after the first identity login.
 
-   Obtain an authorization-code token containing `command_q_api`, `profile` and `email`, then call authenticated `POST /Account/create` once. IdentityServer owns credentials; the API stores the application profile linked by issuer and subject.
+   Obtain an authorization-code token containing `command_q_api`, `profile` and `email`, then call authenticated `POST /accounts` once. IdentityServer owns credentials; the API stores the application profile linked by issuer and subject.
 
 8. Add a new backend feature.
 
@@ -182,10 +182,12 @@ Domain.Modules.Identity
 
 Existing modules are documented in `docs/modules.md`, including which modules are core, optional or sample-oriented and how to remove a module safely.
 
+[API success and error shapes](docs/api-responses.md) are documented centrally. Controllers expose typed resources and pages, while all client and server errors use the shared `ProblemDetails` contract.
+
 Identity includes a queryable account activity trail for business account actions. Use `IAccountActivityRecorder` or `RecordAccountActivityCommand` instead of writing per-account log files. Authentication security events are stored by IdentityServer.
 
 Account preferences are available to authenticated clients through `GET` and
-`PUT /Account/preferences`. The backend stores culture, theme, navigation and
+`PUT /accounts/me/preferences`. The backend stores culture, theme, navigation and
 accessibility flags, dense-table display, and an IANA timezone identifier. A
 successful preference update also writes the serialized preference snapshot to
 account activity metadata.
@@ -194,7 +196,7 @@ The API validates `Api:Application:TimeZone` once at startup with NodaTime and
 records the effective timezone, assembly version, language, environment and
 server instance name in
 `ApplicationConfiguration`. Admin users can query the server-recorded startup
-history through `GET /Admin/configurations`; clients cannot append snapshots.
+history through `GET /admin/configurations`; clients cannot append snapshots.
 
 Paged backend searches accept an optional `StartDate`/`EndDate` range as
 ISO-8601 UTC instants. Supply both values together; both timestamps must have
@@ -206,7 +208,7 @@ uses the timezone stored in account preferences rather than a per-search value.
 scopes, grants and tokens. The API Identity module owns application profiles and
 maps them through `AccountIdentity` using the validated token issuer and subject.
 Admin role management is exposed to the SPA through protected API endpoints under
-`/Admin/*`; the API calls IdentityServer through the server-side
+`/admin/*`; the API calls IdentityServer through the server-side
 `Api:IdentityServerAdmin` integration and never exposes the internal admin key
 to the browser.
 See `IdentityServer/README.md`.

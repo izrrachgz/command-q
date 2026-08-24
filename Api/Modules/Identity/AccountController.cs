@@ -1,29 +1,36 @@
 using MediatR;
 using Api.Constants;
 using Api.Extensions;
+using Api.Models;
 using Api.Abstractions;
 using Common.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
+using Api.Modules.Identity.Requests;
 using Application.Modules.Identity.Accounts.Queries;
 using Application.Modules.Identity.Accounts.Commands;
 using Application.Modules.Identity.AccountActivity.Queries;
 using Application.Modules.Identity.Accounts.Preferences.Queries;
 using Application.Modules.Identity.Accounts.Preferences.Commands;
+using Application.Modules.Identity.Accounts.Dtos;
+using Application.Modules.Identity.AccountActivity.Dtos;
+using Application.Modules.Identity.Accounts.Preferences.Dtos;
 
 namespace Api.Modules.Identity
 {
-    [ApiController, Route(IdentityRouteConstants.AccountRoot)]
+    [ApiController, Route(IdentityRoute.AccountRoot)]
     public sealed class AccountController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
-        [Authorize, HttpPost(IdentityRouteConstants.Create)]
+        [Authorize, HttpPost]
         [EnableRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName)]
-        public async Task<IActionResult> Create(CancellationToken cancellationToken = default)
+        public async Task<ActionResult<OperationResponse>> Create(CancellationToken cancellationToken = default)
         {
             if (!User.TryGetIdentityKey(out var issuer, out var subject))
             {
-                return Unauthorized();
+                return this.ApiProblem(
+                    StatusCodes.Status401Unauthorized,
+                    ApiProblemCodes.Unauthorized);
             }
 
             var username = User.GetUsername();
@@ -31,7 +38,9 @@ namespace Api.Modules.Identity
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
             {
-                return BadRequest();
+                return this.ApiProblem(
+                    StatusCodes.Status400BadRequest,
+                    ApiProblemCodes.BadRequest);
             }
 
             var response = await mediator.Send(new CreateAccountCommand
@@ -42,17 +51,24 @@ namespace Api.Modules.Identity
                 IdentitySubject = subject
             }, cancellationToken);
 
-            return response.Success ? Ok(response) : BadRequest(response.Message);
+            return response.Success
+                ? CreatedAtAction(nameof(Me), response.ToOperationResponse())
+                : this.ApiProblem(
+                    StatusCodes.Status409Conflict,
+                    ApiProblemCodes.Accounts.ProfileConflict,
+                    response.Message);
         }
 
-        [Authorize, HttpGet(IdentityRouteConstants.Me)]
-        public async Task<IActionResult> Me(CancellationToken cancellationToken = default)
+        [Authorize, HttpGet(IdentityRoute.Me)]
+        public async Task<ActionResult<AccountModel>> Me(CancellationToken cancellationToken = default)
         {
             var currentAccount = await currentAccountAccessor.Get(cancellationToken);
 
             if (currentAccount is null)
             {
-                return Forbid();
+                return this.ApiProblem(
+                    StatusCodes.Status403Forbidden,
+                    ApiProblemCodes.Forbidden);
             }
 
             var response = await mediator.Send(new GetAccountByIdQuery
@@ -60,11 +76,16 @@ namespace Api.Modules.Identity
                 AccountId = currentAccount.AccountId
             }, cancellationToken);
 
-            return response.Success ? Ok(response) : NotFound(response);
+            return response.Success
+                ? response.Detail!
+                : this.ApiProblem(
+                    StatusCodes.Status404NotFound,
+                    ApiProblemCodes.Accounts.ProfileMissing,
+                    response.Message);
         }
 
-        [Authorize, HttpGet(IdentityRouteConstants.Activity)]
-        public async Task<IActionResult> Activity(
+        [Authorize, HttpGet(IdentityRoute.Activity)]
+        public async Task<ActionResult<PageResponse<AccountActivityModel>>> Activity(
             [FromQuery] SearchCriteria searchCriteria,
             [FromQuery] string? module = null,
             [FromQuery] string? action = null,
@@ -74,7 +95,9 @@ namespace Api.Modules.Identity
 
             if (currentAccount is null)
             {
-                return Forbid();
+                return this.ApiProblem(
+                    StatusCodes.Status403Forbidden,
+                    ApiProblemCodes.Forbidden);
             }
 
             var response = await mediator.Send(new GetAccountActivityQuery
@@ -85,38 +108,60 @@ namespace Api.Modules.Identity
                 SearchCriteria = searchCriteria ?? new()
             }, cancellationToken);
 
-            return Ok(response);
+            return response.ToPageResponse();
         }
 
-        [Authorize, HttpGet(IdentityRouteConstants.Preferences)]
-        public async Task<IActionResult> Preferences(CancellationToken cancellationToken = default)
+        [Authorize, HttpGet(IdentityRoute.Preferences)]
+        public async Task<ActionResult<AccountPreferenceModel>> Preferences(CancellationToken cancellationToken = default)
         {
             var currentAccount = await currentAccountAccessor.Get(cancellationToken);
             if (currentAccount is null)
-                return Forbid();
+                return this.ApiProblem(
+                    StatusCodes.Status403Forbidden,
+                    ApiProblemCodes.Forbidden);
 
             var response = await mediator.Send(new GetAccountPreferencesQuery
             {
                 AccountId = currentAccount.AccountId
             }, cancellationToken);
 
-            return response.Success ? Ok(response) : NotFound(response);
+            return response.Success
+                ? response.Detail!
+                : this.ApiProblem(
+                    StatusCodes.Status404NotFound,
+                    ApiProblemCodes.Accounts.PreferencesMissing,
+                    response.Message);
         }
 
-        [Authorize, HttpPut(IdentityRouteConstants.Preferences)]
+        [Authorize, HttpPut(IdentityRoute.Preferences)]
         public async Task<IActionResult> SavePreferences(
-            SaveAccountPreferencesCommand command,
+            [FromBody] SaveAccountPreferencesRequest request,
             CancellationToken cancellationToken = default)
         {
             var currentAccount = await currentAccountAccessor.Get(cancellationToken);
             if (currentAccount is null)
-                return Forbid();
+                return this.ApiProblem(
+                    StatusCodes.Status403Forbidden,
+                    ApiProblemCodes.Forbidden);
 
-            command = command with { AccountId = currentAccount.AccountId };
+            var response = await mediator.Send(new SaveAccountPreferencesCommand
+            {
+                AccountId = currentAccount.AccountId,
+                Culture = request.Culture,
+                Theme = request.Theme,
+                CompactNavigation = request.CompactNavigation,
+                EnhancedFocus = request.EnhancedFocus,
+                ReduceMotion = request.ReduceMotion,
+                ShowDenseTables = request.ShowDenseTables,
+                TimeZone = request.TimeZone
+            }, cancellationToken);
 
-            var response = await mediator.Send(command, cancellationToken);
-
-            return response.Success ? Ok(response) : BadRequest(response);
+            return response.Success
+                ? NoContent()
+                : this.ApiProblem(
+                    StatusCodes.Status500InternalServerError,
+                    ApiProblemCodes.Accounts.PreferencesUpdateFailed,
+                    response.Message);
         }
     }
 }

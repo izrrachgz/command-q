@@ -20,8 +20,8 @@ namespace Api.Test.Infrastructure
         public const string IdentityIssuer = "https://identity.test/";
         public const string ApiAudience = "command_q_api";
         public const string ApiScope = "command_q_api";
-        public const string AccountCreatePath = "/Account/create";
-        public const string AccountMePath = "/Account/me";
+        public const string AccountCreatePath = "/accounts";
+        public const string AccountMePath = "/accounts/me";
 
         private static readonly SymmetricSecurityKey SigningKey = new(
             Encoding.UTF8.GetBytes("CommandQ-test-signing-key-with-32-bytes-minimum"));

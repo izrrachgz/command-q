@@ -1,21 +1,28 @@
 using Api.Constants;
+using Api.Extensions;
 using Application.Modules.Identity.Roles.Queries;
+using Application.Modules.Identity.Roles.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Modules.Identity
 {
-    [ApiController, Route(IdentityRouteConstants.AdminRoles)]
+    [ApiController, Route(IdentityRoute.AdminRoles)]
     [Authorize(Roles = AuthorizationRoles.Admin)]
     public sealed class AdminRolesController(ISender mediator) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        public async Task<ActionResult<IdentityRoleListModel>> Get(CancellationToken cancellationToken)
         {
             var response = await mediator.Send(new GetIdentityRolesQuery(), cancellationToken);
 
-            return response.Success ? Ok(response) : BadRequest(response);
+            return response.Success
+                ? response.Detail!
+                : this.ApiProblem(
+                    StatusCodes.Status503ServiceUnavailable,
+                    ApiProblemCodes.ServiceUnavailable,
+                    response.Message);
         }
     }
 }

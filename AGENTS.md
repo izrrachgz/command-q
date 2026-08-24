@@ -49,7 +49,12 @@ This file captures practical repository knowledge for coding agents working in t
 - Bearer validation settings are configured through the `Authentication` section in `appsettings*.json`.
 - The API validates IdentityServer discovery keys, audience, lifetime, `at+jwt` type and required API scope. It does not issue JWTs or handle refresh tokens.
 - Protocol claims are read through `Api/Extensions/ClaimsPrincipalExtensions.cs`; `ICurrentAccountAccessor` resolves `(iss, sub)` to the application profile through `GetAccountByIdentityQuery`.
-- `POST /Account/create` provisions an application profile for an authenticated identity. Credentials are never accepted or stored by this endpoint.
+- `POST /accounts` provisions an application profile for an authenticated identity. Credentials are never accepted or stored by this endpoint.
+- API routes use lowercase resource names. Authenticated current-account resources live under `/accounts/me`, and admin resources live under `/admin`.
+- API modules own transport-only request DTOs under module `Requests` folders and map them to application commands in controllers.
+- API controllers use `ActionResult<T>` for known success payloads and do not expose internal `BasicResponse`, `DetailResponse<T>` or `PagedResponse<T>` wrappers. Public pages use `Api.Models.PageResponse<T>` and command acknowledgements use `OperationResponse`.
+- API errors use centralized `ProblemDetails`/`ValidationProblemDetails` with stable `errorCode` and `traceId` extensions. Keep the contract and status mapping aligned with `docs/api-responses.md`.
+- The Files API module owns reusable 200 MB upload policies for general files, documents, images, audio, video and ZIP archives. Specialized future endpoints should select the narrowest policy that fits.
 - Generic cache mechanics live in `Common.Abstractions.ITypedCache<TEntry>` and `Common.System.TypedMemoryCache<TEntry>`; add specific cache adapters over this when new typed caches are needed.
 - API-owned settings live under the `Api` section. Rate limiting, cache, database and API client child paths use constants under `Api/Constants/ConfigKeys.cs`.
 - Operational API settings use `IOptionsMonitor` where runtime reload is safe: response cache headers, rate-limit policies, feature flags, localization and health publishing. `Api:Localization:DefaultCulture` is the request default; `Api:Localization:SupportedCultures` controls accepted cultures. External clients should be created through `IExternalApiClientFactory` so endpoint and timeout changes apply to new clients.

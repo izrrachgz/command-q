@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using Api.Constants;
+using Api.Extensions;
 using Api.Modules.Identity;
-using Common.Models.Response;
+using Api.Modules.Identity.Requests;
 using Localization.Abstractions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Api.Test.Modules.Identity
 {
@@ -21,13 +23,15 @@ namespace Api.Test.Modules.Identity
 
             var result = await controller.UpdateRoles(
                 accountId,
-                new AdminAccountsController.UpdateAccountRolesRequest { Roles = [] },
+                new UpdateAccountRolesRequest { Roles = [] },
                 TestContext.Current.CancellationToken);
 
-            var badRequest = Assert.IsType<BadRequestObjectResult>(result);
-            var response = Assert.IsType<BasicResponse>(badRequest.Value);
-            Assert.False(response.Success);
-            Assert.Equal(ExpectedSelfRemovalMessage, response.Message);
+            var conflict = Assert.IsType<ObjectResult>(result);
+            Assert.Equal(StatusCodes.Status409Conflict, conflict.StatusCode);
+
+            var problem = Assert.IsType<ProblemDetails>(conflict.Value);
+            Assert.Equal(ExpectedSelfRemovalMessage, problem.Detail);
+            Assert.Equal(ApiProblemCodes.Accounts.RoleSelfRemoval, problem.Extensions[ApiProblemDetailsExtensions.ErrorCodeExtension]);
         }
 
         private static AdminAccountsController CreateController(Guid accountId)
@@ -39,13 +43,19 @@ namespace Api.Test.Modules.Identity
                 ],
                 authenticationType: "Test");
 
-            return new AdminAccountsController(null!, new StubTextProvider())
+            var textProvider = new StubTextProvider();
+            var services = new ServiceCollection()
+                .AddSingleton<ITextProvider>(textProvider)
+                .BuildServiceProvider();
+
+            return new AdminAccountsController(null!, textProvider)
             {
                 ControllerContext = new ControllerContext
                 {
                     HttpContext = new DefaultHttpContext
                     {
-                        User = new ClaimsPrincipal(identity)
+                        User = new ClaimsPrincipal(identity),
+                        RequestServices = services
                     }
                 }
             };

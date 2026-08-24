@@ -18,10 +18,10 @@
 - persisted Data Protection keys for stable authentication cookies
 - health endpoints, security headers, rate limiting and source-generated logging
 
-IdentityServer does not write to the application database. After receiving a user access token for the first time, call authenticated `POST /Account/create`; the API creates its profile and links it through the token's `(iss, sub)` identity.
+IdentityServer does not write to the application database. After receiving a user access token for the first time, call authenticated `POST /accounts`; the API creates its profile and links it through the token's `(iss, sub)` identity.
 
 Role management remains owned by IdentityServer. The browser does not call these
-internal endpoints directly; the application API exposes protected `/Admin/*`
+internal endpoints directly; the application API exposes protected `/admin/*`
 routes and calls IdentityServer with `Api:IdentityServerAdmin` settings.
 
 ## Run Locally
