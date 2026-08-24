@@ -98,13 +98,20 @@ API context headers are added in `core/api/api-context.interceptor.ts`:
 - `X-Correlation-Id`
 - configured API client header, when present
 
-Application account provisioning is handled by `accountProvisionGuard` and `AccountProvisionService`, which calls `POST /Account/create` only when `/Account/me` cannot resolve an application profile yet.
+Application account provisioning is handled by `accountProvisionGuard` and `AccountProvisionService`. The current backend contract provisions a profile with `POST /accounts` only when `GET /accounts/me` cannot resolve one yet.
 
-After provisioning, `preferencesRequiredGuard` loads `GET /Account/preferences`.
+After provisioning, `preferencesRequiredGuard` loads `GET /accounts/me/preferences`.
 Accounts without persisted preferences are redirected to the layout-free
 `/setup/preferences` flow before tenant or admin routes can activate. The setup
 form cannot be skipped by changing the URL and is structured as the first step
 of a feature-owned setup module so more required steps can be added later.
+
+Frontend API adapters must follow the public response contract in
+`../docs/api-responses.md`: resource queries return the resource directly,
+paged queries use `items`, command acknowledgements use `OperationResponse`,
+preference updates return `204 No Content`, and failures use `ProblemDetails`.
+The internal application `BasicResponse`, `DetailResponse<T>` and
+`PagedResponse<T>` wrappers are not public API shapes.
 
 ## Localization
 
@@ -178,7 +185,7 @@ narrator. The app provides the structure those tools need:
 - document language updates when the selected culture changes
 
 These preferences are available from both tenant and admin Preferences pages and
-are saved through `GET`/`PUT /Account/preferences`. An account-scoped local
+are saved through `GET`/`PUT /accounts/me/preferences`. An account-scoped local
 storage cache remains available for immediate rendering and offline fallback;
 it refreshes on login, expiry, explicit refresh and save. Cache lifetime and
 backend retry delay are configured through the frontend environment's
@@ -200,13 +207,13 @@ zero duration.
 ## Admin Area
 
 Admin routes are protected by the `Admin` role claim from IdentityServer. The
-account page lists identity-backed accounts through the API's `/Admin/accounts`
+account page lists identity-backed accounts through the API's `/admin/accounts`
 endpoint, and the role management page edits assignments through
-`/Admin/accounts/{accountId}/roles`. Buttons remain disabled while commands are
+`/admin/accounts/{accountId}/roles`. Buttons remain disabled while commands are
 in flight, and failed backend calls surface translated pending/unavailable
 messages through the feature actions and stores.
 
-The configuration history page consumes `/Admin/configurations`, lists
+The configuration history page consumes `/admin/configurations`, lists
 fixed newest-first UTC startup snapshots in the account timezone, includes the
 recording server instance, and is intentionally read-only. The API resolves and
 records effective server values during startup.

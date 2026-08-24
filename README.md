@@ -32,10 +32,10 @@ require the SPA process.
 
 1. Choose the backend modules you want to keep.
 
-   `Identity` and `Health` are core. `Notifications` is optional infrastructure
-   for durable email enqueueing. `Files` is optional. `Contacts`, `Addresses`,
-   `Events` and `Registers` are sample-oriented modules. See `docs/modules.md`
-   before removing modules.
+   `Identity`, `Configuration` and `Health` are core. `Notifications` is
+   optional infrastructure for durable email enqueueing. `Files` is optional.
+   `Contacts`, `Addresses`, `Events` and `Registers` are sample-oriented
+   modules. See `docs/modules.md` before removing modules.
 
 2. Configure local backend secrets.
 
@@ -85,7 +85,7 @@ require the SPA process.
    .\scripts\run-email-worker.ps1
    ```
 
-   In Visual Studio 2022 17.11 or later, select the shared `Backend + Email Worker` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third.
+   In Visual Studio 2022 17.11 or later, select the shared `Backend + Email Worker` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third. Use `Full Stack (Backend + FrontApplication)` when the Angular SPA should start with those hosts.
 
    After the API has applied the application migrations, run the full suite with
    `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own
@@ -122,6 +122,7 @@ require the SPA process.
 Api/
   Modules/
     Identity/
+    Configuration/
     Contacts/
     Addresses/
     Files/
@@ -130,6 +131,7 @@ Api/
 Application/
   Modules/
     Identity/
+    Configuration/
     Contacts/
     Addresses/
     Files/
@@ -139,6 +141,7 @@ Application/
 Domain/
   Modules/
     Identity/
+    Configuration/
     Contacts/
     Addresses/
     Files/

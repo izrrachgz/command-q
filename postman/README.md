@@ -10,7 +10,7 @@ Import these files into Postman:
 - `environments/CommandQ.Development.postman_environment.json`
 - the QA or Production environment template when needed
 
-Select `CommandQ - Development` as the active environment and start the Visual Studio `Backend (IdentityServer + API)` profile. This starts IdentityServer, API and Email.Worker. Trust the local ASP.NET Core HTTPS certificate with `dotnet dev-certs https --trust` if needed.
+Select `CommandQ - Development` as the active environment and start the Visual Studio `Backend + Email Worker` profile. This starts IdentityServer, API and Email.Worker. Trust the local ASP.NET Core HTTPS certificate with `dotnet dev-certs https --trust` if needed.
 
 As a command-line alternative, run `.\scripts\run-identity-server.ps1` and
 `.\scripts\run-api.ps1` from separate terminals. Their default HTTPS URLs are
