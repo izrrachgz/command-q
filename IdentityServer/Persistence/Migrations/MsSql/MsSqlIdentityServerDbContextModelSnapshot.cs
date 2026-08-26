@@ -76,7 +76,8 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                         .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime>("OccurredUtc")
-                        .HasColumnType("datetime2");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)");
 
                     b.Property<string>("UserAgent")
                         .HasMaxLength(512)
@@ -108,7 +109,8 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("datetime2");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -121,10 +123,12 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
+                        .HasPrecision(6)
+                        .HasColumnType("datetimeoffset(6)");
 
                     b.Property<DateTime>("ModifiedUtc")
-                        .HasColumnType("datetime2");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -350,7 +354,8 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("datetime2");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)");
 
                     b.Property<string>("Properties")
                         .HasColumnType("nvarchar(max)");
@@ -437,10 +442,12 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("datetime2");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)");
 
                     b.Property<DateTime?>("ExpirationDate")
-                        .HasColumnType("datetime2");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)");
 
                     b.Property<string>("Payload")
                         .HasColumnType("nvarchar(max)");
@@ -449,7 +456,8 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RedemptionDate")
-                        .HasColumnType("datetime2");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime2(6)");
 
                     b.Property<string>("ReferenceId")
                         .HasMaxLength(100)

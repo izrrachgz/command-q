@@ -24,6 +24,7 @@
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />
     <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\Time\Time.csproj" />
   </ItemGroup>
 
   <ItemGroup>

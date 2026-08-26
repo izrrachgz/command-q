@@ -7,6 +7,7 @@ using System.Data.SQLite;
 using Common.Enumerations;
 using MySql.Data.MySqlClient;
 using Microsoft.Data.SqlClient;
+using Persistence.Repository.Compilers;
 using Persistence.Repository.TypeHandlers;
 
 namespace Persistence.Repository
@@ -32,7 +33,7 @@ namespace Persistence.Repository
             {
                 DatabaseEngine.MsSql => (new SqlConnection(connectionString), new SqlServerCompiler()),
                 DatabaseEngine.MySql => (new MySqlConnection(connectionString), new MySqlCompiler()),
-                DatabaseEngine.SqLite => (new SQLiteConnection(connectionString), new SqliteCompiler()),
+                DatabaseEngine.SqLite => (new SQLiteConnection(connectionString), new SqliteUtcCompiler()),
                 DatabaseEngine.PgSql => (new NpgsqlConnection(connectionString), new PostgresCompiler()),
                 _ => (new NpgsqlConnection(connectionString), new PostgresCompiler())
             };

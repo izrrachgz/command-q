@@ -5,6 +5,7 @@ using Email.Outbox.Constants;
 using Email.Outbox.Abstractions;
 using Email.Outbox.Configuration;
 using Email.Outbox.Serialization;
+using Time.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +46,7 @@ namespace Email.Outbox.Extensions
             services.AddOptions<EmailOutboxOptions>()
                 .Bind(section)
                 .ValidateOnStart();
-            services.TryAddSingleton(TimeProvider.System);
+            services.AddTimeServices();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailOutboxOptions>, EmailOutboxOptionsValidator>());
             services.TryAddSingleton<EmailMessageValidator>();

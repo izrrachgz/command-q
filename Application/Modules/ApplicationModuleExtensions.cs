@@ -8,9 +8,9 @@ using Application.Modules.Identity;
 using Application.Modules.Addresses;
 using Application.Modules.Configuration;
 using Application.Modules.Notifications;
+using Time.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Application.Modules
 {
@@ -27,7 +27,7 @@ namespace Application.Modules
         /// <returns>The configured service collection.</returns>
         public static IServiceCollection AddApplicationModules(this IServiceCollection services, IConfiguration configuration)
         {
-            services.TryAddSingleton(TimeProvider.System);
+            services.AddTimeServices();
             services.AddScoped<IValidator<SearchCriteria>, SearchCriteriaValidator>();
 
             services.AddIdentityModule();

@@ -1,3 +1,4 @@
+using Time;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace IdentityServer.Persistence.Converters
@@ -5,17 +6,11 @@ namespace IdentityServer.Persistence.Converters
     internal sealed class UtcDateTimeConverter()
         : ValueConverter<DateTime, DateTime>(
             value => RequireUtc(value),
-            value => DateTime.SpecifyKind(value, DateTimeKind.Utc))
+            value => UtcDateTime.RestoreFromDatabase(value))
     {
         private static DateTime RequireUtc(DateTime value)
         {
-            if (value.Kind != DateTimeKind.Utc)
-            {
-                throw new InvalidOperationException(
-                    $"IdentityServer DateTime values must use {nameof(DateTimeKind.Utc)} kind.");
-            }
-
-            return value;
+            return UtcTime.TruncateToPersistencePrecision(UtcDateTime.Require(value));
         }
     }
 }

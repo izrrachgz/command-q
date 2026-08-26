@@ -1,35 +1,47 @@
 using NodaTime;
 
-namespace Application.Extensions
+namespace Time.Extensions
 {
-    /// <summary>Converts UTC instants to and from account-local wall-clock values using IANA/TZDB timezone identifiers.</summary>
+    /// <summary>
+    /// Converts UTC instants to and from local wall-clock values using IANA/TZDB timezone identifiers.
+    /// </summary>
     public static class DateTimeUtcExtensions
     {
-        /// <summary>Converts a UTC <see cref="DateTime"/> to the local wall-clock time in the specified timezone.</summary>
-        public static DateTime ToAccountTime(this DateTime utcValue, string timeZoneId)
+        /// <summary>
+        /// Converts a UTC <see cref="DateTime"/> to local wall-clock time in the specified timezone.
+        /// </summary>
+        public static DateTime ToLocalTime(this DateTime utcValue, string timeZoneId)
         {
             if (utcValue.Kind != DateTimeKind.Utc)
+            {
                 throw new ArgumentException("The supplied value must have DateTimeKind.Utc.", nameof(utcValue));
+            }
 
             return Instant.FromDateTimeUtc(utcValue)
                 .InZone(GetTimeZone(timeZoneId))
                 .ToDateTimeUnspecified();
         }
 
-        /// <summary>Converts a UTC-offset instant to the local wall-clock time in the specified timezone.</summary>
-        public static DateTime ToAccountTime(this DateTimeOffset utcValue, string timeZoneId)
+        /// <summary>
+        /// Converts a UTC-offset instant to local wall-clock time in the specified timezone.
+        /// </summary>
+        public static DateTime ToLocalTime(this DateTimeOffset utcValue, string timeZoneId)
         {
             return Instant.FromDateTimeOffset(utcValue.ToUniversalTime())
                 .InZone(GetTimeZone(timeZoneId))
                 .ToDateTimeUnspecified();
         }
 
-        /// <summary>Converts an unambiguous account-local wall-clock value to UTC.</summary>
+        /// <summary>
+        /// Converts an unambiguous local wall-clock value to UTC.
+        /// </summary>
         /// <exception cref="ArgumentException">The value is not unspecified, or it is ambiguous or skipped in the timezone.</exception>
-        public static DateTime ToUtcFromAccountTime(this DateTime localValue, string timeZoneId)
+        public static DateTime ToUtcFromLocalTime(this DateTime localValue, string timeZoneId)
         {
             if (localValue.Kind != DateTimeKind.Unspecified)
+            {
                 throw new ArgumentException("The supplied wall-clock value must have DateTimeKind.Unspecified.", nameof(localValue));
+            }
 
             var localDateTime = LocalDateTime.FromDateTime(localValue);
 
@@ -47,10 +59,20 @@ namespace Application.Extensions
             }
         }
 
-        /// <summary>Returns whether the supplied identifier exists in NodaTime's TZDB provider.</summary>
+        /// <summary>
+        /// Returns whether the supplied identifier exists in NodaTime's TZDB provider.
+        /// </summary>
         public static bool IsValidTimeZone(string? timeZoneId)
         {
             return !string.IsNullOrWhiteSpace(timeZoneId) && DateTimeZoneProviders.Tzdb.GetZoneOrNull(timeZoneId.Trim()) is not null;
+        }
+
+        /// <summary>
+        /// Returns whether the supplied offset value represents UTC.
+        /// </summary>
+        public static bool IsUtc(DateTimeOffset? value)
+        {
+            return !value.HasValue || value.Value.Offset == TimeSpan.Zero;
         }
 
         private static DateTimeZone GetTimeZone(string timeZoneId)

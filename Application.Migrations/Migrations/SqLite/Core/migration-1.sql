@@ -3,8 +3,8 @@
 -- =========================
 CREATE TABLE HealthCheckLog (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL
 );
 
@@ -19,8 +19,8 @@ CREATE TABLE Account (
     Id BLOB NOT NULL,
     Username TEXT NOT NULL,
     Email TEXT NOT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     PRIMARY KEY (Id)
 );
@@ -44,8 +44,8 @@ CREATE TABLE AccountIdentity (
     AccountId BLOB NOT NULL,
     Issuer TEXT NOT NULL,
     Subject TEXT NOT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
@@ -72,8 +72,8 @@ CREATE TABLE AccountActivity (
     MetadataJson TEXT NULL,
     IpAddress TEXT NULL,
     UserAgent TEXT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
@@ -103,8 +103,8 @@ CREATE TABLE AccountPreference (
     ReduceMotion INTEGER NOT NULL DEFAULT 0 CHECK (ReduceMotion IN (0, 1)),
     ShowDenseTables INTEGER NOT NULL DEFAULT 0 CHECK (ShowDenseTables IN (0, 1)),
     TimeZone TEXT NOT NULL DEFAULT 'America/Hermosillo' CHECK (length(TimeZone) <= 64),
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
@@ -128,8 +128,8 @@ CREATE TABLE Address (
     Country TEXT NOT NULL,
     Phone TEXT NULL,
     EmailAddress TEXT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
@@ -156,8 +156,8 @@ CREATE TABLE Contact (
     Description TEXT NULL,
     EmailAddress TEXT NULL,
     PhoneNumber TEXT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
@@ -180,8 +180,8 @@ CREATE TABLE AccountFile (
     Path TEXT NOT NULL,
     ContentType TEXT NULL,
     Size INTEGER NOT NULL DEFAULT 0,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
@@ -207,8 +207,8 @@ CREATE TABLE Event (
     Description TEXT NULL,
     StartUtc TEXT NOT NULL,
     EndUtc TEXT NOT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL
 );
 
@@ -227,8 +227,8 @@ CREATE TABLE Place (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
     Name TEXT NOT NULL,
     Description TEXT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL
 );
 
@@ -243,8 +243,8 @@ CREATE TABLE "Register" (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
     AccountId BLOB NOT NULL,
     Action INTEGER NOT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (AccountId) REFERENCES Account(Id)
 );
@@ -268,8 +268,8 @@ CREATE TABLE RegisterEvent (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
     RegisterId INTEGER NOT NULL,
     EventId INTEGER NOT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (RegisterId) REFERENCES "Register"(Id),
     FOREIGN KEY (EventId) REFERENCES Event(Id)
@@ -294,8 +294,8 @@ CREATE TABLE RegisterPlace (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
     RegisterId INTEGER NOT NULL,
     PlaceId INTEGER NOT NULL,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL,
     FOREIGN KEY (RegisterId) REFERENCES "Register"(Id),
     FOREIGN KEY (PlaceId) REFERENCES Place(Id)
@@ -323,8 +323,8 @@ CREATE TABLE ApplicationConfiguration (
     Language TEXT NOT NULL DEFAULT 'en-US' CHECK (length(Language) <= 16),
     Environment TEXT NOT NULL CHECK (length(Environment) <= 64),
     InstanceName TEXT NOT NULL CHECK (length(InstanceName) <= 128),
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL
 );
 CREATE INDEX IX_ApplicationConfiguration_CreatedUtc ON ApplicationConfiguration (CreatedUtc DESC) WHERE DeletedUtc IS NULL;
@@ -338,9 +338,9 @@ CREATE TABLE MigrationRecord (
     Module TEXT NOT NULL,
     Name TEXT NOT NULL,
     Checksum TEXT NOT NULL,
-    AppliedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    AppliedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL
 );
 
@@ -349,5 +349,5 @@ ON MigrationRecord (MigrationId)
 WHERE DeletedUtc IS NULL;
 
 INSERT INTO MigrationRecord (MigrationId, Module, Name, Checksum, AppliedUtc, DeletedUtc)
-VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', strftime('%Y-%m-%d %H:%M:%f0000Z', 'now'), NULL);
+VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', strftime('%Y-%m-%d %H:%M:%f000Z', 'now'), NULL);
 

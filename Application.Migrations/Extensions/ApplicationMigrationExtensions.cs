@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Hosting;
+using Time.Extensions;
 using Application.Migrations.Services;
 using Application.Migrations.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +14,7 @@ namespace Application.Migrations.Extensions
     {
         public static IServiceCollection AddApplicationMigrations(this IServiceCollection services)
         {
-            services.TryAddSingleton(TimeProvider.System);
+            services.AddTimeServices();
             services.TryAddSingleton<IMigrationScriptSource, EmbeddedMigrationScriptSource>();
             services.TryAddScoped<ApplicationMigrationRunner>();
 

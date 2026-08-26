@@ -11,7 +11,8 @@ namespace Application.Modules.Health.Publishers
     internal sealed class DynamicHealthCheckPublisherService(
         HealthCheckService healthCheckService,
         HealthCheckPublisher publisher,
-        IOptionsMonitor<HealthCheckConfigurationOptions> options) : BackgroundService
+        IOptionsMonitor<HealthCheckConfigurationOptions> options,
+        TimeProvider timeProvider) : BackgroundService
     {
         /// <summary>
         /// Runs the reload-aware health publishing loop until the host stops.
@@ -33,7 +34,7 @@ namespace Application.Modules.Health.Publishers
                 }
 
                 int intervalSeconds = Math.Max(1, currentOptions.PublishIntervalSeconds);
-                await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(intervalSeconds), timeProvider, stoppingToken);
             }
         }
     }

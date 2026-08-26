@@ -8,13 +8,13 @@ using Api.Abstractions;
 using Api.Enumerations;
 using Common.Constants;
 using Api.Configuration;
-using Api.Serialization;
+using Time.Serialization;
 using Common.Extensions;
+using Application.Extensions;
 using System.Net.Mime;
 using System.Reflection;
 using Api.Modules.Health;
 using Common.Enumerations;
-using Application.Extensions;
 using Email.Outbox.Extensions;
 using Application.Configuration;
 using Localization.Configuration;
@@ -50,8 +50,7 @@ namespace Api.Extensions
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
-                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeJsonConverter());
-                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter());
+                    options.JsonSerializerOptions.AddUtcDateTimeConverters();
                 })
                 .ConfigureApiBehaviorOptions(options =>
                 {

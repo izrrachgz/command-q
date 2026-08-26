@@ -45,7 +45,8 @@ namespace Email.Outbox.Test.Persistence
                 Assert.Contains("email-outbox-persistence", healthReport.Entries.Keys);
 
                 var store = host.Services.GetRequiredService<IEmailOutboxStore>();
-                Instant utcNow = SystemClock.Instance.GetCurrentInstant();
+                Instant utcNow = SystemClock.Instance.GetCurrentInstant() + Duration.FromNanoseconds(789);
+                Instant persistedUtcNow = Time.UtcTime.TruncateToPersistencePrecision(utcNow);
                 var record = new EmailOutboxRecord(
                     Guid.NewGuid(),
                     "{\"message\":\"test\"}",
@@ -66,6 +67,8 @@ namespace Email.Outbox.Test.Persistence
                 Assert.False(first.WasDuplicate);
                 Assert.True(duplicate.WasDuplicate);
                 Assert.Equal(first.Id, duplicate.Id);
+                Assert.Equal(persistedUtcNow, first.CreatedUtc);
+                Assert.Equal(first.CreatedUtc, duplicate.CreatedUtc);
 
                 var claimed = await store.ClaimPendingAsync(
                     new EmailOutboxClaimRequest(
@@ -75,6 +78,7 @@ namespace Email.Outbox.Test.Persistence
                         utcNow + Duration.FromSeconds(1)),
                     TestContext.Current.CancellationToken);
                 var claimedRecord = Assert.Single(claimed);
+                Assert.Equal(persistedUtcNow, claimedRecord.CreatedUtc);
                 Assert.Equal(record.TraceParent, claimedRecord.TraceParent);
                 Assert.Equal(record.TraceState, claimedRecord.TraceState);
 

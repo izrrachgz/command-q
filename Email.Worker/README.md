@@ -30,9 +30,9 @@ available at `http://localhost:5000`.
 The worker, SMTP sender, outbox processor and migration runner share the
 DI-provided `TimeProvider`. Current values are converted immediately to
 NodaTime `Instant`; all scheduling, leases, queue age, SMTP acceptance and
-persisted lifecycle timestamps therefore remain UTC. The default timezone is
-NodaTime UTC, and SQLite uses the shared fixed seven-digit `...Z` persistence
-pattern.
+persisted lifecycle timestamps therefore remain UTC. `Time.UtcTime` owns the
+canonical NodaTime UTC zone, microsecond normalization and the fixed six-digit
+`...Z` persistence pattern used by SQLite.
 
 Base, QA and Production settings keep delivery and polling disabled. Enable
 both `EmailWorker:Email:Enabled` and `EmailWorker:Worker:Enabled` only after

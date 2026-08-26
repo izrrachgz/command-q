@@ -1,4 +1,5 @@
 using SqlKata.Execution;
+using Time.Extensions;
 using Domain.Modules.Health;
 using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,7 @@ namespace Application.Modules.Health.Checks
         {
             try
             {
-                var now = timeProvider.GetUtcNow().UtcDateTime;
+                var now = timeProvider.GetCurrentUtcDateTime();
                 var values = new
                 {
                     CreatedUtc = now,

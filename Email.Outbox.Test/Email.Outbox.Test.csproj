@@ -32,6 +32,7 @@
     <ProjectReference Include="..\Email.Outbox.Persistence\Email.Outbox.Persistence.csproj" />
     <ProjectReference Include="..\Email.Worker\Email.Worker.csproj" />
     <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\Time\Time.csproj" />
   </ItemGroup>
 
 </Project>

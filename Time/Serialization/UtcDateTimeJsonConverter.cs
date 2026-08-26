@@ -1,8 +1,8 @@
-using System.Text.Json;
 using System.Globalization;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Api.Serialization
+namespace Time.Serialization
 {
     internal sealed class UtcDateTimeJsonConverter : JsonConverter<DateTime>
     {
@@ -19,16 +19,16 @@ namespace Api.Serialization
                 throw new JsonException("UTC datetime values must be ISO-8601 strings ending in Z.");
             }
 
-            return parsed;
+            return UtcTime.TruncateToPersistencePrecision(parsed);
         }
 
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
         {
             var utcValue = value.Kind switch
             {
-                DateTimeKind.Utc => value,
-                DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
-                _ => value.ToUniversalTime()
+                DateTimeKind.Utc => UtcTime.TruncateToPersistencePrecision(value),
+                DateTimeKind.Unspecified => UtcTime.TruncateToPersistencePrecision(UtcDateTime.RestoreFromDatabase(value)),
+                _ => throw new JsonException("Local DateTime values cannot be serialized as UTC. Convert the value explicitly first.")
             };
 
             writer.WriteStringValue(utcValue.ToString("O", CultureInfo.InvariantCulture));

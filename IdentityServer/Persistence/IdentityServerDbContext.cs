@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using IdentityServer.Modules.Accounts;
+using Time;
 using IdentityServer.Persistence.Converters;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
@@ -14,6 +15,9 @@ namespace IdentityServer.Persistence
         {
             base.ConfigureConventions(configurationBuilder);
             configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+            configurationBuilder.Properties<DateTimeOffset>().HaveConversion<UtcDateTimeOffsetConverter>();
+            configurationBuilder.Properties<DateTime>().HavePrecision(UtcTime.PersistencePrecisionDigits);
+            configurationBuilder.Properties<DateTimeOffset>().HavePrecision(UtcTime.PersistencePrecisionDigits);
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

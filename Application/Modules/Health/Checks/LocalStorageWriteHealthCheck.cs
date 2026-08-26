@@ -1,3 +1,4 @@
+using Time.Extensions;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Health.Logging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -34,7 +35,7 @@ namespace Application.Modules.Health.Checks
             try
             {
                 string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName);
-                string[] content = [timeProvider.GetUtcNow().UtcDateTime.ToString("O")];
+                string[] content = [timeProvider.GetCurrentUtcDateTime().ToString("O")];
 
                 await File.AppendAllLinesAsync(filePath, content, cancellationToken);
 

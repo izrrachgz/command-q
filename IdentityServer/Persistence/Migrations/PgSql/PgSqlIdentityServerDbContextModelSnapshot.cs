@@ -75,7 +75,8 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                         .HasColumnType("character varying(64)");
 
                     b.Property<DateTime>("OccurredUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<string>("UserAgent")
                         .HasMaxLength(512)
@@ -107,7 +108,8 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -120,10 +122,12 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<DateTime>("ModifiedUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -347,7 +351,8 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                         .HasColumnType("character varying(50)");
 
                     b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<string>("Properties")
                         .HasColumnType("text");
@@ -433,10 +438,12 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                         .HasColumnType("character varying(50)");
 
                     b.Property<DateTime?>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<DateTime?>("ExpirationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<string>("Payload")
                         .HasColumnType("text");
@@ -445,7 +452,8 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("RedemptionDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasPrecision(6)
+                        .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<string>("ReferenceId")
                         .HasMaxLength(100)

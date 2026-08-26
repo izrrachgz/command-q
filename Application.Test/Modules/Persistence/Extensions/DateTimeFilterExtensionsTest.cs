@@ -4,6 +4,7 @@ using Common.Enumerations;
 using Common.Models.Request;
 using Persistence.Repository;
 using Persistence.Repository.Extensions;
+using Persistence.Repository.TypeHandlers;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Application.Test.Modules.Persistence.Extensions
@@ -17,7 +18,7 @@ namespace Application.Test.Modules.Persistence.Extensions
 
             var result = value.ToDateTimeFilterValue(DatabaseEngine.SqLite);
 
-            Assert.Equal("2026-08-17 18:00:00.0000000Z", result);
+            Assert.Equal("2026-08-17 18:00:00.000000Z", result);
         }
 
         [Theory]
@@ -34,7 +35,7 @@ namespace Application.Test.Modules.Persistence.Extensions
         }
 
         [Fact]
-        public async Task SqLite_Should_Store_And_Filter_Full_Precision_Utc_Values()
+        public async Task SqLite_Should_Store_And_Filter_Microsecond_Precision_Utc_Values()
         {
             var path = Path.Combine(Path.GetTempPath(), $"commandq-utc-{Guid.NewGuid():N}.sqlite");
 
@@ -52,6 +53,7 @@ namespace Application.Test.Modules.Persistence.Extensions
                 }
 
                 var instant = new DateTime(2026, 8, 17, 18, 0, 0, 123, DateTimeKind.Utc).AddTicks(4567);
+                var expected = instant.AddTicks(-7);
                 await repository.Db.Query("UtcRecord").InsertAsync(
                     new { Id = 1, CreatedUtc = instant },
                     cancellationToken: TestContext.Current.CancellationToken);
@@ -68,13 +70,24 @@ namespace Application.Test.Modules.Persistence.Extensions
                     .FirstOrDefaultAsync<UtcRecord>(cancellationToken: TestContext.Current.CancellationToken);
 
                 Assert.NotNull(record ?? throw new Xunit.Sdk.XunitException($"Stored SQLite value was '{storedValue}'."));
-                Assert.Equal(instant, record.CreatedUtc);
+                Assert.Equal("2026-08-17 18:00:00.123456Z", storedValue);
+                Assert.Equal(expected, record.CreatedUtc);
                 Assert.Equal(DateTimeKind.Utc, record.CreatedUtc.Kind);
             }
             finally
             {
                 File.Delete(path);
             }
+        }
+
+        [Theory]
+        [InlineData(DateTimeKind.Local)]
+        [InlineData(DateTimeKind.Unspecified)]
+        public void SqLite_Should_Reject_NonUtc_DateTime_Writes(DateTimeKind kind)
+        {
+            var value = new DateTime(2026, 8, 17, 18, 0, 0, kind);
+
+            Assert.Throws<InvalidOperationException>(() => SqliteUtcDateTimeTypeHandler.FormatUtc(value));
         }
 
         private sealed class UtcRecord

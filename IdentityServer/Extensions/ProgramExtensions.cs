@@ -6,7 +6,8 @@ using IdentityServer.Resources;
 using IdentityServer.Middleware;
 using IdentityServer.Localization;
 using IdentityServer.Configuration;
-using IdentityServer.Serialization;
+using Time.Extensions;
+using Time.Serialization;
 using IdentityServer.Modules.OpenIddict;
 using IdentityServer.Modules.OpenIddict.Configuration;
 
@@ -18,7 +19,7 @@ namespace IdentityServer.Extensions
 
         public static void ConfigureServices(this IHostApplicationBuilder builder)
         {
-            builder.Services.AddSingleton(TimeProvider.System);
+            builder.Services.AddTimeServices();
 
             IConfigurationSection identityServerConfiguration = builder.Configuration
                 .GetRequiredSection(IdentityServerConfigKeys.Section);
@@ -26,8 +27,7 @@ namespace IdentityServer.Extensions
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
-                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeJsonConverter());
-                    options.JsonSerializerOptions.Converters.Add(new UtcDateTimeOffsetJsonConverter());
+                    options.JsonSerializerOptions.AddUtcDateTimeConverters();
                 });
             builder.Services.AddConfiguredCors(identityServerConfiguration, builder.Environment);
             builder.Services.AddAuthorization();

@@ -124,6 +124,17 @@ This file captures practical repository knowledge for coding agents working in t
   - Build project-specific cache adapters over `ITypedCache<TEntry>` when settings or domain-specific methods are needed.
 - Keep this project stable because it is widely referenced.
 
+### Time
+- Framework-light shared UTC and timezone library. It depends only on NodaTime and dependency-injection abstractions, and must not reference feature, host, persistence or transport projects.
+- `TimeProvider` remains the clock abstraction. Register it through `services.AddTimeServices()`, which preserves a host or test override registered before it. Do not introduce a parallel `IClock` abstraction.
+- `Time.Extensions.TimeProviderExtensions.GetCurrentInstant()` and `GetCurrentUtcDateTime()` are the canonical current-time conversions. Both normalize to the shared persistence precision.
+- `UtcTime` owns the canonical UTC timezone and microsecond persistence precision. Its text pattern is fixed to six fractional digits ending in `Z`; use its normalization and parse/format methods at persistence boundaries.
+- `UtcDateTime.RestoreFromDatabase()` may relabel provider-returned `Unspecified` values as UTC, but rejects `Local`. Application and API inputs must be explicitly UTC rather than using this database-only restoration path.
+- `Time.Extensions.DateTimeUtcExtensions` owns TZDB validation and strict conversions between UTC instants and timezone-local wall-clock values. Ambiguous and skipped local values must continue to be rejected.
+- Strict backend JSON UTC handling is registered through `JsonSerializerOptions.AddUtcDateTimeConverters()`.
+- Keep framework adapters with their owners: EF Core converters remain in IdentityServer, Dapper/SqlKata handlers remain in persistence projects, and SQL defaults remain in migrations. These adapters should reuse the shared UTC primitives.
+- Business timestamps, leases, retry delays, polling intervals and models containing `Instant` or `Duration` remain owned by their feature projects.
+
 ### Persistence
 - Reusable SqlKata-backed repositories and database command runners. It does not own an application schema or migration lifecycle.
 - Persistence-facing abstractions live under `Persistence.Abstractions`, including:
@@ -131,6 +142,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `IWritableRepository`
   - `ICommandRunner`
 - Supported engines: `MsSql`, `PgSql`, `MySql`, `SqLite`.
+- UTC `DateTime` parameters and SQLite materialization use the precision and strict database-boundary helpers from `Time`. `SqliteUtcCompiler` normalizes ordinary SqlKata bindings because Dapper type handlers do not own compiler-generated parameter values. Do not add a second timestamp format or silently convert local values.
 - Configuration keys:
   - main connection string name: `Db`
   - selected engine path relative to the supplied section: `ConnectionStrings:Engine`
@@ -210,6 +222,11 @@ This file captures practical repository knowledge for coding agents working in t
 - Uses an in-memory SQLite repository to verify that the baseline runs once and an already-applied migration is skipped on the next invocation.
 - Useful targeted command: `dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj`.
 
+### Time.Test
+- Isolated xUnit tests for UTC JSON serialization, TZDB conversion, persistence formatting, `TimeProvider` conversion and DI override behavior.
+- Architecture coverage keeps `Time` independent from all feature, host and persistence projects.
+- Useful targeted command: `dotnet test .\Time.Test\Time.Test.csproj`.
+
 ### IdentityServer.Test
 - xUnit tests for IdentityServer architecture and isolated ASP.NET Identity persistence behavior.
 - Uses EF Core InMemory for focused identity-store tests and relational SQLite for migration execution tests. Production persistence uses the provider selected through configuration.
@@ -223,7 +240,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Supported SMTP authentication types are `Anonymous`, `Login`, `Plain` and `OAuth`. Only the selected authentication section is consumed. OAuth expects an already-issued access token and does not acquire, refresh or persist tokens.
 - Authenticated modes require `StartTls` or `SslOnConnect`; do not weaken this validation or bypass certificate validation.
 - `IEmailSender` returns `EmailSendResult`/`EmailBatchResult` with message IDs and SMTP responses. `EmailDeliveryException` exposes failure classification and messages accepted before a partial batch failure.
-- Email timestamps use NodaTime `Instant`, current-time reads use the DI-provided `TimeProvider`, and the canonical email timezone is UTC. Register test or host providers before email services so `TryAddSingleton(TimeProvider.System)` preserves the override.
+- Email timestamps use NodaTime `Instant`, current-time reads use the DI-provided `TimeProvider`, and the canonical email timezone is UTC. Shared time registration preserves a test or host provider installed before email services.
 - `IEmailSender` monitors `EmailOptions`; SMTP endpoint, sender, authentication, delivery limits and supplied OAuth tokens apply to the next batch. Each batch captures one valid options snapshot and creates its own transport. Reload logs contain safe metadata only.
 - `IEmailSender.SendAsync(IEnumerable<EmailMessage>)` validates the full batch and configured delivery limits, opens one connection, authenticates once, sends sequentially, disconnects once and disposes the SMTP client.
 - File, byte and copied-stream attachments are supported. HTML messages may include `EmailInlineResource` items referenced through `cid:` URLs. Caller-owned streams are copied and are never retained or disposed by the library.
@@ -250,7 +267,7 @@ This file captures practical repository knowledge for coding agents working in t
 - SqlKata implementation of `IEmailOutboxStore` using the reusable `Persistence` project through an adapter boundary.
 - Owns its schema, embedded provider scripts, `EmailOutboxMigrationRecord` ledger and migration runner. It does not use `Application.Migrations` or the application database ledger.
 - Version 1 keeps one consolidated `migration-1.sql` baseline per provider. Fold schema changes into that baseline and recreate development outbox databases until version 1 is finalized.
-- Persistence maps NodaTime instants to native UTC provider values; SQLite uses the shared seven-digit UTC text pattern ending in `Z`.
+- Persistence normalizes NodaTime instants to microseconds before writes. SQL Server uses `datetime2(6)`, PostgreSQL uses `timestamptz(6)`, MySQL uses UTC-session `datetime(6)`, and SQLite uses the six-digit UTC text pattern owned by `Time.UtcTime` and ending in `Z`.
 - Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; the worker's Development settings target local MsSql `command_q`.
 - Reusable persistence options contain only `Engine` and `ConnectionString`. The CommandQ worker supplies them from `EmailWorker:EmailOutbox:Persistence`.
 - SQLite relative paths resolve against the consuming host content root, and the database directory is created when needed.

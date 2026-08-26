@@ -1,4 +1,5 @@
 using Public;
+using Time.Extensions;
 using Common.Cqrs;
 using SqlKata.Execution;
 using Common.Models.Response;
@@ -17,7 +18,7 @@ namespace Application.Modules.Configuration.Commands
             RecordApplicationConfigurationCommand request,
             CancellationToken cancellationToken)
         {
-            var now = timeProvider.GetUtcNow().UtcDateTime;
+            var now = timeProvider.GetCurrentUtcDateTime();
             var entity = new Domain.Modules.Configuration.ApplicationConfiguration
             {
                 ServerTimeZone = request.ServerTimeZone.Trim(),

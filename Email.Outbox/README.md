@@ -29,8 +29,13 @@ intervals use `Duration`. These types make UTC semantics part of the contract
 instead of relying on `DateTimeKind` or caller offsets.
 
 Producer and processor registration use the host's existing `TimeProvider`, or
-register `TimeProvider.System` when none exists. Register a custom provider
-before `AddEmailOutboxProducer` when deterministic time is required.
+the shared time registration installs `TimeProvider.System` when none exists.
+Register a custom provider before `AddEmailOutboxProducer` when deterministic
+time is required.
+
+Current instants and persistence boundaries normalize to the shared microsecond
+precision before durable values are returned. This keeps equality and retry
+boundaries consistent across SQL Server, PostgreSQL, MySQL and SQLite.
 
 Enqueue instrumentation distinguishes newly persisted messages from duplicate
 idempotency hits. Duplicate attempts increment `email.outbox.duplicates`, while

@@ -1,4 +1,5 @@
 using Email.Outbox.Abstractions;
+using Time.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Email.Outbox.Persistence.Storage;
@@ -29,7 +30,7 @@ namespace Email.Outbox.Persistence.Extensions
             services.AddOptions<EmailOutboxPersistenceOptions>()
                 .Bind(section)
                 .ValidateOnStart();
-            services.TryAddSingleton(TimeProvider.System);
+            services.AddTimeServices();
             services.TryAddEnumerable(ServiceDescriptor.Singleton<
                 IValidateOptions<EmailOutboxPersistenceOptions>,
                 EmailOutboxPersistenceOptionsValidator>());

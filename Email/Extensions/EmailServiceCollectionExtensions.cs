@@ -2,6 +2,7 @@ using Email.Services;
 using Email.Constants;
 using Email.Abstractions;
 using Email.Configuration;
+using Time.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,7 +58,7 @@ namespace Email.Extensions
 
         private static IServiceCollection AddEmailCore(IServiceCollection services)
         {
-            services.TryAddSingleton(TimeProvider.System);
+            services.AddTimeServices();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailOptions>, EmailOptionsValidator>());
             services.TryAddSingleton<MailKitEmailSenderFactory>();

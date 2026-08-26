@@ -1,7 +1,7 @@
 using Public;
 using FluentValidation;
 using System.Globalization;
-using Application.Extensions;
+using Time.Extensions;
 using Localization.Providers;
 
 namespace Application.Modules.Configuration.Commands

@@ -1,4 +1,5 @@
 using Public;
+using Time.Extensions;
 using Common.Cqrs;
 using SqlKata.Execution;
 using Application.Logging;
@@ -45,7 +46,7 @@ namespace Application.Modules.Addresses.Commands
         /// whether the address was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateAddressCommand request, CancellationToken cancellationToken)
         {
-            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            var now = _timeProvider.GetCurrentUtcDateTime();
 
             // Create transaction to ensure data integrity
             _repository.Db.Connection.Open();

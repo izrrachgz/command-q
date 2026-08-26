@@ -7,6 +7,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Time;
 using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
 using CommandQIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
@@ -108,7 +109,8 @@ namespace IdentityServer.Test.Persistence
                 .UseSqlite(connection)
                 .UseOpenIddict()
                 .Options;
-            var occurredUtc = new DateTime(2026, 8, 21, 18, 30, 15, DateTimeKind.Utc);
+            var occurredUtc = new DateTime(2026, 8, 21, 18, 30, 15, DateTimeKind.Utc).AddTicks(4567);
+            var expectedUtc = occurredUtc.AddTicks(-7);
 
             await using (var writeDatabase = new SqLiteIdentityServerDbContext(options))
             {
@@ -124,7 +126,7 @@ namespace IdentityServer.Test.Persistence
             await using var readDatabase = new SqLiteIdentityServerDbContext(options);
             var stored = await readDatabase.SecurityEvents.SingleAsync(TestContext.Current.CancellationToken);
 
-            Assert.Equal(occurredUtc, stored.OccurredUtc);
+            Assert.Equal(expectedUtc, stored.OccurredUtc);
             Assert.Equal(DateTimeKind.Utc, stored.OccurredUtc.Kind);
         }
 
@@ -170,7 +172,7 @@ namespace IdentityServer.Test.Persistence
         }
 
         [Fact]
-        public void Provider_Models_Should_Apply_Utc_Converter_To_All_DateTime_Properties()
+        public void Provider_Models_Should_Apply_Utc_Converters_And_Microsecond_Precision()
         {
             using var pgSql = new PgSqlIdentityServerDbContextFactory().CreateDbContext([]);
             using var msSql = new MsSqlIdentityServerDbContextFactory().CreateDbContext([]);
@@ -181,13 +183,21 @@ namespace IdentityServer.Test.Persistence
 
             foreach (var database in databases)
             {
-                var dateTimeProperties = database.Model.GetEntityTypes()
+                var temporalProperties = database.Model.GetEntityTypes()
                     .SelectMany(entity => entity.GetProperties())
-                    .Where(property => property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                    .Where(property =>
+                        property.ClrType == typeof(DateTime) ||
+                        property.ClrType == typeof(DateTime?) ||
+                        property.ClrType == typeof(DateTimeOffset) ||
+                        property.ClrType == typeof(DateTimeOffset?))
                     .ToArray();
 
-                Assert.NotEmpty(dateTimeProperties);
-                Assert.All(dateTimeProperties, property => Assert.NotNull(property.GetValueConverter()));
+                Assert.NotEmpty(temporalProperties);
+                Assert.All(temporalProperties, property =>
+                {
+                    Assert.NotNull(property.GetValueConverter());
+                    Assert.Equal(UtcTime.PersistencePrecisionDigits, property.GetPrecision());
+                });
             }
         }
 

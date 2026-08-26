@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Email\Email.csproj" />
+    <ProjectReference Include="..\Time\Time.csproj" />
   </ItemGroup>
 
 </Project>

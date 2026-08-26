@@ -1,4 +1,5 @@
 using Public;
+using Time.Extensions;
 using Common.Cqrs;
 using System.Data;
 using System.Text.Json;
@@ -20,7 +21,7 @@ namespace Application.Modules.Identity.Accounts.Preferences.Commands
     {
         public async Task<BasicResponse> Handle(SaveAccountPreferencesCommand request, CancellationToken cancellationToken)
         {
-            var now = timeProvider.GetUtcNow().UtcDateTime;
+            var now = timeProvider.GetCurrentUtcDateTime();
             var query = repository.Db.Query(nameof(AccountPreference))
                 .WhereNull(nameof(AccountPreference.DeletedUtc))
                 .Where(nameof(AccountPreference.AccountId), request.AccountId);

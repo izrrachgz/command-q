@@ -71,6 +71,7 @@ require the SPA process.
    dotnet test .\Email.Test\Email.Test.csproj --no-build
    dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj --no-build
    dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj --no-build
+   dotnet test .\Time.Test\Time.Test.csproj --no-build
    ```
 
    `Email.IntegrationTest` is opt-in and requires a running smtp4dev instance.
@@ -150,6 +151,7 @@ Domain/
     Registers/
 
 Common/
+Time/
 Localization/
 Persistence/
 Application.Migrations/
@@ -165,6 +167,7 @@ IdentityServer.Test/
 Email.Test/
 Email.IntegrationTest/
 Email.Outbox.Test/
+Time.Test/
 FrontApplication/  (Angular SPA included for local development)
 ```
 
@@ -501,12 +504,18 @@ outbox also persists W3C trace-parent and trace-state values when an enqueue
 activity has a W3C context; the worker uses those contexts as links on the
 profile processing activity without exposing them as metric tags.
 
-The email delivery stack uses injectable `TimeProvider` instances for current
-time and NodaTime `Instant`/`Duration` contracts for timestamps and scheduling.
-Its canonical timezone is UTC. SQL Server, PostgreSQL and MySQL receive native
-UTC values, while SQLite stores the shared fixed seven-digit UTC pattern ending
-in `Z`. During version-1 development, the complete outbox schema remains folded
-into one `migration-1.sql` baseline per provider.
+Backend projects use the shared `Time` project for injectable `TimeProvider`
+registration, NodaTime conversion, TZDB validation, strict UTC JSON handling and
+the canonical microsecond UTC persistence precision. Current values are
+normalized when they enter persistence, so equality does not depend on a
+provider silently rounding or truncating sub-microsecond ticks. Feature projects
+continue to own their timestamp-bearing models and scheduling policy. EF Core
+and Dapper/SqlKata adapters remain with their persistence owners and reuse the
+shared UTC primitives. SQL Server uses `datetime2(6)`, PostgreSQL uses
+`timestamptz(6)`, MySQL uses UTC-session `datetime(6)`, and SQLite stores the
+shared fixed six-digit UTC pattern ending in `Z`. During
+version-1 development, the complete outbox schema remains folded into one
+`migration-1.sql` baseline per provider.
 
 ## Email Delivery
 
@@ -652,6 +661,11 @@ Email.Outbox.Test/
   Persistence/
   Serialization/
   Services/
+
+Time.Test/
+  Architecture/
+  Extensions/
+  Serialization/
 ```
 
 Architecture rules are enforced by `Application.Test/Architecture/ArchitectureRulesTest.cs`. These tests check project dependency direction, CQRS repository usage, module namespace conventions, duplicate logging event IDs, and module logging event-id ranges. Application composition tests also resolve the real application service graph.
@@ -679,6 +693,11 @@ instance when explicitly enabled.
 behavior, architecture boundaries and the dedicated SQLite migration and store
 lifecycle.
 
+`Time.Test` verifies strict UTC serialization, TZDB wall-clock conversion,
+canonical persistence formatting, `TimeProvider` conversion and DI override
+behavior. Its architecture rule keeps the shared project independent from
+feature, host and persistence projects.
+
 ## Logging
 
 Source-generated logging is organized by ownership:
@@ -696,6 +715,12 @@ The `Common` project includes reusable helpers:
 - `FileUploader` for multipart file uploads.
 - `TaskRunner` for bounded-concurrency asynchronous work.
 - `ITypedCache<TEntry>` and its memory-cache implementation for typed caches.
+
+The separate `Time` project owns shared UTC and timezone mechanics: the default
+`TimeProvider` registration, conversion to NodaTime `Instant`, TZDB wall-clock
+conversion and validation, strict UTC JSON converters, and the canonical UTC
+persistence pattern. Provider-specific database adapters remain in their
+owning persistence projects.
 
 The separate `Email` project contains SMTP-specific abstractions, MIME message
 construction and MailKit transport implementation so those dependencies do not

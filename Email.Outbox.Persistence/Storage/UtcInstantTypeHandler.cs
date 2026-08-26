@@ -1,8 +1,7 @@
 using Dapper;
 using NodaTime;
-using NodaTime.Text;
+using Time;
 using System.Data;
-using Email.Outbox.Persistence.Constants;
 
 namespace Email.Outbox.Persistence.Storage
 {
@@ -12,9 +11,6 @@ namespace Email.Outbox.Persistence.Storage
     internal sealed class UtcInstantTypeHandler : SqlMapper.TypeHandler<Instant>
     {
         private const string SqLiteParameterNamespace = "System.Data.SQLite";
-        private static readonly InstantPattern PersistencePattern = InstantPattern.CreateWithInvariantCulture(
-            EmailOutboxPersistenceConstants.UtcInstantPattern);
-
         public static UtcInstantTypeHandler Instance { get; } = new();
 
         private UtcInstantTypeHandler()
@@ -38,11 +34,11 @@ namespace Email.Outbox.Persistence.Storage
             if (string.Equals(parameter.GetType().Namespace, SqLiteParameterNamespace, StringComparison.Ordinal))
             {
                 parameter.DbType = DbType.String;
-                parameter.Value = PersistencePattern.Format(value);
+                parameter.Value = UtcTime.FormatForPersistence(value);
                 return;
             }
 
-            parameter.Value = value.ToDateTimeUtc();
+            parameter.Value = UtcTime.TruncateToPersistencePrecision(value).ToDateTimeUtc();
         }
 
         private static Instant FromDateTime(DateTime value)
@@ -52,21 +48,20 @@ namespace Email.Outbox.Persistence.Storage
                 throw new DataException("Local DateTime values cannot be materialized as UTC instants.");
             }
 
-            return Instant.FromDateTimeUtc(value.Kind == DateTimeKind.Utc
-                ? value
-                : DateTime.SpecifyKind(value, DateTimeKind.Utc));
+            DateTime utcValue = UtcDateTime.RestoreFromDatabase(value);
+            return UtcTime.TruncateToPersistencePrecision(Instant.FromDateTimeUtc(utcValue));
         }
 
         private static Instant ParseText(string value)
         {
-            var result = PersistencePattern.Parse(value);
-
-            if (result.Success)
+            try
             {
-                return result.Value;
+                return UtcTime.ParseFromPersistence(value);
             }
-
-            throw new DataException("The database value is not a valid UTC instant.", result.Exception);
+            catch (FormatException exception)
+            {
+                throw new DataException("The database value is not a valid UTC instant.", exception);
+            }
         }
     }
 }

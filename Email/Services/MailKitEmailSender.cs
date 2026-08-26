@@ -1,5 +1,5 @@
 using MimeKit;
-using Email.Time;
+using Time.Extensions;
 using Email.Models;
 using Email.Logging;
 using Email.Constants;
@@ -93,7 +93,7 @@ namespace Email.Services
             EmailOptions emailOptions = _options.CurrentValue;
             (string profileName, EmailProfileOptions options) = emailOptions.ResolveProfile(_profileName);
             var tags = new TagList { { EmailTelemetry.ProfileTag, profileName } };
-            long startedAt = Stopwatch.GetTimestamp();
+            long startedAt = _timeProvider.GetTimestamp();
             using Activity? sendActivity = EmailTelemetry.ActivitySource.StartActivity(EmailTelemetry.SendActivityName);
             sendActivity?.SetTag(EmailTelemetry.ProfileTag, profileName);
 
@@ -120,7 +120,7 @@ namespace Email.Services
             {
                 _logger.BatchStarting(options.Smtp.Host, options.Smtp.Port, batch.Count);
 
-                long connectStartedAt = Stopwatch.GetTimestamp();
+                long connectStartedAt = _timeProvider.GetTimestamp();
                 using (Activity? activity = StartActivity(EmailTelemetry.SmtpConnectActivityName, profileName))
                 {
                     try
@@ -144,7 +144,7 @@ namespace Email.Services
                     finally
                     {
                         EmailTelemetry.SmtpConnectionDuration.Record(
-                            Stopwatch.GetElapsedTime(connectStartedAt).TotalSeconds,
+                            _timeProvider.GetElapsedTime(connectStartedAt).TotalSeconds,
                             tags);
                     }
                 }
@@ -256,7 +256,7 @@ namespace Email.Services
                 }
 
                 await DisconnectSafely(transport);
-                EmailTelemetry.SendDuration.Record(Stopwatch.GetElapsedTime(startedAt).TotalSeconds, tags);
+                EmailTelemetry.SendDuration.Record(_timeProvider.GetElapsedTime(startedAt).TotalSeconds, tags);
             }
         }
 

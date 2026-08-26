@@ -80,8 +80,10 @@ All EF `DateTime` properties, including nullable OpenIddict timestamps, use the
 IdentityServer UTC converter. It rejects non-UTC values before persistence and
 restores `DateTimeKind.Utc` when providers return timezone-neutral values.
 `DateTimeOffset` remains in use for ASP.NET Identity and OpenIddict contracts
-that own that type. This convention applies to all four provider models without
-changing their relational column types.
+that own that type. Both types are canonicalized to UTC and normalized to
+microsecond precision. The relational models use `datetime2(6)`,
+`timestamptz(6)` or `datetime(6)` where the provider exposes a precision-bearing
+native type; SQLite enforces the same precision through the converters.
 
 The Development issuer is `https://localhost:7125/`. Important endpoints include:
 
@@ -166,6 +168,11 @@ sets with one command:
 The script restores the repository-local EF tool, builds IdentityServer and
 scaffolds the same migration name for `PgSql`, `MsSql`, `MySql` and `SqLite`.
 Commit all four generated migration sets together.
+
+`StandardizeUtcPrecision` aligns existing provider schemas and model metadata
+with the shared microsecond policy. It intentionally has no physical SQLite
+operation because SQLite precision is enforced by conversion rather than a
+precision-bearing column type.
 
 Provider-specific design-time factories live in separate files under
 `Persistence/DesignTime`. They use intentionally non-routable connection

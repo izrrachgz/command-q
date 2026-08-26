@@ -101,7 +101,7 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
 
             public async Task InsertAccountAsync(Guid accountId, string username, string email)
             {
-                var now = DateTime.UtcNow;
+                var now = new DateTime(2026, 8, 25, 18, 0, 0, DateTimeKind.Utc);
                 await repository.Db.Query(nameof(Account))
                     .InsertAsync(new
                     {
@@ -115,7 +115,7 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
 
             public async Task InsertIdentityAsync(Guid accountId, string issuer, string subject)
             {
-                var now = DateTime.UtcNow;
+                var now = new DateTime(2026, 8, 25, 18, 0, 0, DateTimeKind.Utc);
                 await repository.Db.Query(nameof(AccountIdentity))
                     .InsertAsync(new
                     {

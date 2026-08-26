@@ -9,9 +9,9 @@ CREATE TABLE EmailOutboxMessage (
     TraceState TEXT NULL,
     Status INTEGER NOT NULL,
     AttemptCount INTEGER NOT NULL DEFAULT 0,
-    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
-    NextAttemptUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    CreatedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    ModifiedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
+    NextAttemptUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     LockedUntilUtc TEXT NULL,
     LockId TEXT NULL,
     SentUtc TEXT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE EmailOutboxMigrationRecord (
     MigrationId INTEGER NOT NULL,
     Name TEXT NOT NULL,
     Checksum TEXT NOT NULL,
-    AppliedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f0000Z', 'now')),
+    AppliedUtc TEXT NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f000Z', 'now')),
     DeletedUtc TEXT NULL
 );
 
@@ -48,4 +48,4 @@ WHERE DeletedUtc IS NULL;
 INSERT INTO EmailOutboxMigrationRecord
     (MigrationId, Name, Checksum, AppliedUtc, DeletedUtc)
 VALUES
-    (1, 'migration-1.sql', 'seeded-by-migration-1', strftime('%Y-%m-%d %H:%M:%f0000Z', 'now'), NULL);
+    (1, 'migration-1.sql', 'seeded-by-migration-1', strftime('%Y-%m-%d %H:%M:%f000Z', 'now'), NULL);

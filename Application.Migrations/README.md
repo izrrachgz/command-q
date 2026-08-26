@@ -24,9 +24,10 @@ environments use the API host policy at `Api:Migrations:RunOnStartup`.
 The version 1 baseline contains the complete current application schema,
 including `AccountPreference` and `ApplicationConfiguration`, and uses
 provider-appropriate UTC storage for application temporal columns:
-SQL Server `datetime2`, PostgreSQL `timestamptz`, MySQL microsecond `datetime`
-under a UTC session, and SQLite ISO-8601 UTC text. New writes must still supply
-UTC values from the application whenever server time is used.
+SQL Server `datetime2(6)`, PostgreSQL `timestamptz(6)`, MySQL UTC-session
+`datetime(6)`, and fixed six-digit ISO-8601 UTC text in SQLite. All persistence
+paths normalize to microseconds before writing, and new writes must still supply
+explicitly UTC values from the application whenever server time is used.
 
 ## Adding A Migration
 

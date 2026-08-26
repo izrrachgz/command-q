@@ -110,7 +110,7 @@ namespace Api.Test.Infrastructure
                 Issuer = IdentityIssuer,
                 Audience = audience,
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddMinutes(5),
+                Expires = TimeProvider.System.GetUtcNow().UtcDateTime.AddMinutes(5),
                 SigningCredentials = new SigningCredentials(SigningKey, SecurityAlgorithms.HmacSha256),
                 TokenType = "at+jwt"
             };

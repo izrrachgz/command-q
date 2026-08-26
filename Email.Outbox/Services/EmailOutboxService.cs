@@ -5,7 +5,7 @@ using Email.Outbox.Constants;
 using Email.Outbox.Telemetry;
 using Email.Outbox.Abstractions;
 using Email.Outbox.Serialization;
-using Email.Time;
+using Time.Extensions;
 
 namespace Email.Outbox.Services
 {

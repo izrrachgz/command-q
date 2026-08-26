@@ -70,6 +70,7 @@ namespace IdentityServer.Persistence.Migrations.MySql
                         .HasColumnType("varchar(64)");
 
                     b.Property<DateTime>("OccurredUtc")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("UserAgent")
@@ -102,6 +103,7 @@ namespace IdentityServer.Persistence.Migrations.MySql
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
@@ -115,9 +117,11 @@ namespace IdentityServer.Persistence.Migrations.MySql
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetime");
+                        .HasPrecision(6)
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("ModifiedUtc")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("NormalizedEmail")
@@ -338,6 +342,7 @@ namespace IdentityServer.Persistence.Migrations.MySql
                         .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreationDate")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Properties")
@@ -424,9 +429,11 @@ namespace IdentityServer.Persistence.Migrations.MySql
                         .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("CreationDate")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("ExpirationDate")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Payload")
@@ -436,6 +443,7 @@ namespace IdentityServer.Persistence.Migrations.MySql
                         .HasColumnType("longtext");
 
                     b.Property<DateTime?>("RedemptionDate")
+                        .HasPrecision(6)
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("ReferenceId")

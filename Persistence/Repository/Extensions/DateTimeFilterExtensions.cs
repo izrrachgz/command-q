@@ -1,4 +1,5 @@
 using SqlKata;
+using Time;
 using Common.Enumerations;
 using Common.Models.Request;
 using Persistence.Repository.TypeHandlers;
@@ -10,7 +11,7 @@ namespace Persistence.Repository.Extensions
         /// <summary>Converts an instant to the provider-specific value used by UTC datetime predicates.</summary>
         public static object ToDateTimeFilterValue(this DateTimeOffset value, DatabaseEngine engine)
         {
-            var utcValue = value.UtcDateTime;
+            DateTime utcValue = UtcTime.TruncateToPersistencePrecision(value.UtcDateTime);
 
             return engine == DatabaseEngine.SqLite
                 ? SqliteUtcDateTimeTypeHandler.FormatUtc(utcValue)

@@ -71,7 +71,7 @@ namespace Application.Migrations.Test.Services
                     Module = "Core",
                     Name = "migration-2",
                     Checksum = "test",
-                    AppliedUtc = DateTime.UtcNow,
+                    AppliedUtc = new DateTime(2026, 8, 25, 18, 0, 0, DateTimeKind.Utc),
                     DeletedUtc = (DateTime?)null
                 },
                 cancellationToken: TestContext.Current.CancellationToken);

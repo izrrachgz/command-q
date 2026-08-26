@@ -1,3 +1,4 @@
+using Time.Extensions;
 using IdentityServer.Persistence;
 using IdentityServer.Modules.Accounts.Logging;
 
@@ -25,7 +26,7 @@ namespace IdentityServer.Modules.Accounts
                 IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = request?.Headers.UserAgent.ToString(),
                 DetailsJson = detailsJson,
-                OccurredUtc = timeProvider.GetUtcNow().UtcDateTime
+                OccurredUtc = timeProvider.GetCurrentUtcDateTime()
             };
 
             try

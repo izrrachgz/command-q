@@ -1,4 +1,5 @@
 using System.Text;
+using Time.Extensions;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using IdentityServer.Persistence;
@@ -192,7 +193,7 @@ namespace IdentityServer.Modules.Accounts
                 return BadRequest(new ValidationProblemDetails(ToValidationErrors(addResult)));
             }
 
-            user.ModifiedUtc = timeProvider.GetUtcNow().UtcDateTime;
+            user.ModifiedUtc = timeProvider.GetCurrentUtcDateTime();
             var updateResult = await userManager.UpdateAsync(user);
 
             if (!updateResult.Succeeded)

@@ -1,4 +1,5 @@
 using Public;
+using Time.Extensions;
 using Common.Cqrs;
 using System.Data;
 using SqlKata.Execution;
@@ -24,7 +25,7 @@ namespace Application.Modules.Identity.Accounts.Commands
 
         public async Task<BasicResponse> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
         {
-            var now = timeProvider.GetUtcNow().UtcDateTime;
+            var now = timeProvider.GetCurrentUtcDateTime();
             var accountId = Guid.NewGuid();
 
             repository.Db.Connection.Open();

@@ -1,6 +1,6 @@
 using MediatR;
 using FluentValidation;
-using Application.Extensions;
+using Time.Extensions;
 using Common.Models.Response;
 using Application.Abstractions;
 using Application.Configuration;

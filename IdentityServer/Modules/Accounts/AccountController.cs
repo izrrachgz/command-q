@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Time.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using IdentityServer.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -25,7 +26,7 @@ namespace IdentityServer.Modules.Accounts
         [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
         public async Task<IActionResult> Register(RegisterAccountRequest request, CancellationToken cancellationToken)
         {
-            var now = timeProvider.GetUtcNow().UtcDateTime;
+            var now = timeProvider.GetCurrentUtcDateTime();
             var user = new IdentityUser
             {
                 Id = Guid.NewGuid(),
@@ -327,7 +328,7 @@ namespace IdentityServer.Modules.Accounts
                 return Conflict();
             }
 
-            var now = timeProvider.GetUtcNow().UtcDateTime;
+            var now = timeProvider.GetCurrentUtcDateTime();
             var user = new IdentityUser
             {
                 Id = Guid.NewGuid(),

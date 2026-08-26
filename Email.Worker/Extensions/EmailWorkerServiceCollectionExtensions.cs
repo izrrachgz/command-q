@@ -1,4 +1,5 @@
 using Email.Worker.Services;
+using Time.Extensions;
 using Email.Worker.Constants;
 using Email.Worker.Configuration;
 using Microsoft.Extensions.Options;
@@ -15,7 +16,7 @@ namespace Email.Worker.Extensions
                 .ValidateOnStart();
             services.TryAddEnumerable(
                 ServiceDescriptor.Singleton<IValidateOptions<EmailWorkerOptions>, EmailWorkerOptionsValidator>());
-            services.TryAddSingleton(TimeProvider.System);
+            services.AddTimeServices();
             services.AddHostedService<EmailOutboxBackgroundService>();
 
             return services;

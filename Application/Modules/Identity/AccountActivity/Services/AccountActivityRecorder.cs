@@ -1,4 +1,5 @@
 using System.Data;
+using Time.Extensions;
 using SqlKata.Execution;
 using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -17,7 +18,7 @@ namespace Application.Modules.Identity.AccountActivity.Services
             IDbTransaction? transaction = null,
             CancellationToken cancellationToken = default)
         {
-            var now = timeProvider.GetUtcNow().UtcDateTime;
+            var now = timeProvider.GetCurrentUtcDateTime();
             var entity = new Domain.Modules.Identity.AccountActivity
             {
                 AccountId = activity.AccountId,

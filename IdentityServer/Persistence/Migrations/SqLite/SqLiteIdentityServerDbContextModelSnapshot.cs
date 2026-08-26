@@ -68,6 +68,7 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("OccurredUtc")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UserAgent")
@@ -100,6 +101,7 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedUtc")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
@@ -113,9 +115,11 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("ModifiedUtc")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NormalizedEmail")
@@ -336,6 +340,7 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("CreationDate")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Properties")
@@ -422,9 +427,11 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("CreationDate")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("ExpirationDate")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Payload")
@@ -434,6 +441,7 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("RedemptionDate")
+                        .HasPrecision(6)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ReferenceId")

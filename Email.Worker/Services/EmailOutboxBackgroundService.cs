@@ -1,5 +1,5 @@
 using NodaTime;
-using Email.Time;
+using Time.Extensions;
 using System.Diagnostics;
 using Email.Outbox.Models;
 using Email.Worker.Logging;
@@ -55,7 +55,7 @@ namespace Email.Worker.Services
                         wasEnabled = true;
                     }
 
-                    long startedAt = Stopwatch.GetTimestamp();
+                    long startedAt = timeProvider.GetTimestamp();
                     using Activity? pollActivity = EmailWorkerTelemetry.ActivitySource.StartActivity(EmailWorkerTelemetry.PollActivityName);
                     using Activity? batchActivity = EmailWorkerTelemetry.ActivitySource.StartActivity(EmailWorkerTelemetry.BatchActivityName);
 
@@ -80,7 +80,7 @@ namespace Email.Worker.Services
                             batchActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.SuccessOutcome);
                             pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.SuccessOutcome);
                             EmailWorkerTelemetry.PollDuration.Record(
-                                Stopwatch.GetElapsedTime(startedAt).TotalSeconds,
+                                timeProvider.GetElapsedTime(startedAt).TotalSeconds,
                                 new TagList { { EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.SuccessOutcome } });
                             continue;
                         }
@@ -91,7 +91,7 @@ namespace Email.Worker.Services
                             stoppingToken);
                         pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.EmptyOutcome);
                         EmailWorkerTelemetry.PollDuration.Record(
-                            Stopwatch.GetElapsedTime(startedAt).TotalSeconds,
+                            timeProvider.GetElapsedTime(startedAt).TotalSeconds,
                             new TagList { { EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.EmptyOutcome } });
                     }
                     catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -105,7 +105,7 @@ namespace Email.Worker.Services
                         pollActivity?.SetTag(EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.FailureOutcome);
                         pollActivity?.SetStatus(ActivityStatusCode.Error);
                         EmailWorkerTelemetry.PollDuration.Record(
-                            Stopwatch.GetElapsedTime(startedAt).TotalSeconds,
+                            timeProvider.GetElapsedTime(startedAt).TotalSeconds,
                             new TagList { { EmailWorkerTelemetry.OutcomeTag, EmailWorkerTelemetry.FailureOutcome } });
                         logger.PollFailed(exception);
                         await Task.Delay(

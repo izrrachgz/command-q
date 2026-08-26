@@ -1,4 +1,4 @@
-using Email.Time;
+using Time.Extensions;
 using Email.Models;
 using Email.Exceptions;
 using System.Diagnostics;

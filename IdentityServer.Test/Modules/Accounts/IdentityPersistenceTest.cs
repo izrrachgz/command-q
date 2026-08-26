@@ -265,7 +265,7 @@ namespace IdentityServer.Test.Modules.Accounts
 
         private static CommandQIdentityUser CreateUser()
         {
-            var now = DateTime.UtcNow;
+            var now = TimeProvider.System.GetUtcNow().UtcDateTime;
             var id = Guid.NewGuid();
 
             return new CommandQIdentityUser

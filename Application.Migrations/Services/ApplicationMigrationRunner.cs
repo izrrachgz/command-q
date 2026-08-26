@@ -1,4 +1,5 @@
 using SqlKata.Execution;
+using Time.Extensions;
 using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Migrations.Models;
@@ -154,7 +155,7 @@ namespace Application.Migrations.Services
                 script.Module,
                 script.Name,
                 script.Checksum,
-                AppliedUtc = timeProvider.GetUtcNow().UtcDateTime,
+                AppliedUtc = timeProvider.GetCurrentUtcDateTime(),
                 DeletedUtc = (DateTime?)null
             };
         }

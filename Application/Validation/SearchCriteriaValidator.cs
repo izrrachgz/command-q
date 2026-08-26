@@ -1,4 +1,5 @@
 using Public;
+using Time.Extensions;
 using FluentValidation;
 using Application.Constants;
 using Common.Models.Request;
@@ -28,11 +29,11 @@ namespace Application.Validation
                 .When(x => x.StartDate.HasValue)
                 .WithMessage(messages.Get(nameof(ValidationText.Field_Is_Required), nameof(SearchCriteria.EndDate)));
             RuleFor(x => x.StartDate)
-                .Must(IsUtc)
+                .Must(DateTimeUtcExtensions.IsUtc)
                 .When(x => x.StartDate.HasValue)
                 .WithMessage(messages.Get(nameof(ValidationText.Search_Date_Must_Be_Utc), nameof(SearchCriteria.StartDate)));
             RuleFor(x => x.EndDate)
-                .Must(IsUtc)
+                .Must(DateTimeUtcExtensions.IsUtc)
                 .When(x => x.EndDate.HasValue)
                 .WithMessage(messages.Get(nameof(ValidationText.Search_Date_Must_Be_Utc), nameof(SearchCriteria.EndDate)));
             RuleFor(x => x.EndDate)
@@ -42,11 +43,6 @@ namespace Application.Validation
                     nameof(ValidationText.Search_Date_Range_Order),
                     nameof(SearchCriteria.EndDate),
                     nameof(SearchCriteria.StartDate)));
-        }
-
-        private static bool IsUtc(DateTimeOffset? value)
-        {
-            return !value.HasValue || value.Value.Offset == TimeSpan.Zero;
         }
     }
 }

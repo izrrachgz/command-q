@@ -1,5 +1,6 @@
 using MimeKit;
-using Email.Time;
+using Time;
+using Time.Extensions;
 using Email.Models;
 using MimeKit.Utils;
 using Email.Configuration;
@@ -13,7 +14,7 @@ namespace Email.Services
             var message = new MimeMessage
             {
                 Date = timeProvider.GetCurrentInstant()
-                    .InZone(EmailTimeDefaults.TimeZone)
+                    .InZone(UtcTime.TimeZone)
                     .ToDateTimeOffset(),
                 MessageId = MimeUtils.GenerateMessageId(),
                 Subject = source.Subject

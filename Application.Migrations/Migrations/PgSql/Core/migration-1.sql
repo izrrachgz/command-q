@@ -8,9 +8,9 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE "HealthCheckLog"
 (
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL
 );
 
 CREATE INDEX "IX_HealthCheckLog_CreatedUtc"
@@ -26,9 +26,9 @@ CREATE TABLE "Account"
     "Id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "Username" VARCHAR(256) NOT NULL,
     "Email" VARCHAR(256) NOT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "PK_Account_Id" PRIMARY KEY ("Id")
 );
 
@@ -53,9 +53,9 @@ CREATE TABLE "AccountIdentity"
     "AccountId" UUID NOT NULL,
     "Issuer" VARCHAR(500) NOT NULL,
     "Subject" VARCHAR(256) NOT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "FK_AccountIdentity_Account"
         FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
 );
@@ -84,9 +84,9 @@ CREATE TABLE "AccountActivity"
     "MetadataJson" TEXT NULL,
     "IpAddress" VARCHAR(64) NULL,
     "UserAgent" VARCHAR(512) NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "FK_AccountActivity_Account"
         FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
 );
@@ -118,9 +118,9 @@ CREATE TABLE "AccountPreference"
     "ReduceMotion" BOOLEAN NOT NULL DEFAULT FALSE,
     "ShowDenseTables" BOOLEAN NOT NULL DEFAULT FALSE,
     "TimeZone" VARCHAR(64) NOT NULL DEFAULT 'America/Hermosillo',
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "FK_AccountPreference_Account" FOREIGN KEY ("AccountId") REFERENCES "Account"("Id"),
     CONSTRAINT "CK_AccountPreference_Theme" CHECK ("Theme" IN (0, 1))
 );
@@ -146,9 +146,9 @@ CREATE TABLE "Address"
     "Country" VARCHAR(128) NOT NULL,
     "Phone" VARCHAR(24) NULL,
     "EmailAddress" VARCHAR(256) NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "FK_Address_Account"
         FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
 );
@@ -177,9 +177,9 @@ CREATE TABLE "Contact"
     "Description" TEXT NULL,
     "EmailAddress" VARCHAR(256) NULL,
     "PhoneNumber" VARCHAR(256) NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "FK_Contact_Account"
         FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
 );
@@ -204,9 +204,9 @@ CREATE TABLE "AccountFile"
     "Path" VARCHAR(1024) NOT NULL,
     "ContentType" VARCHAR(256) NULL,
     "Size" BIGINT NOT NULL DEFAULT 0,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "FK_AccountFile_Account"
         FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
 );
@@ -232,11 +232,11 @@ CREATE TABLE "Event"
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "Name" VARCHAR(256) NOT NULL,
     "Description" TEXT NULL,
-    "StartUtc" TIMESTAMPTZ NOT NULL,
-    "EndUtc" TIMESTAMPTZ NOT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL
+    "StartUtc" TIMESTAMPTZ(6) NOT NULL,
+    "EndUtc" TIMESTAMPTZ(6) NOT NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL
 );
 
 CREATE INDEX "IX_Event_StartUtc_EndUtc"
@@ -256,9 +256,9 @@ CREATE TABLE "Place"
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "Name" VARCHAR(256) NOT NULL,
     "Description" TEXT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL
 );
 
 CREATE INDEX "IX_Place_Name"
@@ -274,9 +274,9 @@ CREATE TABLE "Register"
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "AccountId" UUID NOT NULL,
     "Action" SMALLINT NOT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     CONSTRAINT "FK_Register_Account"
         FOREIGN KEY ("AccountId") REFERENCES "Account"("Id")
 );
@@ -302,9 +302,9 @@ CREATE TABLE "RegisterEvent"
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "RegisterId" BIGINT NOT NULL,
     "EventId" BIGINT NOT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     FOREIGN KEY ("EventId") REFERENCES "Event"("Id"),
     FOREIGN KEY ("RegisterId") REFERENCES "Register"("Id")
 );
@@ -330,9 +330,9 @@ CREATE TABLE "RegisterPlace"
     "Id" BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "RegisterId" BIGINT NOT NULL,
     "PlaceId" BIGINT NOT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL,
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL,
     FOREIGN KEY ("PlaceId") REFERENCES "Place"("Id"),
     FOREIGN KEY ("RegisterId") REFERENCES "Register"("Id")
 );
@@ -361,9 +361,9 @@ CREATE TABLE "ApplicationConfiguration"
     "Language" VARCHAR(16) NOT NULL DEFAULT 'en-US',
     "Environment" VARCHAR(64) NOT NULL,
     "InstanceName" VARCHAR(128) NOT NULL,
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL
 );
 CREATE INDEX "IX_ApplicationConfiguration_CreatedUtc" ON "ApplicationConfiguration" ("CreatedUtc" DESC) WHERE "DeletedUtc" IS NULL;
 
@@ -378,10 +378,10 @@ CREATE TABLE "MigrationRecord"
     "Module" VARCHAR(128) NOT NULL,
     "Name" VARCHAR(256) NOT NULL,
     "Checksum" VARCHAR(128) NOT NULL,
-    "AppliedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "CreatedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "ModifiedUtc" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    "DeletedUtc" TIMESTAMPTZ NULL
+    "AppliedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "CreatedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "ModifiedUtc" TIMESTAMPTZ(6) NOT NULL DEFAULT NOW(),
+    "DeletedUtc" TIMESTAMPTZ(6) NULL
 );
 
 CREATE UNIQUE INDEX "UX_MigrationRecord_MigrationId"

@@ -1,4 +1,5 @@
 using Public;
+using Time.Extensions;
 using Common.Cqrs;
 using SqlKata.Execution;
 using Application.Logging;
@@ -46,7 +47,7 @@ namespace Application.Modules.Contacts.Commands
         /// whether the contact was created successfully and an associated message.</returns>
         public async Task<BasicResponse> Handle(CreateContactCommand request, CancellationToken cancellationToken)
         {
-            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            var now = _timeProvider.GetCurrentUtcDateTime();
 
             // Create transaction to ensure data integrity
             _repository.Db.Connection.Open();

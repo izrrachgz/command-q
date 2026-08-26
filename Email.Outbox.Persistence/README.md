@@ -35,11 +35,12 @@ UTC column. While version 1 remains under development, schema changes are
 folded into migration 1; existing development outbox databases must be dropped
 and recreated after a baseline change.
 
-Persistence accepts NodaTime `Instant` values. SQL Server uses `DATETIME2(7)`,
-PostgreSQL uses `TIMESTAMPTZ`, MySQL uses UTC-session `DATETIME(6)`, and SQLite
-uses fixed seven-digit UTC text ending in `Z`. Database defaults and migration
-ledger writes are UTC for every provider. The adapter converts native database
-values at its boundary and rejects local `DateTime` materialization.
+Persistence accepts NodaTime `Instant` values and normalizes them to
+microseconds before writes. SQL Server uses `DATETIME2(6)`, PostgreSQL uses
+`TIMESTAMPTZ(6)`, MySQL uses UTC-session `DATETIME(6)`, and SQLite uses fixed
+six-digit UTC text ending in `Z`. Database defaults and migration-ledger writes
+are UTC for every provider. The adapter converts native database values at its
+boundary and rejects local `DateTime` materialization.
 
 `RunEmailOutboxMigrations` applies pending migrations when the consuming host
 calls it. Startup policy is intentionally not part of persistence options. The

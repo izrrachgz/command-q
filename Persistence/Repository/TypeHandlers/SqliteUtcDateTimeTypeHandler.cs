@@ -1,13 +1,11 @@
 using Dapper;
+using Time;
 using System.Data;
-using System.Globalization;
 
 namespace Persistence.Repository.TypeHandlers
 {
     internal sealed class SqliteUtcDateTimeTypeHandler : SqlMapper.TypeHandler<DateTime>
     {
-        internal const string Format = "yyyy-MM-dd HH:mm:ss.fffffff'Z'";
-
         public static SqliteUtcDateTimeTypeHandler Instance { get; } = new();
 
         private SqliteUtcDateTimeTypeHandler()
@@ -17,16 +15,28 @@ namespace Persistence.Repository.TypeHandlers
         public override DateTime Parse(object value)
         {
             if (value is DateTime dateTime)
-                return Normalize(dateTime);
-
-            if (value is string text && DateTime.TryParseExact(
-                text,
-                Format,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                out var parsed))
             {
-                return parsed;
+                try
+                {
+                    DateTime utcValue = UtcDateTime.RestoreFromDatabase(dateTime);
+                    return UtcTime.TruncateToPersistencePrecision(utcValue);
+                }
+                catch (InvalidOperationException exception)
+                {
+                    throw new DataException("Local DateTime values cannot be materialized as UTC database values.", exception);
+                }
+            }
+
+            if (value is string text)
+            {
+                try
+                {
+                    return UtcTime.ParseDateTimeFromPersistence(text);
+                }
+                catch (FormatException exception)
+                {
+                    throw new DataException("The database value is not a valid UTC timestamp.", exception);
+                }
             }
 
             throw new DataException($"Cannot convert {value.GetType().Name} to a UTC {nameof(DateTime)}.");
@@ -40,17 +50,7 @@ namespace Persistence.Repository.TypeHandlers
 
         internal static string FormatUtc(DateTime value)
         {
-            return Normalize(value).ToString(Format, CultureInfo.InvariantCulture);
-        }
-
-        private static DateTime Normalize(DateTime value)
-        {
-            return value.Kind switch
-            {
-                DateTimeKind.Utc => value,
-                DateTimeKind.Local => value.ToUniversalTime(),
-                _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
-            };
+            return UtcTime.FormatForPersistence(UtcDateTime.Require(value));
         }
     }
 }

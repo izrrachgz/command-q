@@ -1,4 +1,5 @@
 using Public;
+using Time.Extensions;
 using Common.Cqrs;
 using System.Text.Json;
 using SqlKata.Execution;
@@ -94,7 +95,7 @@ namespace Application.Modules.Files.Commands
                 return new(false, _message_file_cannot_create);
             }
 
-            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            var now = _timeProvider.GetCurrentUtcDateTime();
 
             #region setup file storage destination path
 

@@ -32,6 +32,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Time\Time.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Resources\IdentityServerMessages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

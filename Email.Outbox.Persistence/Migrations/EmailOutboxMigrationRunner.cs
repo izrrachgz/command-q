@@ -1,4 +1,5 @@
 using NodaTime;
+using Time.Extensions;
 using SqlKata.Execution;
 using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
@@ -72,7 +73,7 @@ namespace Email.Outbox.Persistence.Migrations
                                     script.MigrationId,
                                     script.Name,
                                     script.Checksum,
-                                    AppliedUtc = Instant.FromDateTimeOffset(timeProvider.GetUtcNow()),
+                                    AppliedUtc = timeProvider.GetCurrentInstant(),
                                     DeletedUtc = (Instant?)null
                                 },
                                 cancellationToken: cancellationToken);

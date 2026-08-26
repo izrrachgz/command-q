@@ -1,5 +1,6 @@
 using SqlKata;
 using NodaTime;
+using Time;
 using SqlKata.Execution;
 using System.Diagnostics;
 using Email.Outbox.Models;
@@ -18,6 +19,8 @@ namespace Email.Outbox.Persistence.Storage
         public async Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailOutboxRecord record, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(record);
+            Instant createdUtc = UtcTime.TruncateToPersistencePrecision(record.CreatedUtc);
+            Instant nextAttemptUtc = UtcTime.TruncateToPersistencePrecision(record.NextAttemptUtc);
 
             using var repository = repositoryFactory.Create();
 
@@ -50,14 +53,14 @@ namespace Email.Outbox.Persistence.Storage
                             record.TraceState,
                             Status = (int)EmailOutboxStatus.Pending,
                             record.AttemptCount,
-                            record.CreatedUtc,
-                            ModifiedUtc = record.CreatedUtc,
-                            record.NextAttemptUtc
+                            CreatedUtc = createdUtc,
+                            ModifiedUtc = createdUtc,
+                            NextAttemptUtc = nextAttemptUtc
                         },
                         cancellationToken: cancellationToken);
 
                 logger.Enqueued(record.Id);
-                return new EmailOutboxEnqueueResult(record.Id, false, record.CreatedUtc);
+                return new EmailOutboxEnqueueResult(record.Id, false, createdUtc);
             }
             catch when (record.IdempotencyKey is not null)
             {

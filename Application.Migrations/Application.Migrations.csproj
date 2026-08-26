@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\Time\Time.csproj" />
   </ItemGroup>
 
   <ItemGroup>
