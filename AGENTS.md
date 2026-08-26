@@ -36,7 +36,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `IdentityServer` owns authentication users, password hashes, lockout, external logins, OAuth clients, scopes, grants and token issuance. Do not move these responsibilities back into `Api` or `Application`.
 - Existing module status and removal steps are documented in `docs/modules.md`.
 - Keep cross-cutting infrastructure at project root, such as `Api/Middleware`, `Api/Extensions`, `Common/System`, `Persistence/Repository` and general project logging.
-- Prefer explicit module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`; those extensions explicitly register MediatR handlers, validators, mappers and module services. Do not use application-wide exported-type scanning for these services. Keep commands, queries and contracts public for API/test boundaries, while module implementation classes remain internal to the Application assembly. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
+- Prefer explicit module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`; those extensions explicitly register CQRS requests through `AddApplicationRequest<TRequest, TResponse, THandler>()`, plus validators, mappers and module services. Do not use application-wide exported-type scanning for these services. Keep commands, queries and contracts public for API/test boundaries, while module implementation classes remain internal to the Application assembly. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
 - Host implementation types should be internal by default. Keep API and IdentityServer controllers public for framework discovery, but seal concrete controllers. Keep host configuration models, middleware, persistence helpers and concrete services internal unless another project consumes them through an intentional contract.
 - The Angular frontend is included in `CommandQ.sln` for local development but remains independently runnable and is not required by the backend hosts. Do not change `FrontApplication` unless the user explicitly asks for frontend work.
 
@@ -86,11 +86,11 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### Application
 - CQRS use cases, validators, handlers, mappers, services and health checks, grouped by module under `Application/Modules`.
-- Depends on `Domain`, `Common`, `Localization`, `Persistence` and the reusable `Email`/`Email.Outbox` contracts.
+- Depends on `Domain`, `Common`, `Cqrs`, `Localization`, `Persistence` and the reusable `Email`/`Email.Outbox` contracts.
 - Keep application logic decoupled from direct I/O. Use injected interfaces such as repositories, text providers and services.
 - Validators use localized resources through `ValidationTextProvider`.
 - Shared validator limits live in `Application/Constants/ValidationLimits.cs`.
-- Register module-owned services explicitly through `AddApplicationModules(configuration)` and module-specific methods such as `AddIdentityModule()`. Module extensions own the registrations for their handlers, validators and mappers; do not move those registrations back into a project-wide scanner.
+- Register module-owned services explicitly through `AddApplicationModules(configuration)` and module-specific methods such as `AddIdentityModule()`. Module extensions own request registrations through `AddApplicationRequest<TRequest, TResponse, THandler>()`, as well as validators and mappers; do not move those registrations back into a project-wide scanner. The helper attaches the Application-owned FluentValidation behavior to each closed request pipeline.
 - Application accounts are business profiles. Keep passwords, auth lockout and protocol sessions out of Application.
 - `Application.Modules.Notifications` owns `QueueEmailCommand` and `IApplicationEmailService`. Queueing is the default; do not add an immediate-send switch to the command.
 - Notification overloads converge on `ApplicationEmailRequest`, which carries a prepared `EmailMessage` plus optional idempotency, account and correlation metadata.
@@ -109,7 +109,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Keep this project free from infrastructure implementation details.
 
 ### Common
-- Shared utilities, constants, exceptions, CQRS abstractions, response/request models and transport helpers.
+- Shared utilities, constants, exceptions, response/request models and transport helpers.
 - HTTP helpers:
   - `Common.Transfer.Http.HttpCall` for JSON/form/string HTTP calls.
   - `Common.Transfer.Http.FileUploader` for multipart uploads.
@@ -123,6 +123,17 @@ This file captures practical repository knowledge for coding agents working in t
   - `Common.System.TypedMemoryCache<TEntry>` stores values in `IMemoryCache` using type-scoped keys.
   - Build project-specific cache adapters over `ITypedCache<TEntry>` when settings or domain-specific methods are needed.
 - Keep this project stable because it is widely referenced.
+
+### Cqrs
+- Framework-light, AOT-compatible in-process request dispatcher. It owns command, query, handler, dispatcher and pipeline contracts formerly supplied by MediatR and `Common.Cqrs`.
+- The core depends only on dependency-injection abstractions and must not reference Application, Common, Domain, validation, persistence, transport or host projects.
+- Register handlers and behaviors as closed generic types through `AddRequestHandler<TRequest, TResponse, THandler>()` and `AddPipelineBehavior<TRequest, TResponse, TBehavior>()`. Do not add assembly scanning, `MakeGenericType`, reflection invocation, expression compilation or runtime code generation.
+- Each request has exactly one handler. Duplicate handlers fail during service registration and missing handlers fail when dispatched.
+- The dispatcher is scoped; handlers, invokers and behaviors are transient and resolve from the current scope. Do not inject the dispatcher into a singleton.
+- Behaviors run in registration order around the handler and must preserve the supplied request and cancellation token unless intentionally terminating the pipeline.
+- FluentValidation integration remains Application-owned while Application is its only consumer. If multiple consumers need it, prefer a separate optional adapter rather than adding the dependency to the core.
+- This dispatcher is not durable messaging. Delivery guarantees, retries, leases, deduplication and dead-lettering belong to outbox or broker infrastructure.
+- Keep `Cqrs/README.md` and `Cqrs/FUTURE-FEATURES.md` aligned with public behavior and planned extensions.
 
 ### Time
 - Framework-light shared UTC and timezone library. It depends only on NodaTime and dependency-injection abstractions, and must not reference feature, host, persistence or transport projects.
@@ -206,6 +217,11 @@ This file captures practical repository knowledge for coding agents working in t
   - `dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Architecture.ArchitectureRulesTest`
   - `dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Modules.Common.System.TaskRunnerTest`
   - `dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Modules.Common.Transfer.FileUploaderTest`
+
+### Cqrs.Test
+- Isolated xUnit tests for request dispatch, command aliases, pipeline ordering, service scopes, cancellation and registration failures.
+- Architecture coverage keeps `Cqrs` independent from feature, validation, persistence, transport and host projects.
+- Useful targeted command: `dotnet test .\Cqrs.Test\Cqrs.Test.csproj`.
 
 ### Api.Test
 - xUnit tests for API-layer architecture, controllers and middleware.

@@ -1,5 +1,5 @@
 using SqlKata;
-using Common.Cqrs;
+using Cqrs.Abstractions;
 using Common.Models.Response;
 using Application.Abstractions;
 using Persistence.Abstractions;

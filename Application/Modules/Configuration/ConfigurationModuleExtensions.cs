@@ -1,8 +1,8 @@
-using MediatR;
 using FluentValidation;
 using Time.Extensions;
 using Common.Models.Response;
 using Application.Abstractions;
+using Application.Extensions;
 using Application.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
@@ -25,11 +25,13 @@ namespace Application.Modules.Configuration
                     "Api:Application:TimeZone must be a valid IANA/TZDB timezone identifier.")
                 .ValidateOnStart();
 
-            services.AddTransient<
-                IRequestHandler<RecordApplicationConfigurationCommand, BasicResponse>,
+            services.AddApplicationRequest<
+                RecordApplicationConfigurationCommand,
+                BasicResponse,
                 RecordApplicationConfigurationCommandHandler>();
-            services.AddTransient<
-                IRequestHandler<GetApplicationConfigurationsQuery, PagedResponse<ApplicationConfigurationModel>>,
+            services.AddApplicationRequest<
+                GetApplicationConfigurationsQuery,
+                PagedResponse<ApplicationConfigurationModel>,
                 GetApplicationConfigurationsQueryHandler>();
             services.AddScoped<IValidator<RecordApplicationConfigurationCommand>, RecordApplicationConfigurationCommandValidator>();
             services.AddScoped<IValidator<GetApplicationConfigurationsQuery>, GetApplicationConfigurationsQueryValidator>();

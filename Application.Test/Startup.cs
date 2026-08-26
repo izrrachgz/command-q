@@ -1,7 +1,5 @@
-using MediatR;
 using Serilog;
 using NodaTime;
-using Common.Cqrs;
 using Email.Models;
 using FluentValidation;
 using Common.Extensions;

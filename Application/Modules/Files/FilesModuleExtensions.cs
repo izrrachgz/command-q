@@ -1,8 +1,7 @@
-using MediatR;
-using Common.Cqrs;
 using FluentValidation;
 using Domain.Modules.Files;
 using Common.Models.Response;
+using Application.Extensions;
 using Application.Abstractions;
 using Application.Modules.Files.Dtos;
 using Application.Modules.Files.Queries;
@@ -24,8 +23,8 @@ namespace Application.Modules.Files
         /// <returns>The configured service collection.</returns>
         public static IServiceCollection AddFilesModule(this IServiceCollection services)
         {
-            services.AddTransient<IRequestHandler<UploadFileCommand, BasicResponse>, UploadFileCommandHandler>();
-            services.AddTransient<IRequestHandler<GetAccountFilesQuery, PagedResponse<AccountFileModel>>, GetAccountFilesQueryHandler>();
+            services.AddApplicationRequest<UploadFileCommand, BasicResponse, UploadFileCommandHandler>();
+            services.AddApplicationRequest<GetAccountFilesQuery, PagedResponse<AccountFileModel>, GetAccountFilesQueryHandler>();
 
             services.AddScoped<IValidator<UploadFileCommand>, UploadFileCommandValidator>();
             services.AddScoped<IValidator<GetAccountFilesQuery>, GetAccountFilesQueryValidator>();

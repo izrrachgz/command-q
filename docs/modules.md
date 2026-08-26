@@ -33,6 +33,7 @@ Use this checklist when removing a module.
 2. Remove application code:
    - delete the module folder under `Application/Modules/{Module}`
    - remove the module registration call from `Application/Modules/ApplicationModuleExtensions.cs`
+   - ensure no `AddApplicationRequest<TRequest, TResponse, THandler>()` registrations for the removed module remain
 
 3. Remove domain code:
    - delete the module folder under `Domain/Modules/{Module}`
@@ -59,6 +60,7 @@ Use this checklist when removing a module.
 
 8. Verify:
    - `dotnet build .\CommandQ.sln`
+   - `dotnet test .\Cqrs.Test\Cqrs.Test.csproj`
    - `dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj`
    - `dotnet test .\Api.Test\Api.Test.csproj`
    - `dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Architecture.ArchitectureRulesTest`
@@ -66,6 +68,7 @@ Use this checklist when removing a module.
 ## Notes
 
 - Prefer removing entire modules instead of leaving half-empty folders.
+- Register every remaining command or query explicitly in its module's `*ModuleExtensions.cs` file through `AddApplicationRequest`; the application does not discover handlers by scanning assemblies.
 - Keep `Identity` and `Health` unless the replacement module is already in place.
 - Use Identity account activity as the queryable audit trail for business account actions instead of per-account application log files. IdentityServer keeps authentication security events in its own database.
 - Account preferences are soft-deletable and have one active row per account. `PUT /accounts/me/preferences` records the complete saved preference payload in account activity metadata; `GET /accounts/me/preferences` returns the active row.

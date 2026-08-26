@@ -1,7 +1,6 @@
-using MediatR;
-using Common.Cqrs;
 using FluentValidation;
 using Common.Models.Response;
+using Application.Extensions;
 using Application.Abstractions;
 using Domain.Modules.Addresses;
 using Application.Modules.Addresses.Dtos;
@@ -24,8 +23,8 @@ namespace Application.Modules.Addresses
         /// <returns>The configured service collection.</returns>
         public static IServiceCollection AddAddressesModule(this IServiceCollection services)
         {
-            services.AddTransient<IRequestHandler<CreateAddressCommand, BasicResponse>, CreateAddressCommandHandler>();
-            services.AddTransient<IRequestHandler<GetAddressByAccountIdQuery, DetailResponse<AddressModel>>, GetAddressByAccountIdQueryHandler>();
+            services.AddApplicationRequest<CreateAddressCommand, BasicResponse, CreateAddressCommandHandler>();
+            services.AddApplicationRequest<GetAddressByAccountIdQuery, DetailResponse<AddressModel>, GetAddressByAccountIdQueryHandler>();
 
             services.AddScoped<IValidator<CreateAddressCommand>, CreateAddressCommandValidator>();
             services.AddScoped<IValidator<GetAddressByAccountIdQuery>, GetAddressByAccountIdQueryValidator>();

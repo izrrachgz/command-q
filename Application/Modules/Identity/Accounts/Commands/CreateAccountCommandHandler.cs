@@ -1,6 +1,6 @@
 using Public;
 using Time.Extensions;
-using Common.Cqrs;
+using Cqrs.Abstractions;
 using System.Data;
 using SqlKata.Execution;
 using Common.Models.Response;

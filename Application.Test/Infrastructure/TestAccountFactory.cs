@@ -1,4 +1,4 @@
-using MediatR;
+using Cqrs.Abstractions;
 using Application.Modules.Identity.Accounts.Dtos;
 using Application.Modules.Identity.Accounts.Queries;
 using Application.Modules.Identity.Accounts.Commands;
@@ -7,11 +7,11 @@ namespace Application.Test.Infrastructure
 {
     internal static class TestAccountFactory
     {
-        public static async Task<AccountModel> Create(ISender sender, CancellationToken cancellationToken = default)
+        public static async Task<AccountModel> Create(IRequestDispatcher dispatcher, CancellationToken cancellationToken = default)
         {
             var suffix = Guid.NewGuid().ToString("N");
             var username = $"TestUsername{suffix}";
-            var result = await sender.Send(new CreateAccountCommand
+            var result = await dispatcher.Send(new CreateAccountCommand
             {
                 Username = username,
                 Email = $"{username}@test.com",
@@ -21,7 +21,7 @@ namespace Application.Test.Infrastructure
 
             Assert.True(result.Success, result.Message);
 
-            var account = await sender.Send(new GetAccountByUsernameQuery
+            var account = await dispatcher.Send(new GetAccountByUsernameQuery
             {
                 Username = username
             }, cancellationToken);

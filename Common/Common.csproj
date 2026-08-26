@@ -13,8 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" />
-    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>

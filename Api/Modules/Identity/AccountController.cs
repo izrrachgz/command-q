@@ -1,4 +1,4 @@
-using MediatR;
+using Cqrs.Abstractions;
 using Api.Constants;
 using Api.Extensions;
 using Api.Models;
@@ -20,7 +20,7 @@ using Application.Modules.Identity.Accounts.Preferences.Dtos;
 namespace Api.Modules.Identity
 {
     [ApiController, Route(IdentityRoute.AccountRoot)]
-    public sealed class AccountController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
+    public sealed class AccountController(IRequestDispatcher dispatcher, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
         [Authorize, HttpPost]
         [EnableRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName)]
@@ -43,7 +43,7 @@ namespace Api.Modules.Identity
                     ApiProblemCodes.BadRequest);
             }
 
-            var response = await mediator.Send(new CreateAccountCommand
+            var response = await dispatcher.Send(new CreateAccountCommand
             {
                 Username = username,
                 Email = email,
@@ -71,7 +71,7 @@ namespace Api.Modules.Identity
                     ApiProblemCodes.Forbidden);
             }
 
-            var response = await mediator.Send(new GetAccountByIdQuery
+            var response = await dispatcher.Send(new GetAccountByIdQuery
             {
                 AccountId = currentAccount.AccountId
             }, cancellationToken);
@@ -100,7 +100,7 @@ namespace Api.Modules.Identity
                     ApiProblemCodes.Forbidden);
             }
 
-            var response = await mediator.Send(new GetAccountActivityQuery
+            var response = await dispatcher.Send(new GetAccountActivityQuery
             {
                 AccountId = currentAccount.AccountId,
                 Module = module,
@@ -120,7 +120,7 @@ namespace Api.Modules.Identity
                     StatusCodes.Status403Forbidden,
                     ApiProblemCodes.Forbidden);
 
-            var response = await mediator.Send(new GetAccountPreferencesQuery
+            var response = await dispatcher.Send(new GetAccountPreferencesQuery
             {
                 AccountId = currentAccount.AccountId
             }, cancellationToken);
@@ -144,7 +144,7 @@ namespace Api.Modules.Identity
                     StatusCodes.Status403Forbidden,
                     ApiProblemCodes.Forbidden);
 
-            var response = await mediator.Send(new SaveAccountPreferencesCommand
+            var response = await dispatcher.Send(new SaveAccountPreferencesCommand
             {
                 AccountId = currentAccount.AccountId,
                 Culture = request.Culture,

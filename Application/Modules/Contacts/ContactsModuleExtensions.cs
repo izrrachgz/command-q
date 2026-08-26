@@ -1,7 +1,6 @@
-using MediatR;
-using Common.Cqrs;
 using FluentValidation;
 using Common.Models.Response;
+using Application.Extensions;
 using Domain.Modules.Contacts;
 using Application.Abstractions;
 using Application.Modules.Contacts.Dtos;
@@ -24,8 +23,8 @@ namespace Application.Modules.Contacts
         /// <returns>The configured service collection.</returns>
         public static IServiceCollection AddContactsModule(this IServiceCollection services)
         {
-            services.AddTransient<IRequestHandler<CreateContactCommand, BasicResponse>, CreateContactCommandHandler>();
-            services.AddTransient<IRequestHandler<GetContactByAccountIdQuery, DetailResponse<ContactModel>>, GetContactByAccountIdQueryHandler>();
+            services.AddApplicationRequest<CreateContactCommand, BasicResponse, CreateContactCommandHandler>();
+            services.AddApplicationRequest<GetContactByAccountIdQuery, DetailResponse<ContactModel>, GetContactByAccountIdQueryHandler>();
 
             services.AddScoped<IValidator<CreateContactCommand>, CreateContactCommandValidator>();
             services.AddScoped<IValidator<GetContactByAccountIdQuery>, GetContactByAccountIdQueryValidator>();

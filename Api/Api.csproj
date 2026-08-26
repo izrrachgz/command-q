@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <PackageReference Include="FluentValidation" />
-    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
     <PackageReference Include="OpenTelemetry" />
@@ -28,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Application.Migrations\Application.Migrations.csproj" />
+    <ProjectReference Include="..\Cqrs\Cqrs.csproj" />
     <ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />
     <ProjectReference Include="..\Email.Outbox.Persistence\Email.Outbox.Persistence.csproj" />
     <ProjectReference Include="..\Time\Time.csproj" />

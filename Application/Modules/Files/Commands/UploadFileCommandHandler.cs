@@ -1,6 +1,6 @@
 using Public;
 using Time.Extensions;
-using Common.Cqrs;
+using Cqrs.Abstractions;
 using System.Text.Json;
 using SqlKata.Execution;
 using System.Globalization;

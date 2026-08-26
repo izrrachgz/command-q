@@ -1,5 +1,5 @@
 using Public;
-using MediatR;
+using Cqrs.Abstractions;
 using Api.Constants;
 using Api.Abstractions;
 using Api.Extensions;
@@ -20,13 +20,13 @@ namespace Api.Modules.Files
     [ApiController, Authorize, Route(FilesRoute.Root)]
     public sealed class FilesController : ControllerBase
     {
-        private readonly ISender _mediator;
+        private readonly IRequestDispatcher _dispatcher;
         private readonly ITextProvider _messages;
         private readonly ICurrentAccountAccessor _currentAccountAccessor;
 
-        public FilesController(ISender mediator, ITextProvider messages, ICurrentAccountAccessor currentAccountAccessor)
+        public FilesController(IRequestDispatcher dispatcher, ITextProvider messages, ICurrentAccountAccessor currentAccountAccessor)
         {
-            _mediator = mediator;
+            _dispatcher = dispatcher;
             _messages = messages;
             _currentAccountAccessor = currentAccountAccessor;
         }
@@ -71,7 +71,7 @@ namespace Api.Modules.Files
                 ContentType = file.ContentType
             };
 
-            var response = await _mediator.Send(command, cancellationToken);
+            var response = await _dispatcher.Send(command, cancellationToken);
 
             return response.Success
                 ? CreatedAtAction(nameof(Get), response.ToOperationResponse())
@@ -103,7 +103,7 @@ namespace Api.Modules.Files
                 SearchCriteria = searchCriteria
             };
 
-            var response = await _mediator.Send(query, cancellationToken);
+            var response = await _dispatcher.Send(query, cancellationToken);
 
             return response.ToPageResponse();
         }

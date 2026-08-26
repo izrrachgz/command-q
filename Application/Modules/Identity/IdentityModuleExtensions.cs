@@ -1,9 +1,8 @@
-using MediatR;
-using Common.Cqrs;
 using FluentValidation;
 using Common.Models.Response;
 using Domain.Modules.Identity;
 using Application.Abstractions;
+using Application.Extensions;
 using Application.Modules.Identity.Roles.Dtos;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Modules.Identity.Accounts.Dtos;
@@ -45,19 +44,23 @@ namespace Application.Modules.Identity
             services.AddScoped<IAccountActivityRecorder, AccountActivityRecorder>();
             services.TryAddScoped<IIdentityRoleAdministrationClient, UnavailableIdentityRoleAdministrationClient>();
 
-            services.AddTransient<IRequestHandler<CreateAccountCommand, BasicResponse>, CreateAccountCommandHandler>();
-            services.AddTransient<IRequestHandler<GetAccountByIdentityQuery, DetailResponse<AccountModel>>, GetAccountByIdentityQueryHandler>();
-            services.AddTransient<IRequestHandler<GetAccountByIdQuery, DetailResponse<AccountModel>>, GetAccountByIdQueryHandler>();
-            services.AddTransient<IRequestHandler<GetAccountByUsernameQuery, DetailResponse<AccountModel>>, GetAccountByUsernameQueryHandler>();
-            services.AddTransient<IRequestHandler<RecordAccountActivityCommand, BasicResponse>, RecordAccountActivityCommandHandler>();
-            services.AddTransient<IRequestHandler<GetAccountActivityQuery, PagedResponse<AccountActivityModel>>, GetAccountActivityQueryHandler>();
-            services.AddTransient<IRequestHandler<SearchIdentityUsersQuery, PagedResponse<IdentityUserRoleModel>>, SearchIdentityUsersQueryHandler>();
-            services.AddTransient<IRequestHandler<GetIdentityUserRolesQuery, DetailResponse<IdentityUserRoleModel>>, GetIdentityUserRolesQueryHandler>();
-            services.AddTransient<IRequestHandler<GetIdentityRolesQuery, DetailResponse<IdentityRoleListModel>>, GetIdentityRolesQueryHandler>();
-            services.AddTransient<IRequestHandler<UpdateIdentityUserRolesCommand, BasicResponse>, UpdateIdentityUserRolesCommandHandler>();
-            services.AddTransient<IRequestHandler<SaveAccountPreferencesCommand, BasicResponse>, SaveAccountPreferencesCommandHandler>();
-            services.AddTransient<
-                IRequestHandler<GetAccountPreferencesQuery, DetailResponse<AccountPreferenceModel>>,
+            services.AddApplicationRequest<CreateAccountCommand, BasicResponse, CreateAccountCommandHandler>();
+            services.AddApplicationRequest<GetAccountByIdentityQuery, DetailResponse<AccountModel>, GetAccountByIdentityQueryHandler>();
+            services.AddApplicationRequest<GetAccountByIdQuery, DetailResponse<AccountModel>, GetAccountByIdQueryHandler>();
+            services.AddApplicationRequest<GetAccountByUsernameQuery, DetailResponse<AccountModel>, GetAccountByUsernameQueryHandler>();
+            services.AddApplicationRequest<RecordAccountActivityCommand, BasicResponse, RecordAccountActivityCommandHandler>();
+            services.AddApplicationRequest<GetAccountActivityQuery, PagedResponse<AccountActivityModel>, GetAccountActivityQueryHandler>();
+            services.AddApplicationRequest<SearchIdentityUsersQuery, PagedResponse<IdentityUserRoleModel>, SearchIdentityUsersQueryHandler>();
+            services.AddApplicationRequest<
+                GetIdentityUserRolesQuery,
+                DetailResponse<IdentityUserRoleModel>,
+                GetIdentityUserRolesQueryHandler>();
+            services.AddApplicationRequest<GetIdentityRolesQuery, DetailResponse<IdentityRoleListModel>, GetIdentityRolesQueryHandler>();
+            services.AddApplicationRequest<UpdateIdentityUserRolesCommand, BasicResponse, UpdateIdentityUserRolesCommandHandler>();
+            services.AddApplicationRequest<SaveAccountPreferencesCommand, BasicResponse, SaveAccountPreferencesCommandHandler>();
+            services.AddApplicationRequest<
+                GetAccountPreferencesQuery,
+                DetailResponse<AccountPreferenceModel>,
                 GetAccountPreferencesQueryHandler>();
 
             services.AddScoped<IValidator<CreateAccountCommand>, CreateAccountCommandValidator>();

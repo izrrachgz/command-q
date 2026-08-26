@@ -3,7 +3,6 @@ Purpose: Shared utilities, constants, common exceptions, helper types and reusab
 Framework: .NET 10 (class library).
 
 Main areas:
-- Common.Cqrs: MediatR command/query marker interfaces, handlers and validation pipeline behavior.
 - Common.Transfer.Http: Lightweight HTTP helpers for JSON/form/string requests and multipart file uploads.
 - Common.System: TaskRunner for bounded-concurrency asynchronous work and TypedMemoryCache for reusable typed memory caching.
 - Common.Abstractions: Reusable contracts such as ITaskRunner and ITypedCache.
@@ -33,5 +32,6 @@ Typed memory cache:
 - Projects can build domain-specific cache adapters over `ITypedCache<TEntry>` when they need expressive methods or settings.
 
 Notes:
+- CQRS contracts and dispatch live in the separate Cqrs project. Common does not depend on MediatR or FluentValidation.
 - Keep this project stable and minimize breaking changes because it is referenced across application layers.
 - Prefer adding small reusable helpers here only when they are independent from infrastructure and business-specific rules.

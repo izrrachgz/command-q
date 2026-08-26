@@ -1,5 +1,5 @@
-using MediatR;
 using FluentValidation;
+using Application.Extensions;
 using Application.Modules.Notifications.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Modules.Notifications.Commands;
@@ -24,7 +24,7 @@ namespace Application.Modules.Notifications
             services.AddScoped<IApplicationEmailService, ApplicationEmailService>();
             services.TryAddScoped<IEmailProfileSelectionPolicy, DefaultEmailProfileSelectionPolicy>();
 
-            services.AddTransient<IRequestHandler<QueueEmailCommand, QueuedEmailResult>, QueueEmailCommandHandler>();
+            services.AddApplicationRequest<QueueEmailCommand, QueuedEmailResult, QueueEmailCommandHandler>();
 
             services.AddScoped<IValidator<ApplicationEmailRequest>, ApplicationEmailRequestValidator>();
             services.AddScoped<IValidator<QueueEmailCommand>, QueueEmailCommandValidator>();

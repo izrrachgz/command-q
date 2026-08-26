@@ -1,19 +1,19 @@
-﻿using MediatR;
+using Cqrs.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Test.Infrastructure;
 using Application.Modules.Addresses.Commands;
 
 namespace Application.Test.Modules.Addresses.Commands
 {
-    public sealed class CreateAddressCommandTest(ILogger<CreateAddressCommandTest> logger, ISender sender)
+    public sealed class CreateAddressCommandTest(ILogger<CreateAddressCommandTest> logger, IRequestDispatcher dispatcher)
     {
-        private readonly ISender _sender = sender;
+        private readonly IRequestDispatcher _dispatcher = dispatcher;
         private readonly ILogger<CreateAddressCommandTest> _logger = logger;
 
         [Fact]
         public async Task CreateAddressCommand_Should_Create_Address()
         {
-            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+            var account = await TestAccountFactory.Create(_dispatcher, TestContext.Current.CancellationToken);
 
             var command = new CreateAddressCommand()
             {
@@ -27,7 +27,7 @@ namespace Application.Test.Modules.Addresses.Commands
 
             CancellationToken cancellationToken = default;
 
-            var result = await _sender.Send(command, cancellationToken);
+            var result = await _dispatcher.Send(command, cancellationToken);
 
             Assert.NotNull(result);
 

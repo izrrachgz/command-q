@@ -1,10 +1,10 @@
-﻿using MediatR;
+using Cqrs.Abstractions;
 using Application.Modules.Identity.Accounts.Queries;
 using Application.Modules.Identity.Accounts.Commands;
 
 namespace Application.Test.Modules.Identity.Accounts.Queries
 {
-    public sealed class GetAccountByIdentityQueryTest(ISender sender)
+    public sealed class GetAccountByIdentityQueryTest(IRequestDispatcher dispatcher)
     {
         [Fact]
         public async Task GetAccountByIdentityQuery_Should_Resolve_Provisioned_Profile()
@@ -15,7 +15,7 @@ namespace Application.Test.Modules.Identity.Accounts.Queries
             var username = $"IdentityUser{suffix}";
             var cancellationToken = TestContext.Current.CancellationToken;
 
-            var createResult = await sender.Send(new CreateAccountCommand
+            var createResult = await dispatcher.Send(new CreateAccountCommand
             {
                 Username = username,
                 Email = $"{username}@test.com",
@@ -23,19 +23,19 @@ namespace Application.Test.Modules.Identity.Accounts.Queries
                 IdentitySubject = subject
             }, cancellationToken);
 
-            var account = await sender.Send(new GetAccountByIdentityQuery
+            var account = await dispatcher.Send(new GetAccountByIdentityQuery
             {
                 Issuer = issuer,
                 Subject = subject
             }, cancellationToken);
 
-            var differentIssuer = await sender.Send(new GetAccountByIdentityQuery
+            var differentIssuer = await dispatcher.Send(new GetAccountByIdentityQuery
             {
                 Issuer = issuer.TrimEnd('/'),
                 Subject = subject
             }, cancellationToken);
 
-            var differentSubject = await sender.Send(new GetAccountByIdentityQuery
+            var differentSubject = await dispatcher.Send(new GetAccountByIdentityQuery
             {
                 Issuer = issuer,
                 Subject = subject.ToUpperInvariant()

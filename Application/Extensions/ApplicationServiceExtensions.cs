@@ -1,5 +1,4 @@
-using MediatR;
-using Common.Cqrs;
+using Cqrs.DependencyInjection;
 using Common.Extensions;
 using Application.Modules;
 using Localization.Extensions;
@@ -25,10 +24,7 @@ namespace Application.Extensions
         /// <param name="configuration">The host configuration used by application infrastructure and modules.</param>
         public static void ConfigureApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // Module-owned handlers are registered explicitly below. MediatR still requires an assembly
-            // for its core registration, so scan its own assembly rather than the application assembly.
-            services.AddMediatR(options => options.RegisterServicesFromAssembly(typeof(IMediator).Assembly));
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
+            services.AddCqrs();
 
             // Repositories
             services.AddRepositories(configuration);

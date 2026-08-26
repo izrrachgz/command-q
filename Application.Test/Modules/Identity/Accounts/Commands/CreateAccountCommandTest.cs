@@ -1,12 +1,12 @@
-﻿using MediatR;
+using Cqrs.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Identity.Accounts.Commands;
 
 namespace Application.Test.Modules.Identity.Accounts.Commands
 {
-    public sealed class CreateAccountCommandTest(ILogger<CreateAccountCommandTest> logger, ISender sender)
+    public sealed class CreateAccountCommandTest(ILogger<CreateAccountCommandTest> logger, IRequestDispatcher dispatcher)
     {
-        private readonly ISender _sender = sender;
+        private readonly IRequestDispatcher _dispatcher = dispatcher;
         private readonly ILogger<CreateAccountCommandTest> _logger = logger;
 
         [Fact]
@@ -26,7 +26,7 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
 
             CancellationToken cancellationToken = default;
 
-            var result = await _sender.Send(command, cancellationToken);
+            var result = await _dispatcher.Send(command, cancellationToken);
 
             Assert.NotNull(result);
 

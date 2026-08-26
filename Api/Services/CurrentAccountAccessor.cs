@@ -1,4 +1,4 @@
-using MediatR;
+using Cqrs.Abstractions;
 using Api.Models;
 using Api.Extensions;
 using Api.Abstractions;
@@ -6,7 +6,7 @@ using Application.Modules.Identity.Accounts.Queries;
 
 namespace Api.Services
 {
-    internal sealed class CurrentAccountAccessor(IHttpContextAccessor httpContextAccessor, ISender sender) : ICurrentAccountAccessor
+    internal sealed class CurrentAccountAccessor(IHttpContextAccessor httpContextAccessor, IRequestDispatcher dispatcher) : ICurrentAccountAccessor
     {
         private Task<CurrentUser?>? _currentAccount;
 
@@ -24,7 +24,7 @@ namespace Api.Services
                 return null;
             }
 
-            var response = await sender.Send(new GetAccountByIdentityQuery
+            var response = await dispatcher.Send(new GetAccountByIdentityQuery
             {
                 Issuer = issuer,
                 Subject = subject

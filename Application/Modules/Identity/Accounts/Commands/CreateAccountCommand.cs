@@ -1,4 +1,4 @@
-﻿using Common.Cqrs;
+using Cqrs.Abstractions;
 using Common.Models.Response;
 
 namespace Application.Modules.Identity.Accounts.Commands

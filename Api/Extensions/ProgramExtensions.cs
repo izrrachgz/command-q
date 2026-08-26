@@ -1,4 +1,4 @@
-using MediatR;
+using Cqrs.Abstractions;
 using Api.Logging;
 using Api.Modules;
 using Api.Services;
@@ -162,11 +162,11 @@ namespace Api.Extensions
         public static async Task RecordApplicationConfiguration(this WebApplication app, CancellationToken cancellationToken = default)
         {
             await using var scope = app.Services.CreateAsyncScope();
-            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+            var dispatcher = scope.ServiceProvider.GetRequiredService<IRequestDispatcher>();
             var options = scope.ServiceProvider.GetRequiredService<IOptions<ApplicationOptions>>().Value;
             IConfigurationSection apiConfiguration = app.Configuration.GetRequiredSection(ApiConfigKeys.Section);
 
-            var response = await sender.Send(new RecordApplicationConfigurationCommand
+            var response = await dispatcher.Send(new RecordApplicationConfigurationCommand
             {
                 ServerTimeZone = options.TimeZone,
                 ApplicationVersion = ResolveApplicationVersion(),

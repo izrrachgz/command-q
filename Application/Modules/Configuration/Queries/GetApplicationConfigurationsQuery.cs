@@ -1,4 +1,4 @@
-using Common.Cqrs;
+using Cqrs.Abstractions;
 using Common.Models.Request;
 using Common.Models.Response;
 using Application.Modules.Configuration.Dtos;

@@ -1,5 +1,5 @@
 using Api.Modules;
-using Common.Cqrs;
+using Cqrs.Abstractions;
 using Domain.Entities;
 using System.Reflection;
 using Persistence.Abstractions;

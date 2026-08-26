@@ -1,4 +1,4 @@
-using MediatR;
+using Cqrs.Abstractions;
 using Api.Constants;
 using Api.Extensions;
 using Api.Models;
@@ -12,14 +12,14 @@ namespace Api.Modules.Configuration
 {
     [ApiController, Route(ConfigurationRoute.Root)]
     [Authorize(Roles = AuthorizationRoles.Admin)]
-    public sealed class ConfigurationController(ISender mediator) : ControllerBase
+    public sealed class ConfigurationController(IRequestDispatcher dispatcher) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<PageResponse<ApplicationConfigurationModel>>> Get(
             [FromQuery] SearchCriteria searchCriteria,
             CancellationToken cancellationToken)
         {
-            var response = await mediator.Send(new GetApplicationConfigurationsQuery
+            var response = await dispatcher.Send(new GetApplicationConfigurationsQuery
             {
                 SearchCriteria = searchCriteria ?? new()
             }, cancellationToken);

@@ -1,4 +1,4 @@
-using MediatR;
+using Cqrs.Abstractions;
 using Api.Abstractions;
 using Api.Constants;
 using Api.Extensions;
@@ -13,9 +13,9 @@ using Application.Modules.Contacts.Dtos;
 namespace Api.Modules.Contacts
 {
     [ApiController, Authorize, Route(ContactRoute.Root)]
-    public sealed class ContactController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
+    public sealed class ContactController(IRequestDispatcher dispatcher, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
-        private readonly ISender _mediator = mediator;
+        private readonly IRequestDispatcher _dispatcher = dispatcher;
 
         /// <summary>
         /// Creates a new contact using the specified command.
@@ -33,7 +33,7 @@ namespace Api.Modules.Contacts
             if (currentAccount is null)
                 return this.ApiProblem(StatusCodes.Status403Forbidden, ApiProblemCodes.Forbidden);
 
-            var response = await _mediator.Send(new CreateContactCommand
+            var response = await _dispatcher.Send(new CreateContactCommand
             {
                 AccountId = currentAccount.AccountId,
                 Name = request.Name,
@@ -69,7 +69,7 @@ namespace Api.Modules.Contacts
                 AccountId = currentAccount.AccountId
             };
 
-            var response = await _mediator.Send(query, cancellationToken);
+            var response = await _dispatcher.Send(query, cancellationToken);
 
             return response.Success
                 ? response.Detail!

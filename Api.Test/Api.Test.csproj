@@ -27,6 +27,7 @@
     <ProjectReference Include="..\Api\Api.csproj" />
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\Cqrs\Cqrs.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 

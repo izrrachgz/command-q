@@ -1,4 +1,4 @@
-using MediatR;
+using Cqrs.Abstractions;
 using Api.Abstractions;
 using Api.Constants;
 using Api.Extensions;
@@ -13,9 +13,9 @@ using Application.Modules.Addresses.Dtos;
 namespace Api.Modules.Addresses
 {
     [ApiController, Authorize, Route(AddressRoute.Root)]
-    public sealed class AddressController(ISender mediator, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
+    public sealed class AddressController(IRequestDispatcher dispatcher, ICurrentAccountAccessor currentAccountAccessor) : ControllerBase
     {
-        private readonly ISender _mediator = mediator;
+        private readonly IRequestDispatcher _dispatcher = dispatcher;
 
         /// <summary>
         /// Creates a new address using the specified command.
@@ -33,7 +33,7 @@ namespace Api.Modules.Addresses
             if (currentAccount is null)
                 return this.ApiProblem(StatusCodes.Status403Forbidden, ApiProblemCodes.Forbidden);
 
-            var response = await _mediator.Send(new CreateAddressCommand
+            var response = await _dispatcher.Send(new CreateAddressCommand
             {
                 AccountId = currentAccount.AccountId,
                 Name = request.Name,
@@ -77,7 +77,7 @@ namespace Api.Modules.Addresses
                 AccountId = currentAccount.AccountId
             };
 
-            var response = await _mediator.Send(query, cancellationToken);
+            var response = await _dispatcher.Send(query, cancellationToken);
 
             return response.Success
                 ? response.Detail!

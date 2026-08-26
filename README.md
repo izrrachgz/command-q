@@ -65,6 +65,7 @@ require the SPA process.
 
    ```powershell
    .\scripts\build.ps1
+   dotnet test .\Cqrs.Test\Cqrs.Test.csproj --no-build
    dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj --no-build
    dotnet test .\Api.Test\Api.Test.csproj --no-build
    dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Architecture --no-build
@@ -151,6 +152,7 @@ Domain/
     Registers/
 
 Common/
+Cqrs/
 Time/
 Localization/
 Persistence/
@@ -167,6 +169,7 @@ IdentityServer.Test/
 Email.Test/
 Email.IntegrationTest/
 Email.Outbox.Test/
+Cqrs.Test/
 Time.Test/
 FrontApplication/  (Angular SPA included for local development)
 ```
@@ -224,7 +227,7 @@ See `IdentityServer/README.md`.
 NuGet versions are centrally managed in `Directory.Packages.props`. Project files should reference packages without inline versions:
 
 ```xml
-<PackageReference Include="MediatR" />
+<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 ```
 
 ## Runtime Configuration Reload
@@ -589,7 +592,7 @@ API endpoints are mapped through:
 app.MapApiModules(configuration);
 ```
 
-When adding a feature module, add its services to `Application/Modules/ApplicationModuleExtensions.cs` and its API mapping to `Api/Modules/ApiModuleExtensions.cs` when needed. The module's own `*ModuleExtensions.cs` file explicitly registers its MediatR handlers, validators, mappers and internal services; do not reintroduce application-wide assembly scanning. Keep commands, queries and contracts public for API/test boundaries, while implementation classes remain internal to the Application assembly.
+When adding a feature module, add its services to `Application/Modules/ApplicationModuleExtensions.cs` and its API mapping to `Api/Modules/ApiModuleExtensions.cs` when needed. The module's own `*ModuleExtensions.cs` file explicitly registers each CQRS request through `AddApplicationRequest<TRequest, TResponse, THandler>()`, plus its validators, mappers and internal services. Do not introduce application-wide assembly scanning. Keep commands, queries and contracts public for API/test boundaries, while implementation classes remain internal to the Application assembly.
 
 Each module owns its registration extension:
 
@@ -662,6 +665,10 @@ Email.Outbox.Test/
   Serialization/
   Services/
 
+Cqrs.Test/
+  Architecture/
+  Dispatching/
+
 Time.Test/
   Architecture/
   Extensions/
@@ -693,6 +700,11 @@ instance when explicitly enabled.
 behavior, architecture boundaries and the dedicated SQLite migration and store
 lifecycle.
 
+`Cqrs.Test` verifies handler dispatch, command aliases, pipeline order, scoped
+dependency resolution, cancellation forwarding, duplicate registration and
+missing-handler failures. Its architecture rule keeps the dispatcher core
+independent from application, feature, persistence and transport projects.
+
 `Time.Test` verifies strict UTC serialization, TZDB wall-clock conversion,
 canonical persistence formatting, `TimeProvider` conversion and DI override
 behavior. Its architecture rule keeps the shared project independent from
@@ -708,6 +720,14 @@ Source-generated logging is organized by ownership:
 Event IDs use project and module ranges. See `docs/logging-event-ids.md`.
 
 ## Shared Helpers
+
+The separate `Cqrs` project owns the AOT-compatible in-process dispatcher,
+command/query contracts and strongly typed pipeline behaviors. Handlers are
+registered explicitly, with no assembly scanning or runtime generic type
+construction. Application keeps its FluentValidation adapter and registers
+each request through `AddApplicationRequest`. See
+[`Cqrs/README.md`](Cqrs/README.md) and the
+[`future-feature notes`](Cqrs/FUTURE-FEATURES.md).
 
 The `Common` project includes reusable helpers:
 

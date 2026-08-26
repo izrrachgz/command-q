@@ -1,19 +1,19 @@
-﻿using MediatR;
+using Cqrs.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Test.Infrastructure;
 using Application.Modules.Contacts.Queries;
 
 namespace Application.Test.Modules.Contacts.Queries
 {
-    public sealed class GetContactByAccountIdQueryTest(ILogger<GetContactByAccountIdQueryTest> logger, ISender sender)
+    public sealed class GetContactByAccountIdQueryTest(ILogger<GetContactByAccountIdQueryTest> logger, IRequestDispatcher dispatcher)
     {
-        private readonly ISender _sender = sender;
+        private readonly IRequestDispatcher _dispatcher = dispatcher;
         private readonly ILogger<GetContactByAccountIdQueryTest> _logger = logger;
 
         [Fact]
         public async Task GetContactByAccountIdQuery_Should_Return_Contacts()
         {
-            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+            var account = await TestAccountFactory.Create(_dispatcher, TestContext.Current.CancellationToken);
 
             var query = new GetContactByAccountIdQuery()
             {
@@ -22,7 +22,7 @@ namespace Application.Test.Modules.Contacts.Queries
 
             CancellationToken cancellationToken = default;
 
-            var result = await _sender.Send(query, cancellationToken);
+            var result = await _dispatcher.Send(query, cancellationToken);
 
             Assert.NotNull(result);
 

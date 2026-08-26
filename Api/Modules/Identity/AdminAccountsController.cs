@@ -6,7 +6,7 @@ using Application.Modules.Identity.Roles.Dtos;
 using Application.Modules.Identity.Roles.Queries;
 using Common.Models.Request;
 using Localization.Abstractions;
-using MediatR;
+using Cqrs.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Api.Modules.Identity.Requests;
@@ -16,14 +16,14 @@ namespace Api.Modules.Identity
 {
     [ApiController, Route(IdentityRoute.AdminAccounts)]
     [Authorize(Roles = AuthorizationRoles.Admin)]
-    public sealed class AdminAccountsController(ISender mediator, ITextProvider messages) : ControllerBase
+    public sealed class AdminAccountsController(IRequestDispatcher dispatcher, ITextProvider messages) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<PageResponse<IdentityUserRoleModel>>> Search(
             [FromQuery] SearchCriteria searchCriteria,
             CancellationToken cancellationToken)
         {
-            var response = await mediator.Send(new SearchIdentityUsersQuery
+            var response = await dispatcher.Send(new SearchIdentityUsersQuery
             {
                 SearchCriteria = searchCriteria ?? new()
             }, cancellationToken);
@@ -34,7 +34,7 @@ namespace Api.Modules.Identity
         [HttpGet(IdentityRoute.AccountId)]
         public async Task<ActionResult<IdentityUserRoleModel>> Details(Guid accountId, CancellationToken cancellationToken)
         {
-            var response = await mediator.Send(new GetIdentityUserRolesQuery
+            var response = await dispatcher.Send(new GetIdentityUserRolesQuery
             {
                 UserId = accountId
             }, cancellationToken);
@@ -61,7 +61,7 @@ namespace Api.Modules.Identity
                     messages.Get(nameof(Messages.Admin_Cannot_Remove_Own_Role)));
             }
 
-            var response = await mediator.Send(new UpdateIdentityUserRolesCommand
+            var response = await dispatcher.Send(new UpdateIdentityUserRolesCommand
             {
                 UserId = accountId,
                 Roles = request.Roles

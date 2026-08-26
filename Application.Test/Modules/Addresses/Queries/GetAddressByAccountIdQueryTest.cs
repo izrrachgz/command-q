@@ -1,19 +1,19 @@
-﻿using MediatR;
+using Cqrs.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Test.Infrastructure;
 using Application.Modules.Addresses.Queries;
 
 namespace Application.Test.Modules.Addresses.Queries
 {
-    public sealed class GetAddressByAccountIdQueryTest(ILogger<GetAddressByAccountIdQueryTest> logger, ISender sender)
+    public sealed class GetAddressByAccountIdQueryTest(ILogger<GetAddressByAccountIdQueryTest> logger, IRequestDispatcher dispatcher)
     {
-        private readonly ISender _sender = sender;
+        private readonly IRequestDispatcher _dispatcher = dispatcher;
         private readonly ILogger<GetAddressByAccountIdQueryTest> _logger = logger;
 
         [Fact]
         public async Task GetAddressByAccountIdQuery_Should_Return_Addresses()
         {
-            var account = await TestAccountFactory.Create(_sender, TestContext.Current.CancellationToken);
+            var account = await TestAccountFactory.Create(_dispatcher, TestContext.Current.CancellationToken);
 
             var query = new GetAddressByAccountIdQuery()
             {
@@ -22,7 +22,7 @@ namespace Application.Test.Modules.Addresses.Queries
 
             CancellationToken cancellationToken = default;
 
-            var result = await _sender.Send(query, cancellationToken);
+            var result = await _dispatcher.Send(query, cancellationToken);
 
             Assert.NotNull(result);
 

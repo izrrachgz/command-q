@@ -1,4 +1,4 @@
-using Common.Cqrs;
+using Cqrs.Abstractions;
 using Application.Modules.Notifications.Models;
 
 namespace Application.Modules.Notifications.Commands

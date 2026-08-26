@@ -25,7 +25,6 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
-    <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="coverlet.collector">
@@ -50,6 +49,7 @@
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Api\Api.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\Cqrs\Cqrs.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\Email\Email.csproj" />
     <ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />
