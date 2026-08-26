@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { catchError, EMPTY, finalize, forkJoin, map, Observable, switchMap, tap } from 'rxjs';
 
 import { TextKeys } from '../../../../core/i18n/text-keys';
-import { detailPayload } from '../../../../core/models/api-response';
 import { AdminRoleAccount, AdminRoleNames } from '../models/admin-role.model';
 import { AdminRolesService } from '../services/admin-roles.service';
 import { AdminRolesStore } from '../stores/admin-roles.store';
@@ -19,12 +18,12 @@ export class AdminRolesActions {
 
     return forkJoin({
       accounts: this.service.searchAccounts(this.store.snapshot.filters),
-      roles: this.service.roles().pipe(map((response) => detailPayload(response)?.roles ?? [])),
+      roles: this.service.roles().pipe(map((response) => response.roles)),
     }).pipe(
       tap(({ accounts, roles }) =>
         this.store.patch({
           status: 'ready',
-          accounts: accounts.collection,
+          accounts: accounts.items,
           roles,
           total: accounts.total,
           totalPages: accounts.totalPages,

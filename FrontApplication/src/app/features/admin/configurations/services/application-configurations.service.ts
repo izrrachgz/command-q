@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { toSearchHttpParams } from '../../../../core/api/search-http-params';
 import { combineUrl } from '../../../../core/config/url-builder';
-import { PagedResponse } from '../../../../core/models/api-response';
+import { PageResponse } from '../../../../core/models/api-response';
 import {
   ApplicationConfigurationFilters,
   ApplicationConfigurationModel,
@@ -17,8 +17,8 @@ export class ApplicationConfigurationsService {
 
   search(
     filters: ApplicationConfigurationFilters,
-  ): Observable<PagedResponse<ApplicationConfigurationModel>> {
-    return this.http.get<PagedResponse<ApplicationConfigurationModel>>(
+  ): Observable<PageResponse<ApplicationConfigurationModel>> {
+    return this.http.get<PageResponse<ApplicationConfigurationModel>>(
       combineUrl(environment.api.baseUrl, environment.api.endpoints.admin.configurations),
       { params: toSearchHttpParams(filters) },
     );

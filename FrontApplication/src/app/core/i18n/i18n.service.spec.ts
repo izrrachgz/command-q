@@ -13,8 +13,8 @@ describe('I18nService', () => {
         {
           provide: PreferencesApiService,
           useValue: {
-            get: () => of({ success: true, message: '', detail: undefined }),
-            save: () => of({ success: true, message: '' }),
+            get: () => of(undefined),
+            save: () => of(undefined),
           },
         },
       ],

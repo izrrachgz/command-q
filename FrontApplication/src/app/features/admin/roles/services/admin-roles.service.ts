@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { toSearchHttpParams } from '../../../../core/api/search-http-params';
 import { combineUrl } from '../../../../core/config/url-builder';
-import { BasicResponse, DetailResponse, PagedResponse } from '../../../../core/models/api-response';
+import { PageResponse } from '../../../../core/models/api-response';
 import {
   AdminRoleAccount,
   AdminRoleFilters,
@@ -17,21 +17,21 @@ import {
 export class AdminRolesService {
   constructor(private readonly http: HttpClient) {}
 
-  searchAccounts(filters: AdminRoleFilters): Observable<PagedResponse<AdminRoleAccount>> {
-    return this.http.get<PagedResponse<AdminRoleAccount>>(
+  searchAccounts(filters: AdminRoleFilters): Observable<PageResponse<AdminRoleAccount>> {
+    return this.http.get<PageResponse<AdminRoleAccount>>(
       combineUrl(environment.api.baseUrl, environment.api.endpoints.admin.accounts),
       { params: toSearchHttpParams(filters) },
     );
   }
 
-  roles(): Observable<DetailResponse<AdminRoleList>> {
-    return this.http.get<DetailResponse<AdminRoleList>>(
+  roles(): Observable<AdminRoleList> {
+    return this.http.get<AdminRoleList>(
       combineUrl(environment.api.baseUrl, environment.api.endpoints.admin.roles),
     );
   }
 
-  updateAccountRoles(accountId: string, request: UpdateAdminAccountRolesRequest): Observable<BasicResponse> {
-    return this.http.put<BasicResponse>(
+  updateAccountRoles(accountId: string, request: UpdateAdminAccountRolesRequest): Observable<void> {
+    return this.http.put<void>(
       combineUrl(environment.api.baseUrl, environment.api.endpoints.admin.accountRoles(accountId)),
       request,
     );

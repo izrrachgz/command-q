@@ -1,7 +1,7 @@
 import { Subject } from 'rxjs';
 
 import { AccountModel } from '../models/account.model';
-import { BasicResponse } from '../models/api-response';
+import { OperationResponse } from '../models/api-response';
 import { AccountProvisionService } from './account-provision.service';
 
 describe('AccountProvisionService', () => {
@@ -12,7 +12,7 @@ describe('AccountProvisionService', () => {
       email: 'tester@example.com',
     };
     const loadExisting$ = new Subject<AccountModel | null>();
-    const create$ = new Subject<BasicResponse>();
+    const create$ = new Subject<OperationResponse>();
     const loadCreated$ = new Subject<AccountModel | null>();
     const auth = {
       snapshot: { account: null },
@@ -44,7 +44,7 @@ describe('AccountProvisionService', () => {
 
     expect(http.post).toHaveBeenCalledTimes(1);
 
-    create$.next({ success: true, message: 'created' });
+    create$.next({ message: 'created' });
     create$.complete();
 
     expect(auth.loadApplicationAccount).toHaveBeenCalledTimes(2);

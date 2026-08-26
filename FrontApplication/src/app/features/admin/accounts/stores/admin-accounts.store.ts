@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { ApiSortFields } from '../../../../core/api/api-constants';
-import { AccountActivityModel } from '../../../../core/models/account.model';
 import { AdminAccount, AdminAccountFilters } from '../models/admin-account.model';
 
 export type AdminAccountsStatus = 'idle' | 'loading' | 'ready' | 'backendUnavailable' | 'error';
@@ -14,7 +13,6 @@ export interface AdminAccountsState {
   readonly total: number;
   readonly totalPages: number;
   readonly selected: AdminAccount | null;
-  readonly activity: readonly AccountActivityModel[];
   readonly commandRunning: boolean;
   readonly message: string;
 }
@@ -26,7 +24,6 @@ const INITIAL_STATE: AdminAccountsState = {
   total: 0,
   totalPages: 0,
   selected: null,
-  activity: [],
   commandRunning: false,
   message: '',
 };

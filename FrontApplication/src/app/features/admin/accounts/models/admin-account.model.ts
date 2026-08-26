@@ -1,4 +1,3 @@
-import { AccountActivityModel } from '../../../../core/models/account.model';
 import { SearchCriteria } from '../../../../core/models/api-response';
 
 export interface AdminAccount {
@@ -22,9 +21,4 @@ export interface CreateAdminAccountRequest {
   readonly email: string;
   readonly temporaryPassword: string;
   readonly sendInvite: boolean;
-}
-
-export interface AdminAccountDetails {
-  readonly account: AdminAccount;
-  readonly activity: readonly AccountActivityModel[];
 }

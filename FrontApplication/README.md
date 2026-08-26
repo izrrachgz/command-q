@@ -213,6 +213,11 @@ endpoint, and the role management page edits assignments through
 in flight, and failed backend calls surface translated pending/unavailable
 messages through the feature actions and stores.
 
+The account page only exposes list and detail operations currently implemented
+by the API. Administrative account creation, lockout changes and another
+account's activity history are not public API endpoints; credentials and
+authentication lockout remain owned by IdentityServer.
+
 The configuration history page consumes `/admin/configurations`, lists
 fixed newest-first UTC startup snapshots in the account timezone, includes the
 recording server instance, and is intentionally read-only. The API resolves and

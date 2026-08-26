@@ -6,7 +6,7 @@ import { environment } from '../../../../../environments/environment';
 import { AdminEmailQueryParamNames } from '../../../../core/api/api-constants';
 import { toSearchHttpParams } from '../../../../core/api/search-http-params';
 import { combineUrl } from '../../../../core/config/url-builder';
-import { PagedResponse } from '../../../../core/models/api-response';
+import { PageResponse } from '../../../../core/models/api-response';
 import { PreferencesService } from '../../../../core/preferences/preferences.service';
 import { accountLocalDateToUtcIso } from '../../../../core/time/date-time-utc';
 import { AdminEmailFilters, AdminEmailRecord } from '../models/admin-email.model';
@@ -18,8 +18,8 @@ export class AdminEmailService {
     private readonly preferences: PreferencesService,
   ) {}
 
-  search(filters: AdminEmailFilters): Observable<PagedResponse<AdminEmailRecord>> {
-    return this.http.get<PagedResponse<AdminEmailRecord>>(
+  search(filters: AdminEmailFilters): Observable<PageResponse<AdminEmailRecord>> {
+    return this.http.get<PageResponse<AdminEmailRecord>>(
       combineUrl(environment.api.baseUrl, environment.api.endpoints.admin.email),
       {
         params: toParams(filters, this.preferences.snapshot.timeZone),

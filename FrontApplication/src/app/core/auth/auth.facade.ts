@@ -24,7 +24,6 @@ import {
   IdentityAccountModel,
   RegisterAccountRequest,
 } from '../models/account.model';
-import { DetailResponse, detailPayload } from '../models/api-response';
 import { PreferencesService } from '../preferences/preferences.service';
 import { AppRouteAreas } from '../routing/app-route-constants';
 import { AppRoutePaths } from '../routing/app-route-paths';
@@ -206,10 +205,10 @@ export class AuthFacade {
 
   loadApplicationAccount(): Observable<AccountModel | null> {
     return this.http
-      .get<DetailResponse<AccountModel>>(
+      .get<AccountModel>(
         combineUrl(environment.api.baseUrl, environment.api.endpoints.account.me),
       )
-      .pipe(map((response) => detailPayload(response) ?? null));
+      .pipe(map((account) => account ?? null));
   }
 
   setApplicationAccount(account: AccountModel | null): void {

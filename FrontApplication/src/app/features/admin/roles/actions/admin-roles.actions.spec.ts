@@ -11,18 +11,16 @@ describe('AdminRolesActions', () => {
     const store = new AdminRolesStore();
     const service = {
       roles: vi.fn().mockReturnValue(of({
-        success: true,
-        message: '',
-        detail: { roles: [{ id: 'role-user', name: 'User' }, { id: 'role-admin', name: 'Admin' }] },
+        roles: [{ id: 'role-user', name: 'User' }, { id: 'role-admin', name: 'Admin' }],
       })),
       searchAccounts: vi.fn().mockReturnValue(of({
-        collection: [refreshedAccount],
+        items: [refreshedAccount],
         page: 1,
         pageSize: 25,
         total: 1,
         totalPages: 1,
       })),
-      updateAccountRoles: vi.fn().mockReturnValue(of({ success: true, message: 'updated' })),
+      updateAccountRoles: vi.fn().mockReturnValue(of(undefined)),
     };
     const actions = new AdminRolesActions(service as never, store);
 

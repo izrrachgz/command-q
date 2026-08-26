@@ -7,7 +7,7 @@ import { combineUrl } from '../config/url-builder';
 import { FrontendLogMessages } from '../logging/frontend-log-messages';
 import { FrontendLoggerService } from '../logging/frontend-logger.service';
 import { AccountModel } from '../models/account.model';
-import { BasicResponse } from '../models/api-response';
+import { OperationResponse } from '../models/api-response';
 import { AuthFacade } from './auth.facade';
 
 const PROVISION_TIMEOUT_MS = 15000;
@@ -76,7 +76,7 @@ export class AccountProvisionService {
     this.logger.information(FrontendLogMessages.provisionStarted);
 
     return this.http
-      .post<BasicResponse>(combineUrl(environment.api.baseUrl, environment.api.endpoints.account.create), {})
+      .post<OperationResponse>(combineUrl(environment.api.baseUrl, environment.api.endpoints.account.create), {})
       .pipe(
         timeout({ first: PROVISION_TIMEOUT_MS }),
         switchMap(() => this.auth.loadApplicationAccount()),

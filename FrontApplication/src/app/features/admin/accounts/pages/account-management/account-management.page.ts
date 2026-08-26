@@ -1,9 +1,8 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { LucideDynamicIcon } from '@lucide/angular';
-import { EMPTY, Observable } from 'rxjs';
 
 import { I18nService } from '../../../../../core/i18n/i18n.service';
 import { TextKeys } from '../../../../../core/i18n/text-keys';
@@ -27,7 +26,6 @@ import { AdminAccount } from '../../models/admin-account.model';
 import { AdminAccountsActions } from '../../actions/admin-accounts.actions';
 import { AdminAccountsStore } from '../../stores/admin-accounts.store';
 import { AccountDetailsComponent } from '../../components/account-details/account-details.component';
-import { CreateAccountFormComponent } from '../../components/create-account-form/create-account-form.component';
 
 @Component({
   selector: 'app-account-management-page',
@@ -37,7 +35,6 @@ import { CreateAccountFormComponent } from '../../components/create-account-form
     AccountDatePipe,
     AccountDetailsComponent,
     ConfirmationDialogComponent,
-    CreateAccountFormComponent,
     EmptyStateComponent,
     LucideDynamicIcon,
     PageHeaderComponent,
@@ -49,14 +46,11 @@ import { CreateAccountFormComponent } from '../../components/create-account-form
   templateUrl: './account-management.page.html',
 })
 export class AccountManagementPage {
-  @ViewChild(CreateAccountFormComponent) private createAccountForm?: CreateAccountFormComponent;
-
   readonly store = inject(AdminAccountsStore);
   readonly trackByEntityId = trackByEntityId;
   readonly virtualTableBufferPixels = virtualTableBufferPixels;
   readonly virtualTableViewportHeight = virtualTableViewportHeight;
   readonly virtualTableRowHeight = VirtualTableRowHeight;
-  createAccountOpen = false;
   accountDetailsOpen = false;
 
   private readonly actions = inject(AdminAccountsActions);
@@ -84,27 +78,6 @@ export class AccountManagementPage {
     this.accountDetailsOpen = true;
     this.actions.select(account).subscribe();
   }
-
-  lock(account: AdminAccount): void {
-    this.actions.lock(account).subscribe();
-  }
-
-  activate(account: AdminAccount): void {
-    this.actions.activate(account).subscribe();
-  }
-
-  openCreateAccount(): void {
-    this.createAccountForm?.reset();
-    this.createAccountOpen = true;
-  }
-
-  readonly createAccount = (): Observable<void> => {
-    const request = this.createAccountForm?.request();
-
-    return request ? this.actions.create(request) : EMPTY;
-  };
-
-  readonly accountCreated = (): void => this.createAccountForm?.reset();
 
   exportAccounts(accounts: readonly AdminAccount[]): void {
     const rows = accounts.map((account) => ({ ...account }));

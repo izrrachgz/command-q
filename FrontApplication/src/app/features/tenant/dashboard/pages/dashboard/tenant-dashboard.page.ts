@@ -73,7 +73,7 @@ export class TenantDashboardPage {
       .pipe(
         catchError(() =>
           of({
-            collection: [],
+            items: [],
             page: 1,
             pageSize: this.activityPageSize,
             total: 0,
@@ -83,7 +83,7 @@ export class TenantDashboardPage {
         finalize(() => (this.loading = false)),
       )
       .subscribe((response) => {
-        this.activity = response.collection;
+        this.activity = response.items;
       });
   }
 }

@@ -1,19 +1,9 @@
-export interface BasicResponse {
-  readonly success: boolean;
+export interface OperationResponse {
   readonly message: string;
 }
 
-export interface DetailResponse<T> extends BasicResponse {
-  readonly detail?: T;
-  readonly data?: T;
-}
-
-export const detailPayload = <T>(response: DetailResponse<T>): T | undefined => {
-  return response.detail ?? response.data;
-};
-
-export interface PagedResponse<T> {
-  readonly collection: readonly T[];
+export interface PageResponse<T> {
+  readonly items: readonly T[];
   readonly page: number;
   readonly pageSize: number;
   readonly total: number;

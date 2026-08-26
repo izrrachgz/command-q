@@ -30,10 +30,7 @@ export interface ApiEndpointMap {
   readonly admin: {
     readonly accounts: string;
     readonly accountDetails: (accountId: string) => string;
-    readonly accountActivity: (accountId: string) => string;
     readonly accountRoles: (accountId: string) => string;
-    readonly lockAccount: (accountId: string) => string;
-    readonly activateAccount: (accountId: string) => string;
     readonly email: string;
     readonly configurations: string;
     readonly roles: string;
@@ -84,15 +81,11 @@ export interface BuildEnvironment {
 }
 
 const ApiEndpointSegments = {
-  account: 'Account',
   accounts: 'accounts',
-  activate: 'activate',
   activity: 'activity',
-  admin: 'Admin',
+  admin: 'admin',
   configurations: 'configurations',
-  create: 'create',
   email: 'email',
-  lock: 'lock',
   me: 'me',
   preferences: 'preferences',
   roles: 'roles',
@@ -116,10 +109,18 @@ const endpointPath = (...segments: readonly string[]): string => segments.join('
 
 export const createApiEndpoints = (): ApiEndpointMap => ({
   account: {
-    create: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.create),
-    me: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.me),
-    activity: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.activity),
-    preferences: endpointPath(ApiEndpointSegments.account, ApiEndpointSegments.preferences),
+    create: endpointPath(ApiEndpointSegments.accounts),
+    me: endpointPath(ApiEndpointSegments.accounts, ApiEndpointSegments.me),
+    activity: endpointPath(
+      ApiEndpointSegments.accounts,
+      ApiEndpointSegments.me,
+      ApiEndpointSegments.activity,
+    ),
+    preferences: endpointPath(
+      ApiEndpointSegments.accounts,
+      ApiEndpointSegments.me,
+      ApiEndpointSegments.preferences,
+    ),
   },
   admin: {
     accounts: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.accounts),
@@ -129,33 +130,12 @@ export const createApiEndpoints = (): ApiEndpointMap => ({
         ApiEndpointSegments.accounts,
         encodeURIComponent(accountId),
       ),
-    accountActivity: (accountId) =>
-      endpointPath(
-        ApiEndpointSegments.admin,
-        ApiEndpointSegments.accounts,
-        encodeURIComponent(accountId),
-        ApiEndpointSegments.activity,
-      ),
     accountRoles: (accountId) =>
       endpointPath(
         ApiEndpointSegments.admin,
         ApiEndpointSegments.accounts,
         encodeURIComponent(accountId),
         ApiEndpointSegments.roles,
-      ),
-    lockAccount: (accountId) =>
-      endpointPath(
-        ApiEndpointSegments.admin,
-        ApiEndpointSegments.accounts,
-        encodeURIComponent(accountId),
-        ApiEndpointSegments.lock,
-      ),
-    activateAccount: (accountId) =>
-      endpointPath(
-        ApiEndpointSegments.admin,
-        ApiEndpointSegments.accounts,
-        encodeURIComponent(accountId),
-        ApiEndpointSegments.activate,
       ),
     email: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.email),
     configurations: endpointPath(ApiEndpointSegments.admin, ApiEndpointSegments.configurations),

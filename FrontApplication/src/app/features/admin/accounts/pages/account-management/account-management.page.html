@@ -3,15 +3,6 @@
     <div class="flex flex-wrap gap-2">
       <button
         type="button"
-        [disabled]="state.commandRunning"
-        class="inline-flex min-h-10 items-center gap-2 rounded-md bg-teal-700 px-3 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60"
-        (click)="openCreateAccount()"
-      >
-        <svg lucideIcon="plus" class="size-4" aria-hidden="true"></svg>
-        {{ 'action.add' | text }}
-      </button>
-      <button
-        type="button"
         [disabled]="state.status === 'loading'"
         class="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
         (click)="load()"
@@ -78,7 +69,7 @@
           <div
             role="row"
             aria-rowindex="1"
-            class="grid h-12 grid-cols-[minmax(180px,1fr)_minmax(220px,1fr)_112px_208px_176px] items-center bg-slate-50 text-xs font-semibold uppercase text-slate-500"
+            class="grid h-12 grid-cols-[minmax(180px,1fr)_minmax(220px,1fr)_112px_208px_88px] items-center bg-slate-50 text-xs font-semibold uppercase text-slate-500"
           >
             <div role="columnheader" class="px-4">{{ 'admin.accounts.username' | text }}</div>
             <div role="columnheader" class="px-4">{{ 'admin.accounts.email' | text }}</div>
@@ -106,7 +97,7 @@
               "
               role="row"
               [attr.aria-rowindex]="rowIndex + 2"
-              class="grid h-16 grid-cols-[minmax(180px,1fr)_minmax(220px,1fr)_112px_208px_176px] items-center border-t border-slate-100"
+              class="grid h-16 grid-cols-[minmax(180px,1fr)_minmax(220px,1fr)_112px_208px_88px] items-center border-t border-slate-100"
               [class.bg-slate-50]="rowIndex % 2 === 1"
             >
               <div role="cell" class="truncate px-4 font-medium text-slate-900">
@@ -136,20 +127,6 @@
                   >
                     <svg lucideIcon="search" class="size-4" aria-hidden="true"></svg>
                   </button>
-                  <button
-                    type="button"
-                    class="grid size-9 place-items-center rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-                    [disabled]="state.commandRunning"
-                    [attr.aria-label]="(account.locked ? 'action.activate' : 'action.lock') | text"
-                    [title]="(account.locked ? 'action.activate' : 'action.lock') | text"
-                    (click)="account.locked ? activate(account) : lock(account)"
-                  >
-                    <svg
-                      [lucideIcon]="account.locked ? 'unlock-keyhole' : 'lock'"
-                      class="size-4"
-                      aria-hidden="true"
-                    ></svg>
-                  </button>
                 </div>
               </div>
             </div>
@@ -165,18 +142,6 @@
     }
   </section>
 
-  <app-confirmation-dialog
-    [(open)]="createAccountOpen"
-    title="admin.accounts.addTitle"
-    confirmLabel="action.add"
-    icon="user-plus"
-    [confirmAction]="createAccount"
-    [confirmDisabled]="state.commandRunning || createAccountForm.invalid"
-    [onSuccess]="accountCreated"
-  >
-    <app-create-account-form #createAccountForm [disabled]="state.commandRunning" />
-  </app-confirmation-dialog>
-
   @if (state.selected) {
     <app-confirmation-dialog
       [(open)]="accountDetailsOpen"
@@ -187,8 +152,6 @@
     >
       <app-account-details
         [account]="state.selected"
-        [activity]="state.activity"
-        [loading]="state.commandRunning"
       />
     </app-confirmation-dialog>
   }

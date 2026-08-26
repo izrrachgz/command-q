@@ -24,7 +24,7 @@ export class AdminEmailActions {
       tap((response) =>
         this.store.patch({
           status: 'ready',
-          records: response.collection,
+          records: response.items,
           total: response.total,
           totalPages: response.totalPages,
         }),

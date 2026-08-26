@@ -17,7 +17,6 @@ import {
 
 import { environment } from '../../../environments/environment';
 import { FrontendStorageKeys } from '../config/frontend-storage-keys';
-import { detailPayload } from '../models/api-response';
 import { resolveBrowserTimeZone, TimeZoneService } from '../time/time-zone.service';
 import { PreferencesApiService } from './preferences-api.service';
 import {
@@ -98,7 +97,6 @@ export class PreferencesService {
 
     let request$: Observable<PreferencesLoadResult>;
     request$ = this.api.get().pipe(
-      map((response) => detailPayload(response)),
       map((preferences) => {
         if (!preferences) {
           return this.markSetupRequired(normalizedKey);

@@ -9,7 +9,7 @@ describe('ApplicationConfigurationsActions', () => {
     const service = {
       search: vi.fn().mockReturnValue(
         of({
-          collection: [
+          items: [
             {
               id: 1,
               serverTimeZone: 'America/Hermosillo',

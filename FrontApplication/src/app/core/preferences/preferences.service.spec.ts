@@ -22,8 +22,8 @@ describe('PreferencesService', () => {
     );
     document.documentElement.style.colorScheme = '';
     api = {
-      get: vi.fn().mockReturnValue(of({ success: true, message: '', detail: undefined })),
-      save: vi.fn().mockReturnValue(of({ success: true, message: '' })),
+      get: vi.fn().mockReturnValue(of(undefined)),
+      save: vi.fn().mockReturnValue(of(undefined)),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -107,22 +107,14 @@ describe('PreferencesService', () => {
   });
 
   it('does not apply a previous account response after the session resets', () => {
-    const response = new Subject<{
-      success: boolean;
-      message: string;
-      detail: UserPreferences;
-    }>();
+    const response = new Subject<UserPreferences>();
     api.get.mockReturnValue(response.asObservable());
     const service = TestBed.inject(PreferencesService);
     const originalTheme = service.snapshot.theme;
 
     service.activateAccount('account-1').subscribe();
     service.resetSession();
-    response.next({
-      success: true,
-      message: '',
-      detail: { ...service.snapshot, theme: UserThemes.light },
-    });
+    response.next({ ...service.snapshot, theme: UserThemes.light });
     response.complete();
 
     expect(service.snapshot.theme).toBe(originalTheme);
