@@ -16,9 +16,10 @@ IdentityServer issues tokens, the API owns application workflows and queues
 notifications, and Email.Worker performs durable delivery. The API does not
 send SMTP mail directly.
 
-The Angular SPA lives in `FrontApplication` and is included in the solution for
-developer convenience. Backend hosts stay independently runnable and do not
-require the SPA process.
+The Angular SPA is maintained and released independently in
+[`command-q-front`](https://github.com/izrrachgz/command-q-front). The browser
+client consumes this backend through HTTP and OpenID Connect; it is not a build
+dependency of the backend solution.
 
 ## Prerequisites
 
@@ -87,20 +88,22 @@ require the SPA process.
    .\scripts\run-email-worker.ps1
    ```
 
-   In Visual Studio 2022 17.11 or later, select the shared `Backend + Email Worker` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third. Use `Full Stack (Backend + FrontApplication)` when the Angular SPA should start with those hosts.
+   In Visual Studio 2022 17.11 or later, select the shared `Backend + Email Worker` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third.
 
    After the API has applied the application migrations, run the full suite with
    `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own
    `ConnectionStrings` user-secrets configured in step 2.
 
-6. Run the frontend when you need the browser client.
+6. Run the frontend from a sibling checkout when you need the browser client.
 
    ```powershell
-   .\scripts\run-front.ps1 -Environment Development
+   git clone https://github.com/izrrachgz/command-q-front.git ..\command-q-front
+   ..\command-q-front\scripts\run.ps1 -Environment Development -Install
    ```
 
-   `npm start` inside `FrontApplication` does the same Development launch and
-   starts the local-only frontend log writer.
+   See the frontend repository README for its environment, test and release
+   commands. The backend and frontend repositories can be checked out side by
+   side, but neither build depends on the other's filesystem layout.
 
 7. Provision an application profile after the first identity login.
 
@@ -116,7 +119,7 @@ require the SPA process.
 
 10. Add user-facing text and reusable constants.
 
-   Backend validators should use `ValidationTextProvider`. Add reusable validation templates to `Localization/Resources/ValidationText*.resx`, field display names to `Localization/Resources/FieldNames*.resx`, and operation messages to `Localization/Resources/Messages*.resx`. IdentityServer-owned UI/configuration text lives in `IdentityServer/Resources/IdentityServerMessages.resx`. The SPA keeps UI text in `FrontApplication/src/app/core/i18n/translations.ts`, TypeScript keys in `TextKeys`, and route/API/storage/protocol/report strings in owned constants.
+   Backend validators should use `ValidationTextProvider`. Add reusable validation templates to `Localization/Resources/ValidationText*.resx`, field display names to `Localization/Resources/FieldNames*.resx`, and operation messages to `Localization/Resources/Messages*.resx`. IdentityServer-owned UI/configuration text lives in `IdentityServer/Resources/IdentityServerMessages.resx`. Frontend localization and TypeScript constants are owned by the separate `command-q-front` repository.
 
 ## Solution Layout
 
@@ -171,7 +174,6 @@ Email.IntegrationTest/
 Email.Outbox.Test/
 Cqrs.Test/
 Time.Test/
-FrontApplication/  (Angular SPA included for local development)
 ```
 
 Feature-owned code should live under the matching module folder. Cross-cutting infrastructure remains at project root, for example `Api/Middleware`, `Common/System`, `Persistence/Repository`, and root logging for general infrastructure events.
@@ -356,7 +358,6 @@ Root helper scripts are also available:
 | `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\run-email-worker.ps1` | Development email outbox worker using the independently migrated outbox schema in local MsSql `command-q`; accepts `-Environment` and `-NoBuild`. |
 | `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
-| `.\scripts\run-front.ps1` | Frontend runner for `FrontApplication`; accepts `-Environment` and `-Install`. |
 
 The backend run scripts bypass `launchSettings.json` deliberately so their
 `-Environment` and `-Urls` arguments are authoritative. Visual Studio uses the
@@ -627,10 +628,9 @@ can extend the same keys.
 Keep externally observable or repeated strings behind constants near their
 owner. Host configuration paths belong in `Constants/ConfigKeys.cs`; API route
 segments stay with the owning API module; reusable HTTP names stay under
-`Api/Constants`; frontend route, storage, OIDC protocol, API query/header,
-reporting and diagnostic strings stay under the matching `FrontApplication`
-`core` folder. Values that change by environment belong in configuration rather
-than constants.
+`Api/Constants`. Frontend-owned strings and configuration stay in the separate
+`command-q-front` repository. Values that change by environment belong in
+configuration rather than constants.
 
 ## Tests
 

@@ -112,7 +112,7 @@ optional `StartDate`/`EndDate` creation range. The application API forwards both
 dates as ISO-8601 UTC instants ending in `Z`; both values are required together
 and the database comparison remains in UTC.
 
-The local `command-q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command-q_api`. Browser clients should use the hosted `GET /account/sign-in` page reached from the authorization challenge; JSON callers can still use `POST /account/sign-in` directly. In Development, the Angular SPA client allows the usual `localhost` and `127.0.0.1` Angular ports from `4200` through `4205`; restart IdentityServer after changing client redirect settings so the OpenIddict application seed is reconciled.
+The local `command-q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command-q_api`. Browser clients should use the hosted `GET /account/sign-in` page reached from the authorization challenge; JSON callers can still use `POST /account/sign-in` directly. The Angular SPA is maintained in [`command-q-front`](https://github.com/izrrachgz/command-q-front). In Development, its client allows the usual `localhost` and `127.0.0.1` Angular ports from `4200` through `4205`; restart IdentityServer after changing client redirect settings so the OpenIddict application seed is reconciled.
 
 Ending the browser session does not revoke an already issued refresh token. A client that stores a refresh token should call `POST /connect/revoke` before `GET|POST /connect/logout`; administrative global revocation remains a separate account-management concern.
 

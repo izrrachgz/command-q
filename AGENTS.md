@@ -16,8 +16,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\run-email-worker.ps1`
   - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
   - `.\scripts\test-email-integration.ps1`
-  - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
-- `command-q.slnLaunch` provides `Backend + Email Worker` for the three backend hosts and `Full Stack (Backend + FrontApplication)` when the Angular SPA is also needed.
+- `command-q.slnLaunch` provides backend-only launch profiles. The Angular SPA is developed in the separate `command-q-front` repository.
 - The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
 - Custom executable settings are namespaced by host: `Api`, `IdentityServer` and `EmailWorker`. Framework-owned `Logging`, `Serilog` and `AllowedHosts` sections remain top-level. Hosts pass explicit subsections to reusable libraries; do not make a library depend on a host prefix.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
@@ -39,7 +38,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Keep cross-cutting infrastructure at project root, such as `Api/Middleware`, `Api/Extensions`, `Common/System`, `Persistence/Repository` and general project logging.
 - Prefer explicit module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`; those extensions explicitly register CQRS requests through `AddApplicationRequest<TRequest, TResponse, THandler>()`, plus validators, mappers and module services. Do not use application-wide exported-type scanning for these services. Keep commands, queries and contracts public for API/test boundaries, while module implementation classes remain internal to the Application assembly. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
 - Host implementation types should be internal by default. Keep API and IdentityServer controllers public for framework discovery, but seal concrete controllers. Keep host configuration models, middleware, persistence helpers and concrete services internal unless another project consumes them through an intentional contract.
-- The Angular frontend is included in `command-q.sln` for local development but remains independently runnable and is not required by the backend hosts. Do not change `FrontApplication` unless the user explicitly asks for frontend work.
+- The Angular frontend lives in `https://github.com/izrrachgz/command-q-front` and is not part of this solution. Coordinate browser-facing API and OIDC changes across the two repositories while keeping their build and release lifecycles independent.
 
 ## Projects
 
@@ -320,9 +319,6 @@ This file captures practical repository knowledge for coding agents working in t
 - Isolated xUnit coverage for dependency boundaries, event ID ranges, message snapshots, batch workflow and dedicated SQLite persistence.
 - The SQLite test applies migrations, verifies idempotent enqueueing, exclusive leases, sent completion and a second no-op migration pass.
 - Useful targeted command: `dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj`.
-
-### FrontApplication
-- Angular frontend project included in `command-q.sln` and the full-stack solution launch profile for developer convenience. It builds and runs independently, and the backend hosts do not require it. Check its own README and ask/confirm before changing frontend code unless the user explicitly requests it.
 
 ## Logging
 - Use source-generated logging with `LoggerMessage`.

@@ -21,4 +21,4 @@ Authentication:
   - Archives: `.zip`.
   - Upload validation requires an allowed extension and matching declared media type. Stored content is not made executable or publicly served by this endpoint.
 
-Development notes: Run IdentityServer before testing authenticated API workflows. The frontend remains optional and is not required by either backend host.
+Development notes: Run IdentityServer before testing authenticated API workflows. The frontend is maintained in https://github.com/izrrachgz/command-q-front and is not required by either backend host.
