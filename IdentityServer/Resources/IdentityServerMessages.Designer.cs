@@ -214,7 +214,7 @@ namespace IdentityServer.Resources {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a CommandQ API.
+        ///   Busca una cadena traducida similar a command-q API.
         /// </summary>
         public static string OpenIddict_ApiScopeDisplayName {
             get {
@@ -340,7 +340,7 @@ namespace IdentityServer.Resources {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a CommandQ.
+        ///   Busca una cadena traducida similar a command-q.
         /// </summary>
         public static string SignIn_BrandName {
             get {
@@ -367,7 +367,7 @@ namespace IdentityServer.Resources {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a Use your CommandQ identity to continue..
+        ///   Busca una cadena traducida similar a Use your command-q identity to continue..
         /// </summary>
         public static string SignIn_Intro {
             get {
@@ -394,7 +394,7 @@ namespace IdentityServer.Resources {
         }
         
         /// <summary>
-        ///   Busca una cadena traducida similar a CommandQ sign in.
+        ///   Busca una cadena traducida similar a command-q sign in.
         /// </summary>
         public static string SignIn_PageTitle {
             get {

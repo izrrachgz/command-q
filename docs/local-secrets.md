@@ -9,9 +9,9 @@ Run these commands from the repository root and replace the placeholder values:
 
 ```powershell
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Engine" "MsSql"
-dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:Engine" "MsSql"
-dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
@@ -27,7 +27,7 @@ current application migrations already applied:
 
 ```powershell
 dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Engine" "MsSql"
-dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
 ```
 
 ## API Deployment Configuration
@@ -66,14 +66,14 @@ conversion is an explicit application-layer operation.
 The standalone `IdentityServer` project has its own `UserSecretsId` and database.
 It issues the access tokens accepted by `Api`; the projects remain independently
 deployable and communicate through OpenID Connect. For local development, the
-database name is `command_q_identity`.
+database name is `command-q_identity`.
 
 Configure the IdentityServer engine and connection independently from the API.
 This example selects PostgreSQL:
 
 ```powershell
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
-dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command-q_identity;Username=postgres;Password=change-me;"
 ```
 
 The supported engine values are `PgSql`, `MsSql`, `MySql` and `SqLite`. All use
@@ -132,7 +132,7 @@ the Email library does not acquire, refresh or persist them.
 ## Email Outbox Worker
 
 `Email.Worker` has a separate user-secrets store. Development defaults to the
-local `localhost\SQLEXPRESS` `command_q` database through Windows trusted
+local `localhost\SQLEXPRESS` `command-q` database through Windows trusted
 authentication and is prepared for anonymous smtp4dev delivery on
 `localhost:25`.
 

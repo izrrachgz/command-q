@@ -6,7 +6,7 @@ and does not alter the application database migrations.
 
 ## Configuration
 
-The CommandQ worker's Development settings use local MsSql `command_q`, sharing
+The command-q worker's Development settings use local MsSql `command-q`, sharing
 the physical application database while retaining an independent schema and
 migration ledger. A consuming host can pass this section directly:
 
@@ -15,7 +15,7 @@ migration ledger. A consuming host can pass this section directly:
   "EmailOutbox": {
     "Persistence": {
       "Engine": "MsSql",
-      "ConnectionString": "Server=localhost\\SQLEXPRESS;Database=command_q;Trusted_Connection=True;TrustServerCertificate=True;"
+      "ConnectionString": "Server=localhost\\SQLEXPRESS;Database=command-q;Trusted_Connection=True;TrustServerCertificate=True;"
     }
   }
 }
@@ -44,7 +44,7 @@ boundary and rejects local `DateTime` materialization.
 
 `RunEmailOutboxMigrations` applies pending migrations when the consuming host
 calls it. Startup policy is intentionally not part of persistence options. The
-CommandQ worker owns that decision through
+command-q worker owns that decision through
 `EmailWorker:Migrations:RunOnStartup`: Development enables it and the committed
 QA/Production settings disable it. In a multi-instance deployment, run
 migrations in one deployment step or one designated instance before enabling

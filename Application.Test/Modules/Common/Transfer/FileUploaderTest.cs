@@ -21,13 +21,13 @@ namespace Application.Test.Modules.Common.Transfer
         public async Task CreateMultipartContent_Should_Add_Fields_And_File()
         {
             var uploader = new FileUploader();
-            await using var stream = new MemoryStream("CommandQ"u8.ToArray());
+            await using var stream = new MemoryStream("command-q"u8.ToArray());
 
             using var content = uploader.CreateMultipartContent([
                 new FileUploadItem
                 {
                     Content = stream,
-                    FileName = "commandq.txt",
+                    FileName = "command-q.txt",
                     Name = "document",
                     ContentType = MediaTypeNames.Text.Plain
                 }
@@ -42,8 +42,8 @@ namespace Application.Test.Modules.Common.Transfer
             Assert.Contains("name=source", body);
             Assert.Contains("test", body);
             Assert.Contains("name=document", body);
-            Assert.Contains("filename=commandq.txt", body);
-            Assert.Contains("CommandQ", body);
+            Assert.Contains("filename=command-q.txt", body);
+            Assert.Contains("command-q", body);
         }
 
         [Fact]
@@ -52,12 +52,12 @@ namespace Application.Test.Modules.Common.Transfer
             var uploader = new FileUploader()
                 .AddContentHeader("X-Content", "content");
 
-            using var stream = new MemoryStream("CommandQ"u8.ToArray());
+            using var stream = new MemoryStream("command-q"u8.ToArray());
             using var content = uploader.CreateMultipartContent([
                 new FileUploadItem
                 {
                     Content = stream,
-                    FileName = "commandq.txt",
+                    FileName = "command-q.txt",
                     ContentType = MediaTypeNames.Text.Plain,
                     Headers = new()
                     {

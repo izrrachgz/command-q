@@ -27,7 +27,7 @@ namespace Email.IntegrationTest.Services
             await using var serviceProvider = services.BuildServiceProvider();
             var sender = serviceProvider.GetRequiredService<IEmailSender>();
             var marker = Guid.NewGuid().ToString("N");
-            var subject = $"CommandQ smtp4dev integration {marker}";
+            var subject = $"command-q smtp4dev integration {marker}";
             var message = new EmailMessage
             {
                 To = new[] { new EmailAddress(Settings.RecipientAddress, "Integration Recipient") },
@@ -101,8 +101,8 @@ namespace Email.IntegrationTest.Services
             email.Smtp.Security = EmailSecurityMode.None;
             email.Authentication.Type = EmailAuthenticationType.Anonymous;
             email.Sender.Address = smtp4Dev.SenderAddress;
-            email.Sender.Name = "CommandQ Integration Test";
-            email.DeliveryPolicy.AllowedSenderDomains = new[] { "commandq.test" };
+            email.Sender.Name = "command-q Integration Test";
+            email.DeliveryPolicy.AllowedSenderDomains = new[] { "command-q.test" };
         }
 
         private static async Task<Smtp4DevMessage> WaitForMessage(

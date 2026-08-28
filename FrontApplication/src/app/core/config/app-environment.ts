@@ -1,7 +1,7 @@
 export type EnvironmentName = 'development' | 'testing' | 'staging' | 'production';
 export type SupportedCulture = 'en-US' | 'es-ES';
 
-export interface CommandQEnvironment {
+export interface AppEnvironment {
   readonly name: EnvironmentName;
   readonly production: boolean;
   readonly applicationUrl: string;

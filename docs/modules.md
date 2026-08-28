@@ -5,7 +5,7 @@ credentials, lockout, external logins, OAuth clients, scopes, grants and tokens.
 The API validates its tokens through OpenID Connect discovery without taking a
 project reference to it.
 
-CommandQ currently keeps all existing backend modules in the starter. They are
+command-q currently keeps all existing backend modules in the starter. They are
 organized so a future project can keep, replace or remove them deliberately.
 
 ## Current Modules
@@ -59,7 +59,7 @@ Use this checklist when removing a module.
    - update `docs/logging-event-ids.md`
 
 8. Verify:
-   - `dotnet build .\CommandQ.sln`
+   - `dotnet build .\command-q.sln`
    - `dotnet test .\Cqrs.Test\Cqrs.Test.csproj`
    - `dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj`
    - `dotnet test .\Api.Test\Api.Test.csproj`

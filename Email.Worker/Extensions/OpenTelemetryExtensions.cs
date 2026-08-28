@@ -30,7 +30,7 @@ namespace Email.Worker.Extensions
             }
 
             string serviceName = section.GetValue<string>("ServiceName")
-                ?? "commandq-email-worker";
+                ?? "command-q-email-worker";
             string endpointKey = $"{EmailWorkerConstants.ConfigurationSection}:{EmailWorkerConstants.OpenTelemetrySection}:Otlp:Endpoint";
             Uri endpoint = section.GetValue<Uri>("Otlp:Endpoint")
                 ?? throw new InvalidOperationException(

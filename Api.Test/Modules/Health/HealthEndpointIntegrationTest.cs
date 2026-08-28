@@ -6,7 +6,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Api.Test.Modules.Health
 {
-    public sealed class HealthEndpointIntegrationTest(CommandQApiFactory factory) : IClassFixture<CommandQApiFactory>
+    public sealed class HealthEndpointIntegrationTest(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         [Fact]
         public async Task Live_Health_Endpoint_Should_Not_Require_Api_Client()

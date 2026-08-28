@@ -1,6 +1,6 @@
 param(
     [string]$Configuration = "Debug",
-    [string]$Project = "CommandQ.sln",
+    [string]$Project = "command-q.sln",
     [string]$Filter = "",
     [switch]$NoBuild
 )

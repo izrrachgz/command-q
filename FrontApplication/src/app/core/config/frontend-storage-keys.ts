@@ -1,7 +1,7 @@
 export const FrontendStorageKeys = {
-  authRealm: 'commandq.realm',
-  authReturnUrl: 'commandq.returnUrl',
-  culture: 'commandq.culture',
-  preferences: 'commandq.preferences',
-  preferencesPrefix: 'commandq.preferences.account.',
+  authRealm: 'command-q.realm',
+  authReturnUrl: 'command-q.returnUrl',
+  culture: 'command-q.culture',
+  preferences: 'command-q.preferences',
+  preferencesPrefix: 'command-q.preferences.account.',
 } as const;

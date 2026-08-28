@@ -11,12 +11,12 @@ namespace Email.Worker.Telemetry
         /// <summary>
         /// Gets the activity source name used by the worker host.
         /// </summary>
-        public const string ActivitySourceName = "CommandQ.Email.Worker";
+        public const string ActivitySourceName = "command-q.Email.Worker";
 
         /// <summary>
         /// Gets the meter name used by the worker host.
         /// </summary>
-        public const string MeterName = "CommandQ.Email.Worker";
+        public const string MeterName = "command-q.Email.Worker";
 
         /// <summary>
         /// Gets the activity name for a worker polling cycle.

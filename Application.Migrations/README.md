@@ -1,6 +1,6 @@
 # Application Migrations
 
-`Application.Migrations` owns the SQL schema history for the CommandQ
+`Application.Migrations` owns the SQL schema history for the command-q
 application database. It is separate from `Persistence` so the persistence
 library remains reusable by consumers with unrelated schemas.
 

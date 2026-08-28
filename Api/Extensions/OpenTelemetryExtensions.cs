@@ -28,7 +28,7 @@ namespace Api.Extensions
                 return;
             }
 
-            string serviceName = section.GetValue<string>("ServiceName") ?? "commandq-api";
+            string serviceName = section.GetValue<string>("ServiceName") ?? "command-q-api";
 
             Uri endpoint = section.GetValue<Uri>("Otlp:Endpoint") ??
                 throw new InvalidOperationException($"{ApiConfigKeys.Section}:{ApiConfigKeys.OpenTelemetry.OtlpEndpoint} is required when OpenTelemetry is enabled.");

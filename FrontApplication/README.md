@@ -1,6 +1,6 @@
-# CommandQ FrontApplication
+# command-q FrontApplication
 
-Angular SPA for CommandQ. The app uses standalone components inside feature-owned Angular modules, with lazy route chunks for tenant and admin areas.
+Angular SPA for command-q. The app uses standalone components inside feature-owned Angular modules, with lazy route chunks for tenant and admin areas.
 
 ## Scripts
 
@@ -126,7 +126,7 @@ Use `TextPipe` in templates:
 Use `TextKeys` with `I18nService.text()` or `text$()` in frontend services, actions, validators and report builders when text is needed outside the template layer:
 
 ```ts
-this.i18n.text(TextKeys.app.documentTitle, { app: 'CommandQ', title: 'Dashboard' });
+this.i18n.text(TextKeys.app.documentTitle, { app: 'command-q', title: 'Dashboard' });
 ```
 
 The interpolation syntax is `{{name}}`; `I18nService` resolves it with the supplied object. Route titles store a `titleKey` in route data, and `AppTitleStrategy` translates the browser title when navigation or culture changes. Preferences persist the selected culture locally and update the document language.
@@ -151,7 +151,7 @@ Controls implement `ControlValueAccessor` and surface common validation states t
 Tailwind CSS and Roboto are bundled locally through npm packages. Icons use `@lucide/angular` and are also bundled.
 
 Brand artwork is packaged with the app under `public/assets`. Use
-`BrandAssets` and `BrandMarkComponent` for the CommandQ mark instead of
+`BrandAssets` and `BrandMarkComponent` for the command-q mark instead of
 repeating asset paths in feature templates. The current robot mark is an
 original local SVG and is not loaded from a CDN.
 
@@ -174,7 +174,7 @@ details may use the same dialog shell without a confirmation action.
 
 ## Accessibility
 
-CommandQ relies on the user's operating-system or browser screen reader
+command-q relies on the user's operating-system or browser screen reader
 (Narrator, NVDA, JAWS, VoiceOver, TalkBack) rather than shipping its own
 narrator. The app provides the structure those tools need:
 

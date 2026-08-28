@@ -1,3 +1,3 @@
 export const BrandAssets = {
-  robotLogo: '/assets/commandq-robot.svg',
+  robotLogo: '/assets/command-q-robot.svg',
 } as const;

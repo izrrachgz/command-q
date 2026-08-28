@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "6271f85c-bfc9-45f2-bfbe-77026f499efc",
-    "name": "CommandQ Backend",
-    "description": "Backend requests for the standalone CommandQ IdentityServer and API. For the initial local flow, run Register legacy local account, Sign in, Create authorization code, Exchange authorization code, and Provision application profile in that order. Postman retains the IdentityServer cookie and the scripts store OAuth tokens only in the active environment.",
+    "name": "command-q Backend",
+    "description": "Backend requests for the standalone command-q IdentityServer and API. For the initial local flow, run Register legacy local account, Sign in, Create authorization code, Exchange authorization code, and Provision application profile in that order. Postman retains the IdentityServer cookie and the scripts store OAuth tokens only in the active environment.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -1112,7 +1112,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Primary contact\",\n  \"description\": \"Created from the CommandQ Postman collection\",\n  \"emailAddress\": \"{{accountEmail}}\",\n  \"phoneNumber\": \"+1-555-0100\"\n}",
+                  "raw": "{\n  \"name\": \"Primary contact\",\n  \"description\": \"Created from the command-q Postman collection\",\n  \"emailAddress\": \"{{accountEmail}}\",\n  \"phoneNumber\": \"+1-555-0100\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1166,7 +1166,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Primary address\",\n  \"description\": \"Created from the CommandQ Postman collection\",\n  \"line1\": \"123 Development Street\",\n  \"line2\": null,\n  \"externalNumber\": \"123\",\n  \"internalNumber\": null,\n  \"references\": null,\n  \"city\": \"Hermosillo\",\n  \"postalCode\": \"83000\",\n  \"country\": \"Mexico\",\n  \"phone\": \"+52-662-000-0000\",\n  \"emailAddress\": \"{{accountEmail}}\"\n}",
+                  "raw": "{\n  \"name\": \"Primary address\",\n  \"description\": \"Created from the command-q Postman collection\",\n  \"line1\": \"123 Development Street\",\n  \"line2\": null,\n  \"externalNumber\": \"123\",\n  \"internalNumber\": null,\n  \"references\": null,\n  \"city\": \"Hermosillo\",\n  \"postalCode\": \"83000\",\n  \"country\": \"Mexico\",\n  \"phone\": \"+52-662-000-0000\",\n  \"emailAddress\": \"{{accountEmail}}\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"

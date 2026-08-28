@@ -40,7 +40,7 @@ services.AddEmailServices(
 ```
 
 This keeps the reusable library independent of the host's chosen prefix. The
-CommandQ worker uses this form.
+command-q worker uses this form.
 
 ## UTC and Time Providers
 
@@ -90,7 +90,7 @@ services.AddEmailServices(options =>
         },
         "Sender": {
           "Address": "no-reply@example.com",
-          "Name": "CommandQ"
+          "Name": "command-q"
         },
         "DeliveryPolicy": {
           "MaxRecipients": 100,
@@ -137,7 +137,7 @@ Email__Profiles__Transactional__DeliveryPolicy__AllowedAttachmentExtensions
 Email__Profiles__Transactional__DeliveryPolicy__AllowUnknownContentTypes
 ```
 
-Those names apply when `Email` is at the configuration root. The CommandQ
+Those names apply when `Email` is at the configuration root. The command-q
 worker owns the section under `EmailWorker:Email`, so its equivalents start with
 `EmailWorker__Email__`, for example `EmailWorker__Email__Smtp__Host`.
 

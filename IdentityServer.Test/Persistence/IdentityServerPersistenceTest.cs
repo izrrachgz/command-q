@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Time;
-using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
-using CommandQIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
+using AppIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
+using AppIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
 namespace IdentityServer.Test.Persistence
 {
@@ -18,22 +18,22 @@ namespace IdentityServer.Test.Persistence
         [Theory]
         [InlineData(
             "PgSql",
-            "Host=localhost;Database=command_q_identity;Username=test;Password=test",
+            "Host=localhost;Database=command-q_identity;Username=test;Password=test",
             typeof(PgSqlIdentityServerDbContext),
             "Npgsql.EntityFrameworkCore.PostgreSQL")]
         [InlineData(
             "MsSql",
-            "Server=localhost;Database=command_q_identity;User ID=test;Password=test;TrustServerCertificate=True",
+            "Server=localhost;Database=command-q_identity;User ID=test;Password=test;TrustServerCertificate=True",
             typeof(MsSqlIdentityServerDbContext),
             "Microsoft.EntityFrameworkCore.SqlServer")]
         [InlineData(
             "MySql",
-            "Server=localhost;Database=command_q_identity;User ID=test;Password=test",
+            "Server=localhost;Database=command-q_identity;User ID=test;Password=test",
             typeof(MySqlIdentityServerDbContext),
             "MySql.EntityFrameworkCore")]
         [InlineData(
             "SqLite",
-            "Data Source=command_q_identity.test.db",
+            "Data Source=command-q_identity.test.db",
             typeof(SqLiteIdentityServerDbContext),
             "Microsoft.EntityFrameworkCore.Sqlite")]
         public void Registration_Should_Resolve_Configured_Provider(
@@ -47,8 +47,8 @@ namespace IdentityServer.Test.Persistence
 
             services.AddLogging();
             IdentityBuilder identityBuilder = services
-                .AddIdentityCore<CommandQIdentityUser>()
-                .AddRoles<CommandQIdentityRole>();
+                .AddIdentityCore<AppIdentityUser>()
+                .AddRoles<AppIdentityRole>();
 
             services.AddIdentityServerPersistence(configuration, identityBuilder);
 

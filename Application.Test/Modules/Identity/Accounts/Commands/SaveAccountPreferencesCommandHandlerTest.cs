@@ -86,7 +86,7 @@ namespace Application.Test.Modules.Identity.Accounts.Commands
 
             public static async Task<TestDatabase> Create()
             {
-                var database = new TestDatabase(Path.Combine(Path.GetTempPath(), $"commandq-preferences-{Guid.NewGuid():N}.sqlite"));
+                var database = new TestDatabase(Path.Combine(Path.GetTempPath(), $"command-q-preferences-{Guid.NewGuid():N}.sqlite"));
                 await database.CreateSchema();
                 return database;
             }

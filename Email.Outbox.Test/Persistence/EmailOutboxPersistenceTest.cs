@@ -15,7 +15,7 @@ namespace Email.Outbox.Test.Persistence
         [Fact]
         public async Task SqLite_Store_Should_Migrate_Deduplicate_Claim_And_Complete()
         {
-            string testRoot = Path.Combine(Path.GetTempPath(), $"commandq-outbox-{Guid.NewGuid():N}");
+            string testRoot = Path.Combine(Path.GetTempPath(), $"command-q-outbox-{Guid.NewGuid():N}");
             Directory.CreateDirectory(testRoot);
             string databasePath = Path.Combine(testRoot, "outbox.db");
 

@@ -1,7 +1,7 @@
 # Possible Future Features
 
 The current dispatcher intentionally covers only the request/response behavior
-CommandQ uses today. The following features are candidates, not commitments.
+command-q uses today. The following features are candidates, not commitments.
 They should be added only when a concrete use case justifies their API and
 maintenance cost, and every addition should preserve trimming and AOT safety.
 

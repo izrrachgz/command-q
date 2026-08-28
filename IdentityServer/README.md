@@ -1,6 +1,6 @@
 # IdentityServer
 
-`IdentityServer` is CommandQ's standalone OpenID Connect and OAuth 2.0 authorization server. ASP.NET Core Identity owns users and credentials; OpenIddict owns protocol clients, scopes, authorizations and tokens. The API remains an independently deployable resource server.
+`IdentityServer` is command-q's standalone OpenID Connect and OAuth 2.0 authorization server. ASP.NET Core Identity owns users and credentials; OpenIddict owns protocol clients, scopes, authorizations and tokens. The API remains an independently deployable resource server.
 
 ## Capabilities
 
@@ -11,7 +11,7 @@
 - optional Google and Microsoft sign-in through secret-backed configuration
 - authorization code with PKCE, refresh token and client credentials flows
 - signed `at+jwt` access tokens and encrypted authorization/refresh tokens
-- configurable clients, redirect URIs, permissions and the `command_q_api` resource scope
+- configurable clients, redirect URIs, permissions and the `command-q_api` resource scope
 - persisted security activity for registration, login, lockout, refresh and logout
 - EF Core stores for PostgreSQL, SQL Server, MySQL and SQLite
 - provider-specific version-one migrations selected through configuration
@@ -32,7 +32,7 @@ Trust the ASP.NET Core HTTPS development certificate once if needed:
 dotnet dev-certs https --trust
 ```
 
-Create an empty `command_q_identity` database, select an engine, configure the
+Create an empty `command-q_identity` database, select an engine, configure the
 local connection and run the host. This example uses PostgreSQL:
 
 ```powershell
@@ -41,7 +41,7 @@ dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
   "PgSql"
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
   "IdentityServer:ConnectionStrings:IdentityDb" `
-  "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
+  "Host=localhost;Port=5432;Database=command-q_identity;Username=postgres;Password=change-me;"
 .\scripts\run-identity-server.ps1
 ```
 
@@ -65,10 +65,10 @@ inspected to guess an engine.
 Provider-specific `IdentityDb` examples:
 
 ```text
-PgSql:  Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;
-MsSql:  Server=localhost;Database=command_q_identity;User ID=commandq;Password=change-me;TrustServerCertificate=True;
-MySql:  Server=localhost;Database=command_q_identity;User ID=commandq;Password=change-me;
-SqLite: Data Source=App_Data/command_q_identity.db
+PgSql:  Host=localhost;Port=5432;Database=command-q_identity;Username=postgres;Password=change-me;
+MsSql:  Server=localhost;Database=command-q_identity;User ID=command-q;Password=change-me;TrustServerCertificate=True;
+MySql:  Server=localhost;Database=command-q_identity;User ID=command-q;Password=change-me;
+SqLite: Data Source=App_Data/command-q_identity.db
 ```
 
 The PostgreSQL and MySQL providers reuse the same underlying Npgsql and
@@ -112,7 +112,7 @@ optional `StartDate`/`EndDate` creation range. The application API forwards both
 dates as ISO-8601 UTC instants ending in `Z`; both values are required together
 and the database comparison remains in UTC.
 
-The local `command_q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command_q_api`. Browser clients should use the hosted `GET /account/sign-in` page reached from the authorization challenge; JSON callers can still use `POST /account/sign-in` directly. In Development, the Angular SPA client allows the usual `localhost` and `127.0.0.1` Angular ports from `4200` through `4205`; restart IdentityServer after changing client redirect settings so the OpenIddict application seed is reconciled.
+The local `command-q_local` public client is configured for Postman's OAuth callback. Request authorization code with PKCE and scopes `openid profile email roles offline_access command-q_api`. Browser clients should use the hosted `GET /account/sign-in` page reached from the authorization challenge; JSON callers can still use `POST /account/sign-in` directly. In Development, the Angular SPA client allows the usual `localhost` and `127.0.0.1` Angular ports from `4200` through `4205`; restart IdentityServer after changing client redirect settings so the OpenIddict application seed is reconciled.
 
 Ending the browser session does not revoke an already issued refresh token. A client that stores a refresh token should call `POST /connect/revoke` before `GET|POST /connect/logout`; administrative global revocation remains a separate account-management concern.
 

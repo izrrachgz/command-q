@@ -23,7 +23,7 @@ listener:
 - `/health/checks` for the complete registered health check set.
 
 Development enables SMTP delivery and the worker, applies the outbox MsSql
-migrations, and stores the queue in the local `command_q` database through its
+migrations, and stores the queue in the local `command-q` database through its
 independent `EmailOutboxMigrationRecord` ledger. The smtp4dev web UI remains
 available at `http://localhost:5000`.
 

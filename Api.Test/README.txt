@@ -9,7 +9,7 @@ Layout:
 
 Notes:
 - Avoid booting the full API host for isolated API tests unless the test intentionally validates startup/pipeline behavior.
-- WebApplicationFactory tests use CommandQApiFactory, which sets the Testing environment and in-memory test configuration.
+- WebApplicationFactory tests use ApiFactory, which sets the Testing environment and in-memory test configuration.
 - Testing environment startup skips database migrations.
-- Full host tests outside CommandQApiFactory may run migrations and require configured local database settings.
+- Full host tests outside ApiFactory may run migrations and require configured local database settings.
 - Keep frontend concerns out of this project.

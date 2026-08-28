@@ -110,7 +110,7 @@
     <value>Unsupported IdentityServer database engine: {0}.</value>
   </data>
   <data name="OpenIddict_ApiScopeDisplayName" xml:space="preserve">
-    <value>CommandQ API</value>
+    <value>command-q API</value>
   </data>
   <data name="OpenIddict_DefaultIdentityRoleCreateFailed" xml:space="preserve">
     <value>The default identity role could not be created.</value>
@@ -152,7 +152,7 @@
     <value>CQ</value>
   </data>
   <data name="SignIn_BrandName" xml:space="preserve">
-    <value>CommandQ</value>
+    <value>command-q</value>
   </data>
   <data name="SignIn_DocumentLanguage" xml:space="preserve">
     <value>en</value>
@@ -164,13 +164,13 @@
     <value>The username or password is invalid.</value>
   </data>
   <data name="SignIn_Intro" xml:space="preserve">
-    <value>Use your CommandQ identity to continue.</value>
+    <value>Use your command-q identity to continue.</value>
   </data>
   <data name="SignIn_LockedOut" xml:space="preserve">
     <value>The account is locked. Try again later.</value>
   </data>
   <data name="SignIn_PageTitle" xml:space="preserve">
-    <value>CommandQ sign in</value>
+    <value>command-q sign in</value>
   </data>
   <data name="SignIn_PasswordLabel" xml:space="preserve">
     <value>Password</value>

@@ -32,8 +32,8 @@ describe('I18nService', () => {
   it('interpolates translated text parameters', () => {
     const service = TestBed.inject(I18nService);
 
-    expect(service.text(TextKeys.app.documentTitle, { app: 'CommandQ', title: 'Dashboard' })).toBe(
-      'CommandQ | Dashboard',
+    expect(service.text(TextKeys.app.documentTitle, { app: 'command-q', title: 'Dashboard' })).toBe(
+      'command-q | Dashboard',
     );
   });
 

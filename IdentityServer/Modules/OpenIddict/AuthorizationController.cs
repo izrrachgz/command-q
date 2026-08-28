@@ -10,14 +10,14 @@ using IdentityServer.Modules.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using CommandQIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
+using AppIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
 namespace IdentityServer.Modules.OpenIddict
 {
     [ApiController]
     public sealed class AuthorizationController(
-        UserManager<CommandQIdentityUser> userManager,
-        SignInManager<CommandQIdentityUser> signInManager,
+        UserManager<AppIdentityUser> userManager,
+        SignInManager<AppIdentityUser> signInManager,
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictScopeManager scopeManager,
         IIdentitySecurityEventRecorder securityEvents) : ControllerBase
@@ -186,7 +186,7 @@ namespace IdentityServer.Modules.OpenIddict
         }
 
         private async Task<ClaimsPrincipal> CreateUserPrincipal(
-            CommandQIdentityUser user,
+            AppIdentityUser user,
             IEnumerable<string> scopes,
             CancellationToken cancellationToken)
         {

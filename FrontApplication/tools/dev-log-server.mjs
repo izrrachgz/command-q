@@ -5,9 +5,9 @@ import { mkdir, readdir, stat, unlink, appendFile } from 'node:fs/promises';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
-const logDirectory = process.env.COMMANDQ_FRONT_LOG_DIRECTORY ?? join(root, 'Logs');
-const port = Number.parseInt(process.env.COMMANDQ_FRONT_LOG_PORT ?? '4301', 10);
-const host = process.env.COMMANDQ_FRONT_LOG_HOST ?? '127.0.0.1';
+const logDirectory = process.env.APP_FRONT_LOG_DIRECTORY ?? join(root, 'Logs');
+const port = Number.parseInt(process.env.APP_FRONT_LOG_PORT ?? '4301', 10);
+const host = process.env.APP_FRONT_LOG_HOST ?? '127.0.0.1';
 const maxBodyBytes = 64 * 1024;
 const maxFileBytes = 10 * 1024 * 1024;
 const retainedFileCount = 16;

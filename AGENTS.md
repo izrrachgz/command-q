@@ -1,12 +1,12 @@
-# CommandQ - AGENTS
+# command-q - AGENTS
 
 This file captures practical repository knowledge for coding agents working in this solution.
 
 ## Solution
 - Framework: .NET 10.
-- Solution file: `CommandQ.sln`.
+- Solution file: `command-q.sln`.
 - Restore: `dotnet restore`.
-- Build: `dotnet build .\CommandQ.sln`.
+- Build: `dotnet build .\command-q.sln`.
 - Tests: `dotnet test` or targeted tests with `--filter FullyQualifiedName~...`.
 - Helper scripts live under `scripts/`:
   - `.\scripts\build.ps1`
@@ -17,11 +17,12 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
   - `.\scripts\test-email-integration.ps1`
   - `.\scripts\run-front.ps1` is optional and only delegates to `FrontApplication` if present.
-- `CommandQ.slnLaunch` provides `Backend + Email Worker` for the three backend hosts and `Full Stack (Backend + FrontApplication)` when the Angular SPA is also needed.
+- `command-q.slnLaunch` provides `Backend + Email Worker` for the three backend hosts and `Full Stack (Backend + FrontApplication)` when the Angular SPA is also needed.
 - The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
 - Custom executable settings are namespaced by host: `Api`, `IdentityServer` and `EmailWorker`. Framework-owned `Logging`, `Serilog` and `AllowedHosts` sections remain top-level. Hosts pass explicit subsections to reusable libraries; do not make a library depend on a host prefix.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
+- Release builds copy `Common.dll`, `Cqrs.dll`, `Persistence.dll` and `Time.dll` to the sibling `..\command-q-build-output` directory through `Directory.Build.targets`. Keep that binary-export boundary limited to stable reusable projects.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
 
 ## Architecture
@@ -38,7 +39,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Keep cross-cutting infrastructure at project root, such as `Api/Middleware`, `Api/Extensions`, `Common/System`, `Persistence/Repository` and general project logging.
 - Prefer explicit module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`; those extensions explicitly register CQRS requests through `AddApplicationRequest<TRequest, TResponse, THandler>()`, plus validators, mappers and module services. Do not use application-wide exported-type scanning for these services. Keep commands, queries and contracts public for API/test boundaries, while module implementation classes remain internal to the Application assembly. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
 - Host implementation types should be internal by default. Keep API and IdentityServer controllers public for framework discovery, but seal concrete controllers. Keep host configuration models, middleware, persistence helpers and concrete services internal unless another project consumes them through an intentional contract.
-- The Angular frontend is included in `CommandQ.sln` for local development but remains independently runnable and is not required by the backend hosts. Do not change `FrontApplication` unless the user explicitly asks for frontend work.
+- The Angular frontend is included in `command-q.sln` for local development but remains independently runnable and is not required by the backend hosts. Do not change `FrontApplication` unless the user explicitly asks for frontend work.
 
 ## Projects
 
@@ -62,12 +63,12 @@ This file captures practical repository knowledge for coding agents working in t
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development by `ApiExceptionHandler`, registered through ASP.NET Core's exception-handler pipeline.
 - The API is an email outbox producer: it registers `AddEmailOutboxProducer()` and `Email.Outbox.Persistence`, but does not register `IEmailOutboxProcessor`, run the email worker or own SMTP delivery.
-- Development outbox persistence targets the same local MsSql `command_q` database as the application. Base and non-development templates leave the connection empty so deployment configuration is required. `Email.Worker` is the designated outbox migrator; API persistence options contain no migration lifecycle flag.
+- Development outbox persistence targets the same local MsSql `command-q` database as the application. Base and non-development templates leave the connection empty so deployment configuration is required. `Email.Worker` is the designated outbox migrator; API persistence options contain no migration lifecycle flag.
 
 ### IdentityServer
 - Standalone ASP.NET Core Identity and OpenIddict authorization-server host. It is independently deployable and connected to `Api` through standard OpenID Connect discovery, not a project reference.
 - Run locally with `.\scripts\run-identity-server.ps1`; the Development issuer is `https://localhost:7125/`.
-- OpenIddict uses an isolated database named `command_q_identity` through EF Core stores.
+- OpenIddict uses an isolated database named `command-q_identity` through EF Core stores.
 - IdentityServer supports `PgSql`, `MsSql`, `MySql` and `SqLite` through `IdentityServer:ConnectionStrings:Engine`.
 - Keep IdentityServer on EF Core. Do not introduce SqlKata into this host or share the application's persistence registration.
 - Every EF `DateTime` property uses the IdentityServer UTC converter, including nullable OpenIddict timestamps. It rejects non-UTC writes and restores `DateTimeKind.Utc` after provider reads; keep this convention active for all four provider models.
@@ -284,8 +285,8 @@ This file captures practical repository knowledge for coding agents working in t
 - Owns its schema, embedded provider scripts, `EmailOutboxMigrationRecord` ledger and migration runner. It does not use `Application.Migrations` or the application database ledger.
 - Version 1 keeps one consolidated `migration-1.sql` baseline per provider. Fold schema changes into that baseline and recreate development outbox databases until version 1 is finalized.
 - Persistence normalizes NodaTime instants to microseconds before writes. SQL Server uses `datetime2(6)`, PostgreSQL uses `timestamptz(6)`, MySQL uses UTC-session `datetime(6)`, and SQLite uses the six-digit UTC text pattern owned by `Time.UtcTime` and ending in `Z`.
-- Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; the worker's Development settings target local MsSql `command_q`.
-- Reusable persistence options contain only `Engine` and `ConnectionString`. The CommandQ worker supplies them from `EmailWorker:EmailOutbox:Persistence`.
+- Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; the worker's Development settings target local MsSql `command-q`.
+- Reusable persistence options contain only `Engine` and `ConnectionString`. The command-q worker supplies them from `EmailWorker:EmailOutbox:Persistence`.
 - SQLite relative paths resolve against the consuming host content root, and the database directory is created when needed.
 - Queue claims use conditional updates, unique lock IDs and expiring leases so multiple workers can share one store.
 - Configure the lease longer than the maximum expected SMTP batch duration.
@@ -294,7 +295,7 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### Email.Worker
 - Standalone .NET 10 worker host composing Email transport, outbox workflow and outbox persistence.
-- Development uses smtp4dev at `localhost:25`, enables polling and uses the independently migrated outbox schema in local MsSql `command_q`.
+- Development uses smtp4dev at `localhost:25`, enables polling and uses the independently migrated outbox schema in local MsSql `command-q`.
 - Base, QA and Production settings disable delivery and polling and leave the outbox connection empty. QA/Production also disable startup migrations until explicitly enabled.
 - Worker settings live under `EmailWorker:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`. Startup migration policy lives separately under `EmailWorker:Migrations:RunOnStartup`.
 - Worker settings are monitored at runtime. Changes apply to new polling cycles; disabling pauses the worker and re-enabling resumes it. Active batches are not reconfigured mid-flight.
@@ -321,7 +322,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Useful targeted command: `dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj`.
 
 ### FrontApplication
-- Angular frontend project included in `CommandQ.sln` and the full-stack solution launch profile for developer convenience. It builds and runs independently, and the backend hosts do not require it. Check its own README and ask/confirm before changing frontend code unless the user explicitly requests it.
+- Angular frontend project included in `command-q.sln` and the full-stack solution launch profile for developer convenience. It builds and runs independently, and the backend hosts do not require it. Check its own README and ask/confirm before changing frontend code unless the user explicitly requests it.
 
 ## Logging
 - Use source-generated logging with `LoggerMessage`.
@@ -361,6 +362,6 @@ This file captures practical repository knowledge for coding agents working in t
 - Use resource providers for user-facing messages and validation text instead of hardcoded strings.
 
 ## Verification
-- Run `dotnet build .\CommandQ.sln` after code changes.
+- Run `dotnet build .\command-q.sln` after code changes.
 - Run targeted tests for touched areas.
 - Full `dotnet test` can include integration-style tests depending on local database configuration, so prefer targeted tests when validating isolated helpers.

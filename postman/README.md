@@ -1,4 +1,4 @@
-# CommandQ Postman
+# command-q Postman
 
 The collection exercises the standalone IdentityServer and application API using authorization code with PKCE. It does not use the removed password grant or the former API-issued JWT flow.
 
@@ -6,11 +6,11 @@ The collection exercises the standalone IdentityServer and application API using
 
 Import these files into Postman:
 
-- `CommandQ.postman_collection.json`
-- `environments/CommandQ.Development.postman_environment.json`
+- `command-q.postman_collection.json`
+- `environments/command-q.Development.postman_environment.json`
 - the QA or Production environment template when needed
 
-Select `CommandQ - Development` as the active environment and start the Visual Studio `Backend + Email Worker` profile. This starts IdentityServer, API and Email.Worker. Trust the local ASP.NET Core HTTPS certificate with `dotnet dev-certs https --trust` if needed.
+Select `command-q - Development` as the active environment and start the Visual Studio `Backend + Email Worker` profile. This starts IdentityServer, API and Email.Worker. Trust the local ASP.NET Core HTTPS certificate with `dotnet dev-certs https --trust` if needed.
 
 As a command-line alternative, run `.\scripts\run-identity-server.ps1` and
 `.\scripts\run-api.ps1` from separate terminals. Their default HTTPS URLs are
@@ -35,7 +35,7 @@ The committed environment already contains:
 - `tenantUsername`: `TenantDecoder`
 - `tenantEmail`: `tenant@local.com`
 - `apiClientHeaderName`: `location_family`
-- local IdentityServer/API URLs and the `command_q_local` OAuth client
+- local IdentityServer/API URLs and the `command-q_local` OAuth client
 
 Do not share or commit an exported environment after adding passwords, API keys or tokens. Postman marks those variables as secret, but repository files must remain secret-free.
 
@@ -82,7 +82,7 @@ The authorization request generates a fresh PKCE verifier/challenge and intentio
 
 Postman's cookie jar must remain enabled between sign-in and authorization. The application API folder validates the access token type, issuer, audience, scope and expiration before explicitly adding it as a bearer token. It also injects the configured API-client header and `Origin`. If the access token has expired, run `02 - OAuth 2.0 with PKCE / Refresh access token`; if the refresh token is unavailable or rejected, repeat the authorization-code flow.
 
-IdentityServer sign-in and API authorization are separate. Identity account endpoints use the IdentityServer cookie, while the application API requires a short-lived OAuth access token. After obtaining a valid access token, run `Provision application profile` once to create the application-owned `Account` and `AccountIdentity` records. Until that request succeeds, the `command_q` account tables are expected to be empty.
+IdentityServer sign-in and API authorization are separate. Identity account endpoints use the IdentityServer cookie, while the application API requires a short-lived OAuth access token. After obtaining a valid access token, run `Provision application profile` once to create the application-owned `Account` and `AccountIdentity` records. Until that request succeeds, the `command-q` account tables are expected to be empty.
 
 After provisioning, run `Save account preferences` before `Get account
 preferences`; the save request intentionally omits `accountId` because the API

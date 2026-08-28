@@ -22,10 +22,10 @@ describe('TextConfirmationComponent', () => {
     const component = new TextConfirmationComponent();
     const action = vi.fn();
     component.confirmAction = action;
-    component.value = 'CommandQ';
+    component.value = 'command-q';
 
     component.runConfirmAction();
 
-    expect(action).toHaveBeenCalledWith('CommandQ');
+    expect(action).toHaveBeenCalledWith('command-q');
   });
 });

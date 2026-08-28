@@ -17,8 +17,8 @@ namespace IdentityServer.Test.Constants
         public const string LocalRejectedSpaOrigin = "http://127.0.0.1:4202";
         public const string LocalSpaOrigin = "http://localhost:4200";
         public const string LocalSpaCallbackUri = LocalSpaOrigin + "/auth/callback";
-        public const string SpaClientId = "command_q_spa";
-        public const string TestCookieName = "CommandQ.Identity.Test";
+        public const string SpaClientId = "command-q_spa";
+        public const string TestCookieName = "command-q.Identity.Test";
         public const string TestPassword = "Correct-Horse-42!";
 
         public static string BrowserAuthorizationRedirectLocation =>

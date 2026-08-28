@@ -1,6 +1,6 @@
 # Cqrs
 
-`Cqrs` is CommandQ's small, framework-light in-process request dispatcher. It
+`Cqrs` is command-q's small, framework-light in-process request dispatcher. It
 owns the command, query, handler and pipeline contracts that were previously
 provided through MediatR and `Common.Cqrs`.
 

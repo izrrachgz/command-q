@@ -45,7 +45,7 @@ only newly persisted messages increment `email.outbox.enqueued`.
 credentials. Omitting it stores the durable `default` marker, which the worker
 resolves to its configured `Email:DefaultProfile`.
 
-Within CommandQ, application use cases should normally use
+Within command-q, application use cases should normally use
 `QueueEmailCommand` or `IApplicationEmailService` from
 `Application.Modules.Notifications`. That module validates prepared messages
 and maps application metadata into this transport-independent contract. A

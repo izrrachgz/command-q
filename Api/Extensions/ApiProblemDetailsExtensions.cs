@@ -46,7 +46,7 @@ namespace Api.Extensions
             string resolvedErrorCode = errorCode ?? GetDefaultErrorCode(statusCode);
 
             problem.Status = statusCode;
-            problem.Type = $"urn:commandq:error:{resolvedErrorCode}";
+            problem.Type = $"urn:command-q:error:{resolvedErrorCode}";
             problem.Instance ??= httpContext.Request.Path;
             problem.Extensions.TryAdd(ErrorCodeExtension, resolvedErrorCode);
             problem.Extensions.TryAdd(TraceIdExtension, Activity.Current?.Id ?? httpContext.TraceIdentifier);

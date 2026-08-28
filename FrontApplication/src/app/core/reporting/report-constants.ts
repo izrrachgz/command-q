@@ -1,4 +1,4 @@
 export const ReportFileNames = {
-  accounts: 'commandq-accounts',
-  email: 'commandq-email',
+  accounts: 'command-q-accounts',
+  email: 'command-q-email',
 } as const;

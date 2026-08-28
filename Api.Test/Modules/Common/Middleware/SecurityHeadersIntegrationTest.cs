@@ -4,15 +4,15 @@ using Microsoft.Net.Http.Headers;
 
 namespace Api.Test.Modules.Common.Middleware
 {
-    public sealed class SecurityHeadersIntegrationTest(CommandQApiFactory factory) : IClassFixture<CommandQApiFactory>
+    public sealed class SecurityHeadersIntegrationTest(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         [Fact]
         public async Task Api_Response_Should_Include_Security_Headers()
         {
             using var client = factory.CreateClient();
-            using var request = new HttpRequestMessage(HttpMethod.Get, CommandQApiFactory.AccountMePath);
-            request.Headers.Add(CommandQApiFactory.ApiClientHeaderName, CommandQApiFactory.ApiClientHeaderValue);
-            request.Headers.Add(HeaderNames.Origin, CommandQApiFactory.ApiClientOrigin);
+            using var request = new HttpRequestMessage(HttpMethod.Get, ApiFactory.AccountMePath);
+            request.Headers.Add(ApiFactory.ApiClientHeaderName, ApiFactory.ApiClientHeaderValue);
+            request.Headers.Add(HeaderNames.Origin, ApiFactory.ApiClientOrigin);
 
             using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 

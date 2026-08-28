@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <SharedBuildOutput Condition="'$(SharedBuildOutput)' == ''">$(MSBuildThisFileDirectory)..\command-q-build-output\</SharedBuildOutput>
+  </PropertyGroup>
+
+  <Target
+    Name="PublishSharedAssembly"
+    AfterTargets="Build"
+    Condition="'$(Configuration)' == 'Release' and '$(DesignTimeBuild)' != 'true' and ('$(MSBuildProjectName)' == 'Common' or '$(MSBuildProjectName)' == 'Cqrs' or '$(MSBuildProjectName)' == 'Persistence' or '$(MSBuildProjectName)' == 'Time')">
+    <MakeDir Directories="$(SharedBuildOutput)" />
+    <Copy
+      SourceFiles="$(TargetPath)"
+      DestinationFolder="$(SharedBuildOutput)"
+      SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -1,6 +1,6 @@
 # API Response Contract
 
-CommandQ uses HTTP status codes as the primary outcome signal. Successful API responses do not expose the internal application `Success`, `Message` or `Detail` wrappers.
+command-q uses HTTP status codes as the primary outcome signal. Successful API responses do not expose the internal application `Success`, `Message` or `Detail` wrappers.
 
 ## Success responses
 
@@ -18,7 +18,7 @@ All API errors use `application/problem+json` and ASP.NET Core `ProblemDetails` 
 
 Every problem contains:
 
-- `type`: a stable `urn:commandq:error:{errorCode}` identifier;
+- `type`: a stable `urn:command-q:error:{errorCode}` identifier;
 - `title`: the localized HTTP error title;
 - `status`: the HTTP status code;
 - `detail`: a safe explanation when one is available;

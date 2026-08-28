@@ -1,10 +1,10 @@
 import {
-  CommandQEnvironment,
+  AppEnvironment,
   createApiEndpoints,
   createIdentityEndpoints,
 } from '../app/core/config/app-environment';
 import {
-  CommandQEnvironmentDefaults,
+  AppEnvironmentDefaults,
   createPostLogoutRedirectUri,
   createRedirectUrl,
   getRuntimeApplicationUrl,
@@ -12,20 +12,20 @@ import {
 
 const applicationUrl = getRuntimeApplicationUrl();
 
-export const environment: CommandQEnvironment = {
+export const environment: AppEnvironment = {
   name: 'development',
   production: false,
   applicationUrl,
   api: {
-    baseUrl: CommandQEnvironmentDefaults.localApiBaseUrl,
+    baseUrl: AppEnvironmentDefaults.localApiBaseUrl,
     clientHeaderName: 'location_family',
     clientId: 'find_me',
     endpoints: createApiEndpoints(),
   },
   identity: {
-    authority: CommandQEnvironmentDefaults.localIdentityAuthority,
-    clientId: CommandQEnvironmentDefaults.spaClientId,
-    scope: CommandQEnvironmentDefaults.oidcScope,
+    authority: AppEnvironmentDefaults.localIdentityAuthority,
+    clientId: AppEnvironmentDefaults.spaClientId,
+    scope: AppEnvironmentDefaults.oidcScope,
     redirectUrl: createRedirectUrl(applicationUrl),
     postLogoutRedirectUri: createPostLogoutRedirectUri(applicationUrl),
     endpoints: createIdentityEndpoints(),
@@ -36,8 +36,8 @@ export const environment: CommandQEnvironment = {
     supportedCultures: ['en-US', 'es-ES'],
   },
   preferences: {
-    cacheLifetimeMinutes: CommandQEnvironmentDefaults.preferencesCacheLifetimeMinutes,
-    backendRetryDelaySeconds: CommandQEnvironmentDefaults.preferencesBackendRetryDelaySeconds,
+    cacheLifetimeMinutes: AppEnvironmentDefaults.preferencesCacheLifetimeMinutes,
+    backendRetryDelaySeconds: AppEnvironmentDefaults.preferencesBackendRetryDelaySeconds,
   },
   logging: {
     file: {

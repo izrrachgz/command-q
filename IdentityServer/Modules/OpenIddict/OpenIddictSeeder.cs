@@ -7,14 +7,14 @@ using IdentityServer.Resources;
 using IdentityServer.Modules.Accounts;
 using IdentityServer.Modules.OpenIddict.Configuration;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
-using CommandQIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
+using AppIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
+using AppIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
 namespace IdentityServer.Modules.OpenIddict
 {
     internal sealed class OpenIddictSeeder(
-        RoleManager<CommandQIdentityRole> roleManager,
-        UserManager<CommandQIdentityUser> userManager,
+        RoleManager<AppIdentityRole> roleManager,
+        UserManager<AppIdentityUser> userManager,
         IHostEnvironment environment,
         IOpenIddictApplicationManager applicationManager,
         IOpenIddictScopeManager scopeManager,
@@ -45,7 +45,7 @@ namespace IdentityServer.Modules.OpenIddict
                 return;
             }
 
-            var result = await roleManager.CreateAsync(new CommandQIdentityRole
+            var result = await roleManager.CreateAsync(new AppIdentityRole
             {
                 Id = Guid.NewGuid(),
                 Name = roleName

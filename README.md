@@ -1,6 +1,6 @@
-# CommandQ
+# command-q
 
-CommandQ is a .NET 10 backend starter solution intended to be reusable across
+command-q is a .NET 10 backend starter solution intended to be reusable across
 multiple application types. It uses a modular-monolith shape for the application
 API and includes a standalone OpenIddict authorization-server host. That host can
 be replaced by another standards-compatible issuer, but the API always requires
@@ -43,18 +43,18 @@ require the SPA process.
 
    ```powershell
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Engine" "MsSql"
-   dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:Engine" "MsSql"
-   dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
    dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:EmailOutbox:Persistence:Engine" "MsSql"
-   dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Engine" "MsSql"
-   dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=CommandQ;User ID=commandq;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
-   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command_q_identity;Username=postgres;Password=change-me;"
+   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command-q_identity;Username=postgres;Password=change-me;"
    ```
 
 3. Prepare the database.
@@ -104,7 +104,7 @@ require the SPA process.
 
 7. Provision an application profile after the first identity login.
 
-   Obtain an authorization-code token containing `command_q_api`, `profile` and `email`, then call authenticated `POST /accounts` once. IdentityServer owns credentials; the API stores the application profile linked by issuer and subject.
+   Obtain an authorization-code token containing `command-q_api`, `profile` and `email`, then call authenticated `POST /accounts` once. IdentityServer owns credentials; the API stores the application profile linked by issuer and subject.
 
 8. Add a new backend feature.
 
@@ -230,6 +230,14 @@ NuGet versions are centrally managed in `Directory.Packages.props`. Project file
 <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 ```
 
+### Shared release assemblies
+
+Release builds publish `Common.dll`, `Cqrs.dll`, `Persistence.dll` and
+`Time.dll` to the sibling `..\command-q-build-output` directory. The export is
+implemented in `Directory.Build.targets` and provides a deliberate binary
+boundary for separate solutions that reuse command-q's framework-light
+libraries. Debug builds do not update this shared output.
+
 ## Runtime Configuration Reload
 
 The API reloads JSON and environment configuration for operational settings when
@@ -325,11 +333,11 @@ host name. This also keeps environment variables unambiguous, for example
 
 1. Restore dependencies:
    ```sh
-   dotnet restore .\CommandQ.sln
+   dotnet restore .\command-q.sln
    ```
 2. Build the project:
    ```sh
-   dotnet build .\CommandQ.sln
+   dotnet build .\command-q.sln
    ```
 3. Run IdentityServer, the API and Email.Worker in separate terminals:
    ```sh
@@ -343,16 +351,16 @@ Root helper scripts are also available:
 | Script | Defaults and options |
 | --- | --- |
 | `.\scripts\build.ps1` | Debug build; accepts `-Configuration` and `-NoRestore`. |
-| `.\scripts\test.ps1` | Tests `CommandQ.sln`; accepts `-Configuration`, `-Project`, `-Filter` and `-NoBuild`. The default includes database-backed `Application.Test` cases. |
+| `.\scripts\test.ps1` | Tests `command-q.sln`; accepts `-Configuration`, `-Project`, `-Filter` and `-NoBuild`. The default includes database-backed `Application.Test` cases. |
 | `.\scripts\run-identity-server.ps1` | Development on `https://localhost:7125`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
-| `.\scripts\run-email-worker.ps1` | Development email outbox worker using the independently migrated outbox schema in local MsSql `command_q`; accepts `-Environment` and `-NoBuild`. |
+| `.\scripts\run-email-worker.ps1` | Development email outbox worker using the independently migrated outbox schema in local MsSql `command-q`; accepts `-Environment` and `-NoBuild`. |
 | `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
 | `.\scripts\run-front.ps1` | Frontend runner for `FrontApplication`; accepts `-Environment` and `-Install`. |
 
 The backend run scripts bypass `launchSettings.json` deliberately so their
 `-Environment` and `-Urls` arguments are authoritative. Visual Studio uses the
-solution launch profiles from `CommandQ.slnLaunch`; the recommended `Backend +
+solution launch profiles from `command-q.slnLaunch`; the recommended `Backend +
 Email Worker` profile starts all three hosts. Use `Qa` when loading the committed
 `appsettings.Qa.json` files on case-sensitive hosts.
 
@@ -446,7 +454,7 @@ The persistence layer separates read and write entry points:
 ## Security Defaults
 
 - IdentityServer uses ASP.NET Core Identity password hashing and lockout.
-- OpenIddict persists clients, scopes, grants and refresh tokens in `command_q_identity`.
+- OpenIddict persists clients, scopes, grants and refresh tokens in `command-q_identity`.
 - Access tokens are signed `at+jwt` tokens; the API validates issuer discovery keys, audience, lifetime, type and required scope.
 - The API does not store passwords, issue JWTs or handle refresh tokens.
 - IdentityServer authentication endpoints are rate limited and security events are persisted separately from application activity.
@@ -545,13 +553,13 @@ The API remains an outbox producer and does not compose SMTP delivery.
 Immediate-delivery consumers can register
 `services.AddEmailServices(configuration)`. Durable delivery uses
 `Email.Outbox`, its dedicated persistence adapter and the standalone
-`Email.Worker` host. Development targets local MsSql `command_q`, while PgSql,
+`Email.Worker` host. Development targets local MsSql `command-q`, while PgSql,
 MySql and SqLite remain configurable and non-development hosts must supply a
 connection. See `Email/README.md`, `Email.Outbox/README.md` and
 `Email.Worker/README.md`.
 
 Development is prepared for smtp4dev on `localhost:25` and stores the independently
-migrated outbox schema in the local MsSql `command_q` database. Start the worker separately:
+migrated outbox schema in the local MsSql `command-q` database. Start the worker separately:
 
 ```powershell
 .\scripts\run-email-worker.ps1

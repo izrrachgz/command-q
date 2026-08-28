@@ -12,12 +12,12 @@ namespace Email.Telemetry
         /// <summary>
         /// Gets the activity source name used by the email library.
         /// </summary>
-        public const string ActivitySourceName = "CommandQ.Email";
+        public const string ActivitySourceName = "command-q.Email";
 
         /// <summary>
         /// Gets the meter name used by the email library.
         /// </summary>
-        public const string MeterName = "CommandQ.Email";
+        public const string MeterName = "command-q.Email";
 
         /// <summary>
         /// Gets the activity name for an email delivery batch.

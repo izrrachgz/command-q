@@ -37,7 +37,7 @@ namespace Application.Test.Modules.Persistence.Extensions
         [Fact]
         public async Task SqLite_Should_Store_And_Filter_Microsecond_Precision_Utc_Values()
         {
-            var path = Path.Combine(Path.GetTempPath(), $"commandq-utc-{Guid.NewGuid():N}.sqlite");
+            var path = Path.Combine(Path.GetTempPath(), $"command-q-utc-{Guid.NewGuid():N}.sqlite");
 
             try
             {

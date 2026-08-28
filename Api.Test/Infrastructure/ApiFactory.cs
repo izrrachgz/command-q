@@ -12,19 +12,19 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Api.Test.Infrastructure
 {
-    public sealed class CommandQApiFactory : WebApplicationFactory<Program>
+    public sealed class ApiFactory : WebApplicationFactory<Program>
     {
         public const string ApiClientHeaderName = "X-Test-Client";
         public const string ApiClientHeaderValue = "test-client-secret";
         public const string ApiClientOrigin = "https://test-client.local";
         public const string IdentityIssuer = "https://identity.test/";
-        public const string ApiAudience = "command_q_api";
-        public const string ApiScope = "command_q_api";
+        public const string ApiAudience = "command-q_api";
+        public const string ApiScope = "command-q_api";
         public const string AccountCreatePath = "/accounts";
         public const string AccountMePath = "/accounts/me";
 
         private static readonly SymmetricSecurityKey SigningKey = new(
-            Encoding.UTF8.GetBytes("CommandQ-test-signing-key-with-32-bytes-minimum"));
+            Encoding.UTF8.GetBytes("command-q-test-signing-key-with-32-bytes-minimum"));
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {

@@ -34,10 +34,10 @@ namespace Application.Test.Modules.Common.Transfer
         {
             var httpCall = new HttpCall();
 
-            using var content = httpCall.CreateJsonContent(new { name = "CommandQ" });
+            using var content = httpCall.CreateJsonContent(new { name = "command-q" });
 
             Assert.Equal("application/json", content.Headers.ContentType?.MediaType);
-            Assert.Contains("CommandQ", await content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+            Assert.Contains("command-q", await content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         }
     }
 }

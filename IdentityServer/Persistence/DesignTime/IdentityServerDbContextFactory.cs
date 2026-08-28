@@ -21,13 +21,13 @@ namespace IdentityServer.Persistence.DesignTime
         internal static class DesignTimePlaceholderConnectionStrings
         {
             public const string PgSql =
-                "Host=design-time.invalid;Database=command_q_identity;Username=design-time;Password=design-time-only";
+                "Host=design-time.invalid;Database=command-q_identity;Username=design-time;Password=design-time-only";
 
             public const string MsSql =
-                "Server=design-time.invalid;Database=command_q_identity;User ID=design-time;Password=design-time-only;TrustServerCertificate=True";
+                "Server=design-time.invalid;Database=command-q_identity;User ID=design-time;Password=design-time-only;TrustServerCertificate=True";
 
             public const string MySql =
-                "Server=design-time.invalid;Database=command_q_identity;User ID=design-time;Password=design-time-only";
+                "Server=design-time.invalid;Database=command-q_identity;User ID=design-time;Password=design-time-only";
 
             public const string SqLite = "Data Source=:memory:";
         }

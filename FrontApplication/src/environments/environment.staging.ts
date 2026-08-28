@@ -1,30 +1,30 @@
 import {
-  CommandQEnvironment,
+  AppEnvironment,
   createApiEndpoints,
   createIdentityEndpoints,
 } from '../app/core/config/app-environment';
 import {
-  CommandQEnvironmentDefaults,
+  AppEnvironmentDefaults,
   createPostLogoutRedirectUri,
   createRedirectUrl,
 } from './environment-defaults';
 
-const applicationUrl = 'https://staging.commandq.local';
+const applicationUrl = 'https://staging.command-q.local';
 
-export const environment: CommandQEnvironment = {
+export const environment: AppEnvironment = {
   name: 'staging',
   production: true,
   applicationUrl,
   api: {
-    baseUrl: 'https://staging-api.commandq.local/',
-    clientHeaderName: 'X-CommandQ-Client',
+    baseUrl: 'https://staging-api.command-q.local/',
+    clientHeaderName: 'X-command-q-Client',
     clientId: 'replace-with-staging-client-id',
     endpoints: createApiEndpoints(),
   },
   identity: {
-    authority: 'https://staging-identity.commandq.local/',
-    clientId: CommandQEnvironmentDefaults.spaClientId,
-    scope: CommandQEnvironmentDefaults.oidcScope,
+    authority: 'https://staging-identity.command-q.local/',
+    clientId: AppEnvironmentDefaults.spaClientId,
+    scope: AppEnvironmentDefaults.oidcScope,
     redirectUrl: createRedirectUrl(applicationUrl),
     postLogoutRedirectUri: createPostLogoutRedirectUri(applicationUrl),
     endpoints: createIdentityEndpoints(),
@@ -35,8 +35,8 @@ export const environment: CommandQEnvironment = {
     supportedCultures: ['en-US', 'es-ES'],
   },
   preferences: {
-    cacheLifetimeMinutes: CommandQEnvironmentDefaults.preferencesCacheLifetimeMinutes,
-    backendRetryDelaySeconds: CommandQEnvironmentDefaults.preferencesBackendRetryDelaySeconds,
+    cacheLifetimeMinutes: AppEnvironmentDefaults.preferencesCacheLifetimeMinutes,
+    backendRetryDelaySeconds: AppEnvironmentDefaults.preferencesBackendRetryDelaySeconds,
   },
   logging: {
     file: {

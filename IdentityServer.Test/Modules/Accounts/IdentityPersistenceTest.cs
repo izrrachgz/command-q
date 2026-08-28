@@ -14,8 +14,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using HeaderNames = Microsoft.Net.Http.Headers.HeaderNames;
-using CommandQIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
-using CommandQIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
+using AppIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
+using AppIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
 namespace IdentityServer.Test.Modules.Accounts
 {
@@ -25,7 +25,7 @@ namespace IdentityServer.Test.Modules.Accounts
         public async Task UserManager_Should_Hash_Password_And_Enforce_Lockout()
         {
             await using var services = CreateServices();
-            var userManager = services.GetRequiredService<UserManager<CommandQIdentityUser>>();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
             var user = CreateUser();
 
             var created = await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword);
@@ -47,7 +47,7 @@ namespace IdentityServer.Test.Modules.Accounts
         public async Task UserManager_Should_Persist_External_Login_Link()
         {
             await using var services = CreateServices();
-            var userManager = services.GetRequiredService<UserManager<CommandQIdentityUser>>();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
             var user = CreateUser();
 
             Assert.True((await userManager.CreateAsync(user)).Succeeded);
@@ -87,8 +87,8 @@ namespace IdentityServer.Test.Modules.Accounts
         public async Task Configured_Identity_Principal_Should_Use_OpenIddict_Claim_Types()
         {
             await using var services = CreateConfiguredIdentityServices();
-            var userManager = services.GetRequiredService<UserManager<CommandQIdentityUser>>();
-            var principalFactory = services.GetRequiredService<IUserClaimsPrincipalFactory<CommandQIdentityUser>>();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var principalFactory = services.GetRequiredService<IUserClaimsPrincipalFactory<AppIdentityUser>>();
             var user = CreateUser();
 
             Assert.True((await userManager.CreateAsync(user)).Succeeded);
@@ -106,14 +106,14 @@ namespace IdentityServer.Test.Modules.Accounts
         public async Task Development_First_User_Should_Receive_Admin_Without_Restart()
         {
             await using var services = CreateServices();
-            var userManager = services.GetRequiredService<UserManager<CommandQIdentityUser>>();
-            var roleManager = services.GetRequiredService<RoleManager<CommandQIdentityRole>>();
-            Assert.True((await roleManager.CreateAsync(new CommandQIdentityRole
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var roleManager = services.GetRequiredService<RoleManager<AppIdentityRole>>();
+            Assert.True((await roleManager.CreateAsync(new AppIdentityRole
             {
                 Id = Guid.NewGuid(),
                 Name = AccountConstants.DefaultRole
             })).Succeeded);
-            Assert.True((await roleManager.CreateAsync(new CommandQIdentityRole
+            Assert.True((await roleManager.CreateAsync(new AppIdentityRole
             {
                 Id = Guid.NewGuid(),
                 Name = AccountConstants.AdminRole
@@ -196,13 +196,13 @@ namespace IdentityServer.Test.Modules.Accounts
             });
             services.AddScoped<IdentityServerDbContext>(serviceProvider =>
                 serviceProvider.GetRequiredService<TestIdentityServerDbContext>());
-            services.AddIdentityCore<CommandQIdentityUser>(options =>
+            services.AddIdentityCore<AppIdentityUser>(options =>
                 {
                     options.Lockout.AllowedForNewUsers = true;
                     options.Lockout.MaxFailedAccessAttempts = 3;
                     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 })
-                .AddRoles<CommandQIdentityRole>()
+                .AddRoles<AppIdentityRole>()
                 .AddEntityFrameworkStores<TestIdentityServerDbContext>();
             services.AddScoped<IIdentitySecurityEventRecorder, IdentitySecurityEventRecorder>();
 
@@ -263,12 +263,12 @@ namespace IdentityServer.Test.Modules.Accounts
                 IdentityServerTestConstants.BrowserAuthorizationRedirectLocation);
         }
 
-        private static CommandQIdentityUser CreateUser()
+        private static AppIdentityUser CreateUser()
         {
             var now = TimeProvider.System.GetUtcNow().UtcDateTime;
             var id = Guid.NewGuid();
 
-            return new CommandQIdentityUser
+            return new AppIdentityUser
             {
                 Id = id,
                 UserName = $"user-{id:N}",

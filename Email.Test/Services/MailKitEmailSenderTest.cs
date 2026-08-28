@@ -280,7 +280,7 @@ namespace Email.Test.Services
         [Fact]
         public async Task SendHtmlTemplateAsync_Should_Read_Rendered_Html_And_Attach_Files()
         {
-            var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"commandq-email-{Guid.NewGuid():N}");
+            var temporaryDirectory = Path.Combine(Path.GetTempPath(), $"command-q-email-{Guid.NewGuid():N}");
             Directory.CreateDirectory(temporaryDirectory);
 
             try

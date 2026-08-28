@@ -12,12 +12,12 @@ namespace Email.Outbox.Telemetry
         /// <summary>
         /// Gets the activity source name used by the email outbox library.
         /// </summary>
-        public const string ActivitySourceName = "CommandQ.Email.Outbox";
+        public const string ActivitySourceName = "command-q.Email.Outbox";
 
         /// <summary>
         /// Gets the meter name used by the email outbox library.
         /// </summary>
-        public const string MeterName = "CommandQ.Email.Outbox";
+        public const string MeterName = "command-q.Email.Outbox";
 
         /// <summary>
         /// Gets the activity name for enqueue operations.
