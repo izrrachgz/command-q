@@ -36,11 +36,38 @@ namespace Application.Modules.Configuration.Queries
                     .OrWhereLike(nameof(Domain.Modules.Configuration.ApplicationConfiguration.InstanceName), term));
             }
 
-            query.OrderByDesc(nameof(Domain.Modules.Configuration.ApplicationConfiguration.CreatedUtc));
+            ApplySorting(query, criteria.SortBy, criteria.AscendingSort);
             var page = await repository.PaginateAsync<Domain.Modules.Configuration.ApplicationConfiguration>(
                 query, criteria.Page, criteria.Size, cancellationToken);
 
             return new(page.List.Select(mapper.Map), page.Count, page.Page, page.PerPage);
+        }
+
+        private static void ApplySorting(Query query, string? sortBy, bool ascendingSort)
+        {
+            var column = sortBy switch
+            {
+                nameof(Domain.Modules.Configuration.ApplicationConfiguration.ApplicationVersion) =>
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.ApplicationVersion),
+                nameof(Domain.Modules.Configuration.ApplicationConfiguration.Environment) =>
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.Environment),
+                nameof(Domain.Modules.Configuration.ApplicationConfiguration.InstanceName) =>
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.InstanceName),
+                nameof(Domain.Modules.Configuration.ApplicationConfiguration.Language) =>
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.Language),
+                nameof(Domain.Modules.Configuration.ApplicationConfiguration.ServerTimeZone) =>
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.ServerTimeZone),
+                nameof(Domain.Modules.Configuration.ApplicationConfiguration.CreatedUtc) =>
+                    nameof(Domain.Modules.Configuration.ApplicationConfiguration.CreatedUtc),
+                _ => nameof(Domain.Modules.Configuration.ApplicationConfiguration.CreatedUtc)
+            };
+
+            if (string.IsNullOrWhiteSpace(sortBy))
+                query.OrderByDesc(column);
+            else if (ascendingSort)
+                query.OrderBy(column);
+            else
+                query.OrderByDesc(column);
         }
     }
 }
