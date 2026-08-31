@@ -11,6 +11,23 @@ namespace Application.Modules.Files.Queries
 {
     internal sealed class GetAccountFilesQueryHandler : IQueryHandler<GetAccountFilesQuery, PagedResponse<AccountFileModel>>
     {
+        private static readonly string[] SearchColumns =
+        [
+            nameof(AccountFile.FileName),
+            nameof(AccountFile.Path),
+            nameof(AccountFile.ContentType)
+        ];
+
+        private static readonly IReadOnlyDictionary<string, string> SortColumns =
+            new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [nameof(AccountFile.FileName)] = nameof(AccountFile.FileName),
+                [nameof(AccountFile.ContentType)] = nameof(AccountFile.ContentType),
+                [nameof(AccountFile.Size)] = nameof(AccountFile.Size),
+                [nameof(AccountFile.CreatedUtc)] = nameof(AccountFile.CreatedUtc),
+                [nameof(AccountFile.ModifiedUtc)] = nameof(AccountFile.ModifiedUtc)
+            };
+
         private readonly IReadOnlyRepository _repository;
         private readonly IMapper<AccountFile, AccountFileModel> _mapper;
 
@@ -28,7 +45,11 @@ namespace Application.Modules.Files.Queries
             var criteria = request.SearchCriteria ?? new();
             var baseQuery = BuildQuery(request, _repository.Engine);
 
-            ApplySorting(baseQuery, criteria.SortBy, criteria.AscendingSort);
+            baseQuery.ApplySorting(
+                criteria.SortBy,
+                criteria.AscendingSort,
+                SortColumns,
+                nameof(AccountFile.CreatedUtc));
 
             var page = await _repository.PaginateAsync<AccountFile>(baseQuery, criteria.Page, criteria.Size, cancellationToken);
 
@@ -43,35 +64,7 @@ namespace Application.Modules.Files.Queries
                 .Where($@"{nameof(AccountFile.AccountId)}", request.AccountId)
                 .ApplyUtcRange(nameof(AccountFile.CreatedUtc), criteria, engine);
 
-            if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
-            {
-                var searchTerm = $@"%{criteria.SearchTerm.Trim()}%";
-
-                query.Where(q => q
-                    .WhereLike($@"{nameof(AccountFile.FileName)}", searchTerm)
-                    .OrWhereLike($@"{nameof(AccountFile.Path)}", searchTerm)
-                    .OrWhereLike($@"{nameof(AccountFile.ContentType)}", searchTerm));
-            }
-
-            return query;
-        }
-
-        private static void ApplySorting(Query query, string? sortBy, bool ascendingSort)
-        {
-            var column = sortBy switch
-            {
-                nameof(AccountFile.FileName) => nameof(AccountFile.FileName),
-                nameof(AccountFile.ContentType) => nameof(AccountFile.ContentType),
-                nameof(AccountFile.Size) => nameof(AccountFile.Size),
-                nameof(AccountFile.CreatedUtc) => nameof(AccountFile.CreatedUtc),
-                nameof(AccountFile.ModifiedUtc) => nameof(AccountFile.ModifiedUtc),
-                _ => nameof(AccountFile.CreatedUtc)
-            };
-
-            if (ascendingSort)
-                query.OrderBy(column);
-            else
-                query.OrderByDesc(column);
+            return query.ApplySearchTerm(criteria.SearchTerm, SearchColumns);
         }
     }
 }
