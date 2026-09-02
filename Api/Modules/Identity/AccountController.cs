@@ -62,13 +62,20 @@ namespace Api.Modules.Identity
         [Authorize, HttpGet(IdentityRoute.Me)]
         public async Task<ActionResult<AccountModel>> Me(CancellationToken cancellationToken = default)
         {
+            if (!User.TryGetIdentityKey(out _, out _))
+            {
+                return this.ApiProblem(
+                    StatusCodes.Status401Unauthorized,
+                    ApiProblemCodes.Unauthorized);
+            }
+
             var currentAccount = await currentAccountAccessor.Get(cancellationToken);
 
             if (currentAccount is null)
             {
                 return this.ApiProblem(
-                    StatusCodes.Status403Forbidden,
-                    ApiProblemCodes.Forbidden);
+                    StatusCodes.Status404NotFound,
+                    ApiProblemCodes.Accounts.ProfileMissing);
             }
 
             var response = await dispatcher.Send(new GetAccountByIdQuery

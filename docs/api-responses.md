@@ -39,6 +39,11 @@ Expected status mappings are:
 - `503` when a required integration is unavailable;
 - `500` for unexpected server failures.
 
+`GET /accounts/me` returns `404 Not Found` with the stable
+`accounts.profile_missing` error code when the authenticated identity has not
+yet been linked to an application account. Authorization failures remain
+`403 Forbidden` with `authorization.forbidden`.
+
 Unexpected exception details are included only in Development. Production responses contain a sanitized explanation and the trace ID used to correlate server logs.
 
 Operational health-check endpoints retain ASP.NET Core health-check response semantics so infrastructure probes can consume them without depending on the application error contract.
