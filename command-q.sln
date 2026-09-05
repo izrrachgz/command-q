@@ -17,7 +17,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{187A6DB6-46F4-4B45-858B-2F24D325AA0A}"
 	ProjectSection(SolutionItems) = preProject
 		Agents.md = Agents.md
+		docs\api-responses.md = docs\api-responses.md
+		docs\frontend-integration.md = docs\frontend-integration.md
+		docs\local-secrets.md = docs\local-secrets.md
+		docs\logging-event-ids.md = docs\logging-event-ids.md
+		docs\modules.md = docs\modules.md
 		README.md = README.md
+		docs\row-level-security.md = docs\row-level-security.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Email", "Email\Email.csproj", "{099FB7CB-3B98-46EF-AFB8-C030DF2FA6DA}"
