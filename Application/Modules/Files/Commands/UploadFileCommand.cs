@@ -1,9 +1,10 @@
 using Cqrs.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 
 namespace Application.Modules.Files.Commands
 {
-    public class UploadFileCommand : ICommand<BasicResponse>
+    public class UploadFileCommand : ICommand<BasicResponse>, IAccountScopedRequest
     {
         public required Guid AccountId { get; set; }
 

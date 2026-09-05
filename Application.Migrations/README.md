@@ -29,6 +29,21 @@ SQL Server `datetime2(6)`, PostgreSQL `timestamptz(6)`, MySQL UTC-session
 paths normalize to microseconds before writing, and new writes must still supply
 explicitly UTC values from the application whenever server time is used.
 
+The PostgreSQL and SQL Server baselines also own native row-level-security
+policies for account data. API startup verifies that every required policy is
+present and enabled even when startup migrations are disabled. MySQL and SQLite
+do not have an equivalent native policy feature and are intentionally skipped.
+See `docs/row-level-security.md` for protected tables, session-context behavior
+and operational requirements.
+
+When a migration adds, renames or removes an RLS-protected table, or changes its
+predicate function or ownership column, update the private
+`ApplicationRowLevelSecurityVerifier.ProtectedTables` mapping in the same
+change. The verifier uses this mapping for both PostgreSQL and SQL Server;
+leaving it stale can stop application startup or omit a new table from the
+expected-policy check. Native PostgreSQL and SQL Server integration tests are
+deferred; their required coverage is documented in `docs/row-level-security.md`.
+
 ## Adding A Migration
 
 Add the same numbered schema change for every supported application engine:

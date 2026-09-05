@@ -3,6 +3,7 @@ using Common.Extensions;
 using Application.Modules;
 using Localization.Extensions;
 using Application.Abstractions;
+using Application.RowLevelSecurity;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ namespace Application.Extensions
 
             // Repositories
             services.AddRepositories(configuration);
+            services.AddScoped<AccountRowLevelSecurityContext>();
 
             // Command runners
             services.AddCommandRunners(configuration);

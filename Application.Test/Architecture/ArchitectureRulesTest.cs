@@ -2,6 +2,7 @@ using Api.Modules;
 using Cqrs.Abstractions;
 using Domain.Entities;
 using System.Reflection;
+using Application.Abstractions;
 using Persistence.Abstractions;
 
 namespace Application.Test.Architecture
@@ -90,6 +91,54 @@ namespace Application.Test.Architecture
                 .ToArray();
 
             Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void Request_Handlers_Should_Not_Depend_On_Database_Session_Context()
+        {
+            var violations = ApplicationAssembly.GetTypes()
+                .Where(type => !type.IsAbstract &&
+                    (ImplementsOpenGeneric(type, typeof(IRequestHandler<,>)) ||
+                     ImplementsOpenGeneric(type, typeof(ICommandHandler<>))))
+                .Where(type => ConstructorParameters(type)
+                    .Any(parameter => parameter.ParameterType == typeof(IDatabaseSessionContextRepository)))
+                .Select(type => type.FullName)
+                .Order()
+                .ToArray();
+
+            Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void Requests_With_AccountId_Should_Declare_Account_Scope()
+        {
+            var violations = ApplicationAssembly.GetTypes()
+                .Where(type => !type.IsAbstract && ImplementsOpenGeneric(type, typeof(IRequest<>)))
+                .Where(type => type.GetProperty(nameof(IAccountScopedRequest.AccountId))?.PropertyType == typeof(Guid))
+                .Where(type => !typeof(IAccountScopedRequest).IsAssignableFrom(type))
+                .Select(type => type.FullName)
+                .Order()
+                .ToArray();
+
+            Assert.Empty(violations);
+        }
+
+        [Fact]
+        public void System_Scoped_Requests_Should_Match_The_Explicit_Allowlist()
+        {
+            string?[] actual = ApplicationAssembly.GetTypes()
+                .Where(type => !type.IsAbstract && typeof(ISystemScopedRequest).IsAssignableFrom(type))
+                .Select(type => type.FullName)
+                .Order()
+                .ToArray();
+            string?[] expected =
+            [
+                typeof(Application.Modules.Identity.Accounts.Commands.CreateAccountCommand).FullName,
+                typeof(Application.Modules.Identity.Accounts.Queries.GetAccountByIdentityQuery).FullName,
+                typeof(Application.Modules.Identity.Accounts.Queries.GetAccountByUsernameQuery).FullName
+            ];
+
+            Assert.Equal(expected.Order(), actual);
         }
 
         [Fact]

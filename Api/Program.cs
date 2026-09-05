@@ -24,6 +24,8 @@ if (app.Environment.IsDevelopment() || apiConfiguration.GetValue(ApiConfigKeys.M
     await app.RunApplicationMigrations();
 }
 
+await app.VerifyApplicationRowLevelSecurity();
+
 await app.RecordApplicationConfiguration();
 
 await app.RunStartupHealthChecks();

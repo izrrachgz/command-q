@@ -1,7 +1,10 @@
 using Cqrs.Abstractions;
 using FluentValidation;
 using Application.Abstractions;
+using Application.RowLevelSecurity;
+using Common.Models.Response;
 using Persistence.Abstractions;
+using Persistence.Repository;
 using Localization.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Modules.Identity.AccountActivity.Services;
@@ -19,6 +22,27 @@ namespace Application.Test.Infrastructure
             _ = serviceProvider.GetRequiredService<IReadOnlyRepository>();
             _ = serviceProvider.GetRequiredService<IWritableRepository>();
             _ = serviceProvider.GetRequiredService<IAccountActivityRecorder>();
+        }
+
+        [Fact]
+        public void Read_And_Write_Repository_Contracts_Should_Use_Separate_Implementations()
+        {
+            var readOnlyRepository = serviceProvider.GetRequiredService<IReadOnlyRepository>();
+            var writableRepository = serviceProvider.GetRequiredService<IWritableRepository>();
+
+            Assert.IsType<ReadOnlyRepository>(readOnlyRepository);
+            Assert.IsType<WritableRepository>(writableRepository);
+            Assert.NotSame(writableRepository, readOnlyRepository);
+        }
+
+        [Fact]
+        public void Application_Request_Should_Include_Row_Level_Security_Behavior()
+        {
+            var behaviors = serviceProvider.GetServices<IPipelineBehavior<CreateAccountCommand, BasicResponse>>();
+
+            Assert.Contains(
+                behaviors,
+                behavior => behavior is AccountRowLevelSecurityBehavior<CreateAccountCommand, BasicResponse>);
         }
 
         [Fact]

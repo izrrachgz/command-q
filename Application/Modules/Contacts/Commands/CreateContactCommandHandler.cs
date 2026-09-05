@@ -1,6 +1,7 @@
 using Public;
 using Time.Extensions;
 using Cqrs.Abstractions;
+using System.Data;
 using SqlKata.Execution;
 using Application.Logging;
 using Common.Models.Response;
@@ -50,7 +51,10 @@ namespace Application.Modules.Contacts.Commands
             var now = _timeProvider.GetCurrentUtcDateTime();
 
             // Create transaction to ensure data integrity
-            _repository.Db.Connection.Open();
+            bool closeConnection = _repository.Db.Connection.State != ConnectionState.Open;
+            if (closeConnection)
+                _repository.Db.Connection.Open();
+
             using var transaction = _repository.Db.Connection.BeginTransaction();
 
             try
@@ -98,7 +102,8 @@ namespace Application.Modules.Contacts.Commands
             }
             finally
             {
-                _repository.Db.Connection.Close();
+                if (closeConnection)
+                    _repository.Db.Connection.Close();
             }
         }
     }

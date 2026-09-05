@@ -391,3 +391,109 @@ WHERE "DeletedUtc" IS NULL;
 INSERT INTO "MigrationRecord" ("MigrationId","Module","Name","Checksum","AppliedUtc","DeletedUtc")
 VALUES (1,'Core','migration-1','seeded-by-migration-1',NOW(),NULL);
 
+-- =========================
+-- Account row-level security
+-- =========================
+
+CREATE SCHEMA security;
+
+CREATE FUNCTION security.can_access_account(account_id UUID)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT
+        COALESCE(NULLIF(current_setting('command_q.rls_bypass', TRUE), '')::BOOLEAN, FALSE)
+        OR account_id = NULLIF(current_setting('command_q.account_id', TRUE), '')::UUID
+$$;
+
+CREATE FUNCTION security.can_access_register(register_id BIGINT)
+RETURNS BOOLEAN
+LANGUAGE SQL
+STABLE
+AS $$
+    SELECT
+        COALESCE(NULLIF(current_setting('command_q.rls_bypass', TRUE), '')::BOOLEAN, FALSE)
+        OR EXISTS
+        (
+            SELECT 1
+            FROM public."Register" AS register
+            WHERE register."Id" = register_id
+              AND security.can_access_account(register."AccountId")
+        )
+$$;
+
+GRANT USAGE ON SCHEMA security TO PUBLIC;
+GRANT EXECUTE ON FUNCTION security.can_access_account(UUID) TO PUBLIC;
+GRANT EXECUTE ON FUNCTION security.can_access_register(BIGINT) TO PUBLIC;
+
+ALTER TABLE "Account" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Account" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "Account"
+    FOR ALL
+    USING (security.can_access_account("Id"))
+    WITH CHECK (security.can_access_account("Id"));
+
+ALTER TABLE "AccountIdentity" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "AccountIdentity" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "AccountIdentity"
+    FOR ALL
+    USING (security.can_access_account("AccountId"))
+    WITH CHECK (security.can_access_account("AccountId"));
+
+ALTER TABLE "AccountActivity" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "AccountActivity" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "AccountActivity"
+    FOR ALL
+    USING (security.can_access_account("AccountId"))
+    WITH CHECK (security.can_access_account("AccountId"));
+
+ALTER TABLE "AccountPreference" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "AccountPreference" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "AccountPreference"
+    FOR ALL
+    USING (security.can_access_account("AccountId"))
+    WITH CHECK (security.can_access_account("AccountId"));
+
+ALTER TABLE "Address" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Address" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "Address"
+    FOR ALL
+    USING (security.can_access_account("AccountId"))
+    WITH CHECK (security.can_access_account("AccountId"));
+
+ALTER TABLE "Contact" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Contact" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "Contact"
+    FOR ALL
+    USING (security.can_access_account("AccountId"))
+    WITH CHECK (security.can_access_account("AccountId"));
+
+ALTER TABLE "AccountFile" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "AccountFile" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "AccountFile"
+    FOR ALL
+    USING (security.can_access_account("AccountId"))
+    WITH CHECK (security.can_access_account("AccountId"));
+
+ALTER TABLE "Register" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Register" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "Register"
+    FOR ALL
+    USING (security.can_access_account("AccountId"))
+    WITH CHECK (security.can_access_account("AccountId"));
+
+ALTER TABLE "RegisterEvent" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "RegisterEvent" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "RegisterEvent"
+    FOR ALL
+    USING (security.can_access_register("RegisterId"))
+    WITH CHECK (security.can_access_register("RegisterId"));
+
+ALTER TABLE "RegisterPlace" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "RegisterPlace" FORCE ROW LEVEL SECURITY;
+CREATE POLICY "AccountIsolationPolicy" ON "RegisterPlace"
+    FOR ALL
+    USING (security.can_access_register("RegisterId"))
+    WITH CHECK (security.can_access_register("RegisterId"));
+

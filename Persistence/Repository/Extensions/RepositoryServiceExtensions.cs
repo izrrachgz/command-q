@@ -11,7 +11,7 @@ namespace Persistence.Repository.Extensions
     public static class RepositoryServiceExtensions
     {
         /// <summary>
-        /// Registers read-only and writable repositories using the configured database connection and engine.
+        /// Registers separate scoped read-only and writable repositories using the configured engine.
         /// </summary>
         public static void AddRepositories(this IServiceCollection services, IConfiguration configuration)
         {

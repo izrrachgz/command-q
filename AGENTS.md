@@ -46,6 +46,7 @@ This file captures practical repository knowledge for coding agents working in t
 - ASP.NET Core HTTP API with module controllers, middleware, resource-server authentication and app configuration.
 - Run locally from `Api` with `dotnet run` or Visual Studio launch profiles.
 - Runtime application database selection lives under `Api:ConnectionStrings`; the engine key is `Api:ConnectionStrings:Engine`.
+- PostgreSQL and SQL Server application databases enforce native account row-level security. API startup verifies all required policies after optional migrations and fails before serving requests when a policy is missing or disabled. MySQL and SQLite are intentionally skipped because they do not offer an equivalent native table-policy feature. See `docs/row-level-security.md`.
 - Bearer validation settings are configured through the `Authentication` section in `appsettings*.json`.
 - The API validates IdentityServer discovery keys, audience, lifetime, `at+jwt` type and required API scope. It does not issue JWTs or handle refresh tokens.
 - Protocol claims are read through `Api/Extensions/ClaimsPrincipalExtensions.cs`; `ICurrentAccountAccessor` resolves `(iss, sub)` to the application profile through `GetAccountByIdentityQuery`.
@@ -88,6 +89,7 @@ This file captures practical repository knowledge for coding agents working in t
 - CQRS use cases, validators, handlers, mappers, services and health checks, grouped by module under `Application/Modules`.
 - Depends on `Domain`, `Common`, `Cqrs`, `Localization`, `Persistence` and the reusable `Email`/`Email.Outbox` contracts.
 - Keep application logic decoupled from direct I/O. Use injected interfaces such as repositories, text providers and services.
+- Every registered CQRS request runs through the account RLS behavior. Account-owned requests implement `IAccountScopedRequest`; trusted cross-account identity lookup and account provisioning implement `ISystemScopedRequest`. Unclassified requests are provisioned with restrictive/no-account context and fail closed on protected tables. Handlers and services must not provision session context manually. The behavior applies context to the read-only repository for queries and the writable repository for commands, including command transactions, then restores restrictive context before pooling.
 - Validators use localized resources through `ValidationTextProvider`.
 - Shared validator limits live in `Application/Constants/ValidationLimits.cs`.
 - Register module-owned services explicitly through `AddApplicationModules(configuration)` and module-specific methods such as `AddIdentityModule()`. Module extensions own request registrations through `AddApplicationRequest<TRequest, TResponse, THandler>()`, as well as validators and mappers; do not move those registrations back into a project-wide scanner. The helper attaches the Application-owned FluentValidation behavior to each closed request pipeline.
@@ -160,7 +162,8 @@ This file captures practical repository knowledge for coding agents working in t
 - Repositories:
   - `IReadOnlyRepository` is intended for query handlers and does not expose write-capable SqlKata APIs.
   - `IWritableRepository` is intended for write-capable consumers and exposes `QueryFactory Db`.
-  - `ReadOnlyRepository` and `WritableRepository` can be resolved from DI using configured settings or manually created with a connection string and `DatabaseEngine`.
+  - `AddRepositories` resolves `IReadOnlyRepository` to a scoped `ReadOnlyRepository` and `IWritableRepository` to a separate scoped `WritableRepository`. Concrete repositories may also be created manually with a connection string and `DatabaseEngine`.
+  - `DatabaseSessionValue` is the provider-neutral session-context value. `IDatabaseSessionContextRepository` exposes its infrastructure-only application; handlers must continue to depend on `IReadOnlyRepository` or `IWritableRepository` and must not set session context directly. PostgreSQL and SQL Server apply values natively; MySQL and SQLite are no-ops.
 - Command runners:
   - `ICommandRunner` executes raw commands and engine-specific bulk inserts.
   - `AddRepositories(configuration)` and `AddCommandRunners(configuration)` capture an explicitly supplied host or test configuration section; they do not resolve the global root configuration from DI.
@@ -188,6 +191,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Migration failure, missing expected scripts, a ledger ahead of the deployed assembly and duplicate or non-contiguous IDs stop startup.
 - `Core/migration-1.sql` creates and seeds `MigrationRecord`; later successful migrations are recorded with migration id, module, name, checksum and applied time.
 - Until version 1 is finalized, reset changed baseline schemas by manually dropping/recreating the development database.
+- The PostgreSQL and SQL Server baselines own account RLS policies for `Account`, its directly account-owned records, `Register`, `RegisterEvent` and `RegisterPlace`. `Event` and `Place` remain catalogs. Every migration that adds, renames or removes an RLS-protected table, or changes its predicate function or ownership column, must update `ApplicationRowLevelSecurityVerifier.ProtectedTables` in the same change. Native-provider integration tests are deferred; keep the planned scenarios in `docs/row-level-security.md` aligned with policy changes.
 - There is no runtime migration path setting; embedded resources make source and publish directory layouts irrelevant.
 - Detailed ownership and authoring guidance lives in `Application.Migrations/README.md`.
 
@@ -228,7 +232,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Tests mirror API modules under `Api.Test/Modules`.
 - API architecture rules live under `Api.Test/Architecture`.
 - Prefer isolated middleware/controller tests unless the goal is specifically to validate full startup/pipeline behavior.
-- Full API host tests may run migrations and require local database configuration.
+- `ApiFactory` full-host tests use a unique temporary SQLite database and apply the baseline so startup verification remains realistic without local database configuration. Other full-host fixtures may still require explicit database settings.
 - Useful targeted examples:
   - `dotnet test .\Api.Test\Api.Test.csproj`
   - `dotnet test .\Api.Test\Api.Test.csproj --filter FullyQualifiedName~Api.Test.Architecture.ApiArchitectureRulesTest`

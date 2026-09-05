@@ -22,6 +22,7 @@ namespace Application.Modules.Identity.Accounts.Preferences.Commands
         public async Task<BasicResponse> Handle(SaveAccountPreferencesCommand request, CancellationToken cancellationToken)
         {
             var now = timeProvider.GetCurrentUtcDateTime();
+
             var query = repository.Db.Query(nameof(AccountPreference))
                 .WhereNull(nameof(AccountPreference.DeletedUtc))
                 .Where(nameof(AccountPreference.AccountId), request.AccountId);
@@ -58,7 +59,10 @@ namespace Application.Modules.Identity.Accounts.Preferences.Commands
                 })
             };
 
-            repository.Db.Connection.Open();
+            bool closeConnection = repository.Db.Connection.State != ConnectionState.Open;
+            if (closeConnection)
+                repository.Db.Connection.Open();
+
             using var transaction = repository.Db.Connection.BeginTransaction(IsolationLevel.Serializable);
 
             try
@@ -98,7 +102,8 @@ namespace Application.Modules.Identity.Accounts.Preferences.Commands
             }
             finally
             {
-                repository.Db.Connection.Close();
+                if (closeConnection)
+                    repository.Db.Connection.Close();
             }
         }
     }

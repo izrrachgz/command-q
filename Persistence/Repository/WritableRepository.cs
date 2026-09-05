@@ -12,7 +12,7 @@ namespace Persistence.Repository
     /// <summary>
     /// SqlKata-backed repository that exposes read operations plus the write-capable query factory.
     /// </summary>
-    public sealed class WritableRepository : IWritableRepository, IDisposable
+    public sealed class WritableRepository : IWritableRepository, IDatabaseSessionContextRepository, IDisposable
     {
         /// <summary>
         /// Database query entry point with write-capable SqlKata operations.
@@ -47,6 +47,14 @@ namespace Persistence.Repository
         public Query Query(string table)
         {
             return new Query(table);
+        }
+
+        /// <inheritdoc />
+        public Task SetSessionContextAsync(
+            IReadOnlyCollection<DatabaseSessionValue> values,
+            CancellationToken cancellationToken = default)
+        {
+            return DatabaseSessionContext.ApplyAsync(Db.Connection, Engine, values, cancellationToken);
         }
 
         /// <summary>

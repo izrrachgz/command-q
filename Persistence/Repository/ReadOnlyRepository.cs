@@ -12,7 +12,7 @@ namespace Persistence.Repository
     /// <summary>
     /// SqlKata-backed repository that exposes only read operations to application query handlers.
     /// </summary>
-    public sealed class ReadOnlyRepository : IReadOnlyRepository, IDisposable
+    public sealed class ReadOnlyRepository : IReadOnlyRepository, IDatabaseSessionContextRepository, IDisposable
     {
         private readonly QueryFactory _db;
 
@@ -44,6 +44,14 @@ namespace Persistence.Repository
         public Query Query(string table)
         {
             return new Query(table);
+        }
+
+        /// <inheritdoc />
+        public Task SetSessionContextAsync(
+            IReadOnlyCollection<DatabaseSessionValue> values,
+            CancellationToken cancellationToken = default)
+        {
+            return DatabaseSessionContext.ApplyAsync(_db.Connection, Engine, values, cancellationToken);
         }
 
         /// <summary>

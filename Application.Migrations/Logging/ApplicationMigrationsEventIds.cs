@@ -12,5 +12,8 @@ namespace Application.Migrations.Logging
         public const int MigrationApplyFailed = ApplicationMigrationsEventIdRanges.General + 7;
         public const int MigrationScanCompleted = ApplicationMigrationsEventIdRanges.General + 8;
         public const int MigrationHistoryAhead = ApplicationMigrationsEventIdRanges.General + 9;
+        public const int RowLevelSecurityVerified = ApplicationMigrationsEventIdRanges.General + 10;
+        public const int RowLevelSecurityVerificationFailed = ApplicationMigrationsEventIdRanges.General + 11;
+        public const int RowLevelSecurityNotSupported = ApplicationMigrationsEventIdRanges.General + 12;
     }
 }

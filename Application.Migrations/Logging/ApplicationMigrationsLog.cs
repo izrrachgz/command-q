@@ -33,5 +33,14 @@ namespace Application.Migrations.Logging
 
         [LoggerMessage(EventId = ApplicationMigrationsEventIds.MigrationHistoryAhead, Level = LogLevel.Error, Message = "The database migration ledger is ahead of the deployed application scripts. Last applied migration: {LastMigrationId}. Latest available migration: {LatestMigrationId}.")]
         public static partial void MigrationHistoryAhead(this ILogger logger, long lastMigrationId, long latestMigrationId);
+
+        [LoggerMessage(EventId = ApplicationMigrationsEventIds.RowLevelSecurityVerified, Level = LogLevel.Information, Message = "Application row-level security verified. Engine: {Engine}. Protected tables: {ProtectedTableCount}.")]
+        public static partial void RowLevelSecurityVerified(this ILogger logger, object engine, int protectedTableCount);
+
+        [LoggerMessage(EventId = ApplicationMigrationsEventIds.RowLevelSecurityVerificationFailed, Level = LogLevel.Critical, Message = "Required application row-level-security policies are missing or disabled. Engine: {Engine}.")]
+        public static partial void RowLevelSecurityVerificationFailed(this ILogger logger, object engine);
+
+        [LoggerMessage(EventId = ApplicationMigrationsEventIds.RowLevelSecurityNotSupported, Level = LogLevel.Information, Message = "Native application row-level security is not supported for engine {Engine}; startup verification was skipped.")]
+        public static partial void RowLevelSecurityNotSupported(this ILogger logger, object engine);
     }
 }

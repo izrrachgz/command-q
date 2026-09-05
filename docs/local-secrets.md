@@ -21,6 +21,13 @@ Development startup invokes the application migration runner automatically. The
 `Application.Migrations` project reads `MigrationRecord` first and applies only
 pending embedded scripts through the configured Persistence repository.
 
+PostgreSQL and SQL Server application databases require the native account RLS
+objects installed by the baseline. API startup verifies them unconditionally
+and fails before serving requests if a required policy is missing or disabled.
+The PostgreSQL API role must not have superuser or `BYPASSRLS` privileges. See
+`docs/row-level-security.md` before assigning database privileges or separating
+runtime and migration credentials.
+
 `Application.Test` has a separate user-secrets store. Its database-backed module
 tests require the same application database engine and connection, with the
 current application migrations already applied:

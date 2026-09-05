@@ -17,6 +17,7 @@ namespace Application.Migrations.Extensions
             services.AddTimeServices();
             services.TryAddSingleton<IMigrationScriptSource, EmbeddedMigrationScriptSource>();
             services.TryAddScoped<ApplicationMigrationRunner>();
+            services.TryAddScoped<ApplicationRowLevelSecurityVerifier>();
 
             return services;
         }
@@ -27,6 +28,18 @@ namespace Application.Migrations.Extensions
             var runner = scope.ServiceProvider.GetRequiredService<ApplicationMigrationRunner>();
 
             await runner.RunAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Verifies that required native row-level-security policies are present and enabled.
+        /// Unsupported database engines are intentionally skipped.
+        /// </summary>
+        public static async Task VerifyApplicationRowLevelSecurity(this IHost host, CancellationToken cancellationToken = default)
+        {
+            using var scope = host.Services.CreateScope();
+            var verifier = scope.ServiceProvider.GetRequiredService<ApplicationRowLevelSecurityVerifier>();
+
+            await verifier.VerifyAsync(cancellationToken);
         }
     }
 }

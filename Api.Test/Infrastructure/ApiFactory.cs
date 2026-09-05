@@ -14,6 +14,10 @@ namespace Api.Test.Infrastructure
 {
     public sealed class ApiFactory : WebApplicationFactory<Program>
     {
+        private readonly string _databasePath = Path.Combine(
+            Path.GetTempPath(),
+            $"command-q-api-test-{Guid.NewGuid():N}.db");
+
         public const string ApiClientHeaderName = "X-Test-Client";
         public const string ApiClientHeaderValue = "test-client-secret";
         public const string ApiClientOrigin = "https://test-client.local";
@@ -28,7 +32,12 @@ namespace Api.Test.Infrastructure
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            string connectionString = $"Data Source={_databasePath};Version=3;";
+
             builder.UseEnvironment("Testing");
+            builder.UseSetting("Api:ConnectionStrings:Engine", "SqLite");
+            builder.UseSetting("Api:ConnectionStrings:Db", connectionString);
+            builder.UseSetting("Api:Migrations:RunOnStartup", "true");
 
             builder.ConfigureAppConfiguration((_, configurationBuilder) =>
             {
@@ -59,8 +68,8 @@ namespace Api.Test.Infrastructure
                     ["Api:RateLimiting:Concurrency:WindowSeconds"] = "16",
                     ["Api:RateLimiting:Concurrency:QueueLimit"] = "2",
                     ["Api:ConnectionStrings:Engine"] = "SqLite",
-                    ["Api:ConnectionStrings:Db"] = "Data Source=:memory:",
-                    ["Api:Migrations:RunOnStartup"] = "false",
+                    ["Api:ConnectionStrings:Db"] = connectionString,
+                    ["Api:Migrations:RunOnStartup"] = "true",
                     ["Api:EmailOutbox:Persistence:Engine"] = "SqLite",
                     ["Api:EmailOutbox:Persistence:ConnectionString"] = "Data Source=:memory:",
                     ["Api:ApiClients:0:Name"] = ApiClientHeaderName,
@@ -89,6 +98,14 @@ namespace Api.Test.Infrastructure
                     options.TokenValidationParameters.IssuerSigningKey = SigningKey;
                 });
             });
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (File.Exists(_databasePath))
+                File.Delete(_databasePath);
         }
 
         public static string CreateAccessToken(string? scope = ApiScope, string audience = ApiAudience)

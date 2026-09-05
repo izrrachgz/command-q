@@ -9,7 +9,7 @@ Layout:
 
 Notes:
 - Avoid booting the full API host for isolated API tests unless the test intentionally validates startup/pipeline behavior.
-- WebApplicationFactory tests use ApiFactory, which sets the Testing environment and in-memory test configuration.
-- Testing environment startup skips database migrations.
+- WebApplicationFactory tests use ApiFactory, which sets the Testing environment, in-memory test configuration and a unique temporary SQLite database.
+- ApiFactory applies the SQLite baseline so full-host startup can record configuration and exercise the unsupported-engine RLS path; it deletes the temporary database when disposed.
 - Full host tests outside ApiFactory may run migrations and require configured local database settings.
 - Keep frontend concerns out of this project.

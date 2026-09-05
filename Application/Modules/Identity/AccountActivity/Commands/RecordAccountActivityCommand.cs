@@ -1,9 +1,10 @@
 using Cqrs.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 
 namespace Application.Modules.Identity.AccountActivity.Commands
 {
-    public sealed class RecordAccountActivityCommand : ICommand<BasicResponse>
+    public sealed class RecordAccountActivityCommand : ICommand<BasicResponse>, IAccountScopedRequest
     {
         public required Guid AccountId { get; set; }
 

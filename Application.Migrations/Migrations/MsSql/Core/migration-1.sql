@@ -302,3 +302,73 @@ CREATE UNIQUE INDEX UX_MigrationRecord_MigrationId ON dbo.MigrationRecord (Migra
 INSERT INTO dbo.MigrationRecord (MigrationId, [Module], [Name], [Checksum], AppliedUtc, DeletedUtc)
 VALUES (1, 'Core', 'migration-1', 'seeded-by-migration-1', SYSUTCDATETIME(), NULL);
 
+-- Account row-level security
+
+EXEC(N'CREATE SCHEMA Security AUTHORIZATION dbo;');
+
+EXEC(N'
+CREATE FUNCTION Security.fn_account_access(@AccountId UNIQUEIDENTIFIER)
+RETURNS TABLE
+WITH SCHEMABINDING
+AS
+RETURN
+(
+    SELECT 1 AS IsAllowed
+    WHERE
+        COALESCE(TRY_CONVERT(BIT, SESSION_CONTEXT(N''command_q.rls_bypass'')), 0) = 1
+        OR @AccountId = TRY_CONVERT(UNIQUEIDENTIFIER, SESSION_CONTEXT(N''command_q.account_id''))
+);');
+
+EXEC(N'
+CREATE FUNCTION Security.fn_register_access(@RegisterId BIGINT)
+RETURNS TABLE
+WITH SCHEMABINDING
+AS
+RETURN
+(
+    SELECT 1 AS IsAllowed
+    FROM dbo.Register AS [register]
+    WHERE [register].Id = @RegisterId
+      AND
+      (
+          COALESCE(TRY_CONVERT(BIT, SESSION_CONTEXT(N''command_q.rls_bypass'')), 0) = 1
+          OR [register].AccountId = TRY_CONVERT(UNIQUEIDENTIFIER, SESSION_CONTEXT(N''command_q.account_id''))
+      )
+);');
+
+GRANT VIEW DEFINITION ON SCHEMA::Security TO public;
+
+EXEC(N'
+CREATE SECURITY POLICY Security.AccountIsolationPolicy
+ADD FILTER PREDICATE Security.fn_account_access(Id) ON dbo.Account,
+ADD BLOCK PREDICATE Security.fn_account_access(Id) ON dbo.Account AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(Id) ON dbo.Account AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountIdentity,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountIdentity AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountIdentity AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountActivity,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountActivity AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountActivity AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountPreference,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountPreference AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountPreference AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_account_access(AccountId) ON dbo.Address,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.Address AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.Address AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_account_access(AccountId) ON dbo.Contact,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.Contact AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.Contact AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountFile,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountFile AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.AccountFile AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_account_access(AccountId) ON dbo.Register,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.Register AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_account_access(AccountId) ON dbo.Register AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_register_access(RegisterId) ON dbo.RegisterEvent,
+ADD BLOCK PREDICATE Security.fn_register_access(RegisterId) ON dbo.RegisterEvent AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_register_access(RegisterId) ON dbo.RegisterEvent AFTER UPDATE,
+ADD FILTER PREDICATE Security.fn_register_access(RegisterId) ON dbo.RegisterPlace,
+ADD BLOCK PREDICATE Security.fn_register_access(RegisterId) ON dbo.RegisterPlace AFTER INSERT,
+ADD BLOCK PREDICATE Security.fn_register_access(RegisterId) ON dbo.RegisterPlace AFTER UPDATE
+WITH (STATE = ON, SCHEMABINDING = ON);');
+

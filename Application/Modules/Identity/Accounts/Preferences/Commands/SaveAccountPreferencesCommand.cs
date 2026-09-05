@@ -1,11 +1,12 @@
 using Cqrs.Abstractions;
 using Common.Models.Response;
 using System.Text.Json.Serialization;
+using Application.Abstractions;
 
 namespace Application.Modules.Identity.Accounts.Preferences.Commands
 {
     /// <summary>Saves the complete preference set for an account.</summary>
-    public sealed record SaveAccountPreferencesCommand : ICommand<BasicResponse>
+    public sealed record SaveAccountPreferencesCommand : ICommand<BasicResponse>, IAccountScopedRequest
     {
         [JsonIgnore]
         public Guid AccountId { get; init; }

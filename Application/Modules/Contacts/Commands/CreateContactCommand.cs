@@ -1,9 +1,10 @@
 using Cqrs.Abstractions;
 using Common.Models.Response;
+using Application.Abstractions;
 
 namespace Application.Modules.Contacts.Commands
 {
-    public class CreateContactCommand : ICommand<BasicResponse>
+    public class CreateContactCommand : ICommand<BasicResponse>, IAccountScopedRequest
     {
         public Guid AccountId { get; set; }
         public required string Name { get; set; }

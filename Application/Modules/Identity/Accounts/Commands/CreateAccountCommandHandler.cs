@@ -28,7 +28,10 @@ namespace Application.Modules.Identity.Accounts.Commands
             var now = timeProvider.GetCurrentUtcDateTime();
             var accountId = Guid.NewGuid();
 
-            repository.Db.Connection.Open();
+            bool closeConnection = repository.Db.Connection.State != ConnectionState.Open;
+            if (closeConnection)
+                repository.Db.Connection.Open();
+
             using var transaction = repository.Db.Connection.BeginTransaction();
 
             try
@@ -144,7 +147,8 @@ namespace Application.Modules.Identity.Accounts.Commands
             }
             finally
             {
-                repository.Db.Connection.Close();
+                if (closeConnection)
+                    repository.Db.Connection.Close();
             }
         }
 
