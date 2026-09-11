@@ -123,49 +123,17 @@ Google and Microsoft sign-in are activated only when both provider credentials
 are present. Store them under `IdentityServer:ExternalProviders:Google` or
 `IdentityServer:ExternalProviders:Microsoft`.
 
-## Email Delivery
+## Email Delivery and Worker
 
-The standalone `Email` project is consumed by `Email.Worker` and remains
-disabled by default. Put SMTP credentials or an OAuth access token in the
-consuming host's user-secrets store, not in `Email/appsettings.json` or a
-class-library secret store. For example:
+SMTP delivery, outbox migration execution and the worker host live in the
+sibling `command-emails` repository. Configure its `Email.Worker` project through
+that project's user-secrets store or deployment secret store. Do not place SMTP
+credentials or OAuth tokens in command-q configuration.
 
-The worker passes `EmailWorker:Email` directly to the reusable Email library.
-Another host can choose a different section by calling the
-`AddEmailServices(IConfigurationSection)` overload. OAuth tokens are
-ready-to-use values and should be supplied through the deployment secret store;
-the Email library does not acquire, refresh or persist them.
-
-## Email Outbox Worker
-
-`Email.Worker` has a separate user-secrets store. Development defaults to the
-local `localhost\SQLEXPRESS` `command-q` database through Windows trusted
-authentication and is prepared for anonymous smtp4dev delivery on
-`localhost:25`.
-
-The Visual Studio `Email.Worker` launch profile and
-`.\scripts\run-email-worker.ps1` both set `DOTNET_ENVIRONMENT=Development`.
-User-secrets are intentionally unavailable when the worker runs under another
-environment.
-
-For a real SMTP endpoint, configure secrets on the worker project:
-
-```powershell
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Enabled" "true"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Smtp:Host" "smtp.example.com"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Authentication:Type" "Login"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Authentication:Login:Username" "smtp-user"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Authentication:Login:Password" "change-me"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Email:Sender:Address" "no-reply@example.com"
-dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:Worker:Enabled" "true"
-```
-
-To select another database, set `EmailWorker:EmailOutbox:Persistence:Engine` and
-`EmailWorker:EmailOutbox:Persistence:ConnectionString` in the same worker secret store.
-Supported values are `SqLite`, `MsSql`, `PgSql` and `MySql`. QA and Production
-keep polling and startup migrations disabled until deployment configuration
-enables `EmailWorker:Worker:Enabled` and `EmailWorker:Migrations:RunOnStartup`
-explicitly. Migration policy belongs to the worker, not persistence options.
+command-q remains an outbox producer. Its API needs only
+`Api:EmailOutbox:Persistence:Engine` and
+`Api:EmailOutbox:Persistence:ConnectionString`; the worker's delivery and
+migration settings are documented in `command-emails`.
 
 ## Environment Variables
 
@@ -181,7 +149,6 @@ Api__Authentication__Authority -> Api:Authentication:Authority
 Api__ApiClients__0__Id -> Api:ApiClients:0:Id
 IdentityServer__ConnectionStrings__IdentityDb -> IdentityServer:ConnectionStrings:IdentityDb
 IdentityServer__OpenIddict__Issuer -> IdentityServer:OpenIddict:Issuer
-EmailWorker__Worker__Enabled -> EmailWorker:Worker:Enabled
 ```
 
 ## Resetting Pre-v1 Development Databases

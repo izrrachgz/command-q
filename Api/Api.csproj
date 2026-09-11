@@ -28,8 +28,18 @@
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Application.Migrations\Application.Migrations.csproj" />
     <ProjectReference Include="..\Cqrs\Cqrs.csproj" />
-    <ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />
-    <ProjectReference Include="..\Email.Outbox.Persistence\Email.Outbox.Persistence.csproj" />
+    <Reference Include="Email">
+      <HintPath>$(SharedBuildOutput)Email.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Email.Outbox">
+      <HintPath>$(SharedBuildOutput)Email.Outbox.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Email.Outbox.Persistence">
+      <HintPath>$(SharedBuildOutput)Email.Outbox.Persistence.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <ProjectReference Include="..\Time\Time.csproj" />
   </ItemGroup>
 

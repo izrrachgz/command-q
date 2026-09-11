@@ -14,11 +14,7 @@ range when the log message belongs to a feature module.
 | Common | 300000-300999 | Add module/shared-area ranges only when needed |
 | Persistence | 400000-400999 | Add module/shared-area ranges only when needed |
 | IdentityServer | 500000-500999 | OpenIddict: 501000-501999, Health: 502000-502999, Accounts: 503000-503999 |
-| Email | 600000-600999 | Add module/shared-area ranges only when needed |
 | Application.Migrations | 700000-700999 | Add module ranges only when migration ownership needs them |
-| Email.Outbox | 800000-800999 | Add module ranges only when queue workflow ownership needs them |
-| Email.Outbox.Persistence | 900000-900999 | Add module ranges only when storage ownership needs them |
-| Email.Worker | 1000000-1000999 | Add module ranges only when worker ownership needs them |
 
 ## Rules
 
@@ -30,7 +26,3 @@ range when the log message belongs to a feature module.
 - API event `100060` records reloads of operational configuration. Its details are
   limited to non-sensitive summaries and must never include credentials, tokens or
   connection strings.
-- Email event `600008` records SMTP delivery configuration reloads using endpoint,
-  authentication-mode and enabled-state metadata only.
-- Email Worker event `1000006` records worker polling configuration reloads without
-  database connection strings or email credentials.

@@ -21,8 +21,14 @@
 		<ProjectReference Include="..\Common\Common.csproj" />
 		<ProjectReference Include="..\Cqrs\Cqrs.csproj" />
 		<ProjectReference Include="..\Domain\Domain.csproj" />
-		<ProjectReference Include="..\Email\Email.csproj" />
-		<ProjectReference Include="..\Email.Outbox\Email.Outbox.csproj" />
+		<Reference Include="Email">
+			<HintPath>$(SharedBuildOutput)Email.dll</HintPath>
+			<Private>true</Private>
+		</Reference>
+		<Reference Include="Email.Outbox">
+			<HintPath>$(SharedBuildOutput)Email.Outbox.dll</HintPath>
+			<Private>true</Private>
+		</Reference>
 		<ProjectReference Include="..\Localization\Localization.csproj" />
 		<ProjectReference Include="..\Persistence\Persistence.csproj" />
 		<ProjectReference Include="..\Time\Time.csproj" />

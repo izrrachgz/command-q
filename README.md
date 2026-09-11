@@ -6,15 +6,16 @@ API and includes a standalone OpenIddict authorization-server host. That host ca
 be replaced by another standards-compatible issuer, but the API always requires
 a configured authority.
 
-The backend runtime is split into three local hosts:
+The runtime spans two command-q hosts and the independently released email worker:
 
 ```text
-IdentityServer  ->  API  ->  Email.Outbox  ->  Email.Worker  ->  SMTP
+IdentityServer  ->  API  ->  Email.Outbox  ->  command-emails/Email.Worker  ->  SMTP
 ```
 
 IdentityServer issues tokens, the API owns application workflows and queues
-notifications, and Email.Worker performs durable delivery. The API does not
-send SMTP mail directly.
+notifications, and the sibling
+[`command-emails`](https://github.com/izrrachgz/command-emails) repository owns
+durable delivery. The API does not send SMTP mail directly.
 
 The Angular SPA is maintained and released independently in
 [`command-q-front`](https://github.com/izrrachgz/command-q-front). The browser
@@ -26,8 +27,9 @@ dependency of the backend solution.
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 - A supported database engine for the hosts or tests you run: SQL Server,
   PostgreSQL, MySQL or SQLite.
-- [smtp4dev](https://github.com/rnwood/smtp4dev) for local SMTP delivery and the
-  opt-in email integration test.
+- Released `Email.dll`, `Email.Outbox.dll` and
+  `Email.Outbox.Persistence.dll` in sibling `..\command-q-build-output`, produced
+  by a Release build of `command-emails`.
 
 ## Start A New Project From This Template
 
@@ -50,8 +52,6 @@ dependency of the backend solution.
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
-   dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:EmailOutbox:Persistence:Engine" "MsSql"
-   dotnet user-secrets set --project .\Email.Worker\Email.Worker.csproj "EmailWorker:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Engine" "MsSql"
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
@@ -70,25 +70,24 @@ dependency of the backend solution.
    dotnet test .\Application.Migrations.Test\Application.Migrations.Test.csproj --no-build
    dotnet test .\Api.Test\Api.Test.csproj --no-build
    dotnet test .\Application.Test\Application.Test.csproj --filter FullyQualifiedName~Application.Test.Architecture --no-build
-   dotnet test .\Email.Test\Email.Test.csproj --no-build
-   dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj --no-build
    dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj --no-build
    dotnet test .\Time.Test\Time.Test.csproj --no-build
    ```
 
-   `Email.IntegrationTest` is opt-in and requires a running smtp4dev instance.
-   Database-backed `Application.Test` cases require the test project's own
+   Email-specific tests live in `command-emails`. Database-backed
+   `Application.Test` cases require the test project's own
    user-secrets and an up-to-date application database.
 
-5. Run the identity server, the API, and the email worker in separate terminals.
+5. Run the identity server and API in separate terminals.
 
    ```powershell
    .\scripts\run-identity-server.ps1
    .\scripts\run-api.ps1
-   .\scripts\run-email-worker.ps1
    ```
 
-   In Visual Studio 2022 17.11 or later, select the shared `Backend + Email Worker` solution launch profile before pressing F5. It starts IdentityServer first, API second and the email worker third.
+   In Visual Studio 2022 17.11 or later, select the `Backend (IdentityServer +
+   API)` solution launch profile before pressing F5. Run the email worker from a
+   sibling `command-emails` checkout when durable delivery is needed.
 
    After the API has applied the application migrations, run the full suite with
    `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own
@@ -161,17 +160,10 @@ Localization/
 Persistence/
 Application.Migrations/
 IdentityServer/
-Email/
-Email.Outbox/
-Email.Outbox.Persistence/
-Email.Worker/
 Application.Test/
 Application.Migrations.Test/
 Api.Test/
 IdentityServer.Test/
-Email.Test/
-Email.IntegrationTest/
-Email.Outbox.Test/
 Cqrs.Test/
 Time.Test/
 ```
@@ -283,13 +275,11 @@ through user-secrets in Development or the deployment environment's secret
 store. Keep credentials out of committed `appsettings*.json` files. The
 following examples show the application `Db` connection format:
 
-Custom settings are grouped by executable host: `Api`, `IdentityServer` and
-`EmailWorker`. Framework-owned sections such as `Logging`, `Serilog` and
-`AllowedHosts` remain at the document root. Reusable libraries receive an
-explicit subsection from their composition root, so they do not depend on a
-host name. This also keeps environment variables unambiguous, for example
-`Api__Migrations__RunOnStartup` and
-`EmailWorker__Migrations__RunOnStartup` control different processes.
+Custom settings are grouped by executable host: `Api` and `IdentityServer`.
+Framework-owned sections such as `Logging`, `Serilog` and `AllowedHosts` remain
+at the document root. Reusable libraries receive an explicit subsection from
+their composition root, so they do not depend on a host name. The external
+email worker owns its `EmailWorker` configuration in `command-emails`.
 
 ### **Microsoft SQL Server**
 ```json
@@ -341,11 +331,10 @@ host name. This also keeps environment variables unambiguous, for example
    ```sh
    dotnet build .\command-q.sln
    ```
-3. Run IdentityServer, the API and Email.Worker in separate terminals:
+3. Run IdentityServer and the API in separate terminals:
    ```sh
    dotnet run --project .\IdentityServer\IdentityServer.csproj --launch-profile https
    dotnet run --project .\Api\Api.csproj --launch-profile https
-   dotnet run --project .\Email.Worker\Email.Worker.csproj --launch-profile Email.Worker
    ```
 
 Root helper scripts are also available:
@@ -356,14 +345,14 @@ Root helper scripts are also available:
 | `.\scripts\test.ps1` | Tests `command-q.sln`; accepts `-Configuration`, `-Project`, `-Filter` and `-NoBuild`. The default includes database-backed `Application.Test` cases. |
 | `.\scripts\run-identity-server.ps1` | Development on `https://localhost:7125`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
-| `.\scripts\run-email-worker.ps1` | Development email outbox worker using the independently migrated outbox schema in local MsSql `command-q`; accepts `-Environment` and `-NoBuild`. |
 | `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
 
 The backend run scripts bypass `launchSettings.json` deliberately so their
 `-Environment` and `-Urls` arguments are authoritative. Visual Studio uses the
-solution launch profiles from `command-q.slnLaunch`; the recommended `Backend +
-Email Worker` profile starts all three hosts. Use `Qa` when loading the committed
-`appsettings.Qa.json` files on case-sensitive hosts.
+solution launch profiles from `command-q.slnLaunch`; the backend profile starts
+IdentityServer and the API. Use `Qa` when loading the committed
+`appsettings.Qa.json` files on case-sensitive hosts. Run the worker from
+`command-emails`.
 
 ## Postman
 
@@ -468,7 +457,7 @@ The persistence layer separates read and write entry points:
 
 ## Health Checks
 
-API, IdentityServer and Email.Worker expose:
+API and IdentityServer expose:
 
 - `/health/live` for process liveness
 - `/health/ready` for dependency readiness
@@ -485,34 +474,20 @@ report stops the API host. Background health-check publishing is opt-in through
 accepted as a publishing alias for existing local configuration.
 
 IdentityServer does not run a background publisher; its readiness check validates
-its EF database. Email.Worker readiness validates email outbox persistence.
+its EF database. Email worker readiness is owned by `command-emails`.
 
 ## OpenTelemetry
 
-OpenTelemetry is disabled by default and is configured independently by the API
-and email worker hosts. Enable it with `Api:OpenTelemetry:Enabled` or
-`EmailWorker:OpenTelemetry:Enabled`, then provide the host service name and an
-OTLP endpoint under the same section. The hosts own SDK registration and
-exporters; reusable libraries only define their local `ActivitySource` and
-`Meter` instrumentation.
+OpenTelemetry is disabled by default in the API. Enable it with
+`Api:OpenTelemetry:Enabled`, then provide the host service name and an OTLP
+endpoint under the same section. Email worker telemetry is configured in
+`command-emails`.
 
-The API subscribes to HTTP server and email-outbox instrumentation. The worker
-subscribes to HTTP server, SMTP, email-outbox and polling instrumentation. The
-telemetry uses only low-cardinality profile, engine, failure-category and
-outcome tags. Recipients, subjects, bodies, tokens, correlation IDs and outbox
-IDs are never emitted as tags.
+The API subscribes to HTTP server and email-outbox instrumentation. Its telemetry
+uses only low-cardinality engine and outcome tags. Recipients, subjects, bodies,
+tokens, correlation IDs and outbox IDs are never emitted as tags.
 
-Email telemetry contracts use component-owned constants and stable snake-case
-values instead of runtime enum or exception names. Failed activities are marked
-as errors without exporting exception messages or implementation type names in
-their status descriptions.
-
-The current instrumentation measures email SMTP connection, authentication,
-MIME construction, send and disconnect operations; outbox enqueue, duplicate
-enqueue, serialize, claim, process, retry, dead-letter, batch size and queue
-age; and worker poll and batch activity. Named SMTP profiles are low-cardinality
-telemetry tags and outbox records persist only the logical profile name. The
-outbox also persists W3C trace-parent and trace-state values when an enqueue
+The outbox persists W3C trace-parent and trace-state values when an enqueue
 activity has a W3C context; the worker uses those contexts as links on the
 profile processing activity without exposing them as metric tags.
 
@@ -531,40 +506,15 @@ version-1 development, the complete outbox schema remains folded into one
 
 ## Email Delivery
 
-The standalone `Email` project provides reusable MailKit/MimeKit SMTP delivery.
-It is disabled by default and includes validated delivery policies, structured
-SMTP acceptance results, classified failures, text and HTML overloads,
-file-path and in-memory attachments, CID resources, verbatim rendered HTML
-templates, and batch delivery over one connection and authentication session.
-SMTP authentication can be selected as anonymous, LOGIN, PLAIN or
-caller-supplied OAuth 2.0 bearer authentication.
+SMTP delivery, outbox processing, persistence migrations and the standalone
+worker live in
+[`command-emails`](https://github.com/izrrachgz/command-emails). A Release build
+of that solution publishes `Email.dll`, `Email.Outbox.dll` and
+`Email.Outbox.Persistence.dll` to sibling `..\command-q-build-output`.
 
-Email supports named SMTP profiles. Each profile owns its endpoint,
-authentication, sender validation and delivery limits, including raw content
-limits, attachment MIME-type and extension policies, unknown-content handling
-and exact serialized MIME-size limits. The outbox stores only the selected
-logical profile, groups delivery by profile and opens one SMTP connection per
-group. The durable `default` marker resolves to the worker's configured
-`Email:DefaultProfile`; a profile removed from configuration is dead-lettered as
-a permanent configuration failure. Application notifications allow the default
-marker by default; sensitive named profiles require an explicit application-
-provided `IEmailProfileSelectionPolicy`.
-
-The API remains an outbox producer and does not compose SMTP delivery.
-Immediate-delivery consumers can register
-`services.AddEmailServices(configuration)`. Durable delivery uses
-`Email.Outbox`, its dedicated persistence adapter and the standalone
-`Email.Worker` host. Development targets local MsSql `command-q`, while PgSql,
-MySql and SqLite remain configurable and non-development hosts must supply a
-connection. See `Email/README.md`, `Email.Outbox/README.md` and
-`Email.Worker/README.md`.
-
-Development is prepared for smtp4dev on `localhost:25` and stores the independently
-migrated outbox schema in the local MsSql `command-q` database. Start the worker separately:
-
-```powershell
-.\scripts\run-email-worker.ps1
-```
+The API remains an outbox producer and does not compose SMTP delivery. Its
+project references the released outbox and persistence assemblies, while
+Application references only the released message and outbox contracts.
 
 The Application `Notifications` module references the reusable email and
 outbox contracts and provides `QueueEmailCommand` plus
@@ -572,20 +522,13 @@ outbox contracts and provides `QueueEmailCommand` plus
 prepared-message, text, HTML, attachment and verbatim-template overloads; all
 paths converge on one durable `EmailOutboxRequest` carrying optional
 idempotency, account and correlation metadata. Delivery and retries remain the
-worker's responsibility.
+external worker's responsibility.
 
 The module does not select storage. The API composition root registers the
 outbox core and persistence adapter against the configured email outbox store,
-while the worker owns schema migration and delivery. No generic email API
-endpoint is exposed by default.
-
-The opt-in `Email.IntegrationTest` project exercises the real SMTP and HTTP
-interfaces of a local smtp4dev instance. With smtp4dev SMTP on port `25` and its
-web UI/API on port `5000`, run:
-
-```powershell
-.\scripts\test-email-integration.ps1
-```
+while `command-emails` owns schema migration and delivery. No generic email API
+endpoint is exposed by default. SMTP configuration and email-specific tests are
+documented in that repository.
 
 ## Module Registration
 
@@ -658,21 +601,6 @@ IdentityServer.Test/
     Accounts/
   Persistence/
 
-Email.Test/
-  Architecture/
-  Configuration/
-  Services/
-
-Email.IntegrationTest/
-  Configuration/
-  Services/
-
-Email.Outbox.Test/
-  Architecture/
-  Persistence/
-  Serialization/
-  Services/
-
 Cqrs.Test/
   Architecture/
   Dispatching/
@@ -696,17 +624,6 @@ still be run independently with `--filter` when no database is available.
 provider selection, provider migration snapshots, UTC conversion across all
 provider models, SQLite migration and UTC round-trip behavior, password hashing,
 lockout, external-login persistence and security-event storage.
-
-`Email.Test` verifies project dependency and logging rules, configuration
-validation, MIME message construction, policy limits, structured delivery
-results, attachment and template handling, and one-connection batch delivery
-through an in-memory SMTP transport. `Email.IntegrationTest` is skipped by
-default and verifies complete MIME delivery against a locally running smtp4dev
-instance when explicitly enabled.
-
-`Email.Outbox.Test` verifies durable message snapshots, batching, retry/release
-behavior, architecture boundaries and the dedicated SQLite migration and store
-lifecycle.
 
 `Cqrs.Test` verifies handler dispatch, command aliases, pipeline order, scoped
 dependency resolution, cancellation forwarding, duplicate registration and
@@ -750,15 +667,16 @@ conversion and validation, strict UTC JSON converters, and the canonical UTC
 persistence pattern. Provider-specific database adapters remain in their
 owning persistence projects.
 
-The separate `Email` project contains SMTP-specific abstractions, MIME message
-construction and MailKit transport implementation so those dependencies do not
-expand the general-purpose `Common` project.
+The sibling `command-emails` solution owns SMTP-specific abstractions, MIME
+construction, MailKit transport, durable outbox processing and its worker host.
+This solution consumes only its released assemblies.
 
 ## Deployment
 
 For deployment, provide host-scoped environment variables or secret-store
-values for database connections, IdentityServer issuer/certificates, API
-authentication and SMTP credentials. Do not copy local user-secrets into
-committed settings. See [`docs/local-secrets.md`](docs/local-secrets.md),
-[`IdentityServer/README.md`](IdentityServer/README.md) and
-[`Email.Worker/README.md`](Email.Worker/README.md).
+values for database connections, IdentityServer issuer/certificates and API
+authentication. SMTP credentials belong to `command-emails`. Do not copy local
+user-secrets into committed settings. See
+[`docs/local-secrets.md`](docs/local-secrets.md),
+[`IdentityServer/README.md`](IdentityServer/README.md) and the
+[`command-emails` repository](https://github.com/izrrachgz/command-emails).

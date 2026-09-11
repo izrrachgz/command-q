@@ -4,6 +4,15 @@
   </PropertyGroup>
 
   <Target
+    Name="ValidateEmailAssemblies"
+    BeforeTargets="ResolveAssemblyReferences"
+    Condition="'$(MSBuildProjectName)' == 'Application' or '$(MSBuildProjectName)' == 'Application.Test' or '$(MSBuildProjectName)' == 'Api'">
+    <Error
+      Condition="!Exists('$(SharedBuildOutput)Email.dll') or !Exists('$(SharedBuildOutput)Email.Outbox.dll') or !Exists('$(SharedBuildOutput)Email.Outbox.Persistence.dll')"
+      Text="command-emails Release assemblies are missing. Build ..\command-emails\command-emails.sln with Configuration=Release first." />
+  </Target>
+
+  <Target
     Name="PublishSharedAssembly"
     AfterTargets="Build"
     Condition="'$(Configuration)' == 'Release' and '$(DesignTimeBuild)' != 'true' and ('$(MSBuildProjectName)' == 'Common' or '$(MSBuildProjectName)' == 'Cqrs' or '$(MSBuildProjectName)' == 'Persistence' or '$(MSBuildProjectName)' == 'Time')">

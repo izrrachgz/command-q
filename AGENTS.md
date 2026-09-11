@@ -13,15 +13,14 @@ This file captures practical repository knowledge for coding agents working in t
   - `.\scripts\test.ps1`
   - `.\scripts\run-api.ps1`
   - `.\scripts\run-identity-server.ps1`
-  - `.\scripts\run-email-worker.ps1`
   - `.\scripts\add-identity-migration.ps1 -Name MigrationName`
-  - `.\scripts\test-email-integration.ps1`
 - `command-q.slnLaunch` provides backend-only launch profiles. The Angular SPA is developed in the separate `command-q-front` repository.
 - The backend run scripts bypass launch profiles so `-Environment` and `-Urls` are authoritative. Defaults are `https://localhost:7125` for IdentityServer and `https://localhost:7025;http://localhost:7000` for API. Use the exact `Qa` environment name for `appsettings.Qa.json` on case-sensitive hosts.
-- Custom executable settings are namespaced by host: `Api`, `IdentityServer` and `EmailWorker`. Framework-owned `Logging`, `Serilog` and `AllowedHosts` sections remain top-level. Hosts pass explicit subsections to reusable libraries; do not make a library depend on a host prefix.
+- Custom executable settings are namespaced by host: `Api` and `IdentityServer`. Framework-owned `Logging`, `Serilog` and `AllowedHosts` sections remain top-level. Hosts pass explicit subsections to reusable libraries; do not make a library depend on a host prefix.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
 - Release builds copy `Common.dll`, `Cqrs.dll`, `Persistence.dll` and `Time.dll` to the sibling `..\command-q-build-output` directory through `Directory.Build.targets`. Keep that binary-export boundary limited to stable reusable projects.
+- `Application`, `Application.Test` and `Api` consume `Email.dll`, `Email.Outbox.dll` and `Email.Outbox.Persistence.dll` from `..\command-q-build-output`. Those assemblies are released by the sibling `command-emails` solution; do not add project references back to that repository.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
 
 ## Architecture
@@ -62,8 +61,8 @@ This file captures practical repository knowledge for coding agents working in t
 - Local secrets should use .NET user-secrets or environment variables. Keep real secrets out of `appsettings*.json`, `.env`, scripts and docs. See `docs/local-secrets.md`.
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development by `ApiExceptionHandler`, registered through ASP.NET Core's exception-handler pipeline.
-- The API is an email outbox producer: it registers `AddEmailOutboxProducer()` and `Email.Outbox.Persistence`, but does not register `IEmailOutboxProcessor`, run the email worker or own SMTP delivery.
-- Development outbox persistence targets the same local MsSql `command-q` database as the application. Base and non-development templates leave the connection empty so deployment configuration is required. `Email.Worker` is the designated outbox migrator; API persistence options contain no migration lifecycle flag.
+- The API is an email outbox producer: it registers `AddEmailOutboxProducer()` and `Email.Outbox.Persistence`, but does not register `IEmailOutboxProcessor`, run the external email worker or own SMTP delivery.
+- Development outbox persistence targets the same local MsSql `command-q` database as the application. Base and non-development templates leave the connection empty so deployment configuration is required. The worker in sibling `command-emails` is the designated outbox migrator; API persistence options contain no migration lifecycle flag.
 
 ### IdentityServer
 - Standalone ASP.NET Core Identity and OpenIddict authorization-server host. It is independently deployable and connected to `Api` through standard OpenID Connect discovery, not a project reference.
@@ -87,7 +86,7 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### Application
 - CQRS use cases, validators, handlers, mappers, services and health checks, grouped by module under `Application/Modules`.
-- Depends on `Domain`, `Common`, `Cqrs`, `Localization`, `Persistence` and the reusable `Email`/`Email.Outbox` contracts.
+- Depends on `Domain`, `Common`, `Cqrs`, `Localization`, `Persistence` and the reusable `Email`/`Email.Outbox` release assemblies.
 - Keep application logic decoupled from direct I/O. Use injected interfaces such as repositories, text providers and services.
 - Every registered CQRS request runs through the account RLS behavior. Account-owned requests implement `IAccountScopedRequest`; trusted cross-account identity lookup and account provisioning implement `ISystemScopedRequest`. Unclassified requests are provisioned with restrictive/no-account context and fail closed on protected tables. Handlers and services must not provision session context manually. The behavior applies context to the read-only repository for queries and the writable repository for commands, including command transactions, then restores restrictive context before pooling.
 - Validators use localized resources through `ValidationTextProvider`.
@@ -252,77 +251,11 @@ This file captures practical repository knowledge for coding agents working in t
 - Uses EF Core InMemory for focused identity-store tests and relational SQLite for migration execution tests. Production persistence uses the provider selected through configuration.
 - Useful targeted command: `dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj`.
 
-### Email
-- Standalone .NET 10 SMTP delivery library backed by MailKit and MimeKit. It has no dependency on API, Application or IdentityServer.
-- Public abstractions and message models live under `Email/Abstractions` and `Email/Models`; MailKit transport details stay internal under `Email/Services`.
-- `Email/appsettings.json` is copied to `Email/appsettings.json` in the output as library defaults. `services.AddEmailServices(configuration)` layers consuming-host configuration over that file and validates the merged `Email` section on startup.
-- Email delivery is disabled by default. Disabled configuration may remain incomplete; when `Email:Enabled` is `true`, SMTP, sender, authentication and delivery-policy settings are validated.
-- Supported SMTP authentication types are `Anonymous`, `Login`, `Plain` and `OAuth`. Only the selected authentication section is consumed. OAuth expects an already-issued access token and does not acquire, refresh or persist tokens.
-- Authenticated modes require `StartTls` or `SslOnConnect`; do not weaken this validation or bypass certificate validation.
-- `IEmailSender` returns `EmailSendResult`/`EmailBatchResult` with message IDs and SMTP responses. `EmailDeliveryException` exposes failure classification and messages accepted before a partial batch failure.
-- Email timestamps use NodaTime `Instant`, current-time reads use the DI-provided `TimeProvider`, and the canonical email timezone is UTC. Shared time registration preserves a test or host provider installed before email services.
-- `IEmailSender` monitors `EmailOptions`; SMTP endpoint, sender, authentication, delivery limits and supplied OAuth tokens apply to the next batch. Each batch captures one valid options snapshot and creates its own transport. Reload logs contain safe metadata only.
-- `IEmailSender.SendAsync(IEnumerable<EmailMessage>)` validates the full batch and configured delivery limits, opens one connection, authenticates once, sends sequentially, disconnects once and disposes the SMTP client.
-- File, byte and copied-stream attachments are supported. HTML messages may include `EmailInlineResource` items referenced through `cid:` URLs. Caller-owned streams are copied and are never retained or disposed by the library.
-- HTML template overloads read already-rendered files verbatim. Rendering, substitutions and localization belong to the caller.
-- Do not add automatic SMTP retries to the sender. `Email.Outbox` and `Email.Worker` own durable retries, deduplication and dead-letter handling because a failed SMTP batch can be partially delivered.
-- Keep SMTP credentials in the consuming host's user-secrets or deployment secret store. Do not add them to the Email project or committed settings.
-- The Email project is consumed by `Email.Worker` but remains independent of API and IdentityServer. Add other host references only for concrete immediate-delivery workflows.
-- Detailed configuration, API examples and batch semantics are documented in `Email/README.md`.
-
-### Email.Outbox
-- Transport-independent durable queue contracts and delivery workflow. References `Email`, but not Persistence, API, Application or IdentityServer.
-- `IEmailOutbox` snapshots fully prepared messages and returns an enqueue result with the durable record ID and duplicate status.
-- Idempotency keys are optional but strongly recommended for business-triggered messages.
-- File attachments and inline resources are copied into the payload at enqueue time; queued delivery does not depend on temporary files.
-- `IEmailOutboxProcessor` sends a claimed batch through one `IEmailSender` batch call, handles partial acceptance, schedules exponential retries and dead-letters permanent or exhausted failures.
-- Delivery is at least once. A crash between SMTP acceptance and the database update can produce a duplicate; message workflows must tolerate this.
-- Complete bodies and attachments are stored in the outbox database. Treat that database according to the sensitivity of its content.
-- Outbox timestamps and scheduling boundaries use NodaTime `Instant`; lease and retry intervals use `Duration`. Do not reintroduce `DateTime.UtcNow`, local timestamps or offset-dependent contracts.
-- Configuration uses the `EmailOutbox` section. See `Email.Outbox/README.md`.
-- Application workflows normally enqueue through the Notifications module. A producer host must register both the outbox core and an `IEmailOutboxStore` implementation before executing those commands.
-- Producer-only hosts use `AddEmailOutboxProducer(configuration)`. Consumer hosts use `AddEmailOutbox(configuration)` or explicitly add `AddEmailOutboxProcessor()` and must also register `IEmailSender`.
-
-### Email.Outbox.Persistence
-- SqlKata implementation of `IEmailOutboxStore` using the reusable `Persistence` project through an adapter boundary.
-- Owns its schema, embedded provider scripts, `EmailOutboxMigrationRecord` ledger and migration runner. It does not use `Application.Migrations` or the application database ledger.
-- Version 1 keeps one consolidated `migration-1.sql` baseline per provider. Fold schema changes into that baseline and recreate development outbox databases until version 1 is finalized.
-- Persistence normalizes NodaTime instants to microseconds before writes. SQL Server uses `datetime2(6)`, PostgreSQL uses `timestamptz(6)`, MySQL uses UTC-session `datetime(6)`, and SQLite uses the six-digit UTC text pattern owned by `Time.UtcTime` and ending in `Z`.
-- Supported engines are `SqLite`, `MsSql`, `PgSql` and `MySql`; the worker's Development settings target local MsSql `command-q`.
-- Reusable persistence options contain only `Engine` and `ConnectionString`. The command-q worker supplies them from `EmailWorker:EmailOutbox:Persistence`.
-- SQLite relative paths resolve against the consuming host content root, and the database directory is created when needed.
-- Queue claims use conditional updates, unique lock IDs and expiring leases so multiple workers can share one store.
-- Configure the lease longer than the maximum expected SMTP batch duration.
-- In multi-instance deployments, apply migrations through one deployment step or one designated instance.
-- See `Email.Outbox.Persistence/README.md`.
-
-### Email.Worker
-- Standalone .NET 10 worker host composing Email transport, outbox workflow and outbox persistence.
-- Development uses smtp4dev at `localhost:25`, enables polling and uses the independently migrated outbox schema in local MsSql `command-q`.
-- Base, QA and Production settings disable delivery and polling and leave the outbox connection empty. QA/Production also disable startup migrations until explicitly enabled.
-- Worker settings live under `EmailWorker:Worker`: `Enabled`, `BatchSize`, `PollIntervalSeconds`, `LeaseSeconds` and `ErrorDelaySeconds`. Startup migration policy lives separately under `EmailWorker:Migrations:RunOnStartup`.
-- Worker settings are monitored at runtime. Changes apply to new polling cycles; disabling pauses the worker and re-enabling resumes it. Active batches are not reconfigured mid-flight.
-- The worker shares the registered `TimeProvider` with Email, Email.Outbox and Email.Outbox.Persistence; all current values are converted to NodaTime instants immediately.
-- Run independently with `.\scripts\run-email-worker.ps1`. The shared Visual Studio backend launch profile also starts it alongside API and IdentityServer.
-- The `Email.Worker` Visual Studio launch profile and run script set `DOTNET_ENVIRONMENT=Development`, allowing the generic host to load the worker project's user-secrets. Do not load user-secrets explicitly outside Development.
-- OAuth token acquisition and refresh remain external to the worker.
-- See `Email.Worker/README.md`.
-
-### Email.Test
-- Isolated xUnit tests for dependency boundaries, logging ranges, options and policy validation, MIME construction, structured failures and SMTP connection lifecycle.
-- Uses an in-memory fake transport and never contacts a real SMTP endpoint.
-- Useful targeted command: `dotnet test .\Email.Test\Email.Test.csproj`.
-
-### Email.IntegrationTest
-- Opt-in xUnit tests against a developer-owned smtp4dev instance. The committed setting disables the test so normal solution and CI runs do not require an SMTP service.
-- Local defaults are SMTP `localhost:25` and HTTP API `http://localhost:5000`; override them through the `Smtp4Dev` configuration section or environment variables.
-- The test verifies SMTP acceptance, plain and HTML bodies, an attachment and a CID resource through smtp4dev's API, then deletes the test message.
-- Useful targeted command: `.\scripts\test-email-integration.ps1`.
-
-### Email.Outbox.Test
-- Isolated xUnit coverage for dependency boundaries, event ID ranges, message snapshots, batch workflow and dedicated SQLite persistence.
-- The SQLite test applies migrations, verifies idempotent enqueueing, exclusive leases, sent completion and a second no-op migration pass.
-- Useful targeted command: `dotnet test .\Email.Outbox.Test\Email.Outbox.Test.csproj`.
+### External email assemblies
+- The sibling `command-emails` repository owns SMTP delivery, outbox contracts and processing, outbox persistence, the email worker and email-specific tests.
+- This solution retains `Application.Modules.Notifications` and the API's producer composition. Keep those consumers on release DLL references through `$(SharedBuildOutput)`.
+- Build `command-emails` in Release after changing its public contracts, then rebuild this solution. Do not copy email source projects back into `command-q`.
+- The API must remain producer-only. Outbox migrations, polling, SMTP delivery, retries and dead-letter processing belong to `command-emails`.
 
 ## Logging
 - Use source-generated logging with `LoggerMessage`.
@@ -335,11 +268,7 @@ This file captures practical repository knowledge for coding agents working in t
   - `Common/Logging/CommonEventIdRanges.cs`
   - `Persistence/Logging/PersistenceEventIdRanges.cs`
   - `IdentityServer/Logging/IdentityServerEventIdRanges.cs`
-  - `Email/Logging/EmailEventIdRanges.cs`
   - `Application.Migrations/Logging/ApplicationMigrationsEventIdRanges.cs`
-  - `Email.Outbox/Logging/EmailOutboxEventIdRanges.cs`
-  - `Email.Outbox.Persistence/Logging/EmailOutboxPersistenceEventIdRanges.cs`
-  - `Email.Worker/Logging/EmailWorkerEventIdRanges.cs`
 - Add cross-cutting IDs to root `*EventIds.cs` files. Add module-owned IDs to module `Logging/*EventIds.cs` files.
 - `Logging` and Serilog level/threshold settings use the host configuration reload pipeline. Do not log configuration secrets while observing reloads.
 
