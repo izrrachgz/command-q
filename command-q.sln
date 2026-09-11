@@ -17,13 +17,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{187A6DB6-46F4-4B45-858B-2F24D325AA0A}"
 	ProjectSection(SolutionItems) = preProject
 		Agents.md = Agents.md
-		docs\api-responses.md = docs\api-responses.md
-		docs\frontend-integration.md = docs\frontend-integration.md
-		docs\local-secrets.md = docs\local-secrets.md
-		docs\logging-event-ids.md = docs\logging-event-ids.md
-		docs\modules.md = docs\modules.md
 		README.md = README.md
-		docs\row-level-security.md = docs\row-level-security.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{F0A4E9DB-30E1-4F88-8BAA-4AF43AEB8A01}"
@@ -57,6 +51,25 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServer.Test", "IdentityServer.Test\IdentityServer.Test.csproj", "{A86555D6-17C4-4FEF-8192-995023971369}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityServer", "IdentityServer\IdentityServer.csproj", "{6700F780-132C-4B2C-9976-4E8584388A03}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{57773550-B771-43E6-AFA4-A2CBE6B1E0C4}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\add-identity-migration.ps1 = scripts\add-identity-migration.ps1
+		scripts\build.ps1 = scripts\build.ps1
+		scripts\run-api.ps1 = scripts\run-api.ps1
+		scripts\run-identity-server.ps1 = scripts\run-identity-server.ps1
+		scripts\test.ps1 = scripts\test.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{EE688E67-5DFC-44BA-80BD-7DBE21308D43}"
+	ProjectSection(SolutionItems) = preProject
+		docs\api-responses.md = docs\api-responses.md
+		docs\frontend-integration.md = docs\frontend-integration.md
+		docs\local-secrets.md = docs\local-secrets.md
+		docs\logging-event-ids.md = docs\logging-event-ids.md
+		docs\modules.md = docs\modules.md
+		docs\row-level-security.md = docs\row-level-security.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -281,6 +294,8 @@ Global
 		{2274538F-92AD-48CC-81CE-754435C68615} = {2F85B96E-7F43-4E18-BD0C-7463A5FF6B11}
 		{A86555D6-17C4-4FEF-8192-995023971369} = {2F85B96E-7F43-4E18-BD0C-7463A5FF6B11}
 		{6700F780-132C-4B2C-9976-4E8584388A03} = {F0A4E9DB-30E1-4F88-8BAA-4AF43AEB8A01}
+		{57773550-B771-43E6-AFA4-A2CBE6B1E0C4} = {187A6DB6-46F4-4B45-858B-2F24D325AA0A}
+		{EE688E67-5DFC-44BA-80BD-7DBE21308D43} = {187A6DB6-46F4-4B45-858B-2F24D325AA0A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {19D599D4-650F-479F-AC6B-61915DCDA959}
