@@ -201,9 +201,6 @@ namespace Api.Extensions
 
             app.UseCors();
 
-            // Add rate limiting
-            app.UseRateLimiter();
-
             // Configure localization
             app.UseRequestLocalization(options =>
             {
@@ -246,6 +243,10 @@ namespace Api.Extensions
 
             // Add authentication and authorization
             app.UseAuthentication();
+
+            // Partition authenticated rate limits by identity after bearer validation.
+            app.UseRateLimiter();
+
             app.UseAuthorization();
 
             // Add rate limiting to all endpoints based on configuration
@@ -336,7 +337,7 @@ namespace Api.Extensions
 
             services.AddOptions<TokenBucketRateLimitingOptions>()
                 .Bind(configuration.GetSection(ApiConfigKeys.RateLimiting.TokenBucketOptions))
-                .Validate(options => IsValidRateLimit(options) && options.TokenLimit > 0 && options.TokensPerPeriod > 0, "TokenBucket rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
+                .Validate(options => options.WindowSeconds > 0 && options.QueueLimit >= 0 && options.TokenLimit > 0 && options.TokensPerPeriod > 0, "TokenBucket rate limiting options must be greater than zero, except QueueLimit which cannot be negative.")
                 .ValidateOnStart();
 
             services.AddOptions<ConcurrencyRateLimitingOptions>()

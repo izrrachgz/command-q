@@ -8,6 +8,7 @@ using Common.Models.Request;
 using Localization.Abstractions;
 using Cqrs.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Api.Modules.Identity.Requests;
 using Public;
@@ -16,6 +17,7 @@ namespace Api.Modules.Identity
 {
     [ApiController, Route(IdentityRoute.AdminAccounts)]
     [Authorize(Roles = AuthorizationRoles.Admin)]
+    [EnableRateLimiting(ApiConfigKeys.RateLimiting.SlidingPolicyName)]
     public sealed class AdminAccountsController(IRequestDispatcher dispatcher, ITextProvider messages) : ControllerBase
     {
         [HttpGet]

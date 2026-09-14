@@ -5,6 +5,7 @@ using Api.Models;
 using Common.Models.Request;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Application.Modules.Configuration.Queries;
 using Application.Modules.Configuration.Dtos;
 
@@ -12,6 +13,7 @@ namespace Api.Modules.Configuration
 {
     [ApiController, Route(ConfigurationRoute.Root)]
     [Authorize(Roles = AuthorizationRoles.Admin)]
+    [EnableRateLimiting(ApiConfigKeys.RateLimiting.SlidingPolicyName)]
     public sealed class ConfigurationController(IRequestDispatcher dispatcher) : ControllerBase
     {
         [HttpGet]

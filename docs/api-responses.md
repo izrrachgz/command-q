@@ -35,6 +35,7 @@ Expected status mappings are:
 - `403` when the caller or API client is not allowed;
 - `404` when a requested resource does not exist;
 - `409` for state or uniqueness conflicts;
+- `429` when a configured request-rate or concurrency allowance is exhausted;
 - `502` when an upstream operation fails;
 - `503` when a required integration is unavailable;
 - `500` for unexpected server failures.

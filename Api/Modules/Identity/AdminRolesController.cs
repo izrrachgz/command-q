@@ -4,12 +4,14 @@ using Application.Modules.Identity.Roles.Queries;
 using Application.Modules.Identity.Roles.Dtos;
 using Cqrs.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Modules.Identity
 {
     [ApiController, Route(IdentityRoute.AdminRoles)]
     [Authorize(Roles = AuthorizationRoles.Admin)]
+    [EnableRateLimiting(ApiConfigKeys.RateLimiting.SlidingPolicyName)]
     public sealed class AdminRolesController(IRequestDispatcher dispatcher) : ControllerBase
     {
         [HttpGet]

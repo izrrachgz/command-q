@@ -248,6 +248,11 @@ The framework `Logging` section and Serilog `MinimumLevel`, overrides and sink
 thresholds are also reloadable through the standard host configuration pipeline.
 Changes affect new log events; they do not require rebuilding the host.
 
+The API uses a token bucket for ordinary traffic, a sliding window for
+administrative controllers, a fixed window for account provisioning and a
+global concurrency limit for large uploads. See [API rate limiting](docs/rate-limiting.md)
+for assignments, partition behavior, configuration and benchmark guidance.
+
 Database providers, migrations, dependency-injection registrations, identity
 certificates and other infrastructure topology remain startup-bound. Outbox
 retry and migration policies are startup-bound. Email profile changes are

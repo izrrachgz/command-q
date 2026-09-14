@@ -3,7 +3,6 @@ using IdentityServer.Constants;
 using IdentityServer.Resources;
 using IdentityServer.Localization;
 using Microsoft.AspNetCore.Identity;
-using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using IdentityServer.Modules.Accounts.Configuration;
@@ -21,7 +20,7 @@ using IdentityServer.Modules.Accounts.Workers.Email;
 
 namespace IdentityServer.Modules.Accounts
 {
-    /// <summary>Composes Identity, account workflows, external providers, rate limiting, and account-email background processing.</summary>
+    /// <summary>Composes Identity, account workflows, external providers, and account-email background processing.</summary>
     internal static class AccountsModuleExtensions
     {
         /// <summary>Registers the complete Accounts module and returns its Identity builder for persistence-store composition.</summary>
@@ -52,17 +51,6 @@ namespace IdentityServer.Modules.Accounts
                 .Validate(
                     options => !string.IsNullOrWhiteSpace(options.CookieName),
                     Required(IdentityServerConfigKeys.Identity.CookieName))
-                .Validate(
-                    options => options.AuthenticationPermitLimit > 0,
-                    GreaterThanZero(IdentityServerConfigKeys.Identity.AuthenticationPermitLimit))
-                .Validate(
-                    options => options.AuthenticationWindowSeconds > 0,
-                    GreaterThanZero(IdentityServerConfigKeys.Identity.AuthenticationWindowSeconds))
-                .Validate(
-                    options => options.AuthenticationQueueLimit >= 0,
-                    IdentityServerText.Format(
-                        IdentityServerMessages.Configuration_CannotBeNegative,
-                        IdentityPath(IdentityServerConfigKeys.Identity.AuthenticationQueueLimit)))
                 .ValidateOnStart();
 
             var identityOptions = identitySection.Get<IdentityConfigurationOptions>()
@@ -194,21 +182,6 @@ namespace IdentityServer.Modules.Accounts
             services.AddScoped<IAccountRecoveryService, AccountRecoveryService>();
             services.AddHostedService<AccountEmailMaintenanceWorker>();
             services.AddScoped<DevelopmentAdminRoleAssigner>();
-            services.AddRateLimiter(options =>
-            {
-                options.AddPolicy(AccountConstants.AuthenticationRateLimitPolicy, context =>
-                    RateLimitPartition.GetFixedWindowLimiter(
-                        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                        _ => new FixedWindowRateLimiterOptions
-                        {
-                            PermitLimit = identityOptions.AuthenticationPermitLimit,
-                            Window = TimeSpan.FromSeconds(identityOptions.AuthenticationWindowSeconds),
-                            QueueLimit = identityOptions.AuthenticationQueueLimit,
-                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                            AutoReplenishment = true
-                        }));
-            });
-
             return identityBuilder;
         }
 

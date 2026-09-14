@@ -1,7 +1,8 @@
-﻿using IdentityServer.Modules.Health;
+using IdentityServer.Modules.Health;
 using IdentityServer.Modules.Accounts;
 using IdentityServer.Modules.OpenIddict;
 using IdentityServer.Persistence;
+using IdentityServer.Extensions;
 
 namespace IdentityServer.Modules
 {
@@ -24,7 +25,7 @@ namespace IdentityServer.Modules
 
         public static IEndpointRouteBuilder MapIdentityServerModules(this IEndpointRouteBuilder endpoints)
         {
-            endpoints.MapControllers();
+            endpoints.MapControllers().AddDefaultIdentityServerRateLimit();
             endpoints.MapHealthModule();
 
             return endpoints;

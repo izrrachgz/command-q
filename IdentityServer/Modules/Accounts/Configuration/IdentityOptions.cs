@@ -1,6 +1,6 @@
 namespace IdentityServer.Modules.Accounts.Configuration
 {
-    /// <summary>Configures local credential requirements, lockout behavior, authentication cookies, and sign-in rate limits.</summary>
+    /// <summary>Configures local credential requirements, lockout behavior, and authentication cookies.</summary>
     internal sealed class IdentityConfigurationOptions
     {
         /// <summary>Gets the minimum accepted password length.</summary>
@@ -23,12 +23,6 @@ namespace IdentityServer.Modules.Accounts.Configuration
         public int CookieHours { get; init; }
         /// <summary>Gets the authentication-cookie name.</summary>
         public string CookieName { get; init; } = string.Empty;
-        /// <summary>Gets the number of authentication requests permitted during one rate-limit window.</summary>
-        public int AuthenticationPermitLimit { get; init; }
-        /// <summary>Gets the authentication rate-limit window in seconds.</summary>
-        public int AuthenticationWindowSeconds { get; init; }
-        /// <summary>Gets the number of authentication requests allowed to wait for a rate-limit permit.</summary>
-        public int AuthenticationQueueLimit { get; init; }
     }
 
     /// <summary>Contains optional external authentication-provider credentials.</summary>

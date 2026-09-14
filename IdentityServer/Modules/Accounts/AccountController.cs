@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Time.Extensions;
+using IdentityServer.Constants;
 using Microsoft.AspNetCore.Mvc;
 using IdentityServer.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -33,7 +34,7 @@ namespace IdentityServer.Modules.Accounts
         ILogger<AccountController> logger) : ControllerBase
     {
         [AllowAnonymous, HttpPost(AccountConstants.Routes.Register)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Authentication)]
         public async Task<IActionResult> Register(RegisterAccountRequest request, CancellationToken cancellationToken)
         {
             var now = timeProvider.GetCurrentUtcDateTime();
@@ -95,7 +96,7 @@ namespace IdentityServer.Modules.Accounts
         }
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.EmailConfirmation)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Challenges)]
         public async Task<IActionResult> RequestEmailConfirmation(
             RequestAccountEmailRequest request,
             CancellationToken cancellationToken)
@@ -115,7 +116,7 @@ namespace IdentityServer.Modules.Accounts
         }
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.EmailConfirmationVerify)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Challenges)]
         public async Task<IActionResult> ConfirmEmail(
             VerifyAccountChallengeRequest request,
             CancellationToken cancellationToken)
@@ -131,7 +132,7 @@ namespace IdentityServer.Modules.Accounts
         }
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.PasswordRecovery)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Challenges)]
         public async Task<IActionResult> RequestPasswordRecovery(
             RequestAccountEmailRequest request,
             CancellationToken cancellationToken)
@@ -151,7 +152,7 @@ namespace IdentityServer.Modules.Accounts
         }
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.PasswordRecoveryVerify)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Challenges)]
         public async Task<IActionResult> VerifyPasswordRecovery(
             VerifyAccountChallengeRequest request,
             CancellationToken cancellationToken)
@@ -169,7 +170,7 @@ namespace IdentityServer.Modules.Accounts
         }
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.PasswordRecoveryReset)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Challenges)]
         public async Task<IActionResult> ResetPassword(
             ResetPasswordRequest request,
             CancellationToken cancellationToken)
@@ -201,7 +202,7 @@ namespace IdentityServer.Modules.Accounts
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.SignIn)]
         [Consumes(AccountConstants.ContentTypes.Json)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Authentication)]
         public async Task<IActionResult> SignIn(SignInRequest request, CancellationToken cancellationToken)
         {
             var result = await PasswordSignIn(request, cancellationToken);
@@ -211,7 +212,7 @@ namespace IdentityServer.Modules.Accounts
 
         [AllowAnonymous, HttpPost(AccountConstants.Routes.SignIn)]
         [Consumes(AccountConstants.ContentTypes.FormUrlEncoded)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Authentication)]
         public async Task<IActionResult> SignInForm(
             [FromForm] SignInRequest request,
             [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl,
@@ -332,7 +333,7 @@ namespace IdentityServer.Modules.Accounts
         }
 
         [AllowAnonymous, HttpGet(AccountConstants.Routes.External)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Authentication)]
         public async Task<IActionResult> External(string provider, [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl)
         {
             var scheme = (await signInManager.GetExternalAuthenticationSchemesAsync())
@@ -350,7 +351,7 @@ namespace IdentityServer.Modules.Accounts
         }
 
         [Authorize, HttpGet(AccountConstants.Routes.ExternalLink)]
-        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Authentication)]
         public async Task<IActionResult> LinkExternal(string provider, [FromQuery] string returnUrl = AccountConstants.DefaultReturnUrl)
         {
             var user = await userManager.GetUserAsync(User);

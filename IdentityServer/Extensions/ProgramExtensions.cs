@@ -32,6 +32,7 @@ namespace IdentityServer.Extensions
                 });
             builder.Services.AddConfiguredCors(identityServerConfiguration, builder.Environment);
             builder.Services.AddAuthorization();
+            builder.Services.AddIdentityServerRateLimiting(identityServerConfiguration);
             builder.Services.AddIdentityServerDataProtection(identityServerConfiguration, builder.Environment);
             builder.Services.AddIdentityServerModules(identityServerConfiguration, builder.Environment);
             builder.Services.AddEmailApiClient(identityServerConfiguration);
@@ -42,8 +43,14 @@ namespace IdentityServer.Extensions
             app.UseHttpsRedirection();
             app.UseMiddleware<SecurityHeadersMiddleware>();
             app.UseCors(CorsPolicy);
-            app.UseRateLimiter();
             app.UseAuthentication();
+            var rateLimiting = app.Services
+                .GetRequiredService<Microsoft.Extensions.Options.IOptions<IdentityServerRateLimitingOptions>>()
+                .Value;
+            if (rateLimiting.Enabled)
+            {
+                app.UseRateLimiter();
+            }
             app.UseAuthorization();
             app.MapIdentityServerModules();
         }

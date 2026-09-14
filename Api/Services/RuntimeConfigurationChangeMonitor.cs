@@ -60,6 +60,21 @@ namespace Api.Services
         /// <summary>
         /// Formats rate-limit values without including unrelated configuration data.
         /// </summary>
+        private static string DescribeRateLimit(TokenBucketRateLimitingOptions options)
+        {
+            return $"TokenLimit={options.TokenLimit}; TokensPerPeriod={options.TokensPerPeriod}; ReplenishmentPeriodSeconds={options.WindowSeconds}; QueueLimit={options.QueueLimit}";
+        }
+
+        private static string DescribeRateLimit(ConcurrencyRateLimitingOptions options)
+        {
+            return $"PermitLimit={options.PermitLimit}; QueueLimit={options.QueueLimit}";
+        }
+
+        private static string DescribeRateLimit(SlidingRateLimitingOptions options)
+        {
+            return $"PermitLimit={options.PermitLimit}; WindowSeconds={options.WindowSeconds}; SegmentsPerWindow={options.SegmentsPerWindow}; QueueLimit={options.QueueLimit}";
+        }
+
         private static string DescribeRateLimit(RateLimitingOptions options)
         {
             return $"PermitLimit={options.PermitLimit}; WindowSeconds={options.WindowSeconds}; QueueLimit={options.QueueLimit}";

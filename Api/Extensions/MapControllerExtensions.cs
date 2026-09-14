@@ -1,5 +1,6 @@
 using Api.Constants;
 using Api.Enumerations;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Extensions
 {
@@ -31,34 +32,42 @@ namespace Api.Extensions
         /// <summary>
         /// Configures the specified rate limiting policy for the endpoint convention builder.
         /// </summary>
-        /// <remarks>This method allows for the application of different rate limiting strategies,
-        /// including fixed window, sliding window, token bucket, and concurrency limits. The method does not apply any
-        /// rate limiting if 'limiting' is set to 'None'.</remarks>
+        /// <remarks>
+        /// The selected strategy is applied only when an endpoint has not declared its own policy. Selecting
+        /// <see cref="RateLimiting.None"/> disables rate limiting for the mapped controller endpoints, including explicit
+        /// endpoint policies, so an unthrottled capacity benchmark can be run through configuration alone.
+        /// </remarks>
         /// <typeparam name="TBuilder">Specifies the type of the endpoint convention builder being extended.</typeparam>
         /// <param name="builder">The endpoint convention builder to which the rate limiting policy will be applied.</param>
         /// <param name="limiting">The rate limiting strategy to be applied, which determines the policy used for rate limiting.</param>
         /// <returns>The updated endpoint convention builder with the applied rate limiting policy.</returns>
         internal static TBuilder RequireRateLimiting<TBuilder>(this TBuilder builder, RateLimiting limiting) where TBuilder : IEndpointConventionBuilder
         {
-            switch (limiting)
+            if (limiting == RateLimiting.None)
             {
-                case RateLimiting.FixedWindow:
-                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName);
-                    break;
-                case RateLimiting.SlidingWindow:
-                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.SlidingPolicyName);
-                    break;
-                case RateLimiting.TokenBucket:
-                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.TokenBucketPolicyName);
-                    break;
-                case RateLimiting.Concurrent:
-                    builder.RequireRateLimiting(ApiConfigKeys.RateLimiting.ConcurrencyPolicyName);
-                    break;
-                case RateLimiting.None:
-                default:
-                    builder.DisableRateLimiting();
-                    break;
+                builder.DisableRateLimiting();
+                return builder;
             }
+
+            var policyName = limiting switch
+            {
+                RateLimiting.FixedWindow => ApiConfigKeys.RateLimiting.FixedPolicyName,
+                RateLimiting.SlidingWindow => ApiConfigKeys.RateLimiting.SlidingPolicyName,
+                RateLimiting.TokenBucket => ApiConfigKeys.RateLimiting.TokenBucketPolicyName,
+                RateLimiting.Concurrent => ApiConfigKeys.RateLimiting.ConcurrencyPolicyName,
+                _ => throw new ArgumentOutOfRangeException(nameof(limiting), limiting, "Unsupported rate limiting strategy.")
+            };
+
+            builder.Add(endpointBuilder =>
+            {
+                if (endpointBuilder.Metadata.OfType<EnableRateLimitingAttribute>().Any() ||
+                    endpointBuilder.Metadata.OfType<DisableRateLimitingAttribute>().Any())
+                {
+                    return;
+                }
+
+                endpointBuilder.Metadata.Add(new EnableRateLimitingAttribute(policyName));
+            });
 
             return builder;
         }

@@ -11,6 +11,8 @@ using IdentityServer.Modules.Accounts.Configuration;
 using IdentityServer.Modules.Accounts.Requests;
 using IdentityServer.Modules.Accounts.Responses;
 using IdentityServer.Modules.Accounts.Abstractions.Security;
+using IdentityServer.Constants;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace IdentityServer.Modules.Accounts
 {
@@ -18,6 +20,7 @@ namespace IdentityServer.Modules.Accounts
     /// Exposes API-key-protected identity administration endpoints used only by the command-q API's authorized admin workflow.
     /// </summary>
     [ApiController, Route(AccountConstants.Routes.InternalAdminRoot)]
+    [EnableRateLimiting(IdentityServerRateLimitPolicies.Administration)]
     public sealed class IdentityAdminController(
         UserManager<IdentityUser> userManager,
         RoleManager<IdentityRole> roleManager,

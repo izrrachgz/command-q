@@ -193,6 +193,15 @@ unlocking also revokes remaining active challenges. The browser reaches that
 operation only through the role-protected application API. Anonymous endpoint
 rate limiting, resend cooldowns and daily per-account delivery limits apply.
 
+Rate limiting is workload-specific: credential operations use a fixed window,
+confirmation and recovery use a sliding window, ordinary protocol/account
+traffic uses a token bucket, and internal administration uses a separate
+sliding window. Authenticated requests partition by subject and anonymous
+requests by remote address. Values are configured under
+`IdentityServer:RateLimiting`; disabling that section requires a restart and is
+intended only for controlled capacity benchmarks. Rejections return `429 Too
+Many Requests` and `Retry-After` when available.
+
 HTML templates live under `Modules/Accounts/Templates/Email`. `layout.html`
 owns the background, header and footer; culture- and purpose-specific fragments
 replace only `{{content}}`. Plain-text messages use the same arrangement through

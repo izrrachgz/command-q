@@ -40,7 +40,7 @@ namespace Api.Modules.Files
         [HttpPost, Consumes(ContentTypes.MultipartFormData)]
         [RequestSizeLimit(FileUploadPolicies.MaximumRequestSizeBytes)]
         [RequestFormLimits(MultipartBodyLengthLimit = FileUploadPolicies.MaximumFileSizeBytes)]
-        [EnableRateLimiting(ApiConfigKeys.RateLimiting.FixedPolicyName)]
+        [EnableRateLimiting(ApiConfigKeys.RateLimiting.ConcurrencyPolicyName)]
         public async Task<ActionResult<OperationResponse>> Upload(
             [FromForm] UploadFileRequest request,
             CancellationToken cancellationToken)

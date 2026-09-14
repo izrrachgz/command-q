@@ -11,6 +11,8 @@ using IdentityServer.Modules.Accounts.Abstractions.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using IdentityServer.Constants;
+using Microsoft.AspNetCore.RateLimiting;
 using AppIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
 
 namespace IdentityServer.Modules.OpenIddict
@@ -59,6 +61,7 @@ namespace IdentityServer.Modules.OpenIddict
         }
 
         [AllowAnonymous, HttpPost(OpenIddictRoutes.Token)]
+        [EnableRateLimiting(IdentityServerRateLimitPolicies.Authentication)]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Exchange(CancellationToken cancellationToken)
         {

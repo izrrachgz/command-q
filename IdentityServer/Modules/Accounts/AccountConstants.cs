@@ -8,7 +8,6 @@ namespace IdentityServer.Modules.Accounts
         public const string AdminRole = "Admin";
         public const string DefaultRole = "User";
         public const string DefaultReturnUrl = "/";
-        public const string AuthenticationRateLimitPolicy = "IdentityAuthentication";
         public const string ReturnUrlParameter = "returnUrl";
         public const int SecurityActivityLimit = 100;
         public const int MaxAdminPageSize = 100;
