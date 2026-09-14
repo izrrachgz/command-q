@@ -10,8 +10,7 @@ Run these commands from the repository root and replace the placeholder values:
 ```powershell
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Engine" "MsSql"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
-dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:Engine" "MsSql"
-dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
+dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailApiClient:Password" "replace-with-email-api-password"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
 dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
@@ -49,8 +48,12 @@ Api__ConnectionStrings__Db
 Api__Authentication__Authority
 Api__Authentication__Audience
 Api__Authentication__ApiScope
-Api__EmailOutbox__Persistence__Engine
-Api__EmailOutbox__Persistence__ConnectionString
+Api__EmailApiClient__Enabled
+Api__EmailApiClient__BaseUrl
+Api__EmailApiClient__ApiClientHeaderName
+Api__EmailApiClient__ApiClientKey
+Api__EmailApiClient__UserName
+Api__EmailApiClient__Password
 Api__ApiClients__0__Name
 Api__ApiClients__0__Id
 Api__ApiClients__0__Uri
@@ -81,12 +84,18 @@ This example selects PostgreSQL:
 ```powershell
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command-q_identity;Username=postgres;Password=change-me;"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:EmailApiClient:Password" "replace-with-email-api-password"
 ```
 
 The supported engine values are `PgSql`, `MsSql`, `MySql` and `SqLite`. All use
 the `IdentityServer:ConnectionStrings:IdentityDb` key, with a connection string appropriate for
 the selected EF Core provider. IdentityServer does not reuse the API's SqlKata
 connection or provider registration.
+
+`IdentityServer:AccountEmail:ApplicationBaseUrl` defaults to
+`http://localhost:4200` in Development. IdentityServer and the API authenticate
+to Email.Api and use its protobuf queue endpoint. Neither host receives the
+outbox database connection; Email.Api owns migrations and Email.Worker owns SMTP.
 
 User-secrets are for local Development. QA and Production should provide the
 database, public issuer, PKCS#12 certificates and shared Data Protection storage
@@ -96,6 +105,13 @@ variable names are:
 ```text
 IdentityServer__ConnectionStrings__Engine
 IdentityServer__ConnectionStrings__IdentityDb
+IdentityServer__AccountEmail__ApplicationBaseUrl
+IdentityServer__EmailApiClient__Enabled
+IdentityServer__EmailApiClient__BaseUrl
+IdentityServer__EmailApiClient__ApiClientHeaderName
+IdentityServer__EmailApiClient__ApiClientKey
+IdentityServer__EmailApiClient__UserName
+IdentityServer__EmailApiClient__Password
 IdentityServer__OpenIddict__Issuer
 IdentityServer__OpenIddict__Clients__0__ClientId
 IdentityServer__OpenIddict__Clients__0__DisplayName
@@ -125,15 +141,11 @@ are present. Store them under `IdentityServer:ExternalProviders:Google` or
 
 ## Email Delivery and Worker
 
-SMTP delivery, outbox migration execution and the worker host live in the
-sibling `command-emails` repository. Configure its `Email.Worker` project through
-that project's user-secrets store or deployment secret store. Do not place SMTP
-credentials or OAuth tokens in command-q configuration.
-
-command-q remains an outbox producer. Its API needs only
-`Api:EmailOutbox:Persistence:Engine` and
-`Api:EmailOutbox:Persistence:ConnectionString`; the worker's delivery and
-migration settings are documented in `command-emails`.
+SMTP delivery, outbox migration execution, the enqueue API and worker host live
+in sibling `command-emails`. Configure its shared Email.Api/Email.Worker user-
+secrets or deployment store there. command-q needs only Email API URL, API-client
+header and service-account credentials; it must not receive SMTP or outbox
+database credentials.
 
 ## Environment Variables
 

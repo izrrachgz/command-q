@@ -19,8 +19,9 @@ This file captures practical repository knowledge for coding agents working in t
 - Custom executable settings are namespaced by host: `Api` and `IdentityServer`. Framework-owned `Logging`, `Serilog` and `AllowedHosts` sections remain top-level. Hosts pass explicit subsections to reusable libraries; do not make a library depend on a host prefix.
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
-- Release builds copy `Common.dll`, `Cqrs.dll`, `Persistence.dll` and `Time.dll` to the sibling `..\command-q-build-output` directory through `Directory.Build.targets`. Keep that binary-export boundary limited to stable reusable projects.
-- `Application`, `Application.Test` and `Api` consume `Email.dll`, `Email.Outbox.dll` and `Email.Outbox.Persistence.dll` from `..\command-q-build-output`. Those assemblies are released by the sibling `command-emails` solution; do not add project references back to that repository.
+- Every successful non-design-time build copies `Common.dll`, `Cqrs.dll`, `Persistence.dll` and `Time.dll` to the sibling `..\command-q-build-output` directory through `Directory.Build.targets`; the last successful build wins. Keep that binary-export boundary limited to stable reusable projects.
+- `Email.Client` owns command-q's versioned protobuf client and host-neutral queue contracts. Application, Api and IdentityServer reference it instead of loading `Email*.dll` assemblies.
+- Do not add project references from command-q into the sibling `command-emails` repository. Keep the duplicated `.proto` wire contract compatible across repositories.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
 
 ## Architecture
@@ -38,6 +39,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Prefer explicit module registration over convention scanning. Application composition lives in `Application/Modules/ApplicationModuleExtensions.cs`, with each module owning its `*ModuleExtensions.cs`; those extensions explicitly register CQRS requests through `AddApplicationRequest<TRequest, TResponse, THandler>()`, plus validators, mappers and module services. Do not use application-wide exported-type scanning for these services. Keep commands, queries and contracts public for API/test boundaries, while module implementation classes remain internal to the Application assembly. API endpoint composition lives in `Api/Modules/ApiModuleExtensions.cs`, with each module owning its `*ApiModuleExtensions.cs`.
 - Host implementation types should be internal by default. Keep API and IdentityServer controllers public for framework discovery, but seal concrete controllers. Keep host configuration models, middleware, persistence helpers and concrete services internal unless another project consumes them through an intentional contract.
 - The Angular frontend lives in `https://github.com/izrrachgz/command-q-front` and is not part of this solution. Coordinate browser-facing API and OIDC changes across the two repositories while keeping their build and release lifecycles independent.
+- When diagnosing browser, authentication-page or frontend integration failures, inspect the sibling frontend's latest `Logs/front-application-log-YYYYMMDD.txt` file before relying only on a pasted browser error. Development frontend logging is written there by the local log companion process.
 
 ## Projects
 
@@ -61,8 +63,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Local secrets should use .NET user-secrets or environment variables. Keep real secrets out of `appsettings*.json`, `.env`, scripts and docs. See `docs/local-secrets.md`.
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development by `ApiExceptionHandler`, registered through ASP.NET Core's exception-handler pipeline.
-- The API is an email outbox producer: it registers `AddEmailOutboxProducer()` and `Email.Outbox.Persistence`, but does not register `IEmailOutboxProcessor`, run the external email worker or own SMTP delivery.
-- Development outbox persistence targets the same local MsSql `command-q` database as the application. Base and non-development templates leave the connection empty so deployment configuration is required. The worker in sibling `command-emails` is the designated outbox migrator; API persistence options contain no migration lifecycle flag.
+- The API queues notifications through `Email.Client` and command-emails' authenticated protobuf endpoint. It owns no email outbox persistence, migration lifecycle or SMTP delivery.
 
 ### IdentityServer
 - Standalone ASP.NET Core Identity and OpenIddict authorization-server host. It is independently deployable and connected to `Api` through standard OpenID Connect discovery, not a project reference.
@@ -77,6 +78,9 @@ This file captures practical repository knowledge for coding agents working in t
 - Account endpoints live under `IdentityServer/Modules/Accounts`; authorization/token handlers and client/scope seeding live under `IdentityServer/Modules/OpenIddict`.
 - Google and Microsoft providers are registered only when complete `ExternalProviders` credentials are configured.
 - Authentication security events are stored in `IdentitySecurityEvent`; application business activity remains in `AccountActivity`.
+- Local accounts require email confirmation. IdentityServer persists hashed, expiring account challenges and transactionally stages Data Protection-encrypted email payloads before idempotently queueing them through Email.Api. It never owns outbox persistence or delivers SMTP directly.
+- Account email templates use the shared embedded layout under `IdentityServer/Modules/Accounts/Templates/Email`; add both `en-US` and `es-ES` content fragments for each purpose. Links carry a random one-time token in the URL fragment and emails carry a separate six-digit code.
+- Three failed confirmation-code checks invalidate only that challenge. Password recovery has separate three-attempt verification and password-submission budgets; exhausting either creates an explicit indefinite administrator-required lock. The browser uses the API's Admin-role-protected unlock route, while the API alone calls the API-key-protected IdentityServer endpoint. Unlocking revokes active challenges.
 - EF migrations live under `IdentityServer/Persistence/Migrations/{Engine}`. Use `.\scripts\add-identity-migration.ps1 -Name MigrationName` so every model change is generated for all four providers.
 - Do not combine provider migrations into one snapshot. EF migration sets must remain aligned across `PgSql`, `MsSql`, `MySql` and `SqLite`.
 - Provider design-time factories live as separate files under `IdentityServer/Persistence/DesignTime` and use non-routable placeholder connections for scaffolding only. Apply database migrations through configured IdentityServer startup, not `dotnet ef database update`.
@@ -86,7 +90,7 @@ This file captures practical repository knowledge for coding agents working in t
 
 ### Application
 - CQRS use cases, validators, handlers, mappers, services and health checks, grouped by module under `Application/Modules`.
-- Depends on `Domain`, `Common`, `Cqrs`, `Localization`, `Persistence` and the reusable `Email`/`Email.Outbox` release assemblies.
+- Depends on `Domain`, `Common`, `Cqrs`, `Localization`, `Persistence` and the reusable `Email.Client` contracts.
 - Keep application logic decoupled from direct I/O. Use injected interfaces such as repositories, text providers and services.
 - Every registered CQRS request runs through the account RLS behavior. Account-owned requests implement `IAccountScopedRequest`; trusted cross-account identity lookup and account provisioning implement `ISystemScopedRequest`. Unclassified requests are provisioned with restrictive/no-account context and fail closed on protected tables. Handlers and services must not provision session context manually. The behavior applies context to the read-only repository for queries and the writable repository for commands, including command transactions, then restores restrictive context before pooling.
 - Validators use localized resources through `ValidationTextProvider`.
@@ -95,7 +99,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Application accounts are business profiles. Keep passwords, auth lockout and protocol sessions out of Application.
 - `Application.Modules.Notifications` owns `QueueEmailCommand` and `IApplicationEmailService`. Queueing is the default; do not add an immediate-send switch to the command.
 - Notification overloads converge on `ApplicationEmailRequest`, which carries a prepared `EmailMessage` plus optional idempotency, account and correlation metadata.
-- The Notifications module must not reference `Email.Outbox.Persistence` or `Email.Worker`. Producer hosts select the outbox store; the worker owns SMTP delivery and retries.
+- The Notifications module must not reference email persistence or worker implementations. Hosts register `Email.Client`; Email.Api owns the outbox and the worker owns SMTP delivery/retries.
 - Do not expose a generic notification endpoint without explicit authorization and abuse controls.
 
 ### Domain
@@ -251,11 +255,11 @@ This file captures practical repository knowledge for coding agents working in t
 - Uses EF Core InMemory for focused identity-store tests and relational SQLite for migration execution tests. Production persistence uses the provider selected through configuration.
 - Useful targeted command: `dotnet test .\IdentityServer.Test\IdentityServer.Test.csproj`.
 
-### External email assemblies
-- The sibling `command-emails` repository owns SMTP delivery, outbox contracts and processing, outbox persistence, the email worker and email-specific tests.
-- This solution retains `Application.Modules.Notifications` and the API's producer composition. Keep those consumers on release DLL references through `$(SharedBuildOutput)`.
-- Build `command-emails` in Release after changing its public contracts, then rebuild this solution. Do not copy email source projects back into `command-q`.
-- The API must remain producer-only. Outbox migrations, polling, SMTP delivery, retries and dead-letter processing belong to `command-emails`.
+### External email service
+- The sibling `command-emails` repository owns Email.Api, SMTP delivery, outbox processing/persistence, the email worker and email-specific tests.
+- This solution retains `Application.Modules.Notifications` and the `Email.Client` protobuf consumer. Do not copy email source projects back into command-q.
+- Keep both copies of `email_queue.proto` wire-compatible. command-q uses protobuf; command-emails also exposes JSON REST for interop.
+- Outbox migrations, polling, SMTP delivery, retries and dead-letter processing belong to `command-emails`.
 
 ## Logging
 - Use source-generated logging with `LoggerMessage`.

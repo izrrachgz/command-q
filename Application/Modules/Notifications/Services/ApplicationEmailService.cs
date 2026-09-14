@@ -1,7 +1,6 @@
-using Email.Models;
+using Email.Client.Abstractions;
+using Email.Client.Models;
 using FluentValidation;
-using Email.Outbox.Models;
-using Email.Outbox.Abstractions;
 using Microsoft.Extensions.Logging;
 using Application.Modules.Notifications.Models;
 using Application.Modules.Notifications.Logging;
@@ -10,17 +9,17 @@ using Application.Modules.Notifications.Validation;
 namespace Application.Modules.Notifications.Services
 {
     internal sealed class ApplicationEmailService(
-        IEmailOutbox emailOutbox,
+        IEmailQueueClient emailQueueClient,
         IValidator<ApplicationEmailRequest> validator,
         ILogger<ApplicationEmailService> logger,
         IEmailProfileSelectionPolicy profileSelectionPolicy)
         : IApplicationEmailService
     {
         public ApplicationEmailService(
-            IEmailOutbox emailOutbox,
+            IEmailQueueClient emailQueueClient,
             IValidator<ApplicationEmailRequest> validator,
             ILogger<ApplicationEmailService> logger)
-            : this(emailOutbox, validator, logger, new DefaultEmailProfileSelectionPolicy())
+            : this(emailQueueClient, validator, logger, new DefaultEmailProfileSelectionPolicy())
         {
         }
 
@@ -34,8 +33,8 @@ namespace Application.Modules.Notifications.Services
             try
             {
                 ApplicationEmailMetadata metadata = request.Metadata ?? new ApplicationEmailMetadata();
-                EmailOutboxEnqueueResult result = await emailOutbox.EnqueueAsync(
-                    new EmailOutboxRequest
+                EmailQueueResult result = await emailQueueClient.EnqueueAsync(
+                    new EmailQueueRequest
                     {
                         Message = request.Message,
                         ProfileName = request.ProfileName,
@@ -54,7 +53,7 @@ namespace Application.Modules.Notifications.Services
                     logger.EmailQueued(result.Id);
                 }
 
-                return new QueuedEmailResult(result.Id, result.WasDuplicate, result.CreatedUtc);
+                return new QueuedEmailResult(result.Id, result.WasDuplicate, NodaTime.Instant.FromDateTimeUtc(result.CreatedUtc));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {

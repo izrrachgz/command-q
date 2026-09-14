@@ -75,6 +75,25 @@ namespace Api.Modules.Identity
                     response.Message);
         }
 
+        /// <summary>
+        /// Clears an administrator-required identity lock and revokes any outstanding recovery challenges.
+        /// </summary>
+        [HttpPost(IdentityRoute.AccountUnlock)]
+        public async Task<IActionResult> Unlock(Guid accountId, CancellationToken cancellationToken)
+        {
+            var response = await dispatcher.Send(new UnlockIdentityUserCommand
+            {
+                UserId = accountId
+            }, cancellationToken);
+
+            return response.Success
+                ? NoContent()
+                : this.ApiProblem(
+                    StatusCodes.Status502BadGateway,
+                    ApiProblemCodes.Accounts.UnlockFailed,
+                    response.Message);
+        }
+
         private bool IsRemovingOwnAdminRole(Guid accountId, IReadOnlyList<string> requestedRoles)
         {
             return User.TryGetIdentityKey(out _, out var subject) &&

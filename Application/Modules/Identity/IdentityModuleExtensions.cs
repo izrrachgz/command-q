@@ -57,6 +57,7 @@ namespace Application.Modules.Identity
                 GetIdentityUserRolesQueryHandler>();
             services.AddApplicationRequest<GetIdentityRolesQuery, DetailResponse<IdentityRoleListModel>, GetIdentityRolesQueryHandler>();
             services.AddApplicationRequest<UpdateIdentityUserRolesCommand, BasicResponse, UpdateIdentityUserRolesCommandHandler>();
+            services.AddApplicationRequest<UnlockIdentityUserCommand, BasicResponse, UnlockIdentityUserCommandHandler>();
             services.AddApplicationRequest<SaveAccountPreferencesCommand, BasicResponse, SaveAccountPreferencesCommandHandler>();
             services.AddApplicationRequest<
                 GetAccountPreferencesQuery,
@@ -72,6 +73,7 @@ namespace Application.Modules.Identity
             services.AddScoped<IValidator<SearchIdentityUsersQuery>, SearchIdentityUsersQueryValidator>();
             services.AddScoped<IValidator<GetIdentityUserRolesQuery>, GetIdentityUserRolesQueryValidator>();
             services.AddScoped<IValidator<UpdateIdentityUserRolesCommand>, UpdateIdentityUserRolesCommandValidator>();
+            services.AddScoped<IValidator<UnlockIdentityUserCommand>, UnlockIdentityUserCommandValidator>();
             services.AddScoped<IValidator<SaveAccountPreferencesCommand>, SaveAccountPreferencesCommandValidator>();
             services.AddScoped<IValidator<GetAccountPreferencesQuery>, GetAccountPreferencesQueryValidator>();
 

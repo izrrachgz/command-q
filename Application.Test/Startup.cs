@@ -1,14 +1,13 @@
 using Serilog;
 using NodaTime;
-using Email.Models;
+using Email.Client.Models;
 using FluentValidation;
 using Common.Extensions;
-using Email.Outbox.Models;
+using Email.Client.Abstractions;
 using Application.Constants;
 using Application.Extensions;
 using Localization.Extensions;
 using Application.Abstractions;
-using Email.Outbox.Abstractions;
 using Persistence.Repository.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +30,7 @@ namespace Application.Test
             services.AddSingleton((IConfiguration)configuration);
 
             services.ConfigureApplicationServices(configuration);
-            services.AddSingleton<IEmailOutbox, ApplicationCompositionOutbox>();
+            services.AddSingleton<IEmailQueueClient, ApplicationCompositionOutbox>();
 
             //Configure Serilog
             Log.Logger = new LoggerConfiguration()
@@ -43,16 +42,11 @@ namespace Application.Test
             services.AddLogging(builder => builder.AddSerilog(dispose: true));
         }
 
-        private sealed class ApplicationCompositionOutbox : IEmailOutbox
+        private sealed class ApplicationCompositionOutbox : IEmailQueueClient
         {
-            public Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailMessage message, CancellationToken cancellationToken = default)
+            public Task<EmailQueueResult> EnqueueAsync(EmailQueueRequest request, CancellationToken cancellationToken = default)
             {
-                return EnqueueAsync(new EmailOutboxRequest { Message = message }, cancellationToken);
-            }
-
-            public Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailOutboxRequest request, CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(new EmailOutboxEnqueueResult(Guid.Empty, false, SystemClock.Instance.GetCurrentInstant()));
+                return Task.FromResult(new EmailQueueResult(Guid.Empty, false, SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc()));
             }
         }
     }

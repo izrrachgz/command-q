@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -32,6 +32,8 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ModifiedUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RequiresAdminUnlock = table.Column<bool>(type: "INTEGER", nullable: false),
+                    AdminLockoutUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: true),
                     UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
@@ -53,6 +55,34 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                 });
 
             migrationBuilder.CreateTable(
+                name: "IdentityAccountChallenge",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Purpose = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    LinkTokenHash = table.Column<string>(type: "TEXT", fixedLength: true, maxLength: 64, nullable: false),
+                    CodeHash = table.Column<string>(type: "TEXT", fixedLength: true, maxLength: 64, nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", fixedLength: true, maxLength: 32, nullable: false),
+                    VerificationFailedAttempts = table.Column<int>(type: "INTEGER", nullable: false),
+                    PasswordResetFailedAttempts = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: false),
+                    ExpiresUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: false),
+                    VerifiedUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: true),
+                    ConsumedUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityAccountChallenge", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IdentityAccountChallenge_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "IdentitySecurityEvent",
                 columns: table => new
                 {
@@ -69,6 +99,31 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IdentitySecurityEvent", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IdentityAccountEmailDispatch",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ChallengeId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ProtectedPayload = table.Column<string>(type: "TEXT", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", fixedLength: true, maxLength: 32, nullable: false),
+                    AttemptCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: false),
+                    NextAttemptUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: false),
+                    QueuedUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: true),
+                    AbandonedUtc = table.Column<DateTime>(type: "TEXT", precision: 6, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityAccountEmailDispatch", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IdentityAccountEmailDispatch_IdentityAccountChallenge_ChallengeId",
+                        column: x => x.ChallengeId,
+                        principalTable: "IdentityAccountChallenge",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -317,6 +372,43 @@ namespace IdentityServer.Persistence.Migrations.SqLite
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_LinkTokenHash",
+                table: "IdentityAccountChallenge",
+                column: "LinkTokenHash",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_ExpiresUtc",
+                table: "IdentityAccountChallenge",
+                column: "ExpiresUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_UserId_Purpose_CreatedUtc",
+                table: "IdentityAccountChallenge",
+                columns: new[] { "UserId", "Purpose", "CreatedUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountEmailDispatch_ChallengeId",
+                table: "IdentityAccountEmailDispatch",
+                column: "ChallengeId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountEmailDispatch_QueuedUtc_AbandonedUtc_NextAttemptUtc",
+                table: "IdentityAccountEmailDispatch",
+                columns: new[] { "QueuedUtc", "AbandonedUtc", "NextAttemptUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentitySecurityEvent_OccurredUtc",
+                table: "IdentitySecurityEvent",
+                column: "OccurredUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_UserId_Purpose_ConsumedUtc",
+                table: "IdentityAccountChallenge",
+                columns: new[] { "UserId", "Purpose", "ConsumedUtc" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_IdentitySecurityEvent_Action_OccurredUtc",
                 table: "IdentitySecurityEvent",
                 columns: new[] { "Action", "OccurredUtc" });
@@ -363,6 +455,12 @@ namespace IdentityServer.Persistence.Migrations.SqLite
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "IdentityAccountEmailDispatch");
+
+            migrationBuilder.DropTable(
+                name: "IdentityAccountChallenge");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

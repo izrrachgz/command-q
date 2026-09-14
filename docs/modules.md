@@ -75,6 +75,6 @@ Use this checklist when removing a module.
 - Configuration history is read-only and admin-only at `GET /admin/configurations`. Startup records authoritative server values and the server instance name after application migrations complete; clients cannot append snapshots.
 - API modules own transport-only request DTOs under their `Requests` folders. Controllers map those requests to application commands after applying authenticated-account and transport policies.
 - `POST /files` accepts common documents, images, audio, video and ZIP files up to 200 MB. Reusable category policies remain in the API Files module for specialized future endpoints.
-- The Notifications module references only the released email and outbox contracts from sibling `command-emails`. Producer hosts select and register `IEmailOutboxStore`; the external `Email.Worker` owns delivery and retries.
+- The Notifications module references only `Email.Client` contracts. command-q hosts enqueue through command-emails' authenticated protobuf API; `Email.Api` owns persistence/migrations and `Email.Worker` owns delivery/retries.
 - Removing IdentityServer requires replacing the API `Authentication:Authority` with another standards-compatible issuer; do not move credentials back into the API.
 - Treat `Contacts`, `Addresses`, `Events` and `Registers` as examples until a product needs them.

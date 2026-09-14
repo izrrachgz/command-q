@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Identity;
 using IdentityServer.Resources;
 using IdentityServer.Modules.Accounts;
+using IdentityServer.Modules.Accounts.Abstractions.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using static OpenIddict.Abstractions.OpenIddictConstants;

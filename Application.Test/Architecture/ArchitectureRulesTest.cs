@@ -52,9 +52,8 @@ namespace Application.Test.Architecture
         {
             var referencedAssemblies = ApplicationAssembly.GetReferencedAssemblies().Select(assembly => assembly.Name).ToHashSet();
 
-            Assert.Contains("Email", referencedAssemblies);
-            Assert.Contains("Email.Outbox", referencedAssemblies);
-            Assert.DoesNotContain("Email.Outbox.Persistence", referencedAssemblies);
+            Assert.Contains("Email.Client", referencedAssemblies);
+            Assert.DoesNotContain("Email.Outbox", referencedAssemblies);
             Assert.DoesNotContain("Email.Worker", referencedAssemblies);
         }
 

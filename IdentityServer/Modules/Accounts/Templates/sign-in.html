@@ -17,6 +17,8 @@
     .check { display: flex; align-items: center; gap: .5rem; font-weight: 500; }
     button { width: 100%; min-height: 2.75rem; margin-top: 1.25rem; border: 0; border-radius: .375rem; background: #0f766e; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
     button:hover { background: #115e59; }
+    .forgot { display: block; margin-top: .75rem; color: #0f766e; font-size: .875rem; font-weight: 600; text-align: right; text-decoration: none; }
+    .forgot:hover { color: #115e59; text-decoration: underline; }
     .brand { display: inline-flex; align-items: center; gap: .5rem; margin-bottom: 1.25rem; font-weight: 700; }
     .mark { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: .375rem; background: #020617; color: #fff; }
     .alert { border: 1px solid #fecaca; border-radius: .375rem; background: #fef2f2; color: #b91c1c; padding: .75rem; font-size: .875rem; }
@@ -35,6 +37,8 @@
 
         <label for="password">{{PasswordLabel}}</label>
         <input id="password" name="password" type="password" autocomplete="current-password" maxlength="255" required>
+
+        <a class="forgot" href="{{ForgotPasswordUrl}}">{{ForgotPasswordLabel}}</a>
 
         <label class="check">
           <input name="rememberMe" type="checkbox" value="true">

@@ -70,13 +70,28 @@ current roles. Later role changes never modify an access token already issued.
 
 Choose the intended `activeAccount`, then send these requests in order:
 
-1. `01 - Identity account / Register legacy local account`
-2. `01 - Identity account / Sign in legacy local account`
-3. `02 - OAuth 2.0 with PKCE / Create authorization code`
-4. `02 - OAuth 2.0 with PKCE / Exchange authorization code`
-5. `03 - Application API / Account profile / Provision application profile`
+1. `01 - Identity account / Register local account`
+2. Copy the `token` fragment value (the text after `#token=`) and six-digit code from smtp4dev into
+   `accountEmailChallengeToken` and `accountEmailCode`
+3. `01 - Identity account / Confirm email`
+4. `01 - Identity account / Sign in local account`
+5. `02 - OAuth 2.0 with PKCE / Create authorization code`
+6. `02 - OAuth 2.0 with PKCE / Exchange authorization code`
+7. `03 - Application API / Account profile / Provision application profile`
 
-The registration request creates the former local account in ASP.NET Identity. The old seed used the `User` role, so the new account receives the same default role. IdentityServer and application account IDs are generated afresh after the database reset. A registration or profile-provisioning `400` is expected when that record already exists.
+The registration request creates an unconfirmed account in ASP.NET Identity and
+queues its one-time confirmation message. The account receives the default
+`User` role. IdentityServer and application account IDs are generated afresh
+after the database reset. A registration or profile-provisioning `400` is
+expected when that record already exists. Sign-in remains unavailable until the
+email link and code have been confirmed.
+
+The optional password-recovery requests in the same folder use
+`passwordRecoveryChallengeToken`, `passwordRecoveryCode`, `passwordResetGrant`
+and `newAccountPassword`. Copy the first two values from smtp4dev. The verify
+request stores the reset grant automatically; a successful reset updates the
+active persona's local Postman password. Never export or commit those populated
+secret values.
 
 The authorization request generates a fresh PKCE verifier/challenge and intentionally does not follow the callback redirect. Its post-response script validates `state`, captures the authorization code from the `Location` header and stores it in the active environment. The token exchange stores access, refresh and ID tokens for the selected persona as environment secrets.
 

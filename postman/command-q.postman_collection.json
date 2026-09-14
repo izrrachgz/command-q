@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "6271f85c-bfc9-45f2-bfbe-77026f499efc",
     "name": "command-q Backend",
-    "description": "Backend requests for the standalone command-q IdentityServer and API. For the initial local flow, run Register legacy local account, Sign in, Create authorization code, Exchange authorization code, and Provision application profile in that order. Postman retains the IdentityServer cookie and the scripts store OAuth tokens only in the active environment.",
+    "description": "Backend requests for the standalone command-q IdentityServer and API. For the initial local flow, register, copy the one-time link token and six-digit code from smtp4dev, confirm the email, sign in, create and exchange the authorization code, and provision the application profile. Postman retains the IdentityServer cookie and stores sensitive values only in the active local environment.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -161,7 +161,7 @@
       "name": "01 - Identity account",
       "item": [
         {
-          "name": "Register legacy local account",
+          "name": "Register local account",
           "request": {
             "auth": {
               "type": "noauth"
@@ -176,7 +176,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{accountUsername}}\",\n  \"email\": \"{{accountEmail}}\",\n  \"password\": \"{{accountPassword}}\"\n}",
+              "raw": "{\n  \"username\": \"{{accountUsername}}\",\n  \"email\": \"{{accountEmail}}\",\n  \"password\": \"{{accountPassword}}\",\n  \"culture\": \"en-US\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -193,7 +193,7 @@
                 "register"
               ]
             },
-            "description": "Creates the former local account values in ASP.NET Identity. A 400 response is expected when the account already exists. The account receives the default User role, matching the role in the original application seed."
+            "description": "Creates an unconfirmed ASP.NET Identity account and queues its one-time confirmation link and six-digit code. Inspect smtp4dev, then set accountEmailChallengeToken and accountEmailCode before running Confirm email."
           },
           "response": [],
           "event": [
@@ -230,7 +230,205 @@
           ]
         },
         {
-          "name": "Sign in legacy local account",
+          "name": "Request confirmation email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{accountEmail}}\",\n  \"culture\": \"en-US\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identityBaseUrl}}/account/email-confirmation",
+              "host": ["{{identityBaseUrl}}"],
+              "path": ["account", "email-confirmation"]
+            },
+            "description": "Always returns 202. Eligible unconfirmed accounts receive a new message and all older confirmation challenges are revoked."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test(\"Confirmation request was accepted\", () => pm.response.to.have.status(202));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm email",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"linkToken\": \"{{accountEmailChallengeToken}}\",\n  \"code\": \"{{accountEmailCode}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identityBaseUrl}}/account/email-confirmation/verify",
+              "host": ["{{identityBaseUrl}}"],
+              "path": ["account", "email-confirmation", "verify"]
+            },
+            "description": "Consumes the one-time link token and six-digit code copied from the confirmation email."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "for (const key of [\"accountEmailChallengeToken\", \"accountEmailCode\"]) {",
+                  "  if (!pm.variables.get(key)) throw new Error(`Set ${key} from smtp4dev before confirming.`);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test(\"Email was confirmed\", () => pm.response.to.have.status(204));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Request password recovery",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{accountEmail}}\",\n  \"culture\": \"en-US\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identityBaseUrl}}/account/password-recovery",
+              "host": ["{{identityBaseUrl}}"],
+              "path": ["account", "password-recovery"]
+            },
+            "description": "Always returns 202. Eligible confirmed accounts receive a one-time recovery email in smtp4dev."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test(\"Recovery request was accepted\", () => pm.response.to.have.status(202));"]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify password recovery code",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"linkToken\": \"{{passwordRecoveryChallengeToken}}\",\n  \"code\": \"{{passwordRecoveryCode}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identityBaseUrl}}/account/password-recovery/verify",
+              "host": ["{{identityBaseUrl}}"],
+              "path": ["account", "password-recovery", "verify"]
+            },
+            "description": "Verifies the link and code copied from smtp4dev and stores the short-lived reset grant."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "for (const key of [\"passwordRecoveryChallengeToken\", \"passwordRecoveryCode\"]) {",
+                  "  if (!pm.variables.get(key)) throw new Error(`Set ${key} from smtp4dev before verifying.`);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Recovery code was verified\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.environment.set(\"passwordResetGrant\", pm.response.json().resetGrant);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reset recovered password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resetGrant\": \"{{passwordResetGrant}}\",\n  \"newPassword\": \"{{newAccountPassword}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{identityBaseUrl}}/account/password-recovery/reset",
+              "host": ["{{identityBaseUrl}}"],
+              "path": ["account", "password-recovery", "reset"]
+            },
+            "description": "Consumes the verified reset grant. Verification and password submission each have a separate three-attempt budget; exhausting either locks the account until an administrator unlocks it."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "for (const key of [\"passwordResetGrant\", \"newAccountPassword\"]) {",
+                  "  if (!pm.variables.get(key)) throw new Error(`Set ${key} before resetting the password.`);",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Password was reset\", () => pm.response.to.have.status(204));",
+                  "if (pm.response.code === 204) {",
+                  "  const password = pm.variables.get(\"newAccountPassword\");",
+                  "  pm.environment.set(`${pm.variables.get(\"activeAccount\")}Password`, password);",
+                  "  pm.environment.set(\"accountPassword\", password);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sign in local account",
           "request": {
             "auth": {
               "type": "noauth"
@@ -1012,6 +1210,38 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test(\"Identity accounts are available\", () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Unlock identity account",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{apiBaseUrl}}/admin/accounts/{{tenantIdentityUserId}}/unlock",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "accounts",
+                    "{{tenantIdentityUserId}}",
+                    "unlock"
+                  ]
+                },
+                "description": "Clears the explicit recovery lock and revokes outstanding challenges through the Admin-role-protected API. The browser-facing request never carries the IdentityServer internal API key."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Identity account is unlocked\", () => pm.response.to.have.status(204));"
                     ]
                   }
                 }

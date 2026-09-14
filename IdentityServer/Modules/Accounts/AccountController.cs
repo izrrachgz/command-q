@@ -8,15 +8,25 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using IdentityServer.Modules.Accounts.Logging;
+using IdentityServer.Modules.Accounts.Requests;
+using IdentityServer.Modules.Accounts.Responses;
+using IdentityServer.Modules.Accounts.Abstractions.Recovery;
+using IdentityServer.Modules.Accounts.Abstractions.Security;
+using IdentityServer.Modules.Accounts.Abstractions.SignIn;
+using IdentityServer.Modules.Accounts.Services.SignIn;
 
 namespace IdentityServer.Modules.Accounts
 {
+    /// <summary>
+    /// Exposes public registration, sign-in, confirmation, recovery, current-account, security-activity, and external-login endpoints.
+    /// </summary>
     [ApiController, Route(AccountConstants.Routes.Root)]
     public sealed class AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
         IdentityServerDbContext database,
         IIdentitySecurityEventRecorder securityEvents,
+        IAccountRecoveryService accountRecovery,
         ISignInPageRenderer signInPageRenderer,
         DevelopmentAdminRoleAssigner adminRoleAssigner,
         TimeProvider timeProvider,
@@ -64,8 +74,116 @@ namespace IdentityServer.Modules.Accounts
 
             logger.AccountRegistered(user.Id);
             await securityEvents.Record(AccountConstants.Actions.Registered, user.Id, cancellationToken: cancellationToken);
+            var confirmationEmailQueued = false;
 
-            return CreatedAtAction(nameof(Me), new AccountResponse(user.Id, user.UserName, user.Email));
+            try
+            {
+                confirmationEmailQueued = await accountRecovery.QueueEmailConfirmation(user, request.Culture, cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                confirmationEmailQueued = false;
+                logger.AccountEmailQueueFailed(
+                    exception,
+                    user.Id,
+                    AccountConstants.ChallengePurposes.EmailConfirmation);
+            }
+
+            return CreatedAtAction(
+                nameof(Me),
+                new AccountRegistrationResponse(user.Id, user.UserName, user.Email, user.EmailConfirmed, confirmationEmailQueued));
+        }
+
+        [AllowAnonymous, HttpPost(AccountConstants.Routes.EmailConfirmation)]
+        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        public async Task<IActionResult> RequestEmailConfirmation(
+            RequestAccountEmailRequest request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await accountRecovery.RequestEmailConfirmation(request.Email, request.Culture, cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                logger.AccountEmailRequestFailed(
+                    exception,
+                    AccountConstants.ChallengePurposes.EmailConfirmation);
+            }
+
+            return Accepted();
+        }
+
+        [AllowAnonymous, HttpPost(AccountConstants.Routes.EmailConfirmationVerify)]
+        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        public async Task<IActionResult> ConfirmEmail(
+            VerifyAccountChallengeRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await accountRecovery.ConfirmEmail(request.LinkToken, request.Code, cancellationToken);
+
+            if (result.LockedOut)
+            {
+                return StatusCode(StatusCodes.Status423Locked);
+            }
+
+            return result.Succeeded ? NoContent() : BadRequest();
+        }
+
+        [AllowAnonymous, HttpPost(AccountConstants.Routes.PasswordRecovery)]
+        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        public async Task<IActionResult> RequestPasswordRecovery(
+            RequestAccountEmailRequest request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await accountRecovery.RequestPasswordRecovery(request.Email, request.Culture, cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                logger.AccountEmailRequestFailed(
+                    exception,
+                    AccountConstants.ChallengePurposes.PasswordRecovery);
+            }
+
+            return Accepted();
+        }
+
+        [AllowAnonymous, HttpPost(AccountConstants.Routes.PasswordRecoveryVerify)]
+        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        public async Task<IActionResult> VerifyPasswordRecovery(
+            VerifyAccountChallengeRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await accountRecovery.VerifyPasswordRecovery(request.LinkToken, request.Code, cancellationToken);
+
+            if (result.LockedOut)
+            {
+                return StatusCode(StatusCodes.Status423Locked);
+            }
+
+            return result.Succeeded
+                ? Ok(new PasswordRecoveryGrantResponse(result.ResetGrant!, result.ExpiresUtc!.Value))
+                : BadRequest();
+        }
+
+        [AllowAnonymous, HttpPost(AccountConstants.Routes.PasswordRecoveryReset)]
+        [EnableRateLimiting(AccountConstants.AuthenticationRateLimitPolicy)]
+        public async Task<IActionResult> ResetPassword(
+            ResetPasswordRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await accountRecovery.ResetPassword(request.ResetGrant, request.NewPassword, cancellationToken);
+
+            if (result.LockedOut)
+            {
+                return StatusCode(StatusCodes.Status423Locked);
+            }
+
+            return result.Result.Succeeded
+                ? NoContent()
+                : BadRequest(new ValidationProblemDetails(ToValidationErrors(result.Result)));
         }
 
         [AllowAnonymous, HttpGet(AccountConstants.Routes.SignIn)]
@@ -126,6 +244,13 @@ namespace IdentityServer.Modules.Accounts
                 return new PasswordSignInResult(Succeeded: false, LockedOut: false);
             }
 
+            if (user.RequiresAdminUnlock)
+            {
+                logger.LoginLockedOut(user.Id);
+                await securityEvents.Record(AccountConstants.Actions.LoginLockedOut, user.Id, cancellationToken: cancellationToken);
+                return new PasswordSignInResult(Succeeded: false, LockedOut: true);
+            }
+
             var result = await signInManager.PasswordSignInAsync(
                 user,
                 request.Password,
@@ -175,7 +300,7 @@ namespace IdentityServer.Modules.Accounts
 
             return user is null
                 ? Unauthorized()
-                : Ok(new AccountResponse(user.Id, user.UserName ?? string.Empty, user.Email ?? string.Empty));
+                : Ok(new AccountResponse(user.Id, user.UserName ?? string.Empty, user.Email ?? string.Empty, user.EmailConfirmed));
         }
 
         [Authorize, HttpGet(AccountConstants.Routes.SecurityActivity)]
@@ -365,6 +490,21 @@ namespace IdentityServer.Modules.Accounts
 
             if (!await signInManager.CanSignInAsync(user))
             {
+                if (!user.EmailConfirmed)
+                {
+                    try
+                    {
+                        await accountRecovery.QueueEmailConfirmation(user, culture: null, cancellationToken);
+                    }
+                    catch (Exception exception) when (exception is not OperationCanceledException)
+                    {
+                        logger.AccountEmailQueueFailed(
+                            exception,
+                            user.Id,
+                            AccountConstants.ChallengePurposes.EmailConfirmation);
+                    }
+                }
+
                 return Unauthorized();
             }
 

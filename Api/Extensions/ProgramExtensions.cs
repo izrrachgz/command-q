@@ -15,13 +15,12 @@ using System.Net.Mime;
 using System.Reflection;
 using Api.Modules.Health;
 using Common.Enumerations;
-using Email.Outbox.Extensions;
+using Email.Client.Extensions;
 using Application.Configuration;
 using Localization.Configuration;
 using Localization.Abstractions;
 using Microsoft.Extensions.Options;
 using Application.Migrations.Extensions;
-using Email.Outbox.Persistence.Extensions;
 using Microsoft.AspNetCore.DataProtection;
 using Application.Modules.Health.Configuration;
 using Application.Modules.Configuration.Commands;
@@ -116,12 +115,8 @@ namespace Api.Extensions
             // Add application services
             builder.Services.ConfigureApplicationServices(apiConfiguration);
 
-            // Add durable notification queue services. The worker owns delivery and schema migration.
-            IConfigurationSection outboxConfiguration = apiConfiguration
-                .GetRequiredSection(ApiConfigKeys.EmailOutbox.Section);
-            builder.Services.AddEmailOutboxProducer(outboxConfiguration);
-            builder.Services.AddEmailOutboxPersistence(
-                outboxConfiguration.GetRequiredSection(ApiConfigKeys.EmailOutbox.PersistenceSection));
+            // Queue application notifications through the independently deployed Email API.
+            builder.Services.AddEmailApiClient(apiConfiguration);
 
             // Add application-owned database migrations
             builder.Services.AddApplicationMigrations();
@@ -303,9 +298,7 @@ namespace Api.Extensions
                 "Application Migrations On Startup",
                 environment.IsDevelopment() || configuration.GetValue(ApiConfigKeys.Migrations.RunOnStartup, false));
 
-            DatabaseEngine? outboxEngine = configuration.GetValue<DatabaseEngine?>(ApiConfigKeys.EmailOutbox.Engine);
-            logger.StartupSetting("Email Outbox Engine", outboxEngine);
-            logger.StartupSetting("Email Outbox Migrator", "EmailWorker");
+            logger.StartupSetting("Email API Client Enabled", configuration.GetValue("EmailApiClient:Enabled", false));
 
             var healthCheck = configuration
                 .GetSection(ApiConfigKeys.HealthCheck.Section)

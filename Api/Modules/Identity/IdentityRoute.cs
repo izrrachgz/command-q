@@ -13,5 +13,6 @@ namespace Api.Modules.Identity
         public const string AdminAccounts = AdminRoot + "/" + Accounts;
         public const string AdminRoles = AdminRoot + "/" + Roles;
         public const string AccountRoles = AccountId + "/" + Roles;
+        public const string AccountUnlock = AccountId + "/unlock";
     }
 }

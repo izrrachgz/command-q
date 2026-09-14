@@ -1,4 +1,4 @@
-using Email.Models;
+using Email.Client.Models;
 using Application.Modules.Notifications.Models;
 
 namespace Application.Modules.Notifications.Services

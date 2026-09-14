@@ -1,5 +1,5 @@
 using FluentValidation;
-using Email.Outbox.Constants;
+using Email.Client;
 
 namespace Application.Modules.Notifications.Services
 {
@@ -7,7 +7,7 @@ namespace Application.Modules.Notifications.Services
     {
         public void Validate(string? profileName)
         {
-            if (string.IsNullOrWhiteSpace(profileName) || string.Equals(profileName, EmailOutboxConstants.DefaultProfileName, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(profileName) || string.Equals(profileName, EmailQueueConstants.DefaultProfileName, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }

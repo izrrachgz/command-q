@@ -10,6 +10,7 @@ using Time.Extensions;
 using Time.Serialization;
 using IdentityServer.Modules.OpenIddict;
 using IdentityServer.Modules.OpenIddict.Configuration;
+using Email.Client.Extensions;
 
 namespace IdentityServer.Extensions
 {
@@ -33,6 +34,7 @@ namespace IdentityServer.Extensions
             builder.Services.AddAuthorization();
             builder.Services.AddIdentityServerDataProtection(identityServerConfiguration, builder.Environment);
             builder.Services.AddIdentityServerModules(identityServerConfiguration, builder.Environment);
+            builder.Services.AddEmailApiClient(identityServerConfiguration);
         }
 
         public static void ConfigurePipeline(this WebApplication app)

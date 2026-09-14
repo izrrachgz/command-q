@@ -13,5 +13,7 @@ namespace Application.Modules.Identity.Roles.Services
         Task<DetailResponse<IdentityRoleListModel>> GetRoles(CancellationToken cancellationToken);
 
         Task<BasicResponse> UpdateUserRoles(Guid userId, IReadOnlyList<string> roles, CancellationToken cancellationToken);
+
+        Task<BasicResponse> UnlockUser(Guid userId, CancellationToken cancellationToken);
     }
 }

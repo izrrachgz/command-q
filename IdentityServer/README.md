@@ -4,10 +4,13 @@
 
 ## Capabilities
 
-- local registration and cookie sign-in
+- local registration with required email confirmation and cookie sign-in
+- reusable English and Spanish account-email layouts delivered through the durable email outbox
+- expiring one-time confirmation and recovery links paired with six-digit verification codes
+- password recovery grants, separate three-attempt verification/reset budgets and administrator-only recovery lockout
 - ASP.NET Core Identity password hashing, validation and lockout
 - persisted roles, claims, recovery tokens and external login links
-- internal API-key protected role administration for the application API
+- internal API-key protected role and account-unlock administration for the application API
 - optional Google and Microsoft sign-in through secret-backed configuration
 - authorization code with PKCE, refresh token and client credentials flows
 - signed `at+jwt` access tokens and encrypted authorization/refresh tokens
@@ -18,7 +21,12 @@
 - persisted Data Protection keys for stable authentication cookies
 - health endpoints, security headers, rate limiting and source-generated logging
 
-IdentityServer does not write to the application database. After receiving a user access token for the first time, call authenticated `POST /accounts`; the API creates its profile and links it through the token's `(iss, sub)` identity.
+IdentityServer does not write to the application business schema. It owns the
+identity database and produces account-security messages through Email.Api.
+Account email is first staged in the identity transaction as an encrypted
+dispatch, then a hosted reconciler queues it idempotently over protobuf. After receiving a user access token
+for the first time, call authenticated `POST /accounts`; the API creates its
+profile and links it through the token's `(iss, sub)` identity.
 
 Role management remains owned by IdentityServer. The browser does not call these
 internal endpoints directly; the application API exposes protected `/admin/*`
@@ -42,7 +50,34 @@ dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
 dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
   "IdentityServer:ConnectionStrings:IdentityDb" `
   "Host=localhost;Port=5432;Database=command-q_identity;Username=postgres;Password=change-me;"
+dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj `
+  "IdentityServer:EmailApiClient:Password" `
+  "replace-with-email-api-password"
 .\scripts\run-identity-server.ps1
+```
+
+Run the `command-emails` Email API and worker beside IdentityServer. Its Development profile
+sends to smtp4dev at `localhost:25`; smtp4dev's HTTP UI/API commonly runs at
+`http://localhost:5000`. Only Email.Api and Email.Worker access the email-outbox
+store. Email.Api applies migrations and the worker talks to SMTP.
+
+For an existing local account, request a message for smtp4dev inspection with:
+
+```powershell
+.\scripts\request-account-email.ps1 -Email address@example.test -Purpose Confirmation
+.\scripts\request-account-email.ps1 -Email address@example.test -Purpose PasswordRecovery
+```
+
+Confirmation requests are sent only for unconfirmed accounts; recovery requests
+are sent only for confirmed, unlocked accounts. Both endpoints still return
+`202` when the address is unknown or ineligible.
+
+To preview both templates without an account, database or running worker, use
+the opt-in integration test. It sends through the released `Email` transport
+library directly to local smtp4dev and is never part of production delivery:
+
+```powershell
+.\scripts\test-account-email-templates.ps1
 ```
 
 ## Database Providers
@@ -88,6 +123,11 @@ native type; SQLite enforces the same precision through the converters.
 The Development issuer is `https://localhost:7125/`. Important endpoints include:
 
 - `POST /account/register`
+- `POST /account/email-confirmation`
+- `POST /account/email-confirmation/verify`
+- `POST /account/password-recovery`
+- `POST /account/password-recovery/verify`
+- `POST /account/password-recovery/reset`
 - `GET /account/sign-in`
 - `POST /account/sign-in`
 - `POST /account/sign-out`
@@ -98,6 +138,7 @@ The Development issuer is `https://localhost:7125/`. Important endpoints include
 - `GET /internal/account-admin/users`
 - `GET /internal/account-admin/users/{userId}`
 - `PUT /internal/account-admin/users/{userId}/roles`
+- `POST /internal/account-admin/users/{userId}/unlock`
 - `GET /internal/account-admin/roles`
 - `GET|POST /connect/authorize`
 - `POST /connect/token`
@@ -121,6 +162,70 @@ Development, the first account is also granted `Admin` immediately when no
 administrator exists; startup role reconciliation remains a recovery path and
 registration does not require a host restart.
 
+## Account Email And Recovery
+
+Registration creates an unconfirmed account and queues a confirmation message.
+The message contains a cryptographically random 256-bit link token and a
+separate six-digit code. The link opens `/auth/confirm-email` in the Angular
+application and carries the token in its URL fragment so it is not sent in HTTP
+requests or ordinary server logs; confirmation succeeds only when both values
+match. Issuing a new
+message revokes every older unconsumed challenge for the same account and
+purpose.
+
+Password recovery returns `202 Accepted` for known and unknown email addresses
+so the response does not disclose whether an account exists. Eligible,
+confirmed and unlocked accounts receive a one-time link to
+`/auth/recover-password` plus a six-digit code. Successful code verification
+returns a short-lived Data Protection grant that activates the password form.
+The final reset consumes the persisted challenge and changes the ASP.NET
+Identity security stamp, so the grant cannot reset the password twice.
+
+The challenge record stores only SHA-256 hashes of the link and combined
+link/code secret. The pending email dispatch is encrypted with ASP.NET Core Data
+Protection until it reaches the durable outbox and is cleared after queueing.
+Challenges and reset grants expire according to `IdentityServer:AccountEmail`.
+Three failed confirmation-code checks consume only that confirmation challenge.
+For recovery, three incorrect codes or three rejected password submissions each
+consume the challenge and set an explicit administrator-required lock. Only the
+internal API-key protected administrator endpoint can clear that lockout;
+unlocking also revokes remaining active challenges. The browser reaches that
+operation only through the role-protected application API. Anonymous endpoint
+rate limiting, resend cooldowns and daily per-account delivery limits apply.
+
+HTML templates live under `Modules/Accounts/Templates/Email`. `layout.html`
+owns the background, header and footer; culture- and purpose-specific fragments
+replace only `{{content}}`. Plain-text messages use the same arrangement through
+`layout.txt`. Dynamic values are encoded before rendering. Add both `en-US` and
+`es-ES` fragments when introducing another account-email purpose.
+
+Relevant configuration:
+
+```text
+IdentityServer:AccountEmail:ApplicationBaseUrl
+IdentityServer:AccountEmail:ProfileName
+IdentityServer:AccountEmail:ConfirmationLifetimeMinutes
+IdentityServer:AccountEmail:PasswordRecoveryLifetimeMinutes
+IdentityServer:AccountEmail:ResetGrantLifetimeMinutes
+IdentityServer:AccountEmail:VerificationMaxFailedAttempts
+IdentityServer:AccountEmail:PasswordResetMaxFailedAttempts
+IdentityServer:AccountEmail:ResendCooldownSeconds
+IdentityServer:AccountEmail:DailyDeliveryLimit
+IdentityServer:AccountEmail:DispatchPollSeconds
+IdentityServer:AccountEmail:DispatchBatchSize
+IdentityServer:AccountEmail:DispatchRetryBaseSeconds
+IdentityServer:AccountEmail:DispatchRetryMaxMinutes
+IdentityServer:AccountEmail:CleanupIntervalMinutes
+IdentityServer:AccountEmail:ChallengeRetentionDays
+IdentityServer:AccountEmail:SecurityEventRetentionDays
+IdentityServer:EmailApiClient:Enabled
+IdentityServer:EmailApiClient:BaseUrl
+IdentityServer:EmailApiClient:ApiClientHeaderName
+IdentityServer:EmailApiClient:ApiClientKey
+IdentityServer:EmailApiClient:UserName
+IdentityServer:EmailApiClient:Password
+```
+
 ## Text Resources
 
 IdentityServer keeps host-owned user-facing and reusable operational messages in
@@ -139,6 +244,8 @@ now, but centralizing these strings keeps the future localization path clean.
 QA and Production must supply these settings through deployment configuration:
 
 - `IdentityServer:ConnectionStrings:Engine`
+- `IdentityServer:AccountEmail:ApplicationBaseUrl`
+- `IdentityServer:EmailApiClient:BaseUrl`
 - `IdentityServer:OpenIddict:Issuer`
 - client IDs, redirect URIs and flow choices under `IdentityServer:OpenIddict:Clients`
 - `IdentityServer:AdminApi:Enabled` and `IdentityServer:AdminApi:ApiKeyHeaderName` when API role management is enabled
@@ -148,6 +255,7 @@ QA and Production must supply these settings through deployment configuration:
 Supply these sensitive values through the deployment secret store:
 
 - `IdentityServer:ConnectionStrings:IdentityDb`
+- `IdentityServer:EmailApiClient:ApiClientKey` and `IdentityServer:EmailApiClient:Password`
 - `IdentityServer:AdminApi:ApiKey`
 - signing, encryption and Data Protection certificate passwords
 - confidential client secrets and external provider credentials when enabled
@@ -156,8 +264,8 @@ Development certificates are rejected outside Development. Data Protection keys 
 
 ## Migrations
 
-The initial migration contains ASP.NET Identity, OpenIddict and security-event
-tables. Each provider owns a migration set under
+The initial migration contains ASP.NET Identity, OpenIddict, account-challenge,
+encrypted email-dispatch and security-event tables. Each provider owns a migration set under
 `Persistence/Migrations/{Engine}`. Add every future model change to all four
 sets with one command:
 
@@ -168,11 +276,6 @@ sets with one command:
 The script restores the repository-local EF tool, builds IdentityServer and
 scaffolds the same migration name for `PgSql`, `MsSql`, `MySql` and `SqLite`.
 Commit all four generated migration sets together.
-
-`StandardizeUtcPrecision` aligns existing provider schemas and model metadata
-with the shared microsecond policy. It intentionally has no physical SQLite
-operation because SQLite precision is enforced by conversion rather than a
-precision-bearing column type.
 
 Provider-specific design-time factories live in separate files under
 `Persistence/DesignTime`. They use intentionally non-routable connection

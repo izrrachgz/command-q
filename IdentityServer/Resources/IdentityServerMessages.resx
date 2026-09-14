@@ -166,6 +166,9 @@
   <data name="SignIn_Intro" xml:space="preserve">
     <value>Use your command-q identity to continue.</value>
   </data>
+  <data name="SignIn_ForgotPassword" xml:space="preserve">
+    <value>Forgot your password?</value>
+  </data>
   <data name="SignIn_LockedOut" xml:space="preserve">
     <value>The account is locked. Try again later.</value>
   </data>

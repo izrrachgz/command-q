@@ -98,6 +98,23 @@ namespace Api.Services
             return new(true, "Identity user roles updated.");
         }
 
+        public async Task<BasicResponse> UnlockUser(Guid userId, CancellationToken cancellationToken)
+        {
+            var currentOptions = GetEnabledOptions();
+            using var request = CreateRequest(
+                HttpMethod.Post,
+                BuildUri(currentOptions.BaseUrl, $"{currentOptions.UsersPath.TrimEnd('/')}/{Uri.EscapeDataString(userId.ToString())}/unlock"),
+                currentOptions);
+            using var response = await Send(request, currentOptions, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new(false, "Identity user could not be unlocked.");
+            }
+
+            return new(true, "Identity user unlocked.");
+        }
+
         private static HttpRequestMessage CreateRequest(
             HttpMethod method,
             Uri uri,

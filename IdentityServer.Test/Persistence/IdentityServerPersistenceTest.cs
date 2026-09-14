@@ -92,11 +92,12 @@ namespace IdentityServer.Test.Persistence
             await using var command = connection.CreateCommand();
             command.CommandText =
                 "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name IN " +
-                "('AspNetUsers', 'OpenIddictApplications', 'IdentitySecurityEvent');";
+                "('AspNetUsers', 'OpenIddictApplications', 'IdentitySecurityEvent', " +
+                "'IdentityAccountChallenge', 'IdentityAccountEmailDispatch');";
 
             long tableCount = (long)(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken) ?? 0L);
 
-            Assert.Equal(3, tableCount);
+            Assert.Equal(5, tableCount);
         }
 
         [Fact]

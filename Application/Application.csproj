@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -21,14 +21,7 @@
 		<ProjectReference Include="..\Common\Common.csproj" />
 		<ProjectReference Include="..\Cqrs\Cqrs.csproj" />
 		<ProjectReference Include="..\Domain\Domain.csproj" />
-		<Reference Include="Email">
-			<HintPath>$(SharedBuildOutput)Email.dll</HintPath>
-			<Private>true</Private>
-		</Reference>
-		<Reference Include="Email.Outbox">
-			<HintPath>$(SharedBuildOutput)Email.Outbox.dll</HintPath>
-			<Private>true</Private>
-		</Reference>
+		<ProjectReference Include="..\Email.Client\Email.Client.csproj" />
 		<ProjectReference Include="..\Localization\Localization.csproj" />
 		<ProjectReference Include="..\Persistence\Persistence.csproj" />
 		<ProjectReference Include="..\Time\Time.csproj" />

@@ -24,6 +24,7 @@ namespace Api.Constants
             public const string PreferencesUpdateFailed = "accounts.preferences_update_failed";
             public const string RoleSelfRemoval = "accounts.role_self_removal";
             public const string RolesUpdateFailed = "accounts.roles_update_failed";
+            public const string UnlockFailed = "accounts.unlock_failed";
         }
 
         public static class Addresses

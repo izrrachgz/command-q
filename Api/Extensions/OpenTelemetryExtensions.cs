@@ -1,9 +1,7 @@
 using OpenTelemetry;
 using Api.Constants;
-using Email.Telemetry;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
-using Email.Outbox.Telemetry;
 using OpenTelemetry.Resources;
 
 namespace Api.Extensions
@@ -37,13 +35,8 @@ namespace Api.Extensions
                 .ConfigureResource(resource => resource.AddService(serviceName))
                 .WithTracing(tracing => tracing
                     .AddAspNetCoreInstrumentation()
-                    .AddSource(EmailTelemetry.ActivitySourceName)
-                    .AddSource(EmailOutboxTelemetry.ActivitySourceName)
                     .AddOtlpExporter(options => options.Endpoint = endpoint))
-                .WithMetrics(metrics => metrics
-                    .AddMeter(EmailTelemetry.MeterName)
-                    .AddMeter(EmailOutboxTelemetry.MeterName)
-                    .AddOtlpExporter(options => options.Endpoint = endpoint));
+                .WithMetrics(metrics => metrics.AddOtlpExporter(options => options.Endpoint = endpoint));
         }
     }
 }

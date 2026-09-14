@@ -7,6 +7,16 @@ using IdentityServer.Test.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using IdentityServer.Modules.Accounts;
+using IdentityServer.Modules.Accounts.Abstractions.Challenges;
+using IdentityServer.Modules.Accounts.Abstractions.Email;
+using IdentityServer.Modules.Accounts.Abstractions.Recovery;
+using IdentityServer.Modules.Accounts.Abstractions.Security;
+using IdentityServer.Modules.Accounts.Contracts.Challenges;
+using IdentityServer.Modules.Accounts.Services.Challenges;
+using IdentityServer.Modules.Accounts.Services.Email;
+using IdentityServer.Modules.Accounts.Services.Recovery;
+using IdentityServer.Modules.Accounts.Services.Security;
+using IdentityServer.Modules.Accounts.Services.SignIn;
 using IdentityServer.Modules.OpenIddict;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
@@ -16,6 +26,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using HeaderNames = Microsoft.Net.Http.Headers.HeaderNames;
 using AppIdentityRole = IdentityServer.Modules.Accounts.IdentityRole;
 using AppIdentityUser = IdentityServer.Modules.Accounts.IdentityUser;
+using IdentityServer.Modules.Accounts.Configuration;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace IdentityServer.Test.Modules.Accounts
 {
@@ -81,6 +94,346 @@ namespace IdentityServer.Test.Modules.Accounts
             var securityEvent = await database.SecurityEvents.SingleAsync(TestContext.Current.CancellationToken);
             Assert.Equal(userId, securityEvent.UserId);
             Assert.Equal(AccountConstants.Actions.LoginSucceeded, securityEvent.Action);
+        }
+
+        [Fact]
+        public async Task AccountChallenge_Should_Lock_Account_After_Three_Invalid_Codes()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var challenges = services.GetRequiredService<IAccountChallengeService>();
+            var user = CreateUser();
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+            var delivery = await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.PasswordRecovery,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(delivery);
+            var invalidCode = delivery.Code == "000000" ? "000001" : "000000";
+
+            var first = await challenges.Verify(
+                delivery.LinkToken,
+                invalidCode,
+                AccountConstants.ChallengePurposes.PasswordRecovery,
+                TestContext.Current.CancellationToken);
+            var second = await challenges.Verify(
+                delivery.LinkToken,
+                invalidCode,
+                AccountConstants.ChallengePurposes.PasswordRecovery,
+                TestContext.Current.CancellationToken);
+            var third = await challenges.Verify(
+                delivery.LinkToken,
+                invalidCode,
+                AccountConstants.ChallengePurposes.PasswordRecovery,
+                TestContext.Current.CancellationToken);
+
+            Assert.False(first.LockedOut);
+            Assert.False(second.LockedOut);
+            Assert.True(third.LockedOut);
+            Assert.True(user.RequiresAdminUnlock);
+            Assert.Equal(DateTimeOffset.MaxValue, user.LockoutEnd);
+        }
+
+        [Fact]
+        public async Task EmailConfirmation_Should_Invalidate_Challenge_Without_Locking_Account()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var challenges = services.GetRequiredService<IAccountChallengeService>();
+            var user = CreateUser();
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+            var delivery = await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(delivery);
+            var invalidCode = delivery.Code == "000000" ? "000001" : "000000";
+
+            await challenges.Verify(
+                delivery.LinkToken,
+                invalidCode,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TestContext.Current.CancellationToken);
+            await challenges.Verify(
+                delivery.LinkToken,
+                invalidCode,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TestContext.Current.CancellationToken);
+            var third = await challenges.Verify(
+                delivery.LinkToken,
+                invalidCode,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TestContext.Current.CancellationToken);
+
+            Assert.False(third.LockedOut);
+            Assert.False(user.RequiresAdminUnlock);
+            Assert.Null(user.LockoutEnd);
+        }
+
+        [Fact]
+        public async Task AccountChallenge_Should_Revoke_Older_Link_And_Consume_Valid_Link()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var challenges = services.GetRequiredService<IAccountChallengeService>();
+            var database = services.GetRequiredService<IdentityServerDbContext>();
+            var user = CreateUser();
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+            var first = await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(first);
+            var firstRecord = await database.AccountChallenges.SingleAsync(
+                value => value.Id == first.ChallengeId,
+                TestContext.Current.CancellationToken);
+            firstRecord.CreatedUtc = DateTime.UtcNow.AddMinutes(-2);
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+            var current = await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+            Assert.NotNull(current);
+
+            var revoked = await challenges.Verify(
+                first.LinkToken,
+                first.Code,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TestContext.Current.CancellationToken);
+            var valid = await challenges.Verify(
+                current.LinkToken,
+                current.Code,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TestContext.Current.CancellationToken);
+
+            Assert.False(revoked.Succeeded);
+            Assert.True(valid.Succeeded);
+            Assert.NotNull(valid.VerifiedChallenge);
+            await challenges.Consume(valid.VerifiedChallenge!.Challenge, TestContext.Current.CancellationToken);
+            Assert.All(await database.AccountChallenges.ToListAsync(TestContext.Current.CancellationToken), value =>
+                Assert.NotNull(value.ConsumedUtc));
+            Assert.DoesNotContain(current.Code, (await database.AccountChallenges.SingleAsync(
+                value => value.Id == current.ChallengeId,
+                TestContext.Current.CancellationToken)).CodeHash);
+        }
+
+        [Fact]
+        public async Task AccountChallenge_Should_Enforce_Resend_Cooldown_And_Daily_Limit()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var challenges = services.GetRequiredService<IAccountChallengeService>();
+            var database = services.GetRequiredService<IdentityServerDbContext>();
+            var user = CreateUser();
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+
+            var first = await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+            var duringCooldown = await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+
+            Assert.NotNull(first);
+            Assert.Null(duringCooldown);
+
+            for (var issuedCount = 1; issuedCount < 5; issuedCount++)
+            {
+                var latest = await database.AccountChallenges
+                    .OrderByDescending(value => value.CreatedUtc)
+                    .FirstAsync(TestContext.Current.CancellationToken);
+                latest.CreatedUtc = DateTime.UtcNow.AddMinutes(-(issuedCount + 1));
+                await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+                Assert.NotNull(await challenges.Create(
+                    user,
+                    AccountConstants.ChallengePurposes.EmailConfirmation,
+                    TimeSpan.FromMinutes(15),
+                    TestContext.Current.CancellationToken));
+            }
+
+            var last = await database.AccountChallenges
+                .OrderByDescending(value => value.CreatedUtc)
+                .FirstAsync(TestContext.Current.CancellationToken);
+            last.CreatedUtc = DateTime.UtcNow.AddMinutes(-10);
+            await database.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+            var overDailyLimit = await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.EmailConfirmation,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+
+            Assert.Null(overDailyLimit);
+            Assert.Equal(5, await database.AccountChallenges.CountAsync(TestContext.Current.CancellationToken));
+        }
+
+        [Fact]
+        public async Task Admin_Unlock_Should_Require_Key_And_Revoke_Active_Challenges()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var roleManager = services.GetRequiredService<RoleManager<AppIdentityRole>>();
+            var challenges = services.GetRequiredService<IAccountChallengeService>();
+            var database = services.GetRequiredService<IdentityServerDbContext>();
+            var securityEvents = services.GetRequiredService<IIdentitySecurityEventRecorder>();
+            var timeProvider = services.GetRequiredService<TimeProvider>();
+            var user = CreateUser();
+            user.LockoutEnd = DateTimeOffset.MaxValue;
+            user.RequiresAdminUnlock = true;
+            user.AdminLockoutUtc = DateTime.UtcNow;
+            user.AccessFailedCount = 3;
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+            await challenges.Create(
+                user,
+                AccountConstants.ChallengePurposes.PasswordRecovery,
+                TimeSpan.FromMinutes(15),
+                TestContext.Current.CancellationToken);
+            var adminOptions = Options.Create(new IdentityAdminApiOptions
+            {
+                Enabled = true,
+                ApiKeyHeaderName = "X-Test-Admin-Key",
+                ApiKey = "expected-key"
+            });
+            var controller = new IdentityAdminController(
+                userManager,
+                roleManager,
+                database,
+                securityEvents,
+                timeProvider,
+                adminOptions)
+            {
+                ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+            };
+
+            var unauthorized = await controller.UnlockUser(user.Id, TestContext.Current.CancellationToken);
+            controller.Request.Headers[adminOptions.Value.ApiKeyHeaderName] = adminOptions.Value.ApiKey;
+            var unlocked = await controller.UnlockUser(user.Id, TestContext.Current.CancellationToken);
+
+            Assert.IsType<UnauthorizedResult>(unauthorized);
+            Assert.IsType<NoContentResult>(unlocked);
+            Assert.Null(user.LockoutEnd);
+            Assert.False(user.RequiresAdminUnlock);
+            Assert.Null(user.AdminLockoutUtc);
+            Assert.Equal(0, user.AccessFailedCount);
+            Assert.All(await database.AccountChallenges.ToListAsync(TestContext.Current.CancellationToken), value =>
+                Assert.NotNull(value.ConsumedUtc));
+        }
+
+        [Fact]
+        public async Task PasswordRecovery_Should_Activate_Reset_And_Consume_Grant()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var recovery = services.GetRequiredService<IAccountRecoveryService>();
+            var email = services.GetRequiredService<CapturingAccountEmailService>();
+            var user = CreateUser();
+            user.EmailConfirmed = true;
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+
+            await recovery.RequestPasswordRecovery(
+                user.Email!,
+                AccountConstants.Cultures.English,
+                TestContext.Current.CancellationToken);
+            var verified = await recovery.VerifyPasswordRecovery(
+                email.PasswordRecoveryChallenge!.LinkToken,
+                email.PasswordRecoveryChallenge.Code,
+                TestContext.Current.CancellationToken);
+            var repeatedVerification = await recovery.VerifyPasswordRecovery(
+                email.PasswordRecoveryChallenge.LinkToken,
+                email.PasswordRecoveryChallenge.Code,
+                TestContext.Current.CancellationToken);
+            var newPassword = "Different-password-456!";
+            var reset = await recovery.ResetPassword(
+                verified.ResetGrant!,
+                newPassword,
+                TestContext.Current.CancellationToken);
+            var repeated = await recovery.ResetPassword(
+                verified.ResetGrant!,
+                "Another-password-789!",
+                TestContext.Current.CancellationToken);
+
+            Assert.True(verified.Succeeded);
+            Assert.False(repeatedVerification.Succeeded);
+            Assert.True(reset.Result.Succeeded);
+            Assert.False(repeated.Result.Succeeded);
+            Assert.True(await userManager.CheckPasswordAsync(user, newPassword));
+        }
+
+        [Fact]
+        public async Task PasswordRecovery_Should_Permanently_Lock_Account_After_Three_Rejected_Passwords()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var recovery = services.GetRequiredService<IAccountRecoveryService>();
+            var email = services.GetRequiredService<CapturingAccountEmailService>();
+            var user = CreateUser();
+            user.EmailConfirmed = true;
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+
+            await recovery.RequestPasswordRecovery(
+                user.Email!,
+                AccountConstants.Cultures.English,
+                TestContext.Current.CancellationToken);
+            var verified = await recovery.VerifyPasswordRecovery(
+                email.PasswordRecoveryChallenge!.LinkToken,
+                email.PasswordRecoveryChallenge.Code,
+                TestContext.Current.CancellationToken);
+
+            var first = await recovery.ResetPassword(
+                verified.ResetGrant!,
+                "weak",
+                TestContext.Current.CancellationToken);
+            var second = await recovery.ResetPassword(
+                verified.ResetGrant!,
+                "weak",
+                TestContext.Current.CancellationToken);
+            var third = await recovery.ResetPassword(
+                verified.ResetGrant!,
+                "weak",
+                TestContext.Current.CancellationToken);
+
+            Assert.False(first.LockedOut);
+            Assert.False(second.LockedOut);
+            Assert.True(third.LockedOut);
+            Assert.True(user.RequiresAdminUnlock);
+            Assert.Equal(DateTimeOffset.MaxValue, user.LockoutEnd);
+        }
+
+        [Fact]
+        public async Task EmailConfirmation_Should_Consume_Link_And_Reject_Replay()
+        {
+            await using var services = CreateServices();
+            var userManager = services.GetRequiredService<UserManager<AppIdentityUser>>();
+            var recovery = services.GetRequiredService<IAccountRecoveryService>();
+            var email = services.GetRequiredService<CapturingAccountEmailService>();
+            var user = CreateUser();
+            Assert.True((await userManager.CreateAsync(user, IdentityServerTestConstants.TestPassword)).Succeeded);
+
+            await recovery.QueueEmailConfirmation(
+                user,
+                AccountConstants.Cultures.English,
+                TestContext.Current.CancellationToken);
+            var confirmed = await recovery.ConfirmEmail(
+                email.ConfirmationChallenge!.LinkToken,
+                email.ConfirmationChallenge.Code,
+                TestContext.Current.CancellationToken);
+            var replayed = await recovery.ConfirmEmail(
+                email.ConfirmationChallenge.LinkToken,
+                email.ConfirmationChallenge.Code,
+                TestContext.Current.CancellationToken);
+
+            Assert.True(confirmed.Succeeded);
+            Assert.False(replayed.Succeeded);
+            Assert.True(user.EmailConfirmed);
         }
 
         [Fact]
@@ -203,8 +556,32 @@ namespace IdentityServer.Test.Modules.Accounts
                     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
                 })
                 .AddRoles<AppIdentityRole>()
-                .AddEntityFrameworkStores<TestIdentityServerDbContext>();
+                .AddEntityFrameworkStores<TestIdentityServerDbContext>()
+                .AddDefaultTokenProviders();
             services.AddScoped<IIdentitySecurityEventRecorder, IdentitySecurityEventRecorder>();
+            services.Configure<AccountEmailOptions>(options =>
+            {
+                options.VerificationMaxFailedAttempts = 3;
+                options.PasswordResetMaxFailedAttempts = 3;
+                options.ResendCooldownSeconds = 60;
+                options.DailyDeliveryLimit = 5;
+                options.DispatchPollSeconds = 5;
+                options.DispatchBatchSize = 10;
+                options.DispatchRetryBaseSeconds = 15;
+                options.DispatchRetryMaxMinutes = 60;
+                options.CleanupIntervalMinutes = 60;
+                options.ChallengeRetentionDays = 30;
+                options.SecurityEventRetentionDays = 90;
+                options.ConfirmationLifetimeMinutes = 1440;
+                options.PasswordRecoveryLifetimeMinutes = 15;
+                options.ResetGrantLifetimeMinutes = 15;
+            });
+            services.AddScoped<IAccountChallengeService, AccountChallengeService>();
+            services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            services.AddSingleton<CapturingAccountEmailService>();
+            services.AddSingleton<IAccountEmailService>(serviceProvider =>
+                serviceProvider.GetRequiredService<CapturingAccountEmailService>());
+            services.AddScoped<IAccountRecoveryService, AccountRecoveryService>();
 
             return services.BuildServiceProvider();
         }
@@ -226,7 +603,22 @@ namespace IdentityServer.Test.Modules.Accounts
                     ["Identity:CookieName"] = IdentityServerTestConstants.TestCookieName,
                     ["Identity:AuthenticationPermitLimit"] = "5",
                     ["Identity:AuthenticationWindowSeconds"] = "60",
-                    ["Identity:AuthenticationQueueLimit"] = "0"
+                    ["Identity:AuthenticationQueueLimit"] = "0",
+                    ["AccountEmail:ApplicationBaseUrl"] = "http://localhost:4200",
+                    ["AccountEmail:ConfirmationLifetimeMinutes"] = "1440",
+                    ["AccountEmail:PasswordRecoveryLifetimeMinutes"] = "15",
+                    ["AccountEmail:ResetGrantLifetimeMinutes"] = "15",
+                    ["AccountEmail:VerificationMaxFailedAttempts"] = "3",
+                    ["AccountEmail:PasswordResetMaxFailedAttempts"] = "3",
+                    ["AccountEmail:ResendCooldownSeconds"] = "60",
+                    ["AccountEmail:DailyDeliveryLimit"] = "5",
+                    ["AccountEmail:DispatchPollSeconds"] = "5",
+                    ["AccountEmail:DispatchBatchSize"] = "10",
+                    ["AccountEmail:DispatchRetryBaseSeconds"] = "15",
+                    ["AccountEmail:DispatchRetryMaxMinutes"] = "60",
+                    ["AccountEmail:CleanupIntervalMinutes"] = "60",
+                    ["AccountEmail:ChallengeRetentionDays"] = "30",
+                    ["AccountEmail:SecurityEventRetentionDays"] = "90"
                 })
                 .Build();
             var services = new ServiceCollection();
@@ -289,6 +681,32 @@ namespace IdentityServer.Test.Modules.Accounts
             public string ApplicationName { get; set; } = "IdentityServer.Test";
             public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
             public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+        }
+
+        private sealed class CapturingAccountEmailService : IAccountEmailService
+        {
+            public AccountChallengeDelivery? ConfirmationChallenge { get; private set; }
+            public AccountChallengeDelivery? PasswordRecoveryChallenge { get; private set; }
+
+            public Task QueueConfirmation(
+                AppIdentityUser user,
+                AccountChallengeDelivery challenge,
+                string? culture,
+                CancellationToken cancellationToken)
+            {
+                ConfirmationChallenge = challenge;
+                return Task.CompletedTask;
+            }
+
+            public Task QueuePasswordRecovery(
+                AppIdentityUser user,
+                AccountChallengeDelivery challenge,
+                string? culture,
+                CancellationToken cancellationToken)
+            {
+                PasswordRecoveryChallenge = challenge;
+                return Task.CompletedTask;
+            }
         }
     }
 }

@@ -1,9 +1,8 @@
 using NodaTime;
-using Email.Models;
+using Email.Client.Models;
 using FluentValidation;
-using Email.Outbox.Models;
+using Email.Client.Abstractions;
 using Localization.Providers;
-using Email.Outbox.Abstractions;
 using Application.Modules.Notifications.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 using Application.Modules.Notifications.Commands;
@@ -18,7 +17,7 @@ namespace Application.Test.Modules.Notifications.Commands
         public async Task Handle_Should_Queue_Prepared_Message_With_Metadata()
         {
             Instant createdUtc = SystemClock.Instance.GetCurrentInstant();
-            var expectedResult = new EmailOutboxEnqueueResult(Guid.NewGuid(), false, createdUtc);
+            var expectedResult = new EmailQueueResult(Guid.NewGuid(), false, createdUtc.ToDateTimeUtc());
             var outbox = new CapturingEmailOutbox(expectedResult);
             var service = CreateService(outbox);
             var handler = new QueueEmailCommandHandler(service);
@@ -54,7 +53,7 @@ namespace Application.Test.Modules.Notifications.Commands
         public async Task QueueHtmlAsync_Should_Build_A_Prepared_Html_Message()
         {
             var outbox = new CapturingEmailOutbox(
-                new EmailOutboxEnqueueResult(Guid.NewGuid(), true, SystemClock.Instance.GetCurrentInstant()));
+                new EmailQueueResult(Guid.NewGuid(), true, SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc()));
             var service = CreateService(outbox);
 
             QueuedEmailResult result = await service.QueueHtmlAsync(
@@ -77,7 +76,7 @@ namespace Application.Test.Modules.Notifications.Commands
         public async Task QueueAsync_Should_Reject_Invalid_Message_Before_Outbox_Write()
         {
             var outbox = new CapturingEmailOutbox(
-                new EmailOutboxEnqueueResult(Guid.NewGuid(), false, SystemClock.Instance.GetCurrentInstant()));
+                new EmailQueueResult(Guid.NewGuid(), false, SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc()));
             var service = CreateService(outbox);
             var message = new EmailMessage
             {
@@ -97,7 +96,7 @@ namespace Application.Test.Modules.Notifications.Commands
         public async Task QueueAsync_Should_Reject_Named_Profile_Without_Explicit_Policy()
         {
             var outbox = new CapturingEmailOutbox(
-                new EmailOutboxEnqueueResult(Guid.NewGuid(), false, SystemClock.Instance.GetCurrentInstant()));
+                new EmailQueueResult(Guid.NewGuid(), false, SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc()));
             var service = CreateService(outbox);
             var request = new ApplicationEmailRequest
             {
@@ -112,7 +111,7 @@ namespace Application.Test.Modules.Notifications.Commands
             Assert.Null(outbox.Request);
         }
 
-        private static ApplicationEmailService CreateService(IEmailOutbox outbox)
+        private static ApplicationEmailService CreateService(IEmailQueueClient outbox)
         {
             var validator = new ApplicationEmailRequestValidator(new ValidationTextProvider());
 
@@ -132,16 +131,11 @@ namespace Application.Test.Modules.Notifications.Commands
             };
         }
 
-        private sealed class CapturingEmailOutbox(EmailOutboxEnqueueResult result) : IEmailOutbox
+        private sealed class CapturingEmailOutbox(EmailQueueResult result) : IEmailQueueClient
         {
-            public EmailOutboxRequest? Request { get; private set; }
+            public EmailQueueRequest? Request { get; private set; }
 
-            public Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailMessage message, CancellationToken cancellationToken = default)
-            {
-                return EnqueueAsync(new EmailOutboxRequest { Message = message }, cancellationToken);
-            }
-
-            public Task<EmailOutboxEnqueueResult> EnqueueAsync(EmailOutboxRequest request, CancellationToken cancellationToken = default)
+            public Task<EmailQueueResult> EnqueueAsync(EmailQueueRequest request, CancellationToken cancellationToken = default)
             {
                 Request = request;
                 return Task.FromResult(result);

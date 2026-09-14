@@ -38,5 +38,10 @@ namespace Application.Modules.Identity.Roles.Services
         {
             return Task.FromResult(new BasicResponse(false, NotConfiguredMessage));
         }
+
+        public Task<BasicResponse> UnlockUser(Guid userId, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new BasicResponse(false, NotConfiguredMessage));
+        }
     }
 }

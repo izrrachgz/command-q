@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -30,8 +30,10 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ModifiedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false),
+                    ModifiedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false),
+                    RequiresAdminUnlock = table.Column<bool>(type: "bit", nullable: false),
+                    AdminLockoutUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -43,13 +45,41 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset(6)", precision: 6, nullable: true),
                     LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
                     AccessFailedCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IdentityAccountChallenge",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Purpose = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                    LinkTokenHash = table.Column<string>(type: "nchar(64)", fixedLength: true, maxLength: 64, nullable: false),
+                    CodeHash = table.Column<string>(type: "nchar(64)", fixedLength: true, maxLength: 64, nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "nchar(32)", fixedLength: true, maxLength: 32, nullable: false),
+                    VerificationFailedAttempts = table.Column<int>(type: "int", nullable: false),
+                    PasswordResetFailedAttempts = table.Column<int>(type: "int", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false),
+                    ExpiresUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false),
+                    VerifiedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true),
+                    ConsumedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityAccountChallenge", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IdentityAccountChallenge_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -64,11 +94,36 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                     IpAddress = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     UserAgent = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
                     DetailsJson = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
-                    OccurredUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    OccurredUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IdentitySecurityEvent", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IdentityAccountEmailDispatch",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ChallengeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ProtectedPayload = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "nchar(32)", fixedLength: true, maxLength: 32, nullable: false),
+                    AttemptCount = table.Column<int>(type: "int", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false),
+                    NextAttemptUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: false),
+                    QueuedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true),
+                    AbandonedUtc = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityAccountEmailDispatch", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IdentityAccountEmailDispatch_IdentityAccountChallenge_ChallengeId",
+                        column: x => x.ChallengeId,
+                        principalTable: "IdentityAccountChallenge",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -229,7 +284,7 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ApplicationId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ConcurrencyToken = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true),
                     Properties = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Scopes = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
@@ -254,11 +309,11 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                     ApplicationId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     AuthorizationId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     ConcurrencyToken = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true),
+                    ExpirationDate = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true),
                     Payload = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Properties = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RedemptionDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RedemptionDate = table.Column<DateTime>(type: "datetime2(6)", precision: 6, nullable: true),
                     ReferenceId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Subject = table.Column<string>(type: "nvarchar(400)", maxLength: 400, nullable: true),
@@ -319,6 +374,43 @@ namespace IdentityServer.Persistence.Migrations.MsSql
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_LinkTokenHash",
+                table: "IdentityAccountChallenge",
+                column: "LinkTokenHash",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_ExpiresUtc",
+                table: "IdentityAccountChallenge",
+                column: "ExpiresUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_UserId_Purpose_CreatedUtc",
+                table: "IdentityAccountChallenge",
+                columns: new[] { "UserId", "Purpose", "CreatedUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountEmailDispatch_ChallengeId",
+                table: "IdentityAccountEmailDispatch",
+                column: "ChallengeId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountEmailDispatch_QueuedUtc_AbandonedUtc_NextAttemptUtc",
+                table: "IdentityAccountEmailDispatch",
+                columns: new[] { "QueuedUtc", "AbandonedUtc", "NextAttemptUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentitySecurityEvent_OccurredUtc",
+                table: "IdentitySecurityEvent",
+                column: "OccurredUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_UserId_Purpose_ConsumedUtc",
+                table: "IdentityAccountChallenge",
+                columns: new[] { "UserId", "Purpose", "ConsumedUtc" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_IdentitySecurityEvent_Action_OccurredUtc",
                 table: "IdentitySecurityEvent",
                 columns: new[] { "Action", "OccurredUtc" });
@@ -368,6 +460,12 @@ namespace IdentityServer.Persistence.Migrations.MsSql
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "IdentityAccountEmailDispatch");
+
+            migrationBuilder.DropTable(
+                name: "IdentityAccountChallenge");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

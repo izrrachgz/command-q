@@ -1,4 +1,5 @@
 using IdentityServer.Modules.Accounts;
+using IdentityServer.Modules.Accounts.Requests;
 using System.ComponentModel.DataAnnotations;
 
 namespace IdentityServer.Test.Modules.Accounts

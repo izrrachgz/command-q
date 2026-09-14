@@ -374,6 +374,15 @@ namespace IdentityServer.Resources {
                 return ResourceManager.GetString("SignIn_Intro", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Busca una cadena traducida similar a Forgot your password?.
+        /// </summary>
+        public static string SignIn_ForgotPassword {
+            get {
+                return ResourceManager.GetString("SignIn_ForgotPassword", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Busca una cadena traducida similar a The username or password is invalid..

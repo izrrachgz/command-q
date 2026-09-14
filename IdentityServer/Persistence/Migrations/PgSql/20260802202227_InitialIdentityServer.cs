@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -31,8 +31,10 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatedUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ModifiedUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: false),
+                    ModifiedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: false),
+                    RequiresAdminUnlock = table.Column<bool>(type: "boolean", nullable: false),
+                    AdminLockoutUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -44,13 +46,41 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                     PhoneNumber = table.Column<string>(type: "text", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
                     LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
                     AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IdentityAccountChallenge",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Purpose = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    LinkTokenHash = table.Column<string>(type: "character(64)", fixedLength: true, maxLength: 64, nullable: false),
+                    CodeHash = table.Column<string>(type: "character(64)", fixedLength: true, maxLength: 64, nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character(32)", fixedLength: true, maxLength: 32, nullable: false),
+                    VerificationFailedAttempts = table.Column<int>(type: "integer", nullable: false),
+                    PasswordResetFailedAttempts = table.Column<int>(type: "integer", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: false),
+                    ExpiresUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: false),
+                    VerifiedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
+                    ConsumedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityAccountChallenge", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IdentityAccountChallenge_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -65,11 +95,36 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                     IpAddress = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
                     UserAgent = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true),
                     DetailsJson = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
-                    OccurredUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    OccurredUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IdentitySecurityEvent", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "IdentityAccountEmailDispatch",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChallengeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProtectedPayload = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "character(32)", fixedLength: true, maxLength: 32, nullable: false),
+                    AttemptCount = table.Column<int>(type: "integer", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: false),
+                    NextAttemptUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: false),
+                    QueuedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
+                    AbandonedUtc = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdentityAccountEmailDispatch", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_IdentityAccountEmailDispatch_IdentityAccountChallenge_Chall~",
+                        column: x => x.ChallengeId,
+                        principalTable: "IdentityAccountChallenge",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -230,7 +285,7 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                     Id = table.Column<string>(type: "text", nullable: false),
                     ApplicationId = table.Column<string>(type: "text", nullable: true),
                     ConcurrencyToken = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
                     Properties = table.Column<string>(type: "text", nullable: true),
                     Scopes = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
@@ -255,11 +310,11 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                     ApplicationId = table.Column<string>(type: "text", nullable: true),
                     AuthorizationId = table.Column<string>(type: "text", nullable: true),
                     ConcurrencyToken = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ExpirationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
+                    ExpirationDate = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
                     Payload = table.Column<string>(type: "text", nullable: true),
                     Properties = table.Column<string>(type: "text", nullable: true),
-                    RedemptionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    RedemptionDate = table.Column<DateTime>(type: "timestamp(6) with time zone", precision: 6, nullable: true),
                     ReferenceId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     Subject = table.Column<string>(type: "character varying(400)", maxLength: 400, nullable: true),
@@ -318,6 +373,43 @@ namespace IdentityServer.Persistence.Migrations.PgSql
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_LinkTokenHash",
+                table: "IdentityAccountChallenge",
+                column: "LinkTokenHash",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_ExpiresUtc",
+                table: "IdentityAccountChallenge",
+                column: "ExpiresUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_UserId_Purpose_CreatedUtc",
+                table: "IdentityAccountChallenge",
+                columns: new[] { "UserId", "Purpose", "CreatedUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountEmailDispatch_ChallengeId",
+                table: "IdentityAccountEmailDispatch",
+                column: "ChallengeId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountEmailDispatch_QueuedUtc_AbandonedUtc_NextAtt~",
+                table: "IdentityAccountEmailDispatch",
+                columns: new[] { "QueuedUtc", "AbandonedUtc", "NextAttemptUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentitySecurityEvent_OccurredUtc",
+                table: "IdentitySecurityEvent",
+                column: "OccurredUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_IdentityAccountChallenge_UserId_Purpose_ConsumedUtc",
+                table: "IdentityAccountChallenge",
+                columns: new[] { "UserId", "Purpose", "ConsumedUtc" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_IdentitySecurityEvent_Action_OccurredUtc",
                 table: "IdentitySecurityEvent",
                 columns: new[] { "Action", "OccurredUtc" });
@@ -364,6 +456,12 @@ namespace IdentityServer.Persistence.Migrations.PgSql
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "IdentityAccountEmailDispatch");
+
+            migrationBuilder.DropTable(
+                name: "IdentityAccountChallenge");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

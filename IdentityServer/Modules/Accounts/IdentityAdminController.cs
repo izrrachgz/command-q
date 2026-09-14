@@ -8,9 +8,15 @@ using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using IdentityServer.Modules.Accounts.Configuration;
+using IdentityServer.Modules.Accounts.Requests;
+using IdentityServer.Modules.Accounts.Responses;
+using IdentityServer.Modules.Accounts.Abstractions.Security;
 
 namespace IdentityServer.Modules.Accounts
 {
+    /// <summary>
+    /// Exposes API-key-protected identity administration endpoints used only by the command-q API's authorized admin workflow.
+    /// </summary>
     [ApiController, Route(AccountConstants.Routes.InternalAdminRoot)]
     public sealed class IdentityAdminController(
         UserManager<IdentityUser> userManager,
@@ -102,6 +108,54 @@ namespace IdentityServer.Modules.Accounts
 
             var roles = await userManager.GetRolesAsync(user);
             return Ok(MapUser(user, roles.Order(StringComparer.OrdinalIgnoreCase).ToArray()));
+        }
+
+        [HttpPost(AccountConstants.Routes.InternalAdminUserUnlock)]
+        public async Task<IActionResult> UnlockUser(Guid userId, CancellationToken cancellationToken)
+        {
+            if (!HasAdminApiKey())
+            {
+                return Unauthorized();
+            }
+
+            var user = await userManager.FindByIdAsync(userId.ToString());
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            var now = timeProvider.GetCurrentUtcDateTime();
+            user.LockoutEnd = null;
+            user.AccessFailedCount = 0;
+            user.RequiresAdminUnlock = false;
+            user.AdminLockoutUtc = null;
+            user.ModifiedUtc = now;
+
+            var activeChallenges = await database.AccountChallenges
+                .Where(value => value.UserId == user.Id && value.ConsumedUtc == null)
+                .ToListAsync(cancellationToken);
+
+            foreach (var challenge in activeChallenges)
+            {
+                challenge.ConsumedUtc = now;
+                challenge.ConcurrencyStamp = Guid.NewGuid().ToString("N");
+            }
+
+            var result = await userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(new ValidationProblemDetails(ToValidationErrors(result)));
+            }
+
+            await database.SaveChangesAsync(cancellationToken);
+            await securityEvents.Record(
+                AccountConstants.Actions.AccountUnlockedByAdmin,
+                user.Id,
+                cancellationToken: cancellationToken);
+
+            return NoContent();
         }
 
         [HttpGet(AccountConstants.Routes.InternalAdminRoles)]
@@ -227,16 +281,20 @@ namespace IdentityServer.Modules.Accounts
 
         private IdentityAdminUserResponse MapUser(IdentityUser user, IReadOnlyList<string> roles)
         {
-            var locked = user.LockoutEnabled && user.LockoutEnd > timeProvider.GetUtcNow();
+            var locked = user.RequiresAdminUnlock ||
+                (user.LockoutEnabled && user.LockoutEnd > timeProvider.GetUtcNow());
 
             return new(
                 user.Id,
                 user.UserName ?? string.Empty,
                 user.Email ?? string.Empty,
+                user.EmailConfirmed,
                 !locked,
                 locked,
+                user.RequiresAdminUnlock,
                 roles,
                 user.CreatedUtc,
+                user.AdminLockoutUtc,
                 user.LockoutEnd);
         }
 

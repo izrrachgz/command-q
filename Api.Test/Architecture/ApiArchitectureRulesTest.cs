@@ -1,4 +1,4 @@
-﻿using Api.Modules;
+using Api.Modules;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 
@@ -47,15 +47,15 @@ namespace Api.Test.Architecture
         }
 
         [Fact]
-        public void Api_Should_Compose_Email_Outbox_Without_Owning_Email_Delivery()
+        public void Api_Should_Use_Email_Api_Client_Without_Owning_Email_Delivery()
         {
             var referencedAssemblies = ApiAssembly.GetReferencedAssemblies()
                 .Select(assembly => assembly.Name)
                 .Where(name => name is not null)
                 .ToHashSet();
 
-            Assert.Contains("Email.Outbox", referencedAssemblies);
-            Assert.Contains("Email.Outbox.Persistence", referencedAssemblies);
+            Assert.Contains("Email.Client", referencedAssemblies);
+            Assert.DoesNotContain("Email.Outbox", referencedAssemblies);
             Assert.DoesNotContain("Email.Worker", referencedAssemblies);
         }
     }

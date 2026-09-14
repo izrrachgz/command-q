@@ -49,7 +49,7 @@ namespace Application.Modules.Identity.AccountActivity.Queries
         private static Query BuildQuery(GetAccountActivityQuery request, DatabaseEngine engine)
         {
             var criteria = request.SearchCriteria ?? new();
-            var query = new Query(nameof(AccountActivityEntity))
+            var query = new Query(nameof(Domain.Modules.Identity.AccountActivity))
                 .WhereNull(nameof(AccountActivityEntity.DeletedUtc))
                 .Where(nameof(AccountActivityEntity.AccountId), request.AccountId)
                 .ApplyUtcRange(nameof(AccountActivityEntity.CreatedUtc), criteria, engine);

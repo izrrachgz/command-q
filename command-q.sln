@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.1.11312.151
@@ -70,6 +70,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{EE688E67-5
 		docs\modules.md = docs\modules.md
 		docs\row-level-security.md = docs\row-level-security.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Email.Client", "Email.Client\Email.Client.csproj", "{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -273,6 +275,18 @@ Global
 		{6700F780-132C-4B2C-9976-4E8584388A03}.Release|x64.Build.0 = Release|Any CPU
 		{6700F780-132C-4B2C-9976-4E8584388A03}.Release|x86.ActiveCfg = Release|Any CPU
 		{6700F780-132C-4B2C-9976-4E8584388A03}.Release|x86.Build.0 = Release|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Debug|x64.Build.0 = Debug|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Debug|x86.Build.0 = Debug|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Release|x64.ActiveCfg = Release|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Release|x64.Build.0 = Release|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Release|x86.ActiveCfg = Release|Any CPU
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -296,6 +310,7 @@ Global
 		{6700F780-132C-4B2C-9976-4E8584388A03} = {F0A4E9DB-30E1-4F88-8BAA-4AF43AEB8A01}
 		{57773550-B771-43E6-AFA4-A2CBE6B1E0C4} = {187A6DB6-46F4-4B45-858B-2F24D325AA0A}
 		{EE688E67-5DFC-44BA-80BD-7DBE21308D43} = {187A6DB6-46F4-4B45-858B-2F24D325AA0A}
+		{BFEB8F58-C529-4B99-8DD3-760FD27B16E9} = {8B9C7E73-EC9E-43FC-A52B-4C00BC5817C6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {19D599D4-650F-479F-AC6B-61915DCDA959}

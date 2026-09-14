@@ -6,10 +6,12 @@ API and includes a standalone OpenIddict authorization-server host. That host ca
 be replaced by another standards-compatible issuer, but the API always requires
 a configured authority.
 
-The runtime spans two command-q hosts and the independently released email worker:
+The runtime spans two command-q hosts and the independently deployed email service:
 
 ```text
-IdentityServer  ->  API  ->  Email.Outbox  ->  command-emails/Email.Worker  ->  SMTP
+IdentityServer  ->  encrypted identity dispatch  ->  command-emails/Email.Api (gRPC)  ->  outbox
+API             -------------------------------->  command-emails/Email.Api (gRPC)  ->  outbox
+command-emails/Email.Worker  ------------------------------------------------------->  SMTP
 ```
 
 IdentityServer issues tokens, the API owns application workflows and queues
@@ -27,9 +29,7 @@ dependency of the backend solution.
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 - A supported database engine for the hosts or tests you run: SQL Server,
   PostgreSQL, MySQL or SQLite.
-- Released `Email.dll`, `Email.Outbox.dll` and
-  `Email.Outbox.Persistence.dll` in sibling `..\command-q-build-output`, produced
-  by a Release build of `command-emails`.
+- A running `command-emails` Email.Api and Email.Worker when durable email is needed.
 
 ## Start A New Project From This Template
 
@@ -47,8 +47,7 @@ dependency of the backend solution.
    ```powershell
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Engine" "MsSql"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
-   dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:Engine" "MsSql"
-   dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailOutbox:Persistence:ConnectionString" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
+   dotnet user-secrets set --project .\Api\Api.csproj "Api:EmailApiClient:Password" "replace-with-email-api-password"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Name" "Local Development"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Id" "replace-with-local-client-secret"
    dotnet user-secrets set --project .\Api\Api.csproj "Api:ApiClients:0:Uri" "http://localhost:4200"
@@ -56,6 +55,7 @@ dependency of the backend solution.
    dotnet user-secrets set --project .\Application.Test\Application.Test.csproj "ConnectionStrings:Db" "Server=localhost;Database=command-q;User ID=command-q;Password=change-me;TrustServerCertificate=True;"
    dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:Engine" "PgSql"
    dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:ConnectionStrings:IdentityDb" "Host=localhost;Port=5432;Database=command-q_identity;Username=postgres;Password=change-me;"
+   dotnet user-secrets set --project .\IdentityServer\IdentityServer.csproj "IdentityServer:EmailApiClient:Password" "replace-with-email-api-password"
    ```
 
 3. Prepare the database.
@@ -87,7 +87,8 @@ dependency of the backend solution.
 
    In Visual Studio 2022 17.11 or later, select the `Backend (IdentityServer +
    API)` solution launch profile before pressing F5. Run the email worker from a
-   sibling `command-emails` checkout when durable delivery is needed.
+   sibling `command-emails` checkout with its `Email API + Worker` launch profile
+   when durable delivery is needed.
 
    After the API has applied the application migrations, run the full suite with
    `.\scripts\test.ps1`. Database-backed `Application.Test` cases read their own
@@ -213,7 +214,8 @@ maps them through `AccountIdentity` using the validated token issuer and subject
 Admin role management is exposed to the SPA through protected API endpoints under
 `/admin/*`; the API calls IdentityServer through the server-side
 `Api:IdentityServerAdmin` integration and never exposes the internal admin key
-to the browser.
+to the browser. The same boundary exposes administrator-only account unlock at
+`POST /admin/accounts/{accountId}/unlock` for a future administration page.
 See `IdentityServer/README.md`.
 
 ## Package Management
@@ -224,13 +226,13 @@ NuGet versions are centrally managed in `Directory.Packages.props`. Project file
 <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
 ```
 
-### Shared release assemblies
+### Shared assemblies
 
-Release builds publish `Common.dll`, `Cqrs.dll`, `Persistence.dll` and
-`Time.dll` to the sibling `..\command-q-build-output` directory. The export is
-implemented in `Directory.Build.targets` and provides a deliberate binary
-boundary for separate solutions that reuse command-q's framework-light
-libraries. Debug builds do not update this shared output.
+Every successful non-design-time build publishes `Common.dll`, `Cqrs.dll`,
+`Persistence.dll` and `Time.dll` to the sibling `..\command-q-build-output`
+directory. The export is implemented in `Directory.Build.targets` and provides
+a deliberate binary boundary for separate solutions that reuse command-q's
+framework-light libraries. The last successfully built configuration wins.
 
 ## Runtime Configuration Reload
 
@@ -346,6 +348,8 @@ Root helper scripts are also available:
 | `.\scripts\run-identity-server.ps1` | Development on `https://localhost:7125`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\run-api.ps1` | Development on `https://localhost:7025` and `http://localhost:7000`; accepts `-Environment`, `-Urls` and `-NoBuild`. |
 | `.\scripts\add-identity-migration.ps1 -Name MigrationName` | Builds IdentityServer and scaffolds the named migration for all four EF providers. |
+| `.\scripts\request-account-email.ps1 -Email address@example.test -Purpose Confirmation` | Requests a confirmation or password-recovery message from local IdentityServer for inspection in smtp4dev. |
+| `.\scripts\test-account-email-templates.ps1` | Sends confirmation and recovery template previews directly to local smtp4dev without requiring account or database setup. |
 
 The backend run scripts bypass `launchSettings.json` deliberately so their
 `-Environment` and `-Urls` arguments are authoritative. Visual Studio uses the
@@ -506,28 +510,29 @@ version-1 development, the complete outbox schema remains folded into one
 
 ## Email Delivery
 
-SMTP delivery, outbox processing, persistence migrations and the standalone
-worker live in
-[`command-emails`](https://github.com/izrrachgz/command-emails). A Release build
-of that solution publishes `Email.dll`, `Email.Outbox.dll` and
-`Email.Outbox.Persistence.dll` to sibling `..\command-q-build-output`.
+SMTP delivery, outbox processing, persistence migrations, the authenticated
+enqueue API and worker live in
+[`command-emails`](https://github.com/izrrachgz/command-emails). Email
+implementation DLLs are no longer copied into or loaded by command-q.
 
-The API remains an outbox producer and does not compose SMTP delivery. Its
-project references the released outbox and persistence assemblies, while
-Application references only the released message and outbox contracts.
+The API and IdentityServer enqueue through the reusable `Email.Client` project
+and do not compose SMTP delivery or persistence. The client authenticates with
+Email.Api and uses the protobuf endpoint; Email.Api also exposes an equivalent
+JSON REST endpoint for interop and diagnostics.
+IdentityServer uses the outbox for confirmation and password-recovery messages;
+its authentication data remains EF Core-backed in the separate identity
+database.
 
-The Application `Notifications` module references the reusable email and
-outbox contracts and provides `QueueEmailCommand` plus
+The Application `Notifications` module references host-neutral Email.Client
+contracts and provides `QueueEmailCommand` plus
 `IApplicationEmailService`. The service offers
 prepared-message, text, HTML, attachment and verbatim-template overloads; all
-paths converge on one durable `EmailOutboxRequest` carrying optional
+paths converge on one `EmailQueueRequest` carrying optional
 idempotency, account and correlation metadata. Delivery and retries remain the
 external worker's responsibility.
 
-The module does not select storage. The API composition root registers the
-outbox core and persistence adapter against the configured email outbox store,
-while `command-emails` owns schema migration and delivery. No generic email API
-endpoint is exposed by default. SMTP configuration and email-specific tests are
+The module does not select storage. command-emails owns API authentication,
+schema migration and delivery. SMTP configuration and email-specific tests are
 documented in that repository.
 
 ## Module Registration
@@ -668,8 +673,8 @@ persistence pattern. Provider-specific database adapters remain in their
 owning persistence projects.
 
 The sibling `command-emails` solution owns SMTP-specific abstractions, MIME
-construction, MailKit transport, durable outbox processing and its worker host.
-This solution consumes only its released assemblies.
+construction, MailKit transport, durable outbox processing, its authenticated
+API and worker host. This solution consumes only its protobuf client contract.
 
 ## Deployment
 

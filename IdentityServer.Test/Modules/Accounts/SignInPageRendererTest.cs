@@ -2,6 +2,9 @@ using IdentityServer.Modules.Accounts;
 using IdentityServer.Localization;
 using IdentityServer.Resources;
 using IdentityServer.Test.Constants;
+using IdentityServer.Modules.Accounts.Configuration;
+using IdentityServer.Modules.Accounts.Services.SignIn;
+using Microsoft.Extensions.Options;
 
 namespace IdentityServer.Test.Modules.Accounts
 {
@@ -42,7 +45,10 @@ namespace IdentityServer.Test.Modules.Accounts
 
         private static SignInPageRenderer CreateRenderer()
         {
-            return new SignInPageRenderer();
+            return new SignInPageRenderer(Options.Create(new AccountEmailOptions
+            {
+                ApplicationBaseUrl = "http://localhost:4200"
+            }));
         }
     }
 }

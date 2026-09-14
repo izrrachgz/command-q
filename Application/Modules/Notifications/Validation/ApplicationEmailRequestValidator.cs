@@ -1,8 +1,8 @@
 using Public;
-using Email.Models;
+using Email.Client.Models;
 using FluentValidation;
 using Common.Extensions;
-using Email.Outbox.Constants;
+using Email.Client;
 using Localization.Providers;
 using Application.Modules.Notifications.Models;
 
@@ -45,31 +45,31 @@ namespace Application.Modules.Notifications.Validation
             });
 
             RuleFor(request => request.Metadata == null ? null : request.Metadata.IdempotencyKey)
-                .MaximumLength(EmailOutboxConstants.MaxIdempotencyKeyLength)
+                .MaximumLength(EmailQueueConstants.MaxIdempotencyKeyLength)
                 .WithMessage(messages.Get(
                     nameof(ValidationText.Field_Cannot_Exceed),
                     messages.Get(nameof(FieldNames.Idempotency_Key)),
-                    EmailOutboxConstants.MaxIdempotencyKeyLength));
+                    EmailQueueConstants.MaxIdempotencyKeyLength));
 
             RuleFor(request => request.Metadata == null ? null : request.Metadata.AccountReference)
-                .MaximumLength(EmailOutboxConstants.MaxReferenceLength)
+                .MaximumLength(EmailQueueConstants.MaxReferenceLength)
                 .WithMessage(messages.Get(
                     nameof(ValidationText.Field_Cannot_Exceed),
                     messages.Get(nameof(FieldNames.Account_Reference)),
-                    EmailOutboxConstants.MaxReferenceLength));
+                    EmailQueueConstants.MaxReferenceLength));
 
             RuleFor(request => request.Metadata == null ? null : request.Metadata.CorrelationId)
-                .MaximumLength(EmailOutboxConstants.MaxReferenceLength)
+                .MaximumLength(EmailQueueConstants.MaxReferenceLength)
                 .WithMessage(messages.Get(
                     nameof(ValidationText.Field_Cannot_Exceed),
                     messages.Get(nameof(FieldNames.Correlation_Id)),
-                    EmailOutboxConstants.MaxReferenceLength));
+                    EmailQueueConstants.MaxReferenceLength));
 
             When(request => request.ProfileName is not null, () =>
             {
                 RuleFor(request => request.ProfileName)
                     .NotEmpty()
-                    .MaximumLength(EmailOutboxConstants.MaxProfileNameLength);
+                    .MaximumLength(EmailQueueConstants.MaxProfileNameLength);
             });
         }
 

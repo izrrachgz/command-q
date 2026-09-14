@@ -7,11 +7,27 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using IdentityServer.Modules.Accounts.Configuration;
+using IdentityServer.Modules.Accounts.Abstractions.Challenges;
+using IdentityServer.Modules.Accounts.Abstractions.Email;
+using IdentityServer.Modules.Accounts.Abstractions.Recovery;
+using IdentityServer.Modules.Accounts.Abstractions.Security;
+using IdentityServer.Modules.Accounts.Abstractions.SignIn;
+using IdentityServer.Modules.Accounts.Services.Challenges;
+using IdentityServer.Modules.Accounts.Services.Email;
+using IdentityServer.Modules.Accounts.Services.Recovery;
+using IdentityServer.Modules.Accounts.Services.Security;
+using IdentityServer.Modules.Accounts.Services.SignIn;
+using IdentityServer.Modules.Accounts.Workers.Email;
 
 namespace IdentityServer.Modules.Accounts
 {
+    /// <summary>Composes Identity, account workflows, external providers, rate limiting, and account-email background processing.</summary>
     internal static class AccountsModuleExtensions
     {
+        /// <summary>Registers the complete Accounts module and returns its Identity builder for persistence-store composition.</summary>
+        /// <param name="services">The host service collection.</param>
+        /// <param name="configuration">The IdentityServer-relative configuration section.</param>
+        /// <returns>The configured ASP.NET Core Identity builder.</returns>
         public static IdentityBuilder AddAccountsModule(this IServiceCollection services, IConfiguration configuration)
         {
             var identitySection = configuration.GetRequiredSection(IdentityServerConfigKeys.Identity.Section);
@@ -116,11 +132,67 @@ namespace IdentityServer.Modules.Accounts
                     Required(IdentityServerConfigKeys.AdminApi.ApiKey))
                 .ValidateOnStart();
 
+            services.AddOptions<AccountEmailOptions>()
+                .Bind(configuration.GetRequiredSection(IdentityServerConfigKeys.AccountEmail.Section))
+                .Validate(
+                    options => Uri.TryCreate(options.ApplicationBaseUrl, UriKind.Absolute, out var uri) &&
+                        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps),
+                    Required(IdentityServerConfigKeys.AccountEmail.ApplicationBaseUrl))
+                .Validate(
+                    options => options.ConfirmationLifetimeMinutes > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.ConfirmationLifetimeMinutes))
+                .Validate(
+                    options => options.PasswordRecoveryLifetimeMinutes > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.PasswordRecoveryLifetimeMinutes))
+                .Validate(
+                    options => options.ResetGrantLifetimeMinutes > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.ResetGrantLifetimeMinutes))
+                .Validate(
+                    options => options.VerificationMaxFailedAttempts > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.VerificationMaxFailedAttempts))
+                .Validate(
+                    options => options.PasswordResetMaxFailedAttempts > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.PasswordResetMaxFailedAttempts))
+                .Validate(
+                    options => options.ResendCooldownSeconds > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.ResendCooldownSeconds))
+                .Validate(
+                    options => options.DailyDeliveryLimit > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.DailyDeliveryLimit))
+                .Validate(
+                    options => options.DispatchPollSeconds > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.DispatchPollSeconds))
+                .Validate(
+                    options => options.DispatchBatchSize > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.DispatchBatchSize))
+                .Validate(
+                    options => options.DispatchRetryBaseSeconds > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.DispatchRetryBaseSeconds))
+                .Validate(
+                    options => options.DispatchRetryMaxMinutes > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.DispatchRetryMaxMinutes))
+                .Validate(
+                    options => options.CleanupIntervalMinutes > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.CleanupIntervalMinutes))
+                .Validate(
+                    options => options.ChallengeRetentionDays > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.ChallengeRetentionDays))
+                .Validate(
+                    options => options.SecurityEventRetentionDays > 0,
+                    GreaterThanZero(IdentityServerConfigKeys.AccountEmail.SecurityEventRetentionDays))
+                .ValidateOnStart();
+
             AddExternalProviders(services, configuration);
 
             services.AddHttpContextAccessor();
             services.AddSingleton<ISignInPageRenderer, SignInPageRenderer>();
+            services.AddSingleton<IAccountEmailTemplateRenderer, AccountEmailTemplateRenderer>();
             services.AddScoped<IIdentitySecurityEventRecorder, IdentitySecurityEventRecorder>();
+            services.AddScoped<IAccountChallengeService, AccountChallengeService>();
+            services.AddScoped<IAccountEmailService, AccountEmailService>();
+            services.AddScoped<IAccountEmailMaintenanceService, AccountEmailMaintenanceService>();
+            services.AddScoped<IAccountRecoveryService, AccountRecoveryService>();
+            services.AddHostedService<AccountEmailMaintenanceWorker>();
             services.AddScoped<DevelopmentAdminRoleAssigner>();
             services.AddRateLimiter(options =>
             {

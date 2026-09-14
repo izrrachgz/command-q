@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package command.emails.v1;
+
+option csharp_namespace = "Email.Client.Grpc";
+
+service EmailQueue {
+  rpc Enqueue (EnqueueEmailRequest) returns (EnqueueEmailResponse);
+}
+
+message EmailAddressMessage {
+  string address = 1;
+  optional string name = 2;
+}
+
+message EmailBinaryContent {
+  string file_name = 1;
+  optional string content_type = 2;
+  bytes content = 3;
+  optional string content_id = 4;
+}
+
+message EmailMessageData {
+  optional EmailAddressMessage from = 1;
+  repeated EmailAddressMessage to = 2;
+  repeated EmailAddressMessage cc = 3;
+  repeated EmailAddressMessage bcc = 4;
+  repeated EmailAddressMessage reply_to = 5;
+  string subject = 6;
+  optional string text_body = 7;
+  optional string html_body = 8;
+  repeated EmailBinaryContent attachments = 9;
+  repeated EmailBinaryContent inline_resources = 10;
+}
+
+message EnqueueEmailRequest {
+  EmailMessageData message = 1;
+  optional string profile_name = 2;
+  optional string idempotency_key = 3;
+  optional string account_reference = 4;
+  optional string correlation_id = 5;
+}
+
+message EnqueueEmailResponse {
+  string id = 1;
+  bool was_duplicate = 2;
+  string created_utc = 3;
+}
