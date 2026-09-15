@@ -57,3 +57,4 @@ IdentityServer.Test/obj/
 IdentityServer.Test/Obj/
 
 postman/environments/*.local.postman_environment.json
+benchmarks/results/

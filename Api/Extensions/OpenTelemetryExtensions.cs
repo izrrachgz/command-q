@@ -11,6 +11,19 @@ namespace Api.Extensions
     /// </summary>
     internal static class OpenTelemetryExtensions
     {
+        private static readonly string[] RuntimeAndAspNetCoreMeters =
+        [
+            "System.Runtime",
+            "Microsoft.AspNetCore.Hosting",
+            "Microsoft.AspNetCore.Routing",
+            "Microsoft.AspNetCore.RateLimiting",
+            "Microsoft.AspNetCore.HeaderParsing",
+            "Microsoft.AspNetCore.Diagnostics",
+            "Microsoft.AspNetCore.Server.Kestrel",
+            "Microsoft.AspNetCore.Authentication",
+            "Microsoft.AspNetCore.Authorization"
+        ];
+
         /// <summary>
         /// Registers API tracing and metrics when OpenTelemetry is enabled in the API configuration.
         /// </summary>
@@ -36,7 +49,9 @@ namespace Api.Extensions
                 .WithTracing(tracing => tracing
                     .AddAspNetCoreInstrumentation()
                     .AddOtlpExporter(options => options.Endpoint = endpoint))
-                .WithMetrics(metrics => metrics.AddOtlpExporter(options => options.Endpoint = endpoint));
+                .WithMetrics(metrics => metrics
+                    .AddMeter(RuntimeAndAspNetCoreMeters)
+                    .AddOtlpExporter(options => options.Endpoint = endpoint));
         }
     }
 }

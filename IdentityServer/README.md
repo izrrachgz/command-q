@@ -202,6 +202,14 @@ requests by remote address. Values are configured under
 intended only for controlled capacity benchmarks. Rejections return `429 Too
 Many Requests` and `Retry-After` when available.
 
+OpenTelemetry is also disabled by default. Enable
+`IdentityServer:OpenTelemetry:Enabled` only when an OTLP collector is available,
+then configure `ServiceName` and `Otlp:Endpoint` below that section.
+IdentityServer exports ASP.NET Core request traces and .NET runtime, HTTP,
+Kestrel, routing, authentication, Identity and rate-limiter metrics. The
+rate-limiter instruments include policy and result dimensions for separating
+accepted, queued and rejected traffic.
+
 HTML templates live under `Modules/Accounts/Templates/Email`. `layout.html`
 owns the background, header and footer; culture- and purpose-specific fragments
 replace only `{{content}}`. Plain-text messages use the same arrangement through
@@ -233,6 +241,9 @@ IdentityServer:EmailApiClient:ApiClientHeaderName
 IdentityServer:EmailApiClient:ApiClientKey
 IdentityServer:EmailApiClient:UserName
 IdentityServer:EmailApiClient:Password
+IdentityServer:OpenTelemetry:Enabled
+IdentityServer:OpenTelemetry:ServiceName
+IdentityServer:OpenTelemetry:Otlp:Endpoint
 ```
 
 ## Text Resources

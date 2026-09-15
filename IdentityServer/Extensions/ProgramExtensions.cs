@@ -21,6 +21,7 @@ namespace IdentityServer.Extensions
         public static void ConfigureServices(this IHostApplicationBuilder builder)
         {
             builder.Services.AddTimeServices();
+            builder.AddIdentityServerOpenTelemetry();
 
             IConfigurationSection identityServerConfiguration = builder.Configuration
                 .GetRequiredSection(IdentityServerConfigKeys.Section);

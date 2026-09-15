@@ -71,3 +71,8 @@ For capacity benchmarks, first disable the relevant host limiter to measure the
 application and database ceiling. Repeat the same scenario with production policies enabled to
 measure user-visible throttling and verify that overload produces controlled
 `429` responses rather than resource exhaustion.
+
+Use the repository's [benchmark suite](../benchmarks/README.md) to run matched
+Ceiling and Protected Release-host passes. Its telemetry subscriptions include
+the built-in ASP.NET Core rate-limiter meter, whose policy and result dimensions
+separate accepted, queued and rejected requests without adding hot-path logging.

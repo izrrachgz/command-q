@@ -252,6 +252,15 @@ The API uses a token bucket for ordinary traffic, a sliding window for
 administrative controllers, a fixed window for account provisioning and a
 global concurrency limit for large uploads. See [API rate limiting](docs/rate-limiting.md)
 for assignments, partition behavior, configuration and benchmark guidance.
+The repeatable Release-host launch profiles, k6 load shapes, telemetry setup and
+result checklist live in [the benchmark suite](benchmarks/README.md).
+The retained local baselines are the
+[contended workstation run](benchmarks/RESULTS-2026-09-14.md) and the preferred
+[clean rerun](benchmarks/RESULTS-2026-09-14-CLEAN.md). The factual
+[performance assessment](benchmarks/PERFORMANCE-ASSESSMENT-2026-09-14.md)
+summarizes the measured capacity, boundaries, and remaining validation. A visual
+[system-composition overview](docs/system-composition.md) documents the path
+from the frontend through the independently deployed APIs, workers and data stores.
 
 Database providers, migrations, dependency-injection registrations, identity
 certificates and other infrastructure topology remain startup-bound. Outbox
@@ -487,18 +496,20 @@ its EF database. Email worker readiness is owned by `command-emails`.
 
 ## OpenTelemetry
 
-OpenTelemetry is disabled by default in the API. Enable it with
-`Api:OpenTelemetry:Enabled`, then provide the host service name and an OTLP
-endpoint under the same section. Email worker telemetry is configured in
-`command-emails`.
+OpenTelemetry is disabled by default in both command-q hosts. Enable it with
+`Api:OpenTelemetry:Enabled` or `IdentityServer:OpenTelemetry:Enabled`, then
+provide the host service name and an OTLP endpoint under the same section.
+Email API and worker telemetry are configured in `command-emails`.
 
-The API subscribes to HTTP server and email-outbox instrumentation. Its telemetry
-uses only low-cardinality engine and outcome tags. Recipients, subjects, bodies,
-tokens, correlation IDs and outbox IDs are never emitted as tags.
+The API and IdentityServer subscribe to .NET runtime, HTTP server, Kestrel,
+routing, authentication and rate-limiter meters together with ASP.NET Core
+request traces. IdentityServer also subscribes to ASP.NET Core Identity metrics.
+The external Email API owns outbox enqueue telemetry; recipients, subjects,
+bodies, tokens, correlation IDs and outbox IDs are never emitted as tags.
 
-The outbox persists W3C trace-parent and trace-state values when an enqueue
-activity has a W3C context; the worker uses those contexts as links on the
-profile processing activity without exposing them as metric tags.
+The external email outbox persists W3C trace-parent and trace-state values when
+an enqueue activity has a W3C context; the worker uses those contexts as links
+on the profile processing activity without exposing them as metric tags.
 
 Backend projects use the shared `Time` project for injectable `TimeProvider`
 registration, NodaTime conversion, TZDB validation, strict UTC JSON handling and

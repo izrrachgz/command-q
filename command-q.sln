@@ -18,6 +18,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Agents.md = Agents.md
 		README.md = README.md
+		benchmarks\PERFORMANCE-ASSESSMENT-2026-09-14.md = benchmarks\PERFORMANCE-ASSESSMENT-2026-09-14.md
+		benchmarks\RESULTS-2026-09-14.md = benchmarks\RESULTS-2026-09-14.md
+		benchmarks\RESULTS-2026-09-14-CLEAN.md = benchmarks\RESULTS-2026-09-14-CLEAN.md
+		benchmarks\assets\contended-throughput.svg = benchmarks\assets\contended-throughput.svg
+		benchmarks\assets\clean-throughput.svg = benchmarks\assets\clean-throughput.svg
+		benchmarks\assets\clean-vs-contended.svg = benchmarks\assets\clean-vs-contended.svg
+		docs\system-composition.md = docs\system-composition.md
+		docs\assets\system-composition.svg = docs\assets\system-composition.svg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{F0A4E9DB-30E1-4F88-8BAA-4AF43AEB8A01}"
