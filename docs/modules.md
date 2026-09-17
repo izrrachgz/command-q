@@ -15,7 +15,7 @@ organized so a future project can keep, replace or remove them deliberately.
 | Identity | Core | Application profiles, account preferences, external identity mapping and queryable business account activity. Authentication belongs to `IdentityServer`. |
 | Configuration | Core | Immutable application configuration snapshots, including startup version, environment, language and server timezone. |
 | Health | Core | Health checks and operational diagnostics. |
-| Notifications | Optional infrastructure | Application commands and services for validated durable email enqueueing. SMTP delivery and persistence remain outside Application. |
+| Notifications | Optional infrastructure | Application commands and services for validated durable email enqueueing, account-scoped history and administrator queue search. SMTP delivery and persistence remain outside Application. |
 | Files | Optional | Authenticated file upload and account file metadata. |
 | Contacts | Sample | Example account-owned feature module. |
 | Addresses | Sample | Example account-owned feature module. |
@@ -75,6 +75,6 @@ Use this checklist when removing a module.
 - Configuration history is read-only and admin-only at `GET /admin/configurations`. Startup records authoritative server values and the server instance name after application migrations complete; clients cannot append snapshots.
 - API modules own transport-only request DTOs under their `Requests` folders. Controllers map those requests to application commands after applying authenticated-account and transport policies.
 - `POST /files` accepts common documents, images, audio, video and ZIP files up to 200 MB. Reusable category policies remain in the API Files module for specialized future endpoints.
-- The Notifications module references only `Email.Client` contracts. command-q hosts enqueue through command-emails' authenticated protobuf API; `Email.Api` owns persistence/migrations and `Email.Worker` owns delivery/retries.
+- The Notifications module references only `Email.Client` contracts. command-q hosts enqueue, retain account-scoped reads and perform EmailAdmin searches through command-emails' authenticated protobuf API; `Email.Api` owns persistence/migrations and `Email.Worker` owns delivery/retries. `GET /notifications/emails` and its ID detail route require the command-q `Admin` role. Search pages contain indexed summaries, detail responses omit attachment bytes, and privacy-safe audit events record searches and successful detail access without logging filter contents. Email.Api restricts both operations to command-q's stable producer identity.
 - Removing IdentityServer requires replacing the API `Authentication:Authority` with another standards-compatible issuer; do not move credentials back into the API.
 - Treat `Contacts`, `Addresses`, `Events` and `Registers` as examples until a product needs them.

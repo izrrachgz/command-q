@@ -4,6 +4,7 @@ using Api.Modules.Contacts;
 using Api.Modules.Identity;
 using Api.Modules.Addresses;
 using Api.Modules.Configuration;
+using Api.Modules.Notifications;
 
 namespace Api.Modules
 {
@@ -18,7 +19,8 @@ namespace Api.Modules
                 .MapConfigurationModule()
                 .MapContactsModule()
                 .MapAddressesModule()
-                .MapFilesModule();
+                .MapFilesModule()
+                .MapNotificationsModule();
 
             return endpoints;
         }

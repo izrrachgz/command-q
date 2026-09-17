@@ -105,7 +105,10 @@ namespace Api.Test.Infrastructure
                 File.Delete(_databasePath);
         }
 
-        public static string CreateAccessToken(string? scope = ApiScope, string audience = ApiAudience)
+        public static string CreateAccessToken(
+            string? scope = ApiScope,
+            string audience = ApiAudience,
+            params string[] roles)
         {
             var claims = new List<Claim>
             {
@@ -118,6 +121,7 @@ namespace Api.Test.Infrastructure
             {
                 claims.Add(new Claim("scope", scope));
             }
+            claims.AddRange(roles.Select(role => new Claim("role", role)));
 
             var descriptor = new SecurityTokenDescriptor
             {

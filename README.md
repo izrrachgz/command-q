@@ -540,12 +540,22 @@ its authentication data remains EF Core-backed in the separate identity
 database.
 
 The Application `Notifications` module references host-neutral Email.Client
-contracts and provides `QueueEmailCommand` plus
+contracts and provides `QueueEmailCommand`, `GetAccountEmailsQuery` and
 `IApplicationEmailService`. The service offers
 prepared-message, text, HTML, attachment and verbatim-template overloads; all
 paths converge on one `EmailQueueRequest` carrying optional
 idempotency, account and correlation metadata. Delivery and retries remain the
 external worker's responsibility.
+
+Administrators can search newest-first email history through
+`GET /notifications/emails?page=1&size=20`. The endpoint requires the `Admin`
+role and accepts text, recipient, status and UTC date-range filters. Email.Api
+also accepts an account-reference filter. Search responses are lightweight
+summaries; `GET /notifications/emails/{id}` loads an owner-scoped detail without
+attachment bytes. Email.Api derives a stable producer-owner scope from
+command-q's configured API client, so the page spans application account
+references but never another producer. The account-scoped Email API operation
+remains available to trusted integrations, and page size is limited to 100.
 
 The module does not select storage. command-emails owns API authentication,
 schema migration and delivery. SMTP configuration and email-specific tests are

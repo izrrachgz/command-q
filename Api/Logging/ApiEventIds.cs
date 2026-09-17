@@ -19,5 +19,7 @@ namespace Api.Logging
         public const int StartupSetting = ApiEventIdRanges.General + 50;
         public const int RunningInDevelopment = ApiEventIdRanges.General + 51;
         public const int ConfigurationReloaded = ApiEventIdRanges.General + 60;
+        public const int EmailAdminSearch = ApiEventIdRanges.General + 70;
+        public const int EmailAdminDetail = ApiEventIdRanges.General + 71;
     }
 }

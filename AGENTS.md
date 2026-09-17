@@ -20,7 +20,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Backend Postman artifacts live under `postman/`. Keep committed environments free from passwords, API-client keys, client secrets and issued tokens; local environment exports should use the ignored `*.local.postman_environment.json` suffix.
 - NuGet package versions are centrally managed in `Directory.Packages.props`; do not add inline `Version` attributes to `PackageReference` items.
 - Every successful non-design-time build copies `Common.dll`, `Cqrs.dll`, `Persistence.dll` and `Time.dll` to the sibling `..\command-q-build-output` directory through `Directory.Build.targets`; the last successful build wins. Keep that binary-export boundary limited to stable reusable projects.
-- `Email.Client` owns command-q's versioned protobuf client and host-neutral queue contracts. Application, Api and IdentityServer reference it instead of loading `Email*.dll` assemblies.
+- `Email.Client` owns command-q's versioned protobuf client and host-neutral queue/history contracts. Application, Api and IdentityServer reference it instead of loading `Email*.dll` assemblies.
 - Do not add project references from command-q into the sibling `command-emails` repository. Keep the duplicated `.proto` wire contract compatible across repositories.
 - The workspace may contain unrelated user changes. Do not revert files unless explicitly asked.
 
@@ -65,6 +65,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `SecurityHeadersMiddleware` adds browser security headers. Keep security middleware in backend API infrastructure.
 - Unexpected exception details are sanitized outside Development by `ApiExceptionHandler`, registered through ASP.NET Core's exception-handler pipeline.
 - The API queues notifications through `Email.Client` and command-emails' authenticated protobuf endpoint. It owns no email outbox persistence, migration lifecycle or SMTP delivery.
+- `GET /notifications/emails` is Admin-role-only and searches the queue owned by command-q's authenticated Email API producer. Email.Api derives that producer scope from its bearer token; never accept it from the browser. Keep the lower-level account-reference filter available for account-scoped integrations.
 
 ### IdentityServer
 - Standalone ASP.NET Core Identity and OpenIddict authorization-server host. It is independently deployable and connected to `Api` through standard OpenID Connect discovery, not a project reference.
@@ -99,7 +100,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Shared validator limits live in `Application/Constants/ValidationLimits.cs`.
 - Register module-owned services explicitly through `AddApplicationModules(configuration)` and module-specific methods such as `AddIdentityModule()`. Module extensions own request registrations through `AddApplicationRequest<TRequest, TResponse, THandler>()`, as well as validators and mappers; do not move those registrations back into a project-wide scanner. The helper attaches the Application-owned FluentValidation behavior to each closed request pipeline.
 - Application accounts are business profiles. Keep passwords, auth lockout and protocol sessions out of Application.
-- `Application.Modules.Notifications` owns `QueueEmailCommand` and `IApplicationEmailService`. Queueing is the default; do not add an immediate-send switch to the command.
+- `Application.Modules.Notifications` owns `QueueEmailCommand`, `GetAccountEmailsQuery` and `IApplicationEmailService`. Queueing is the default; do not add an immediate-send switch to the command.
 - Notification overloads converge on `ApplicationEmailRequest`, which carries a prepared `EmailMessage` plus optional idempotency, account and correlation metadata.
 - The Notifications module must not reference email persistence or worker implementations. Hosts register `Email.Client`; Email.Api owns the outbox and the worker owns SMTP delivery/retries.
 - Do not expose a generic notification endpoint without explicit authorization and abuse controls.

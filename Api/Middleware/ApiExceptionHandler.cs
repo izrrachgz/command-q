@@ -3,6 +3,7 @@ using Api.Extensions;
 using Api.Logging;
 using Api.Middleware.Exceptions;
 using Common.Exceptions;
+using Email.Client.Exceptions;
 using FluentValidation;
 using Localization.Abstractions;
 using Microsoft.AspNetCore.Diagnostics;
@@ -79,6 +80,7 @@ namespace Api.Middleware
                 HttpUnauthorizedException => StatusCodes.Status401Unauthorized,
                 HttpForbiddenException or NotValidApiClientException => StatusCodes.Status403Forbidden,
                 HttpNotFoundException => StatusCodes.Status404NotFound,
+                EmailApiClientException => StatusCodes.Status502BadGateway,
                 _ => StatusCodes.Status500InternalServerError
             };
 
@@ -91,6 +93,7 @@ namespace Api.Middleware
                 HttpForbiddenException => ApiProblemCodes.Forbidden,
                 NotValidApiClientException => ApiProblemCodes.ApiClientInvalid,
                 HttpNotFoundException => ApiProblemCodes.NotFound,
+                EmailApiClientException => ApiProblemCodes.UpstreamFailure,
                 _ => ApiProblemCodes.InternalError
             };
 

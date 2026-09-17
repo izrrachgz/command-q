@@ -134,7 +134,9 @@ namespace Application.Test.Architecture
             [
                 typeof(Application.Modules.Identity.Accounts.Commands.CreateAccountCommand).FullName,
                 typeof(Application.Modules.Identity.Accounts.Queries.GetAccountByIdentityQuery).FullName,
-                typeof(Application.Modules.Identity.Accounts.Queries.GetAccountByUsernameQuery).FullName
+                typeof(Application.Modules.Identity.Accounts.Queries.GetAccountByUsernameQuery).FullName,
+                typeof(Application.Modules.Notifications.Queries.GetEmailDetailQuery).FullName,
+                typeof(Application.Modules.Notifications.Queries.SearchEmailsQuery).FullName
             ];
 
             Assert.Equal(expected.Order(), actual);
@@ -256,6 +258,7 @@ namespace Application.Test.Architecture
                 "Api.Modules.Addresses",
                 "Api.Modules.Files",
                 "Api.Modules.Health",
+                "Api.Modules.Notifications",
                 "Api.Modules.Configuration");
         }
 

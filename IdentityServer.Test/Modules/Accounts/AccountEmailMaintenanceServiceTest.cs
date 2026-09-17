@@ -190,6 +190,23 @@ namespace IdentityServer.Test.Modules.Accounts
                 EnqueueCount++;
                 return Task.FromResult(new EmailQueueResult(Guid.NewGuid(), false, DateTime.UtcNow));
             }
+
+            public Task<EmailQueuePageResult> GetPageAsync(
+                EmailQueuePageRequest request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<EmailQueuePageResult> SearchAsync(
+                EmailQueueSearchRequest request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<QueuedEmailDetail?> GetDetailAsync(Guid id, CancellationToken cancellationToken = default) =>
+                throw new NotSupportedException();
         }
     }
 }

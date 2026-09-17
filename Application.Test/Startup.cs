@@ -48,6 +48,37 @@ namespace Application.Test
             {
                 return Task.FromResult(new EmailQueueResult(Guid.Empty, false, SystemClock.Instance.GetCurrentInstant().ToDateTimeUtc()));
             }
+
+            public Task<EmailQueuePageResult> GetPageAsync(
+                EmailQueuePageRequest request,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new EmailQueuePageResult
+                {
+                    Items = [],
+                    Page = request.Page,
+                    PageSize = request.PageSize,
+                    TotalCount = 0,
+                    TotalPages = 0
+                });
+            }
+
+            public Task<EmailQueuePageResult> SearchAsync(
+                EmailQueueSearchRequest request,
+                CancellationToken cancellationToken = default)
+            {
+                return Task.FromResult(new EmailQueuePageResult
+                {
+                    Items = [],
+                    Page = request.Page,
+                    PageSize = request.PageSize,
+                    TotalCount = 0,
+                    TotalPages = 0
+                });
+            }
+
+            public Task<QueuedEmailDetail?> GetDetailAsync(Guid id, CancellationToken cancellationToken = default) =>
+                Task.FromResult<QueuedEmailDetail?>(null);
         }
     }
 }

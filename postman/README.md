@@ -111,6 +111,10 @@ Application API paths use lowercase resource names. Profile provisioning uses
 `POST /accounts`, current-account resources use `/accounts/me`, and admin
 resources use `/admin`. The general `POST /files` request accepts supported
 documents, images, audio, short videos and ZIP files no larger than 200 MB.
+`GET /notifications/emails` requires the `Admin` role and returns producer-scoped
+email summaries. It supports account, text, recipient, status, creation-date and
+paging filters. Set `emailId` from a summary row before using the admin detail
+request; that response includes bodies and attachment metadata but not bytes.
 Successful resource queries return their resource directly, paged requests use
 an `items` collection, and errors use `application/problem+json` with stable
 `errorCode` and `traceId` fields.

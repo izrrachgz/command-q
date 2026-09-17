@@ -1498,6 +1498,80 @@
           ]
         },
         {
+          "name": "Notifications",
+          "item": [
+            {
+              "name": "Search email history (Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{apiBaseUrl}}/notifications/emails?page=1&size=20",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "notifications",
+                    "emails"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20"
+                    },
+                    {
+                      "key": "AccountReference",
+                      "value": "account-reference",
+                      "disabled": true
+                    },
+                    {
+                      "key": "SearchTerm",
+                      "value": "confirmation",
+                      "disabled": true
+                    },
+                    {
+                      "key": "Recipient",
+                      "value": "person@example.test",
+                      "disabled": true
+                    },
+                    {
+                      "key": "Status",
+                      "value": "Sent",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Returns lightweight newest-first email summaries for the configured producer. Requires the Admin role; size must be between 1 and 100."
+              },
+              "response": []
+            },
+            {
+              "name": "Get email detail (Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{apiBaseUrl}}/notifications/emails/{{emailId}}",
+                  "host": [
+                    "{{apiBaseUrl}}"
+                  ],
+                  "path": [
+                    "notifications",
+                    "emails",
+                    "{{emailId}}"
+                  ]
+                },
+                "description": "Returns one producer-scoped email detail without attachment bytes. Requires the Admin role."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
           "name": "Run authenticated health scan",
           "request": {
             "method": "GET",

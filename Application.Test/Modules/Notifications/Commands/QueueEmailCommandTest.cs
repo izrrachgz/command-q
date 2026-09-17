@@ -140,6 +140,23 @@ namespace Application.Test.Modules.Notifications.Commands
                 Request = request;
                 return Task.FromResult(result);
             }
+
+            public Task<EmailQueuePageResult> GetPageAsync(
+                EmailQueuePageRequest request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<EmailQueuePageResult> SearchAsync(
+                EmailQueueSearchRequest request,
+                CancellationToken cancellationToken = default)
+            {
+                throw new NotSupportedException();
+            }
+
+            public Task<QueuedEmailDetail?> GetDetailAsync(Guid id, CancellationToken cancellationToken = default) =>
+                throw new NotSupportedException();
         }
     }
 }
