@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Generic RESX and JSON localization composition for CommandQ applications.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,67 +12,6 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Resources\Messages.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Messages.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\ValidationText.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ValidationText.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\FieldNames.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>FieldNames.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\Messages.en.resx">
-      <Generator></Generator>
-      <CustomToolNamespace></CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Messages.es.resx">
-      <Generator></Generator>
-      <CustomToolNamespace></CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Messages.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Public</CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\ValidationText.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>ValidationText.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Public</CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\FieldNames.en.resx">
-      <Generator></Generator>
-      <CustomToolNamespace></CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\FieldNames.es.resx">
-      <Generator></Generator>
-      <CustomToolNamespace></CustomToolNamespace>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\FieldNames.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>FieldNames.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Public</CustomToolNamespace>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Locales\en.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Locales\es.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

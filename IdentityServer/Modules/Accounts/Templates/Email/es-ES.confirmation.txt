@@ -1,9 +1,0 @@
-Hola {{username}},
-
-Abre este enlace de un solo uso e ingresa el código para activar tu cuenta:
-{{actionUrl}}
-
-Código de verificación: {{code}}
-Vence: {{expiresUtc}}
-
-Después de tres códigos incorrectos, solicita un nuevo correo de confirmación; tu cuenta no será bloqueada.

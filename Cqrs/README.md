@@ -1,4 +1,4 @@
-# Cqrs
+# CommandQ.Cqrs
 
 `Cqrs` is command-q's small, framework-light in-process request dispatcher. It
 owns the command, query, handler and pipeline contracts that were previously
@@ -8,6 +8,12 @@ The project exists separately from `Common` so its public surface and future
 features can evolve without expanding a widely referenced utility assembly.
 It has no dependency on Application, Domain, persistence, transport, logging
 or validation packages.
+
+## Install
+
+```powershell
+dotnet add package CommandQ.Cqrs
+```
 
 ## What It Provides
 
@@ -106,3 +112,7 @@ ASP.NET Core host AOT-compatible by itself.
 
 Potential additions and the problems they would solve are tracked in
 [`FUTURE-FEATURES.md`](FUTURE-FEATURES.md).
+
+## Tests
+
+Dispatcher, pipeline and architecture tests live in [`Cqrs.Test`](../Cqrs.Test/README.md).

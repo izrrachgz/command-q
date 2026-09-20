@@ -16,8 +16,14 @@ namespace Localization.Providers
         {
             foreach (var provider in _providers)
             {
+                if (provider is ResxTextProvider resx && resx.TryGet(key, out var resxValue))
+                    return args.Length > 0 ? string.Format(resxValue!, args) : resxValue!;
+
+                if (provider is JsonTextProvider json && json.TryGet(key, out var jsonValue))
+                    return args.Length > 0 ? string.Format(jsonValue!, args) : jsonValue!;
+
                 var value = provider.Get(key, args);
-                if (value != key)
+                if (!string.Equals(value, key, StringComparison.Ordinal))
                     return value;
             }
             return key;

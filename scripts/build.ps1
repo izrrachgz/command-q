@@ -14,3 +14,4 @@ if (-not $NoRestore) {
 }
 
 dotnet build $solution --configuration $Configuration --no-restore
+dotnet pack $solution --configuration $Configuration --no-restore --no-build

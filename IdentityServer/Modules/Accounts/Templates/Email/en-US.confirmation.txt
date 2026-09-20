@@ -1,9 +1,0 @@
-Hi {{username}},
-
-Open this one-time link and enter the verification code to activate your account:
-{{actionUrl}}
-
-Verification code: {{code}}
-Expires: {{expiresUtc}}
-
-After three incorrect codes, request a new confirmation email; your account will not be locked.

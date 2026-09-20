@@ -1,6 +1,0 @@
-command-q
-
-{{content}}
-
----
-{{footer}}

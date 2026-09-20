@@ -1,110 +1,149 @@
-using Localization.Configuration;
-using Localization.Models;
 using System.Globalization;
-using Localization.Providers;
 using Localization.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
+using Localization.Configuration;
+using Localization.DependencyInjection;
+using Localization.Models;
+using Localization.Providers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Localization.Extensions
 {
     /// <summary>
-    /// Registers localization text providers.
+    /// Registers the generic localization mechanism. Applications register their own
+    /// RESX and JSON resources through the returned <see cref="LocalizationBuilder"/>.
     /// </summary>
     public static class LocalizationServiceExtensions
     {
-        /// <summary>
-        /// Registers scoped text providers that resolve values using the current UI culture for the active scope.
-        /// </summary>
-        /// <param name="services">Service collection to configure.</param>
-        /// <param name="configure">Optional localization settings such as provider order, supported cultures and fallback culture.</param>
-        public static IServiceCollection AddLocalizationServices(this IServiceCollection services, Action<LocalizationOptions>? configure = null)
+        public static LocalizationBuilder AddCommandQLocalization(
+            this IServiceCollection services,
+            Action<LocalizationOptions>? configure = null)
         {
-            var localizationOptions = new LocalizationOptions();
+            ArgumentNullException.ThrowIfNull(services);
 
-            configure?.Invoke(localizationOptions);
+            var options = new LocalizationOptions();
+            configure?.Invoke(options);
+            Validate(options);
 
-            services.AddSingleton(localizationOptions);
-            services.AddScoped<ITextProvider>(serviceProvider =>
-            {
-                var localizationOptions = serviceProvider.GetRequiredService<LocalizationOptions>();
-
-                return new CompositeTextProvider(CreateProviders(ResolveCulture(CultureInfo.CurrentUICulture, localizationOptions), localizationOptions));
-            });
-
-            services.AddScoped(serviceProvider =>
-            {
-                var localizationOptions = serviceProvider.GetRequiredService<LocalizationOptions>();
-
-                return new ValidationTextProvider(ResolveCulture(CultureInfo.CurrentUICulture, localizationOptions), CreateFallbackCulture(localizationOptions));
-            });
-
-            return services;
+            services.AddSingleton(options);
+            AddCoreServices(services);
+            return new LocalizationBuilder(services);
         }
 
-        /// <summary>
-        /// Registers localization providers bound to reloadable configuration.
-        /// </summary>
-        /// <param name="services">The service collection to configure.</param>
-        /// <param name="configuration">The configuration section containing localization settings.</param>
-        /// <returns>The supplied service collection.</returns>
-        public static IServiceCollection AddLocalizationServices(this IServiceCollection services, IConfiguration configuration)
+        public static LocalizationBuilder AddCommandQLocalization(
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
+            ArgumentNullException.ThrowIfNull(services);
+            ArgumentNullException.ThrowIfNull(configuration);
+
             services.AddOptions<LocalizationOptions>()
                 .Bind(configuration)
-                .Validate(options => options.SupportedCultures.Length > 0, "Localization:SupportedCultures must contain at least one culture.")
-                .Validate(options => !string.IsNullOrWhiteSpace(options.DefaultCulture) && options.SupportedCultures.Contains(options.DefaultCulture, StringComparer.OrdinalIgnoreCase), "Localization:DefaultCulture must be one of the supported cultures.")
-                .Validate(options => !string.IsNullOrWhiteSpace(options.FallbackCulture), "Localization:FallbackCulture is required.")
+                .Validate(
+                    options => options.SupportedCultures.Length > 0,
+                    "Localization:SupportedCultures must contain at least one culture.")
+                .Validate(
+                    options => !string.IsNullOrWhiteSpace(options.DefaultCulture)
+                        && options.SupportedCultures.Contains(options.DefaultCulture, StringComparer.OrdinalIgnoreCase),
+                    "Localization:DefaultCulture must be one of the supported cultures.")
+                .Validate(
+                    options => !string.IsNullOrWhiteSpace(options.FallbackCulture),
+                    "Localization:FallbackCulture is required.")
                 .ValidateOnStart();
 
-            services.AddScoped<ITextProvider>(serviceProvider =>
-            {
-                var options = serviceProvider.GetRequiredService<IOptionsMonitor<LocalizationOptions>>().CurrentValue;
-                var primaryCulture = ResolveCulture(CultureInfo.CurrentUICulture, options);
-
-                return new CompositeTextProvider(CreateProviders(primaryCulture, options));
-            });
-
-            services.AddScoped(serviceProvider =>
-            {
-                var options = serviceProvider.GetRequiredService<IOptionsMonitor<LocalizationOptions>>().CurrentValue;
-
-                return new ValidationTextProvider(ResolveCulture(CultureInfo.CurrentUICulture, options), CreateFallbackCulture(options));
-            });
-
-            return services;
+            AddCoreServices(services);
+            return new LocalizationBuilder(services);
         }
 
-        private static IEnumerable<ITextProvider> CreateProviders(CultureInfo primaryCulture, LocalizationOptions localizationOptions)
+        private static void AddCoreServices(IServiceCollection services)
         {
-            var fallbackCulture = CreateFallbackCulture(localizationOptions);
-
-            foreach (var providerType in localizationOptions.ProviderOrder)
+            services.TryAddScoped<ITextProvider>(serviceProvider =>
             {
-                yield return providerType switch
+                var options = ResolveOptions(serviceProvider);
+                var primaryCulture = ResolveCulture(CultureInfo.CurrentUICulture, options);
+                var fallbackCulture = CultureInfo.GetCultureInfo(options.FallbackCulture);
+                var providers = CreateProviders(serviceProvider, primaryCulture, fallbackCulture, options);
+                return new CompositeTextProvider(providers);
+            });
+
+            services.TryAddScoped<ValidationTextProvider>();
+        }
+
+        private static IEnumerable<ITextProvider> CreateProviders(
+            IServiceProvider serviceProvider,
+            CultureInfo primaryCulture,
+            CultureInfo fallbackCulture,
+            LocalizationOptions options)
+        {
+            var resxResources = serviceProvider
+                .GetServices<ResxLocalizationSourceRegistration>()
+                .Select(registration => registration.ResourceManager)
+                .ToArray();
+            var jsonRegistrations = serviceProvider
+                .GetServices<JsonLocalizationSourceRegistration>()
+                .ToArray();
+
+            foreach (var providerType in options.ProviderOrder)
+            {
+                if (providerType == LocalizationProviderType.Json)
                 {
-                    LocalizationProviderType.Json => new JsonTextProvider(primaryCulture.Name, localizationOptions),
-                    LocalizationProviderType.Resx => new ResxTextProvider(primaryCulture, fallbackCulture),
-                    _ => new ResxTextProvider(primaryCulture, fallbackCulture)
-                };
+                    foreach (var registration in jsonRegistrations)
+                    {
+                        var providerOptions = CopyOptions(options);
+                        if (!string.IsNullOrWhiteSpace(registration.LocalesPath))
+                            providerOptions.JsonLocalesPath = registration.LocalesPath;
+
+                        yield return new JsonTextProvider(primaryCulture.Name, providerOptions);
+                    }
+                }
+                else if (providerType == LocalizationProviderType.Resx && resxResources.Length > 0)
+                {
+                    yield return new ResxTextProvider(resxResources, primaryCulture, fallbackCulture);
+                }
             }
         }
 
-        private static CultureInfo CreateFallbackCulture(LocalizationOptions localizationOptions)
+        private static LocalizationOptions ResolveOptions(IServiceProvider serviceProvider)
         {
-            return CultureInfo.GetCultureInfo(localizationOptions.FallbackCulture);
+            var monitor = serviceProvider.GetService<IOptionsMonitor<LocalizationOptions>>();
+            return monitor?.CurrentValue
+                ?? serviceProvider.GetRequiredService<LocalizationOptions>();
         }
 
-        private static CultureInfo ResolveCulture(CultureInfo requestedCulture, LocalizationOptions localizationOptions)
+        private static CultureInfo ResolveCulture(CultureInfo requestedCulture, LocalizationOptions options)
         {
-            if (localizationOptions.SupportedCultures.Any(supportedCulture => supportedCulture.Equals(requestedCulture.Name, StringComparison.OrdinalIgnoreCase)))
+            if (options.SupportedCultures.Contains(requestedCulture.Name, StringComparer.OrdinalIgnoreCase))
                 return requestedCulture;
 
-            if (localizationOptions.SupportedCultures.Any(supportedCulture => supportedCulture.Equals(requestedCulture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase)))
-                return requestedCulture;
+            if (options.SupportedCultures.Contains(requestedCulture.TwoLetterISOLanguageName, StringComparer.OrdinalIgnoreCase))
+                return CultureInfo.GetCultureInfo(requestedCulture.TwoLetterISOLanguageName);
 
-            return CreateFallbackCulture(localizationOptions);
+            return CultureInfo.GetCultureInfo(options.DefaultCulture);
+        }
+
+        private static LocalizationOptions CopyOptions(LocalizationOptions options)
+        {
+            return new LocalizationOptions
+            {
+                DefaultCulture = options.DefaultCulture,
+                FallbackCulture = options.FallbackCulture,
+                SupportedCultures = [.. options.SupportedCultures],
+                JsonLocalesPath = options.JsonLocalesPath,
+                ProviderOrder = [.. options.ProviderOrder]
+            };
+        }
+
+        private static void Validate(LocalizationOptions options)
+        {
+            if (options.SupportedCultures.Length == 0)
+                throw new ArgumentException("At least one supported culture is required.", nameof(options));
+            if (string.IsNullOrWhiteSpace(options.DefaultCulture)
+                || !options.SupportedCultures.Contains(options.DefaultCulture, StringComparer.OrdinalIgnoreCase))
+                throw new ArgumentException("The default culture must be supported.", nameof(options));
+            if (string.IsNullOrWhiteSpace(options.FallbackCulture))
+                throw new ArgumentException("A fallback culture is required.", nameof(options));
         }
     }
 }

@@ -1,34 +1,26 @@
-using Public;
-using System.Globalization;
 using Localization.Abstractions;
 
 namespace Localization.Providers
 {
     /// <summary>
-    /// Resolves validation templates and validator field names from embedded .resx resources.
+    /// Compatibility facade for validators. Application-owned validation and field-name
+    /// resources are resolved by the configured generic text provider.
     /// </summary>
     public sealed class ValidationTextProvider : ITextProvider
     {
-        private readonly CultureInfo _primaryCulture;
-
-        private readonly CultureInfo? _fallbackCulture;
+        private readonly ITextProvider _textProvider;
 
         /// <summary>
-        /// Creates a provider using the current UI culture.
+        /// Creates an unconfigured provider that returns missing keys unchanged.
+        /// This is intended for validator unit tests; applications should resolve the provider from DI.
         /// </summary>
-        public ValidationTextProvider() : this(CultureInfo.CurrentUICulture)
+        public ValidationTextProvider() : this(new EmptyTextProvider())
         {
         }
 
-        /// <summary>
-        /// Creates a provider for a specific culture and optional fallback culture.
-        /// </summary>
-        /// <param name="culture">Primary culture used to resolve validation text.</param>
-        /// <param name="fallbackCulture">Fallback culture used when the primary culture has no value.</param>
-        public ValidationTextProvider(CultureInfo primaryCulture, CultureInfo? fallbackCulture = null)
+        public ValidationTextProvider(ITextProvider textProvider)
         {
-            _primaryCulture = primaryCulture;
-            _fallbackCulture = fallbackCulture;
+            _textProvider = textProvider;
         }
 
         /// <summary>
@@ -36,21 +28,12 @@ namespace Localization.Providers
         /// </summary>
         public string Get(string key, params object[] args)
         {
-            var value = GetResourceValue(key, _primaryCulture);
-
-            if (value is null && _fallbackCulture is not null && !_fallbackCulture.Equals(_primaryCulture))
-                value = GetResourceValue(key, _fallbackCulture);
-
-            if (value == null)
-                return key;
-
-            return args.Length > 0 ? string.Format(value, args) : value;
+            return _textProvider.Get(key, args);
         }
 
-        private static string? GetResourceValue(string key, CultureInfo culture)
+        private sealed class EmptyTextProvider : ITextProvider
         {
-            return ValidationText.ResourceManager.GetString(key, culture)
-                ?? FieldNames.ResourceManager.GetString(key, culture);
+            public string Get(string key, params object[] args) => key;
         }
     }
 }

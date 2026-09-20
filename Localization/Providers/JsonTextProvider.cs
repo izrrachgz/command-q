@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Globalization;
 using Localization.Configuration;
 using Localization.Abstractions;
 using Localization.Serialization;
@@ -36,7 +37,9 @@ namespace Localization.Providers
         {
             _primaryCultureName = NormalizeCulture(primaryCultureName);
             _fallbackCultureName = NormalizeCulture(localizationOptions.FallbackCulture);
-            _localesPath = localizationOptions.JsonLocalesPath;
+            _localesPath = Path.IsPathRooted(localizationOptions.JsonLocalesPath)
+                ? localizationOptions.JsonLocalesPath
+                : Path.Combine(AppContext.BaseDirectory, localizationOptions.JsonLocalesPath);
         }
 
         /// <summary>
@@ -44,15 +47,20 @@ namespace Localization.Providers
         /// </summary>
         public string Get(string key, params object[] args)
         {
-            var value = GetValue(_primaryCultureName, key);
+            if (!TryGet(key, out var value))
+                return key;
+
+            return args.Length > 0 ? string.Format(value!, args) : value!;
+        }
+
+        internal bool TryGet(string key, out string? value)
+        {
+            value = GetValue(_primaryCultureName, key);
 
             if (value is null && !_fallbackCultureName.Equals(_primaryCultureName, StringComparison.OrdinalIgnoreCase))
                 value = GetValue(_fallbackCultureName, key);
 
-            if (value is null)
-                return key;
-
-            return args.Length > 0 ? string.Format(value, args) : value;
+            return value is not null;
         }
 
         private string? GetValue(string cultureName, string key)
@@ -64,9 +72,9 @@ namespace Localization.Providers
 
         private IReadOnlyDictionary<string, string> Load(string cultureName)
         {
-            var path = Path.Combine(_localesPath, $@"{cultureName}.json");
+            var path = ResolvePath(cultureName);
 
-            if (!File.Exists(path))
+            if (path is null)
                 return new Dictionary<string, string>();
 
             var json = File.ReadAllText(path);
@@ -74,9 +82,20 @@ namespace Localization.Providers
             return JsonSerializer.Deserialize(json, LocalizationJsonContext.Default.DictionaryStringString) ?? [];
         }
 
+        private string? ResolvePath(string cultureName)
+        {
+            var exactPath = Path.Combine(_localesPath, $@"{cultureName}.json");
+            if (File.Exists(exactPath))
+                return exactPath;
+
+            var neutralCulture = CultureInfo.GetCultureInfo(cultureName).TwoLetterISOLanguageName;
+            var neutralPath = Path.Combine(_localesPath, $@"{neutralCulture}.json");
+            return File.Exists(neutralPath) ? neutralPath : null;
+        }
+
         private static string NormalizeCulture(string culture)
         {
-            return culture.Split('-')[0];
+            return CultureInfo.GetCultureInfo(culture).Name;
         }
     }
 }
