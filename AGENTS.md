@@ -79,6 +79,8 @@ This file captures practical repository knowledge for coding agents working in t
 
 - Use source-generated logging with `LoggerMessage` for reusable library logging.
 - General event ID ranges live in `Common/Logging/CommonEventIdRanges.cs` and `Persistence/Logging/PersistenceEventIdRanges.cs`.
+- Global repository reservations are documented in `docs/logging-event-ids.md`; update the registry when a solution allocates a new range.
+- Logging tests enforce package range membership and uniqueness. Keep them aligned with every new event or logging package.
 - Keep IDs stable after release and do not log connection strings, credentials, tokens, localized sensitive values or command parameters that may contain secrets.
 
 ## Coding Conventions

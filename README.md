@@ -63,6 +63,17 @@ Consuming repositories reference that directory as a local NuGet source during d
 The repository README, package configuration and build/test scripts are visible under the
 solution's `Solution Items` folder in Visual Studio.
 
+## Logging event IDs
+
+Reusable package event IDs keep the same meaning in every consuming application.
+`CommandQ.Common` owns `300000-300999`, while `CommandQ.Persistence` owns
+`400000-400999`. Tests enforce uniqueness and range membership.
+
+The cross-repository registry is documented in
+[`docs/logging-event-ids.md`](docs/logging-event-ids.md) and is visible under
+Solution Items. Application repositories own the detailed module allocation
+inside their reserved ranges.
+
 ## Localization
 
 The localization package contains no application text. Applications register their own
