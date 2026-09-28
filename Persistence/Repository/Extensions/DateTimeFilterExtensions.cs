@@ -21,6 +21,12 @@ namespace Persistence.Repository.Extensions
         /// <summary>Applies an inclusive UTC range to the selected datetime column.</summary>
         public static Query ApplyUtcRange(this Query query, string column, SearchCriteria criteria, DatabaseEngine engine)
         {
+            return query.ApplyUtcRange(column, (DateRangeCriteria)criteria, engine);
+        }
+
+        /// <summary>Applies an inclusive UTC range to the selected datetime column.</summary>
+        public static Query ApplyUtcRange(this Query query, string column, DateRangeCriteria criteria, DatabaseEngine engine)
+        {
             if (criteria.StartDate.HasValue)
                 query.Where(column, ">=", criteria.StartDate.Value.ToDateTimeFilterValue(engine));
 

@@ -40,6 +40,12 @@ Inject `ITaskRunner` to execute asynchronous operations with bounded concurrency
 
 ## Ownership rules
 
+`DateRangeCriteria` represents a reusable inclusive UTC range. `SearchCriteria`
+inherits that range for the primary creation-date filter while adding paging,
+sorting and free-text search fields. Consumers that filter a second timestamp
+should expose a separately named `DateRangeCriteria` instead of duplicating date
+properties or creating another `SearchCriteria`.
+
 - Add a helper only when it is useful across unrelated applications and independent of business rules.
 - Keep CQRS contracts in `CommandQ.Cqrs`, localization in `CommandQ.Localization`, database access in `CommandQ.Persistence` and UTC behavior in `CommandQ.Time`.
 - Keep the public surface stable because this package is referenced broadly.

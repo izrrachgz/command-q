@@ -60,7 +60,7 @@ namespace Persistence.Test.Extensions
                 var storedValue = await repository.Db.Query("UtcRecord")
                     .Select("CreatedUtc")
                     .FirstAsync<string>(cancellationToken: TestContext.Current.CancellationToken);
-                var criteria = new SearchCriteria
+                var criteria = new DateRangeCriteria
                 {
                     StartDate = new DateTimeOffset(instant.AddTicks(-1)),
                     EndDate = new DateTimeOffset(instant.AddTicks(1))

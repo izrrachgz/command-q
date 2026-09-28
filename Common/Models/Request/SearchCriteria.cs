@@ -2,14 +2,8 @@
 
 namespace Common.Models.Request
 {
-    public class SearchCriteria
+    public class SearchCriteria : DateRangeCriteria
     {
-        /// <summary>Gets or sets the inclusive UTC start of the requested range.</summary>
-        public DateTimeOffset? StartDate { get; set; }
-
-        /// <summary>Gets or sets the inclusive UTC end of the requested range.</summary>
-        public DateTimeOffset? EndDate { get; set; }
-
         public string? SearchTerm { get; set; }
         public int Size { get; set; } = 25;
         public int Page { get; set; } = 1;
