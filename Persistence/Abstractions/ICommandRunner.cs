@@ -45,5 +45,22 @@ namespace Persistence.Abstractions
         /// <param name="rows">Row data where each key is the associated column name.</param>
         /// <param name="cancellationToken">Token used while inserting rows.</param>
         Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Inserts rows using the most efficient bulk operation available for the concrete database engine
+        /// within a caller-owned transaction.
+        /// </summary>
+        /// <param name="table">Target table.</param>
+        /// <param name="columns">Columns to insert, not alias and in order.</param>
+        /// <param name="rows">Row data where each key is the associated column name.</param>
+        /// <param name="transaction">Open transaction whose connection receives the inserted rows.</param>
+        /// <param name="cancellationToken">Token used while inserting rows.</param>
+        /// <remarks>The caller remains responsible for committing, rolling back and disposing the transaction.</remarks>
+        Task<BasicResponse> BulkInsert(
+            string table,
+            string[] columns,
+            Dictionary<string, object?>[] rows,
+            IDbTransaction transaction,
+            CancellationToken cancellationToken = default);
     }
 }

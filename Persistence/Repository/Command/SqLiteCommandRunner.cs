@@ -178,5 +178,50 @@ namespace Persistence.Repository.Command
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
         }
+
+        /// <summary>
+        /// Inserts rows into a SQLite table within a caller-owned transaction.
+        /// </summary>
+        public async Task<BasicResponse> BulkInsert(
+            string table,
+            string[] columns,
+            Dictionary<string, object?>[] rows,
+            IDbTransaction transaction,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(transaction);
+            if (transaction is not SQLiteTransaction sqliteTransaction || sqliteTransaction.Connection is null)
+                throw new ArgumentException("A live SQLite transaction is required.", nameof(transaction));
+
+            Logger.SavingRecords(rows.Length);
+            try
+            {
+                await using var cmd = sqliteTransaction.Connection.CreateCommand();
+                cmd.Transaction = sqliteTransaction;
+                cmd.CommandText = $@"INSERT INTO {table} ({string.Join(@",", columns)}) VALUES (@{string.Join(@",@", columns)})";
+                foreach (string column in columns)
+                    cmd.Parameters.Add(new SQLiteParameter($@"@{column}"));
+                await cmd.PrepareAsync(cancellationToken);
+
+                foreach (Dictionary<string, object?> row in rows)
+                {
+                    foreach (string column in columns)
+                        cmd.Parameters[$@"@{column}"].Value = row[column] ?? DBNull.Value;
+                    await cmd.ExecuteNonQueryAsync(cancellationToken);
+                }
+
+                return new(true, CommandConstants.CopyCompleted);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.CancellationRequested();
+                return new(false, CommandConstants.TransactionCancelled);
+            }
+            catch (Exception e)
+            {
+                Logger.CommandFailed(e);
+                return new(false, CommandConstants.ErrorDuringCopy);
+            }
+        }
     }
 }

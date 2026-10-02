@@ -216,5 +216,79 @@ namespace Persistence.Repository.Command
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
         }
+
+        /// <summary>
+        /// Inserts rows into a PostgreSQL table using binary import within a caller-owned transaction.
+        /// </summary>
+        public async Task<BasicResponse> BulkInsert(
+            string table,
+            string[] columns,
+            Dictionary<string, object?>[] rows,
+            IDbTransaction transaction,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(transaction);
+            if (transaction is not NpgsqlTransaction pgTransaction || pgTransaction.Connection is null)
+                throw new ArgumentException("A live PostgreSQL transaction is required.", nameof(transaction));
+
+            Logger.SavingRecords(rows.Length);
+            string joinedColumns = $@"""{string.Join(@""",""", columns)}""";
+            try
+            {
+                ReadOnlyCollection<NpgsqlDbColumn> schema;
+                await using (var cmd = pgTransaction.Connection.CreateCommand())
+                {
+                    cmd.Transaction = pgTransaction;
+                    cmd.CommandText = $@"SELECT {joinedColumns} FROM ""{table}"" LIMIT 0";
+                    await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+                    schema = reader.GetColumnSchema();
+                }
+
+                await using var writer = await pgTransaction.Connection.BeginBinaryImportAsync(
+                    $@"COPY ""{table}"" ({joinedColumns}) FROM STDIN BINARY",
+                    cancellationToken);
+                foreach (Dictionary<string, object?> row in rows)
+                {
+                    await writer.StartRowAsync(cancellationToken);
+                    foreach (string column in columns)
+                    {
+                        object? value = row[column];
+                        if (value is null)
+                        {
+                            await writer.WriteNullAsync(cancellationToken);
+                            continue;
+                        }
+
+                        NpgsqlDbColumn? type = schema.FirstOrDefault(candidate => candidate.ColumnName == column);
+                        if (type?.NpgsqlDbType is not null)
+                        {
+                            await writer.WriteAsync(value, type.NpgsqlDbType.Value, cancellationToken);
+                            continue;
+                        }
+
+                        if (type is not null && type.DataTypeName.Equals(@"public.vector", StringComparison.Ordinal))
+                        {
+                            await writer.WriteAsync(value, @"vector", cancellationToken);
+                            continue;
+                        }
+
+                        await writer.WriteAsync(value, cancellationToken);
+                    }
+                }
+
+                await writer.CompleteAsync(cancellationToken);
+                return new(true, CommandConstants.CopyCompleted);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.CancellationRequested();
+                return new(false, CommandConstants.TransactionCancelled);
+            }
+            catch (Exception e)
+            {
+                Logger.CommandFailed(e);
+                return new(false, CommandConstants.ErrorDuringCopy);
+            }
+        }
     }
 }

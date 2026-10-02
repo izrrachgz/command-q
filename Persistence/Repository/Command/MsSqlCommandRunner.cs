@@ -217,5 +217,62 @@ namespace Persistence.Repository.Command
                 data.Dispose();
             }
         }
+
+        /// <summary>
+        /// Inserts rows into a SQL Server table using bulk copy within a caller-owned transaction.
+        /// </summary>
+        public async Task<BasicResponse> BulkInsert(
+            string table,
+            string[] columns,
+            Dictionary<string, object?>[] rows,
+            IDbTransaction transaction,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(transaction);
+            if (transaction is not SqlTransaction sqlTransaction || sqlTransaction.Connection is null)
+                throw new ArgumentException("A live SQL Server transaction is required.", nameof(transaction));
+
+            Logger.SavingRecords(rows.Length);
+            var data = new DataTable();
+            try
+            {
+                await using (var cmd = sqlTransaction.Connection.CreateCommand())
+                {
+                    cmd.Transaction = sqlTransaction;
+                    cmd.CommandText = $@"SELECT TOP 0 * FROM {table}";
+                    await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
+                    data.Load(reader);
+                }
+
+                foreach (var row in rows)
+                {
+                    DataRow dataRow = data.NewRow();
+                    foreach (string column in columns)
+                        dataRow[column] = row[column] ?? DBNull.Value;
+                    data.Rows.Add(dataRow);
+                }
+
+                using var bulkCopy = new SqlBulkCopy(sqlTransaction.Connection, SqlBulkCopyOptions.Default, sqlTransaction)
+                {
+                    DestinationTableName = table
+                };
+                await bulkCopy.WriteToServerAsync(data, cancellationToken);
+                return new(true, CommandConstants.CopyCompleted);
+            }
+            catch (OperationCanceledException)
+            {
+                Logger.CancellationRequested();
+                return new(false, CommandConstants.TransactionCancelled);
+            }
+            catch (Exception e)
+            {
+                Logger.CommandFailed(e);
+                return new(false, CommandConstants.ErrorDuringCopy);
+            }
+            finally
+            {
+                data.Dispose();
+            }
+        }
     }
 }

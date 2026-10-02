@@ -57,6 +57,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `IDatabaseSessionContextRepository` is an infrastructure capability. Applications define the keys, policies and authorization semantics applied through it.
 - Persistence does not own application schemas, migration scripts, migration ledgers, startup migration policy or row-level-security policy names.
 - Keep provider behavior aligned where semantics are shared, while retaining explicit provider implementations where SQL or bulk operations differ.
+- `ICommandRunner.BulkInsert` supports both runner-owned transactions and caller-owned `IDbTransaction` values. Transaction overloads use the same provider-specific fast path and must not commit, roll back or dispose the supplied transaction.
 
 ### Time
 

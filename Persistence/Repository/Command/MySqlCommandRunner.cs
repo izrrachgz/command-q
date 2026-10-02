@@ -4,7 +4,6 @@ using System.Text;
 using Common.Constants;
 using Persistence.Logging;
 using Persistence.Constants;
-using System.Globalization;
 using Common.Models.Command;
 using Common.Models.Response;
 using MySql.Data.MySqlClient;
@@ -25,17 +24,9 @@ namespace Persistence.Repository.Command
         /// </summary>
         public ILogger Logger { get; set; }
 
-        private const char CharacterSeparator = '\x1F';
-
         private const int InsertBatchSize = 1000;
 
         private string ConnectionString { get; }
-
-        private const string NullStringRepresentation = @"\N";
-
-        private const string DateTimeDatabaseFileStringFormat = @"o";
-
-        private const string TimeSpanDatabaseFileStringFormat = @"c";
 
         /// <summary>
         /// Creates a MySQL command runner for a specific connection string.
@@ -145,57 +136,13 @@ namespace Persistence.Repository.Command
         public async Task<BasicResponse> BulkInsert(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
         {
             Logger.SavingRecords(rows.Length);
-
-            string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
-
             await using var connection = (MySqlConnection)await GetConnection(cancellationToken);
-
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
             try
             {
-                int insertedRows = 0;
-
-                while (insertedRows < rows.Length)
-                {
-                    await using var cmd = transaction.Connection.CreateCommand();
-                    cmd.Transaction = transaction;
-
-                    var batch = rows.Skip(insertedRows).Take(InsertBatchSize);
-
-                    var sb = new StringBuilder(insertSql);
-
-                    int i = 0;
-
-                    foreach (var row in batch)
-                    {
-                        sb.Append('(');
-
-                        foreach (var column in columns)
-                        {
-                            string paramName = $@"{column}{i}";
-                            sb.Append('@').Append(paramName);
-                            cmd.Parameters.AddWithValue(paramName, row[column] ?? DBNull.Value);
-                            sb.Append(',');
-                        }
-
-                        sb.Length -= 1;
-                        sb.Append(')').Append(',');
-
-                        i++;
-                    }
-
-                    sb.Length -= 1;
-
-                    cmd.CommandText = sb.ToString();
-
-                    insertedRows += await cmd.ExecuteNonQueryAsync(cancellationToken);
-
-                    sb.Clear();
-                }
-
+                int insertedRows = await InsertBatches(table, columns, rows, transaction, cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-
                 return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
             }
             catch (OperationCanceledException)
@@ -217,88 +164,72 @@ namespace Persistence.Repository.Command
         }
 
         /// <summary>
-        /// Inserts rows using MySQL local-file bulk loading.
+        /// Inserts rows into a MySQL table within a caller-owned transaction.
         /// </summary>
-        /// <summary>
-        /// Inserts rows into MySQL using the local-file bulk-loading mechanism.
-        /// </summary>
-        public async Task<BasicResponse> BulkInsertLocalFile(string table, string[] columns, Dictionary<string, object?>[] rows, CancellationToken cancellationToken = default)
+        public async Task<BasicResponse> BulkInsert(
+            string table,
+            string[] columns,
+            Dictionary<string, object?>[] rows,
+            IDbTransaction transaction,
+            CancellationToken cancellationToken = default)
         {
+            ArgumentNullException.ThrowIfNull(transaction);
+            if (transaction is not MySqlTransaction mySqlTransaction || mySqlTransaction.Connection is null)
+                throw new ArgumentException("A live MySQL transaction is required.", nameof(transaction));
+
             Logger.SavingRecords(rows.Length);
-
-            string tempPath = Path.GetTempFileName();
-
-            var sb = new StringBuilder();
-
-            foreach (var row in rows)
-            {
-                sb.AppendJoin(CharacterSeparator, columns.Select(column => SerializeParameter(row[column])));
-                sb.AppendLine();
-            }
-
-            await File.WriteAllTextAsync(tempPath, sb.ToString(), Encoding.UTF8, cancellationToken);
-
-            sb.Clear();
-
-            await using var connection = (MySqlConnection)await GetConnection(cancellationToken);
-
-            var bulkLoader = new MySqlBulkLoader(connection)
-            {
-                TableName = table,
-                FileName = tempPath,
-                FieldTerminator = CharacterSeparator.ToString(),
-                LineTerminator = Environment.NewLine,
-                Local = true,
-                Priority = MySqlBulkLoaderPriority.Concurrent,
-            };
-
             try
             {
-                using var cmd = new MySqlCommand(@"SET GLOBAL local_infile = 1", connection);
-
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
-
-                using var file = File.OpenRead(bulkLoader.FileName);
-
-                int insertedRows = await bulkLoader.LoadAsync(file, cancellationToken);
-
+                int insertedRows = await InsertBatches(table, columns, rows, mySqlTransaction, cancellationToken);
                 return new(insertedRows == rows.Length, CommandConstants.CopyCompleted);
             }
             catch (OperationCanceledException)
             {
                 Logger.CancellationRequested();
-
-                return new(false, CommandConstants.CommandCancelled);
+                return new(false, CommandConstants.TransactionCancelled);
             }
             catch (Exception e)
             {
                 Logger.CommandFailed(e);
-
                 return new(false, CommandConstants.ErrorDuringCopy);
-            }
-            finally
-            {
-                File.Delete(tempPath);
             }
         }
 
-        private object? SerializeParameter(object? parameter)
+        private static async Task<int> InsertBatches(
+            string table,
+            string[] columns,
+            Dictionary<string, object?>[] rows,
+            MySqlTransaction transaction,
+            CancellationToken cancellationToken)
         {
-            if (parameter == null)
-                return NullStringRepresentation;
+            string insertSql = $@"INSERT INTO {table} ({string.Join(',', columns)}) VALUES ";
+            int insertedRows = 0;
+            int rowOffset = 0;
+            while (rowOffset < rows.Length)
+            {
+                int batchSize = Math.Min(InsertBatchSize, rows.Length - rowOffset);
+                await using var cmd = transaction.Connection!.CreateCommand();
+                cmd.Transaction = transaction;
+                var sql = new StringBuilder(insertSql);
+                for (var rowIndex = 0; rowIndex < batchSize; rowIndex++)
+                {
+                    sql.Append('(');
+                    foreach (string column in columns)
+                    {
+                        string parameterName = $@"p{rowIndex}_{cmd.Parameters.Count}";
+                        sql.Append('@').Append(parameterName).Append(',');
+                        cmd.Parameters.AddWithValue(parameterName, rows[rowOffset + rowIndex][column] ?? DBNull.Value);
+                    }
+                    sql.Length--;
+                    sql.Append("),");
+                }
+                sql.Length--;
+                cmd.CommandText = sql.ToString();
+                insertedRows += await cmd.ExecuteNonQueryAsync(cancellationToken);
+                rowOffset += batchSize;
+            }
 
-            if (parameter is DateTime date)
-                return date.ToString(DateTimeDatabaseFileStringFormat, CultureInfo.InvariantCulture);
-
-            if (parameter is DateTimeOffset offset)
-                return offset.ToString(DateTimeDatabaseFileStringFormat, CultureInfo.InvariantCulture);
-
-            if (parameter is TimeSpan span)
-                return span.ToString(TimeSpanDatabaseFileStringFormat, CultureInfo.InvariantCulture);
-
-            //TODO: check for other tricky types
-
-            return parameter;
+            return insertedRows;
         }
     }
 }
