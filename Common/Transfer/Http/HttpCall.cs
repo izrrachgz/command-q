@@ -203,6 +203,10 @@ namespace Common.Transfer.Http
 
                 return await client.SendAsync(request, cancellationToken);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 Console.Error.WriteLine(ex.Message);
@@ -286,6 +290,10 @@ namespace Common.Transfer.Http
             {
                 return await response.Content.ReadFromJsonAsync<T?>(SerializerOptions, cancellationToken);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch
             {
                 return default;
@@ -297,6 +305,10 @@ namespace Common.Transfer.Http
             try
             {
                 return await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
             }
             catch
             {

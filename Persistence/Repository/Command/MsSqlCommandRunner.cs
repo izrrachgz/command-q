@@ -60,7 +60,7 @@ namespace Persistence.Repository.Command
         public async Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
             var tasks = commands
-                .Select(c => Execute(c.Query, c.ReturnType, c.Parameters, c.CancellationToken))
+                .Select(command => ExecuteCommand(command, cancellationToken))
                 .ToList();
 
             Logger.ExecutingCommandBatch(commands.Count);
@@ -73,6 +73,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CommandCancelled();
+                throw;
             }
             catch (Exception e)
             {
@@ -118,6 +119,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CommandCancelled();
+                throw;
             }
             catch (Exception e)
             {
@@ -162,8 +164,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CancellationRequested();
-
-                return new(false, CommandConstants.CommandCancelled);
+                throw;
             }
             catch
             {
@@ -183,12 +184,7 @@ namespace Persistence.Repository.Command
 
                 await bulkCopy.WriteToServerAsync(data, cancellationToken);
 
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    await transaction.RollbackAsync(cancellationToken);
-
-                    return new(false, CommandConstants.TransactionCancelled);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 await transaction.CommitAsync(cancellationToken);
 
@@ -196,17 +192,16 @@ namespace Persistence.Repository.Command
 
                 return new(true, CommandConstants.CopyCompleted);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException exception)
             {
-                await transaction.RollbackAsync(CancellationToken.None);
+                await TransactionCleanup.RollbackPreservingOriginal(transaction, exception);
 
                 Logger.CancellationRequested();
-
-                return new(false, CommandConstants.TransactionCancelled);
+                throw;
             }
             catch (Exception e)
             {
-                await transaction.RollbackAsync(CancellationToken.None);
+                await TransactionCleanup.RollbackPreservingOriginal(transaction, e);
 
                 Logger.CommandFailed(e);
 
@@ -262,7 +257,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CancellationRequested();
-                return new(false, CommandConstants.TransactionCancelled);
+                throw;
             }
             catch (Exception e)
             {
@@ -273,6 +268,18 @@ namespace Persistence.Repository.Command
             {
                 data.Dispose();
             }
+        }
+
+        private async Task<List<object>> ExecuteCommand(QueryCommand command, CancellationToken cancellationToken)
+        {
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                command.CancellationToken);
+            return await Execute(
+                command.Query,
+                command.ReturnType,
+                command.Parameters,
+                linkedTokenSource.Token);
         }
     }
 }

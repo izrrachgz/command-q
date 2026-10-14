@@ -10,6 +10,7 @@ namespace Common.Abstractions
         /// </summary>
         /// <param name="tasks">Task factories that receive the shared cancellation token.</param>
         /// <param name="cancellationToken">Token used to stop scheduling and passed to each task factory.</param>
+        /// <exception cref="OperationCanceledException">The cancellation token was cancelled.</exception>
         Task RunTasksAsync(IEnumerable<Func<CancellationToken, Task>> tasks, CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -17,6 +18,7 @@ namespace Common.Abstractions
         /// </summary>
         /// <param name="tasks">Task factories that do not require a cancellation token.</param>
         /// <param name="cancellationToken">Token used to stop scheduling new work.</param>
+        /// <exception cref="OperationCanceledException">The cancellation token was cancelled.</exception>
         Task RunTasksAsync(IEnumerable<Func<Task>> tasks, CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -38,6 +40,7 @@ namespace Common.Abstractions
         /// <param name="items">Items to process.</param>
         /// <param name="task">Operation to execute for each item.</param>
         /// <param name="cancellationToken">Token used to stop scheduling and passed to each task invocation.</param>
+        /// <exception cref="OperationCanceledException">The cancellation token was cancelled.</exception>
         Task ForEachAsync<T>(IEnumerable<T> items, Func<T, CancellationToken, Task> task, CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -47,6 +50,7 @@ namespace Common.Abstractions
         /// <param name="items">Items to process.</param>
         /// <param name="task">Operation to execute for each item.</param>
         /// <param name="cancellationToken">Token used to stop scheduling new work.</param>
+        /// <exception cref="OperationCanceledException">The cancellation token was cancelled.</exception>
         Task ForEachAsync<T>(IEnumerable<T> items, Func<T, Task> task, CancellationToken cancellationToken = default);
     }
 }

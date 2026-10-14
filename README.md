@@ -52,11 +52,11 @@ metadata. Test projects are not packaged.
 Generated `.nupkg` files are written outside this repository to the sibling local feed:
 
 ```text
-..\command-q-build-output\CommandQ.Common.0.1.0.nupkg
-..\command-q-build-output\CommandQ.Cqrs.0.1.0.nupkg
-..\command-q-build-output\CommandQ.Localization.0.1.0.nupkg
-..\command-q-build-output\CommandQ.Persistence.0.1.0.nupkg
-..\command-q-build-output\CommandQ.Time.0.1.0.nupkg
+..\command-q-build-output\CommandQ.Common.0.3.1.nupkg
+..\command-q-build-output\CommandQ.Cqrs.0.3.1.nupkg
+..\command-q-build-output\CommandQ.Localization.0.3.1.nupkg
+..\command-q-build-output\CommandQ.Persistence.0.3.1.nupkg
+..\command-q-build-output\CommandQ.Time.0.3.1.nupkg
 ```
 
 Consuming repositories reference that directory as a local NuGet source during development.
@@ -73,6 +73,12 @@ The cross-repository registry is documented in
 [`docs/logging-event-ids.md`](docs/logging-event-ids.md) and is visible under
 Solution Items. Application repositories own the detailed module allocation
 inside their reserved ranges.
+
+## Cancellation
+
+Async APIs propagate caller cancellation through CQRS, task execution, HTTP, and persistence operations. Cancellation
+is reported with `OperationCanceledException`, while any required I/O cleanup uses a separately bounded token. The
+implementation rules and review checklist are documented in [`docs/cancellation.md`](docs/cancellation.md).
 
 ## Localization
 

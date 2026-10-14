@@ -45,6 +45,8 @@ Query handlers should depend on `IReadOnlyRepository`. Commands and other write 
 
 `ICommandRunner` executes raw parameterized commands and engine-specific bulk insert operations. Bulk inserts can either own their connection and transaction or participate in a caller-owned `IDbTransaction`; the latter overload never commits, rolls back or disposes the supplied transaction. `AddCommandRunners` registers every provider implementation and resolves the default runner from `ConnectionStrings:Engine`.
 
+Command runner cancellation always propagates as `OperationCanceledException`; it is not converted into an empty result or failed `BasicResponse`. `ExecuteCommands` links its batch token with each command's token. Runner-owned bulk inserts attempt rollback with a short independent cleanup token so an already-cancelled caller token does not skip cleanup, while caller-owned transaction overloads leave rollback and disposal to the caller. See [`docs/cancellation.md`](https://github.com/izrrachgz/command-q/blob/main/docs/cancellation.md) for the repository-wide rules.
+
 The MySQL runner uses batched, parameterized multi-row `INSERT` statements. It does not use `LOAD DATA LOCAL INFILE`, create temporary files or require the MySQL `local_infile` server setting.
 
 ## Session context and security

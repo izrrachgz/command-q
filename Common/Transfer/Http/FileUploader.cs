@@ -170,6 +170,10 @@ namespace Common.Transfer.Http
 
                 return await client.SendAsync(request, cancellationToken);
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 Console.Error.WriteLine(ex.Message);

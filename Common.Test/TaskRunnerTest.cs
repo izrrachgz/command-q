@@ -94,6 +94,26 @@ namespace Common.Test.System
         }
 
         [Fact]
+        public async Task RunTasksAsync_Should_Propagate_Caller_Cancellation()
+        {
+            var runner = new TaskRunner(NullLogger<TaskRunner>.Instance, maxConcurrent: 1);
+            using var cancellationTokenSource = new CancellationTokenSource();
+            var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            Task run = runner.RunTasksAsync(
+                [async cancellationToken =>
+                {
+                    started.SetResult();
+                    await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+                }],
+                cancellationTokenSource.Token);
+
+            await started.Task;
+            await cancellationTokenSource.CancelAsync();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => run);
+        }
+
+        [Fact]
         public async Task ForEachAsync_Should_Run_Task_For_Each_Item()
         {
             var runner = new TaskRunner(NullLogger<TaskRunner>.Instance, maxConcurrent: 2);

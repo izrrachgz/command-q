@@ -89,6 +89,7 @@ This file captures practical repository knowledge for coding agents working in t
 - Use CRLF line endings for repository text files, following `.editorconfig`; do not introduce LF-only or mixed-line-ending files.
 - Follow `.editorconfig` for formatting, naming, nullable annotations and analyzer preferences.
 - Prefer existing project patterns over new abstractions and avoid unrelated refactors or metadata churn.
+- Follow [`docs/cancellation.md`](docs/cancellation.md): propagate received tokens, rethrow cancellation before broad exception handling, and use separately bounded tokens only for required cleanup.
 - Keep declarations on one line when the complete declaration is at most 140 characters; wrap only when needed for readability.
 - Use `rg` or `rg --files` for searches and `apply_patch` for manual edits.
 - Prefer explicit dependency injection and small public surfaces. Default implementation types to internal when consumers only need an interface or extension method.

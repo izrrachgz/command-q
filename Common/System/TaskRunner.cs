@@ -35,40 +35,31 @@ namespace Common.System
             ArgumentNullException.ThrowIfNull(tasks);
 
             var taskFactories = tasks.ToList();
-            using var semaphore = new SemaphoreSlim(_maxConcurrent, _maxConcurrent);
-            var runningTasks = new List<Task>(taskFactories.Count);
-
             _logger.ExecutingTasks(taskFactories.Count);
 
-            foreach (var taskFactory in taskFactories)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await semaphore.WaitAsync(cancellationToken);
-
-                var task = Task.Run(async () =>
+            await Parallel.ForEachAsync(
+                taskFactories,
+                new ParallelOptions
+                {
+                    CancellationToken = cancellationToken,
+                    MaxDegreeOfParallelism = _maxConcurrent
+                },
+                async (taskFactory, taskCancellationToken) =>
                 {
                     try
                     {
-                        await taskFactory(cancellationToken);
+                        await taskFactory(taskCancellationToken);
                     }
-                    catch (OperationCanceledException)
+                    catch (OperationCanceledException) when (taskCancellationToken.IsCancellationRequested)
                     {
                         _logger.TaskExecutionCancelled();
+                        throw;
                     }
                     catch (Exception ex)
                     {
                         _logger.TaskExecutionFailed(ex);
                     }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
                 });
-
-                runningTasks.Add(task);
-            }
-
-            await Task.WhenAll(runningTasks);
         }
 
         /// <summary>

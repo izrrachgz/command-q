@@ -28,7 +28,7 @@ Register the runner once in the composition root:
 services.AddTaskRunner();
 ```
 
-Inject `ITaskRunner` to execute asynchronous operations with bounded concurrency. The default limit is `TaskRunnerConstants.DefaultMaxConcurrency`. Individual operation failures are logged while the runner continues waiting for the scheduled batch to finish.
+Inject `ITaskRunner` to execute asynchronous operations with bounded concurrency. The default limit is `TaskRunnerConstants.DefaultMaxConcurrency`. Individual operation failures are logged while the runner continues waiting for the scheduled batch to finish. Caller cancellation is passed to cancellable operations and propagates as `OperationCanceledException`.
 
 ## Typed memory cache
 
@@ -36,7 +36,10 @@ Inject `ITaskRunner` to execute asynchronous operations with bounded concurrency
 
 ## HTTP helpers
 
-`HttpCall` supports reusable request/content headers, JSON serialization settings, query strings and common HTTP operations. `FileUploader` builds multipart uploads from files, streams, byte arrays and `FileUploadItem` values.
+`HttpCall` supports reusable request/content headers, JSON serialization settings, query strings and common HTTP operations. `FileUploader` builds multipart uploads from files, streams, byte arrays and `FileUploadItem` values. Both helpers propagate caller-requested cancellation instead of converting it into a fallback response.
+
+The repository-wide cancellation contract and review checklist are documented in
+[`docs/cancellation.md`](https://github.com/izrrachgz/command-q/blob/main/docs/cancellation.md).
 
 ## Ownership rules
 

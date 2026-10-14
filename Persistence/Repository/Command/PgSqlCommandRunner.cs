@@ -62,7 +62,7 @@ namespace Persistence.Repository.Command
         public async Task<List<List<object>>> ExecuteCommands(List<QueryCommand> commands, CancellationToken cancellationToken = default)
         {
             var tasks = commands
-                .Select(c => Execute(c.Query, c.ReturnType, c.Parameters, c.CancellationToken))
+                .Select(command => ExecuteCommand(command, cancellationToken))
                 .ToList();
 
             Logger.ExecutingCommandBatch(commands.Count);
@@ -75,6 +75,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CommandCancelled();
+                throw;
             }
             catch (Exception e)
             {
@@ -120,6 +121,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CommandCancelled();
+                throw;
             }
             catch (Exception e)
             {
@@ -154,8 +156,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CancellationRequested();
-
-                return new(false, CommandConstants.CommandCancelled);
+                throw;
             }
             catch
             {
@@ -206,8 +207,7 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CancellationRequested();
-
-                return new(false, CommandConstants.TransactionCancelled);
+                throw;
             }
             catch (Exception e)
             {
@@ -282,13 +282,25 @@ namespace Persistence.Repository.Command
             catch (OperationCanceledException)
             {
                 Logger.CancellationRequested();
-                return new(false, CommandConstants.TransactionCancelled);
+                throw;
             }
             catch (Exception e)
             {
                 Logger.CommandFailed(e);
                 return new(false, CommandConstants.ErrorDuringCopy);
             }
+        }
+
+        private async Task<List<object>> ExecuteCommand(QueryCommand command, CancellationToken cancellationToken)
+        {
+            using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken,
+                command.CancellationToken);
+            return await Execute(
+                command.Query,
+                command.ReturnType,
+                command.Parameters,
+                linkedTokenSource.Token);
         }
     }
 }
