@@ -41,6 +41,8 @@ Store real connection strings in user secrets, environment variables or deployme
 
 Query handlers should depend on `IReadOnlyRepository`. Commands and other write flows should depend on `IWritableRepository` or `ICommandRunner`.
 
+Use `Persistence.Constants.QueryComparisonOperator` for SqlKata comparison predicates instead of repeating SQL operator literals in consumers.
+
 ## Command runners
 
 `ICommandRunner` executes raw parameterized commands and engine-specific bulk insert operations. Bulk inserts can either own their connection and transaction or participate in a caller-owned `IDbTransaction`; the latter overload never commits, rolls back or disposes the supplied transaction. `AddCommandRunners` registers every provider implementation and resolves the default runner from `ConnectionStrings:Engine`.

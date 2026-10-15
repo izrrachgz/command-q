@@ -36,7 +36,7 @@ Inject `ITaskRunner` to execute asynchronous operations with bounded concurrency
 
 ## HTTP helpers
 
-`HttpCall` supports reusable request/content headers, JSON serialization settings, query strings and common HTTP operations. `FileUploader` builds multipart uploads from files, streams, byte arrays and `FileUploadItem` values. Both helpers propagate caller-requested cancellation instead of converting it into a fallback response.
+`HttpCall` supports reusable request/content headers, JSON serialization settings, query strings and common HTTP operations. It can use a caller-owned `HttpClient`, uses a shared client for compatibility when none is supplied, and propagates transport failures instead of fabricating HTTP responses. `FileUploader` builds multipart uploads from files, streams, byte arrays and `FileUploadItem` values. Both helpers propagate caller-requested cancellation instead of converting it into a fallback response.
 
 The repository-wide cancellation contract and review checklist are documented in
 [`docs/cancellation.md`](https://github.com/izrrachgz/command-q/blob/main/docs/cancellation.md).

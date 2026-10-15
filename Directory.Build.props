@@ -2,7 +2,7 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Common' or '$(MSBuildProjectName)' == 'Cqrs' or '$(MSBuildProjectName)' == 'Localization' or '$(MSBuildProjectName)' == 'Persistence' or '$(MSBuildProjectName)' == 'Time'">
     <IsPackable>true</IsPackable>
     <PackageId>CommandQ.$(MSBuildProjectName)</PackageId>
-    <Version>0.3.1</Version>
+    <Version>0.3.3</Version>
     <Authors>CommandQ</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/izrrachgz/command-q</RepositoryUrl>

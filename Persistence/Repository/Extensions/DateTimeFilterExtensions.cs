@@ -1,7 +1,8 @@
-using SqlKata;
 using Time;
+using SqlKata;
 using Common.Enumerations;
 using Common.Models.Request;
+using Persistence.Constants;
 using Persistence.Repository.TypeHandlers;
 
 namespace Persistence.Repository.Extensions
@@ -28,10 +29,10 @@ namespace Persistence.Repository.Extensions
         public static Query ApplyUtcRange(this Query query, string column, DateRangeCriteria criteria, DatabaseEngine engine)
         {
             if (criteria.StartDate.HasValue)
-                query.Where(column, ">=", criteria.StartDate.Value.ToDateTimeFilterValue(engine));
+                query.Where(column, QueryComparisonOperator.GreaterThanOrEqual, criteria.StartDate.Value.ToDateTimeFilterValue(engine));
 
             if (criteria.EndDate.HasValue)
-                query.Where(column, "<=", criteria.EndDate.Value.ToDateTimeFilterValue(engine));
+                query.Where(column, QueryComparisonOperator.LessThanOrEqual, criteria.EndDate.Value.ToDateTimeFilterValue(engine));
 
             return query;
         }

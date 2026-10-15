@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text;
 using System.Net.Mime;
 using System.Text.Json;
@@ -12,6 +11,9 @@ namespace Common.Transfer.Http
     /// </summary>
     public sealed class HttpCall
     {
+        private static readonly HttpClient SharedClient = new();
+        private readonly HttpClient client;
+
         /// <summary>
         /// Serializer settings used when writing JSON request bodies and reading JSON responses.
         /// </summary>
@@ -33,14 +35,33 @@ namespace Common.Transfer.Http
         /// <summary>
         /// Creates an HTTP helper without preconfigured headers.
         /// </summary>
-        public HttpCall()
+        public HttpCall() : this(SharedClient)
         {
+        }
+
+        /// <summary>
+        /// Creates an HTTP helper that sends requests through the supplied client.
+        /// </summary>
+        /// <param name="client">The caller-owned HTTP client.</param>
+        public HttpCall(HttpClient client)
+        {
+            this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <summary>
         /// Creates an HTTP helper with request headers that are applied to every request.
         /// </summary>
-        public HttpCall(Dictionary<string, string> headers)
+        public HttpCall(Dictionary<string, string> headers) : this(SharedClient)
+        {
+            AddHeaders(headers);
+        }
+
+        /// <summary>
+        /// Creates an HTTP helper that sends requests through the supplied client and applies the supplied headers.
+        /// </summary>
+        /// <param name="client">The caller-owned HTTP client.</param>
+        /// <param name="headers">The request headers applied to every request.</param>
+        public HttpCall(HttpClient client, Dictionary<string, string> headers) : this(client)
         {
             AddHeaders(headers);
         }
@@ -184,35 +205,18 @@ namespace Common.Transfer.Http
         /// </summary>
         public async Task<HttpResponseMessage> Send(HttpMethod method, string baseUrl, string? path = null, HttpContent? content = null, Dictionary<string, object>? queryParams = null, CancellationToken cancellationToken = default)
         {
-            using HttpClient client = new()
+            Uri requestUri = new(new Uri(baseUrl, UriKind.Absolute), BuildUri(path, queryParams));
+            using var request = new HttpRequestMessage(method, requestUri);
+
+            ApplyHeaders(request);
+
+            if (content is not null)
             {
-                BaseAddress = new(baseUrl),
-            };
-
-            try
-            {
-                using var request = new HttpRequestMessage(method, BuildUri(path, queryParams));
-
-                ApplyHeaders(request);
-
-                if (content is not null)
-                {
-                    ApplyContentHeaders(content);
-                    request.Content = content;
-                }
-
-                return await client.SendAsync(request, cancellationToken);
+                ApplyContentHeaders(content);
+                request.Content = content;
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine(ex.Message);
 
-                return new HttpResponseMessage(HttpStatusCode.Conflict);
-            }
+            return await client.SendAsync(request, cancellationToken);
         }
 
         /// <summary>
