@@ -15,6 +15,10 @@ The product backend is maintained separately in
 Applications consume versioned NuGet packages written to the sibling
 `command-q-build-output` local package feed.
 
+`command-q` is a build dependency, not a deployable service, so it has no runtime
+container image. Consumer image scripts build these packages first and pass the
+sibling feed to Docker BuildKit as a named `commandq_packages` context.
+
 ## Build and test
 
 ```powershell
@@ -52,11 +56,11 @@ metadata. Test projects are not packaged.
 Generated `.nupkg` files are written outside this repository to the sibling local feed:
 
 ```text
-..\command-q-build-output\CommandQ.Common.0.3.1.nupkg
-..\command-q-build-output\CommandQ.Cqrs.0.3.1.nupkg
-..\command-q-build-output\CommandQ.Localization.0.3.1.nupkg
-..\command-q-build-output\CommandQ.Persistence.0.3.1.nupkg
-..\command-q-build-output\CommandQ.Time.0.3.1.nupkg
+..\command-q-build-output\CommandQ.Common.0.3.3.nupkg
+..\command-q-build-output\CommandQ.Cqrs.0.3.3.nupkg
+..\command-q-build-output\CommandQ.Localization.0.3.3.nupkg
+..\command-q-build-output\CommandQ.Persistence.0.3.3.nupkg
+..\command-q-build-output\CommandQ.Time.0.3.3.nupkg
 ```
 
 Consuming repositories reference that directory as a local NuGet source during development.
