@@ -22,11 +22,11 @@ namespace Persistence.Logging
         [LoggerMessage(EventId = PersistenceEventIds.CommandFailed, Level = LogLevel.Error, Message = "An exception has occurred.")]
         public static partial void CommandFailed(this ILogger logger, Exception exception);
 
-        [LoggerMessage(EventId = PersistenceEventIds.ExecutingQuery, Level = LogLevel.Debug, Message = "Executing query: {Query}.")]
-        public static partial void ExecutingQuery(this ILogger logger, string query);
+        [LoggerMessage(EventId = PersistenceEventIds.ExecutingQuery, Level = LogLevel.Debug, Message = "Executing database command.")]
+        public static partial void ExecutingQuery(this ILogger logger);
 
-        [LoggerMessage(EventId = PersistenceEventIds.ParameterInQuery, Level = LogLevel.Debug, Message = "Parameter in query: {ParameterName}. Type: {ParameterType}.")]
-        public static partial void ParameterInQuery(this ILogger logger, string parameterName, string parameterType);
+        [LoggerMessage(EventId = PersistenceEventIds.ParameterInQuery, Level = LogLevel.Debug, Message = "Binding database parameter. Type: {ParameterType}.")]
+        public static partial void ParameterInQuery(this ILogger logger, string parameterType);
 
         [LoggerMessage(EventId = PersistenceEventIds.SavingRecords, Level = LogLevel.Debug, Message = "Saving {RecordCount} records.")]
         public static partial void SavingRecords(this ILogger logger, int recordCount);

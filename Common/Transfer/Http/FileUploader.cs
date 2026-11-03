@@ -174,10 +174,8 @@ namespace Common.Transfer.Http
             {
                 throw;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.Error.WriteLine(ex.Message);
-
                 return new HttpResponseMessage(HttpStatusCode.Conflict);
             }
         }

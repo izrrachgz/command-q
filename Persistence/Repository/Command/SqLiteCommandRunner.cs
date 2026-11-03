@@ -98,7 +98,7 @@ namespace Persistence.Repository.Command
 
                 cmd.CommandText = query;
 
-                Logger.ExecutingQuery(query);
+                Logger.ExecutingQuery();
 
                 if (parameters != null)
                 {
@@ -107,7 +107,7 @@ namespace Persistence.Repository.Command
                         object value = parameter.Value is null ? DBNull.Value : parameter.Value;
                         cmd.Parameters.AddWithValue(parameter.Key, value);
 
-                        Logger.ParameterInQuery(parameter.Key, parameter.Value?.GetType().Name ?? nameof(DBNull));
+                        Logger.ParameterInQuery(parameter.Value?.GetType().Name ?? nameof(DBNull));
                     }
                 }
 

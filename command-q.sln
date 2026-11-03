@@ -30,16 +30,24 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{60A45A9D-15E0-49A2-A60A-5737A2E38D9C}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.github\dependabot.yml = .github\dependabot.yml
+		.github\workflows\quality.yml = .github\workflows\quality.yml
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		AGENTS.md = AGENTS.md
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
 		docs\cancellation.md = docs\cancellation.md
+		docs\iso-27001-27701-alignment.md = docs\iso-27001-27701-alignment.md
 		docs\logging-event-ids.md = docs\logging-event-ids.md
+		docs\package-release.md = docs\package-release.md
+		docs\privacy-boundaries.md = docs\privacy-boundaries.md
+		global.json = global.json
 		README.md = README.md
+		SECURITY.md = SECURITY.md
 		scripts\build.ps1 = scripts\build.ps1
 		scripts\test.ps1 = scripts\test.ps1
+		scripts\verify-packages.ps1 = scripts\verify-packages.ps1
 	EndProjectSection
 EndProject
 Global

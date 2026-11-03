@@ -4,8 +4,18 @@
     <PackageId>CommandQ.$(MSBuildProjectName)</PackageId>
     <Version>0.3.3</Version>
     <Authors>CommandQ</Authors>
+    <PackageProjectUrl>https://github.com/izrrachgz/command-q</PackageProjectUrl>
+    <PackageTags>commandq;dotnet;libraries;$(MSBuildProjectName)</PackageTags>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/izrrachgz/command-q</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <DebugType>portable</DebugType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EnablePackageValidation>true</EnablePackageValidation>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\command-q-build-output</PackageOutputPath>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

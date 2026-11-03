@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>UTC validation, persistence precision, JSON serialization and timezone conversion primitives.</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -20,7 +20,7 @@ namespace Common.System
         {
             bool found = memoryCache.TryGetValue(GetKey(key), out entry!);
 
-            logger.TypedCacheLookup(typeof(TEntry).Name, found ? "hit" : "miss", key);
+            logger.TypedCacheLookup(typeof(TEntry).Name, found ? "hit" : "miss");
 
             return found;
         }
@@ -35,7 +35,7 @@ namespace Common.System
                 AbsoluteExpirationRelativeToNow = absoluteExpiration
             });
 
-            logger.TypedCacheSet(typeof(TEntry).Name, key);
+            logger.TypedCacheSet(typeof(TEntry).Name);
         }
 
         public void Remove(string key)
@@ -43,7 +43,7 @@ namespace Common.System
             _keys.TryRemove(key, out _);
             memoryCache.Remove(GetKey(key));
 
-            logger.TypedCacheRemoved(typeof(TEntry).Name, key);
+            logger.TypedCacheRemoved(typeof(TEntry).Name);
         }
 
         public void Clear()

@@ -19,12 +19,24 @@ Applications consume versioned NuGet packages written to the sibling
 container image. Consumer image scripts build these packages first and pass the
 sibling feed to Docker BuildKit as a named `commandq_packages` context.
 
+Packages intentionally remain unobfuscated and publish separate portable symbol
+packages with Source Link/repository provenance. See
+[`docs/package-release.md`](docs/package-release.md) for the integrity, checksum,
+approval and distribution controls.
+
 ## Build and test
 
 ```powershell
 dotnet restore .\command-q.sln
 .\scripts\build.ps1 -Configuration Release
 .\scripts\test.ps1 -Configuration Release -NoBuild
+```
+
+The repository uses the .NET 10 Microsoft.Testing.Platform runner. To run a
+method group in one test project, pass an xUnit method pattern, for example:
+
+```powershell
+.\scripts\test.ps1 -Project Common.Test\Common.Test.csproj -Filter "*Logging*"
 ```
 
 ## NuGet package creation
@@ -111,3 +123,8 @@ no registered source contains it.
 Every library and its matching test project owns a `README.md`. Library readmes are also
 embedded in their NuGet packages, so package documentation stays specific to the API being
 consumed.
+
+- [ISO 27001 and 27701 alignment](docs/iso-27001-27701-alignment.md)
+- [Privacy boundaries](docs/privacy-boundaries.md)
+- [Secure package release](docs/package-release.md)
+- [Vulnerability reporting](SECURITY.md)
