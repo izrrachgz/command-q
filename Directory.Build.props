@@ -4,6 +4,7 @@
     <PackageId>CommandQ.$(MSBuildProjectName)</PackageId>
     <Version>0.3.3</Version>
     <Authors>CommandQ</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/izrrachgz/command-q</PackageProjectUrl>
     <PackageTags>commandq;dotnet;libraries;$(MSBuildProjectName)</PackageTags>
     <RepositoryType>git</RepositoryType>
