@@ -41,8 +41,10 @@ and keep private keys only in the release secret/HSM service. Never commit signi
 credentials.
 
 An owner must also approve licensing terms before external distribution. This
-repository currently grants no license through package metadata; do not infer a
-public license from source availability.
+repository and the generated `CommandQ.*` packages are licensed under the MIT
+License, declared in the root [`LICENSE`](../LICENSE) file and package metadata.
+Release reviewers must still verify that all bundled dependencies permit the
+intended distribution model.
 
 ## Version and recovery rules
 

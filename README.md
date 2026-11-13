@@ -128,3 +128,9 @@ consumed.
 - [Privacy boundaries](docs/privacy-boundaries.md)
 - [Secure package release](docs/package-release.md)
 - [Vulnerability reporting](SECURITY.md)
+
+## License
+
+CommandQ and its generated `CommandQ.*` NuGet packages are licensed under the
+[MIT License](LICENSE). Package artifacts publish the same MIT license through
+their NuGet metadata.
