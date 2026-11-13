@@ -30,12 +30,14 @@ jobs:
           global-json-file: command-q/global.json
 
       - name: Build and verify packages
+        working-directory: command-q
         shell: pwsh
-        run: ./command-q/scripts/build.ps1 -Configuration Release -LockedMode -Audit
+        run: ./scripts/build.ps1 -Configuration Release -LockedMode -Audit
 
       - name: Test
+        working-directory: command-q
         shell: pwsh
-        run: ./command-q/scripts/test.ps1 -Configuration Release -NoBuild
+        run: ./scripts/test.ps1 -Configuration Release -NoBuild
 
       - name: Inventory vulnerable dependencies
         working-directory: command-q
