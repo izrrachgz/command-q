@@ -6,7 +6,10 @@ namespace Common.Test.Extensions
     {
         [Theory]
         [InlineData("https://example.test", true)]
+        [InlineData("mailto:user@example.test", true)]
+        [InlineData("file:///tmp/example.txt", true)]
         [InlineData("/relative/path", false)]
+        [InlineData("C:\\temp\\example.txt", false)]
         [InlineData(null, false)]
         public void IsAbsoluteUri_Should_Validate_Absolute_Uri_Values(string? value, bool expected)
         {

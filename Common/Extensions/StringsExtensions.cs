@@ -55,7 +55,8 @@ namespace Common.Extensions
         /// <returns><see langword="true"/> when the value is an absolute URI; otherwise, <see langword="false"/>.</returns>
         public static bool IsAbsoluteUri(this string? content)
         {
-            return Uri.TryCreate(content, UriKind.Absolute, out _);
+            return Uri.TryCreate(content, UriKind.Absolute, out Uri? uri)
+                && content!.StartsWith($"{uri.Scheme}:", StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsEmailAddress(this string? content)
