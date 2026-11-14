@@ -385,7 +385,7 @@
           "Microsoft.Data.SqlClient": "[7.1.1, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[10.0.13, )",
           "Microsoft.Extensions.Configuration.Binder": "[10.0.13, )",
-          "MySql.Data": "[26.7.0, )",
+          "MySql.Data": "[26.10.0, )",
           "Npgsql": "[10.0.3, )",
           "Pgvector": "[0.3.2, )",
           "SqlKata": "[4.0.1, )",
@@ -470,9 +470,9 @@
       },
       "MySql.Data": {
         "type": "CentralTransitive",
-        "requested": "[26.7.0, )",
-        "resolved": "26.7.0",
-        "contentHash": "WXk00B5N6TnuTU0SVRFxMAr2nfLj+4T6gY1NPeDdtj8cwy2Rk5v4GIUK9oSiTSMntEdrKeaYG4eyYPjZun7D7w==",
+        "requested": "[26.10.0, )",
+        "resolved": "26.10.0",
+        "contentHash": "2mhCTH+6kqDvGRlaQ+2GGa+42TPGygcIwXulLwmAMNdTNUhL2dZ/LXMOmMZcJg88CAlBwkBtzOzDrUwq1InkZw==",
         "dependencies": {
           "BouncyCastle.Cryptography": "2.6.2",
           "Google.Protobuf": "3.35.0",
