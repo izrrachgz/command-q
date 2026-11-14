@@ -1,6 +1,6 @@
 # CommandQ.Persistence
 
-`CommandQ.Persistence` provides reusable SqlKata repositories, SQL command runners and database session-context primitives for .NET 10 applications. It supports SQL Server, PostgreSQL, MySQL and SQLite without owning an application schema or migration lifecycle.
+`CommandQ.Persistence` provides reusable SqlKata repositories, SQL command runners and database session-context primitives for .NET 10 and .NET 11 applications. It supports SQL Server, PostgreSQL, MySQL and SQLite without owning an application schema or migration lifecycle.
 
 ## Install
 

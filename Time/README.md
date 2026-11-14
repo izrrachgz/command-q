@@ -1,6 +1,6 @@
 # CommandQ.Time
 
-`CommandQ.Time` supplies strict UTC validation, persistence precision, JSON serialization and time-zone conversion helpers for .NET 10. It builds on `TimeProvider` and NodaTime so applications can use testable clocks and unambiguous instants.
+`CommandQ.Time` supplies strict UTC validation, persistence precision, JSON serialization and time-zone conversion helpers for .NET 10 and .NET 11. It builds on `TimeProvider` and NodaTime so applications can use testable clocks and unambiguous instants.
 
 ## Install
 

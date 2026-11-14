@@ -4,7 +4,7 @@ This file captures practical repository knowledge for coding agents working in t
 
 ## Solution
 
-- Framework: .NET 10.
+- Framework: .NET 10 and .NET 11.
 - Solution file: `command-q.sln`.
 - Restore with `dotnet restore .\command-q.sln`.
 - Build and pack with `.\scripts\build.ps1`; use `-Configuration Release` for release artifacts.

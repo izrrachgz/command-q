@@ -89,8 +89,10 @@ foreach ($packageId in $expectedIds) {
             throw "Package $packageId does not contain its README.md."
         }
 
-        if ($entryNames -notcontains "lib/net10.0/$assemblyName.dll") {
-            throw "Package $packageId does not contain lib/net10.0/$assemblyName.dll."
+        foreach ($targetFramework in @("net10.0", "net11.0")) {
+            if ($entryNames -notcontains "lib/$targetFramework/$assemblyName.dll") {
+                throw "Package $packageId does not contain lib/$targetFramework/$assemblyName.dll."
+            }
         }
 
         if ($entryNames | Where-Object { $_ -like "*.pdb" }) {
@@ -103,8 +105,10 @@ foreach ($packageId in $expectedIds) {
 
     $symbolArchive = [System.IO.Compression.ZipFile]::OpenRead($symbolPackagePath)
     try {
-        if ($symbolArchive.Entries.FullName -notcontains "lib/net10.0/$assemblyName.pdb") {
-            throw "Symbol package $packageId does not contain lib/net10.0/$assemblyName.pdb."
+        foreach ($targetFramework in @("net10.0", "net11.0")) {
+            if ($symbolArchive.Entries.FullName -notcontains "lib/$targetFramework/$assemblyName.pdb") {
+                throw "Symbol package $packageId does not contain lib/$targetFramework/$assemblyName.pdb."
+            }
         }
     }
     finally {

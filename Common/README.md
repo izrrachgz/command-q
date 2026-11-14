@@ -1,6 +1,6 @@
 # CommandQ.Common
 
-`CommandQ.Common` contains small, product-neutral utilities, contracts, exceptions and transfer models shared by CommandQ applications. It targets .NET 10 and intentionally excludes business, CQRS, localization, persistence and time concerns owned by other packages.
+`CommandQ.Common` contains small, product-neutral utilities, contracts, exceptions and transfer models shared by CommandQ applications. It targets .NET 10 and .NET 11 and intentionally excludes business, CQRS, localization, persistence and time concerns owned by other packages.
 
 ## Install
 

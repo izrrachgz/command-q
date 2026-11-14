@@ -1,6 +1,6 @@
 # command-q
 
-Reusable .NET 10 application-building libraries shared by the CommandQ applications.
+Reusable .NET 10 and .NET 11 application-building libraries shared by the CommandQ applications.
 The product backend is maintained separately in
 [`command-q-back`](https://github.com/izrrachgz/command-q-back).
 
@@ -32,7 +32,7 @@ dotnet restore .\command-q.sln
 .\scripts\test.ps1 -Configuration Release -NoBuild
 ```
 
-The repository uses the .NET 10 Microsoft.Testing.Platform runner. To run a
+The repository uses the .NET 10 and .NET 11 Microsoft.Testing.Platform runner. To run a
 method group in one test project, pass an xUnit method pattern, for example:
 
 ```powershell
