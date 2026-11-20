@@ -30,9 +30,9 @@ dotnet add package CommandQ.Cqrs
 - Fast failures for duplicate handler registrations and dispatches without a
   registered handler.
 
-This is in-process composition, not durable messaging. Broker delivery,
-retries, leases, deduplication and outbox behavior belong in their owning
-infrastructure projects.
+This is in-process composition, not durable messaging. Use `CommandQ.Messaging`
+and an optional transport adapter for broker delivery; retry classification,
+deduplication and outbox behavior remain owned by consuming applications.
 
 ## Registration
 

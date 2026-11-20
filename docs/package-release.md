@@ -1,6 +1,6 @@
 # Secure package release
 
-The five `CommandQ.*` packages are reusable build dependencies. They are
+The seven `CommandQ.*` packages are reusable build dependencies. They are
 intentionally unobfuscated: public API inspection, Source Link, portable symbols,
 debugging and compatibility analysis are part of the package contract. Compiled
 assemblies must never contain secrets. Obfuscation is not a release step and the
@@ -19,7 +19,7 @@ The build restores only versions recorded by committed lock files, treats NuGet
 advisories as errors, compiles deterministic assemblies, runs package validation,
 and produces one `.nupkg` plus one `.snupkg` per library. The verifier checks the
 package identity, meaningful description, README, repository URL/commit, expected
-assembly and portable PDB. It writes `SHA256SUMS` over all ten artifacts.
+assembly and portable PDB. It writes `SHA256SUMS` over all fourteen artifacts.
 
 CI verifies packages without uploading or distributing them. Before an authorized
 distribution, record:

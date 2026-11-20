@@ -32,6 +32,8 @@ $expectedIds = @(
     "CommandQ.Common",
     "CommandQ.Cqrs",
     "CommandQ.Localization",
+    "CommandQ.Messaging",
+    "CommandQ.Messaging.Wolverine.RabbitMQ",
     "CommandQ.Persistence",
     "CommandQ.Time")
 $verifiedArtifacts = [System.Collections.Generic.List[System.IO.FileInfo]]::new()

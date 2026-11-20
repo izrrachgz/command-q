@@ -24,8 +24,8 @@ maintenance cost, and every addition should preserve trimming and AOT safety.
 
 Some capabilities may look like dispatcher features but have stronger owners:
 
-- Durable delivery, retries, leasing, dead-lettering and deduplication belong to
-  outbox or messaging infrastructure.
+- Durable delivery belongs to `CommandQ.Messaging` adapters. Retry classification,
+  leasing, dead-letter policy, deduplication and outbox persistence remain application-owned infrastructure concerns.
 - Database repositories and transaction implementations belong to Persistence.
 - Feature validation rules, authorization rules and business logging belong to
   Application modules.

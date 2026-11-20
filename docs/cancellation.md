@@ -29,6 +29,8 @@ Propagate cancellation and leave the caller responsible for transaction cleanup.
 ## CommandQ contracts
 
 - CQRS dispatch passes the token through every pipeline behavior and request handler.
+- Messaging handlers receive the worker cancellation token. The Wolverine sender rejects cancellation before dispatch and cancels the caller's
+  wait; Wolverine's send API does not accept a token, so cancellation cannot retract a message after dispatch has begun.
 - `TaskRunner` passes the caller token to cancellable task factories and propagates caller cancellation after active work
   observes it. Ordinary per-task failures remain logged and isolated.
 - `HttpCall` and `FileUploader` propagate caller cancellation rather than returning fallback HTTP responses.

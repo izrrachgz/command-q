@@ -15,13 +15,14 @@ This file captures practical repository knowledge for coding agents working in t
 
 ## Repository Boundary
 
-- This repository owns reusable, product-neutral libraries: `Common`, `Cqrs`, `Localization`, `Persistence` and `Time`.
+- This repository owns reusable, product-neutral libraries: `Common`, `Cqrs`, `Localization`, `Messaging`, `Messaging.Wolverine.RabbitMq`,
+  `Persistence` and `Time`.
 - Deployable hosts, application use cases, domain models, database schemas and migrations live in consuming repositories such as `command-q-back` and `command-emails`.
 - Consumers reference versioned `CommandQ.*` NuGet packages. Never add project references from this solution to an application repository or load locally published DLLs directly.
 - Libraries must not reference application, domain or host projects. Keep dependencies flowing from consumers into these packages.
 - Preserve public API compatibility deliberately. Treat removals, renames and semantic changes as breaking changes and update package versions accordingly.
 - Each library owns a `README.md`, which is embedded as that NuGet package's readme. Keep it aligned with public behavior when changing a package.
-- Keep tests in the matching `*.Test` project and keep all ten projects in the solution's `Libraries` and `Tests` folders.
+- Keep tests in the matching `*.Test` project and keep all fourteen projects in the solution's `Libraries` and `Tests` folders.
 
 ## Projects
 
@@ -31,7 +32,7 @@ This file captures practical repository knowledge for coding agents working in t
 - `TaskRunner` provides bounded-concurrency asynchronous execution; register it with `AddTaskRunner()` and inject `ITaskRunner`.
 - `ITypedCache<TEntry>` and `TypedMemoryCache<TEntry>` provide type-scoped in-memory caching. Put domain-specific cache adapters in consuming applications.
 - `HttpCall` and `FileUploader` provide lightweight HTTP and multipart helpers.
-- Do not move CQRS, localization, persistence, time, authentication or business concepts into `Common` merely to share them.
+- Do not move CQRS, localization, messaging, persistence, time, authentication or business concepts into `Common` merely to share them.
 
 ### Cqrs
 
@@ -48,6 +49,17 @@ This file captures practical repository knowledge for coding agents working in t
 - `ITextProvider` resolves registered providers in configured order and returns the key when no source contains a value.
 - Providers are scoped so resolution follows the active request's UI culture. Applications remain responsible for request-culture middleware.
 - When adding a provider, preserve deterministic provider ordering, fallback behavior and application ownership of content.
+
+### Messaging
+
+- `CommandQ.Messaging` owns transport-neutral `IMessageSender`, `IMessageHandler<TMessage>`, delivery context and send options. It must remain
+  independent from brokers, Wolverine, CQRS, persistence and application message types.
+- `CommandQ.Messaging.Wolverine.RabbitMQ` is an optional adapter. Keep Wolverine and RabbitMQ types out of the transport-neutral package.
+- Register routes and handlers explicitly. Do not introduce application assembly scanning or runtime generic handler construction in CommandQ code.
+- Messaging provides at-least-once delivery. Applications own idempotency keys, inbox/outbox schemas, migrations, retry classification, queue names,
+  message schemas and business handlers.
+- Keep message bodies small. Applications should store files and reports externally and send identifiers and integrity metadata.
+- Preserve publisher confirmations, durable queues, native acknowledgements, bounded concurrency and cancellation behavior when changing the adapter.
 
 ### Persistence
 
@@ -71,6 +83,8 @@ This file captures practical repository knowledge for coding agents working in t
 - `Common.Test` covers shared helper, extension, caching and task-execution behavior.
 - `Cqrs.Test` covers registration, dispatch, pipelines, cancellation and AOT/dependency architecture rules.
 - `Localization.Test` owns representative RESX and JSON fixtures and verifies culture, provider order and fallback behavior.
+- `Messaging.Test` covers transport-neutral contracts, metadata and AOT/dependency architecture rules.
+- `Messaging.Wolverine.RabbitMq.Test` covers adapter registration, option mapping, cancellation and envelope metadata without requiring a broker.
 - `Persistence.Test` covers provider-neutral query construction, sorting/searching and UTC filter normalization without requiring an external database.
 - `Time.Test` covers UTC contracts, precision, time-zone conversion, JSON converters, dependency injection and architecture rules.
 - Add focused tests for changes to public contracts, DI registration, fallback/ordering rules, database provider behavior and serialization formats.

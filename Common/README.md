@@ -50,7 +50,8 @@ should expose a separately named `DateRangeCriteria` instead of duplicating date
 properties or creating another `SearchCriteria`.
 
 - Add a helper only when it is useful across unrelated applications and independent of business rules.
-- Keep CQRS contracts in `CommandQ.Cqrs`, localization in `CommandQ.Localization`, database access in `CommandQ.Persistence` and UTC behavior in `CommandQ.Time`.
+- Keep CQRS contracts in `CommandQ.Cqrs`, durable messaging in `CommandQ.Messaging`, localization in `CommandQ.Localization`, database access in
+  `CommandQ.Persistence` and UTC behavior in `CommandQ.Time`.
 - Keep the public surface stable because this package is referenced broadly.
 - Build application-specific adapters in the consuming application.
 

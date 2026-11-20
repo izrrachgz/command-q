@@ -9,6 +9,8 @@ The product backend is maintained separately in
 - [`CommandQ.Common`](Common/README.md): general utilities, caching, task execution and shared models.
 - [`CommandQ.Cqrs`](Cqrs/README.md): explicit, AOT-friendly in-process request dispatching.
 - [`CommandQ.Localization`](Localization/README.md): application-owned RESX and JSON localization composition.
+- [`CommandQ.Messaging`](Messaging/README.md): AOT-compatible, transport-neutral asynchronous messaging contracts.
+- [`CommandQ.Messaging.Wolverine.RabbitMQ`](Messaging.Wolverine.RabbitMq/README.md): explicit Wolverine and RabbitMQ routing and workers.
 - [`CommandQ.Persistence`](Persistence/README.md): provider-neutral SqlKata repositories and database adapters.
 - [`CommandQ.Time`](Time/README.md): UTC and timezone primitives built on NodaTime.
 
@@ -41,7 +43,7 @@ method group in one test project, pass an xUnit method pattern, for example:
 
 ## NuGet package creation
 
-This repository is the source of the five `CommandQ.*` NuGet packages. Package creation is
+This repository is the source of the seven `CommandQ.*` NuGet packages. Package creation is
 explicit: a normal Visual Studio **Build Solution** or `dotnet build` only compiles the
 projects, even when the selected configuration is Release. There is no package-on-build
 profile.
@@ -61,18 +63,20 @@ The script performs these operations in order:
 Always pass `-Configuration Release` when producing packages for applications. The script's
 default configuration remains Debug for local development.
 
-`Directory.Build.props` marks only `Common`, `Cqrs`, `Localization`, `Persistence` and `Time`
+`Directory.Build.props` marks only the seven projects listed above
 as packable. It also defines their `CommandQ.*` package IDs, shared version and package
 metadata. Test projects are not packaged.
 
 Generated `.nupkg` files are written outside this repository to the sibling local feed:
 
 ```text
-..\command-q-build-output\CommandQ.Common.0.3.3.nupkg
-..\command-q-build-output\CommandQ.Cqrs.0.3.3.nupkg
-..\command-q-build-output\CommandQ.Localization.0.3.3.nupkg
-..\command-q-build-output\CommandQ.Persistence.0.3.3.nupkg
-..\command-q-build-output\CommandQ.Time.0.3.3.nupkg
+..\command-q-build-output\CommandQ.Common.0.4.1.nupkg
+..\command-q-build-output\CommandQ.Cqrs.0.4.1.nupkg
+..\command-q-build-output\CommandQ.Localization.0.4.1.nupkg
+..\command-q-build-output\CommandQ.Messaging.0.4.1.nupkg
+..\command-q-build-output\CommandQ.Messaging.Wolverine.RabbitMQ.0.4.1.nupkg
+..\command-q-build-output\CommandQ.Persistence.0.4.1.nupkg
+..\command-q-build-output\CommandQ.Time.0.4.1.nupkg
 ```
 
 Consuming repositories reference that directory as a local NuGet source during development.

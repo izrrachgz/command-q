@@ -1,8 +1,8 @@
 <Project>
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Common' or '$(MSBuildProjectName)' == 'Cqrs' or '$(MSBuildProjectName)' == 'Localization' or '$(MSBuildProjectName)' == 'Persistence' or '$(MSBuildProjectName)' == 'Time'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Common' or '$(MSBuildProjectName)' == 'Cqrs' or '$(MSBuildProjectName)' == 'Localization' or '$(MSBuildProjectName)' == 'Messaging' or '$(MSBuildProjectName)' == 'Messaging.Wolverine.RabbitMq' or '$(MSBuildProjectName)' == 'Persistence' or '$(MSBuildProjectName)' == 'Time'">
     <IsPackable>true</IsPackable>
     <PackageId>CommandQ.$(MSBuildProjectName)</PackageId>
-    <Version>0.3.4</Version>
+    <Version>0.4.1</Version>
     <Authors>CommandQ</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/izrrachgz/command-q</PackageProjectUrl>
@@ -20,7 +20,7 @@
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\command-q-build-output</PackageOutputPath>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Common' or '$(MSBuildProjectName)' == 'Cqrs' or '$(MSBuildProjectName)' == 'Localization' or '$(MSBuildProjectName)' == 'Persistence' or '$(MSBuildProjectName)' == 'Time'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Common' or '$(MSBuildProjectName)' == 'Cqrs' or '$(MSBuildProjectName)' == 'Localization' or '$(MSBuildProjectName)' == 'Messaging' or '$(MSBuildProjectName)' == 'Messaging.Wolverine.RabbitMq' or '$(MSBuildProjectName)' == 'Persistence' or '$(MSBuildProjectName)' == 'Time'">
     <None Include="$(MSBuildProjectDirectory)\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
