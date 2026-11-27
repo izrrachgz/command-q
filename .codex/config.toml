@@ -1,0 +1,10 @@
+# Shared settings for command-q. Personal and managed settings
+# supply the model, sandbox and approval policy.
+project_doc_max_bytes = 65536
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+
+# Declare shared MCP integrations here when needed. Reference credentials
+# through approved environment or OAuth mechanisms.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "API Contract"
+  short_description: "Verify CommandQ API and consumer compatibility"
+  default_prompt: "Use $api-contract to compare the changed package contract against existing callers on both targets."
+policy:
+  allow_implicit_invocation: true

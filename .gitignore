@@ -58,3 +58,7 @@ IdentityServer.Test/Obj/
 
 postman/environments/*.local.postman_environment.json
 benchmarks/results/
+
+# Developer-specific Codex instructions
+AGENTS.override.md
+.codex/hooks/__pycache__/

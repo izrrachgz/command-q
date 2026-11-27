@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review Change"
+  short_description: "Review CommandQ package changes for regressions"
+  default_prompt: "Use $review-change to review the current package changes and report actionable findings and verification gaps."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Verify Change"
+  short_description: "Select and run CommandQ validation checks"
+  default_prompt: "Use $verify-change to run the relevant package checks and report which targets and behaviors they cover."
+policy:
+  allow_implicit_invocation: true

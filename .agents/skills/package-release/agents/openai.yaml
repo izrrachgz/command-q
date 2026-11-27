@@ -1,0 +1,6 @@
+interface:
+  display_name: "Package Release"
+  short_description: "Prepare and verify CommandQ NuGet releases"
+  default_prompt: "Use $package-release to review the CommandQ package version, artifacts, provenance and distribution readiness."
+policy:
+  allow_implicit_invocation: true

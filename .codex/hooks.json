@@ -1,0 +1,19 @@
+{
+  "description": "PreToolUse checks selected destructive shell requests. It resolves the command-q checkout root, uses Python 3, and emits a denial for a matching command.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "root=\"$(git rev-parse --show-toplevel)\" && python3 \"$root/.codex/hooks/validate_shell.py\"",
+            "commandWindows": "$root = git rev-parse --show-toplevel; if ($LASTEXITCODE -eq 0) { $input | python (Join-Path $root '.codex/hooks/validate_shell.py') }",
+            "timeout": 10,
+            "statusMessage": "Checking shell command safety"
+          }
+        ]
+      }
+    ]
+  }
+}

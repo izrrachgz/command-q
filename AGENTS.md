@@ -2,6 +2,22 @@
 
 This file captures practical repository knowledge for coding agents working in this solution.
 
+## Codex workflows
+
+- Use [$ub-mode](.agents/skills/ub-mode/SKILL.md) for changes to observable behavior and refactors of control flow, responsibilities, or state. Use [$fix-issue](.agents/skills/fix-issue/SKILL.md) for reproduction and diagnosis and [$review-change](.agents/skills/review-change/SKILL.md) for read-only review.
+- Use [$verify-change](.agents/skills/verify-change/SKILL.md) for test and package validation, [$api-contract](.agents/skills/api-contract/SKILL.md) for package and consumer compatibility, and [$database-change](.agents/skills/database-change/SKILL.md) for Persistence provider and transaction changes.
+- Use [$package-release](.agents/skills/package-release/SKILL.md) for NuGet distribution readiness and authorized publication. Application releases belong to their consuming repositories.
+- Read [code style](docs/standards/code-style.md), [testing](docs/standards/testing.md), [package contracts](docs/standards/api-conventions.md), [security and privacy](docs/standards/security-privacy.md), or [release readiness](docs/standards/operational-readiness.md) as applicable. See [CODEX.md](CODEX.md) for setup.
+- Use the read-only review roles when delegation is requested or an approved workflow explicitly calls for independent review.
+
+## Commit and push
+
+When the user asks to **commit and push**, review staged, unstaged and relevant untracked changes and any local commits that would be published using [$review-change](.agents/skills/review-change/SKILL.md). Verify the applicable scope.
+
+Group the reviewed changes into coherent commits. Give each commit a specific subject and a detailed body explaining what changed, why, and how it was verified. Record material verification gaps.
+
+Push the current branch to the same branch on `origin` using a normal push. Set tracking on the first push if needed. Verify the remote branch tip and report the review findings, checks, commit IDs and destination.
+
 ## Solution
 
 - Framework: .NET 10 and .NET 11.

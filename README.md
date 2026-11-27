@@ -4,6 +4,8 @@ Reusable .NET 10 and .NET 11 application-building libraries shared by the Comman
 The product backend is maintained separately in
 [`command-q-back`](https://github.com/izrrachgz/command-q-back).
 
+For repository-specific agent setup and workflows, see [CODEX.md](CODEX.md).
+
 ## Libraries
 
 - [`CommandQ.Common`](Common/README.md): general utilities, caching, task execution and shared models.

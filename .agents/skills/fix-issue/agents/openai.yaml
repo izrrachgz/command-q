@@ -1,0 +1,6 @@
+interface:
+  display_name: "Fix Issue"
+  short_description: "Reproduce and diagnose a CommandQ defect"
+  default_prompt: "Use $fix-issue to reproduce the library failure, find its cause and carry through the requested repair."
+policy:
+  allow_implicit_invocation: true

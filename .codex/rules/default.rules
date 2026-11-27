@@ -1,0 +1,26 @@
+# These rules apply to matching commands outside the sandbox.
+# Use codex execpolicy check to test command tokens without executing them.
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Preserve uncommitted work. Use a targeted, recoverable operation.",
+)
+
+prefix_rule(
+    pattern = ["git", "clean", ["-f", "-fd", "-df", "-fdx", "-xdf"]],
+    decision = "forbidden",
+    justification = "Preserve untracked project files. Inspect with a dry run and remove exact targets.",
+)
+
+prefix_rule(
+    pattern = ["rm", ["-rf", "-fr"]],
+    decision = "prompt",
+    justification = "Verify the exact target before recursive forced deletion.",
+)
+
+prefix_rule(
+    pattern = ["powershell", "Remove-Item", "-Recurse"],
+    decision = "prompt",
+    justification = "Verify the exact target before recursive deletion.",
+)
