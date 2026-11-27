@@ -30,6 +30,24 @@ distribution, record:
 4. Compatibility review and documented breaking changes.
 5. Publisher identity and distribution approval.
 
+## Builds from pinned source in consumer CI
+
+Consumer workflows pin the `command-q` source revision and build a fresh local
+feed. For consumers with committed NuGet locks, run
+[`scripts/set-consumer-package-hashes.ps1`](../scripts/set-consumer-package-hashes.ps1)
+against the consumer checkout after packing and before locked restore.
+
+```powershell
+..\command-q\scripts\set-consumer-package-hashes.ps1 -ConsumerRoot .
+```
+
+Run the command from the consumer checkout. The helper uses the sibling
+`command-q-build-output` feed by default. It updates only `CommandQ.*` content
+hashes because a fresh build packages new artifact bytes. Locked restore still
+checks the versions, graph and third-party hashes. Use a disposable checkout to
+reproduce CI without replacing the working copy's package hashes. When shipping
+an image, use the same feed for hash matching and the Docker build context.
+
 ## Integrity and signing
 
 The local sibling feed relies on repository access controls, CI verification and

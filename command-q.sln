@@ -29,36 +29,224 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Time.Test", "Time.Test\Time
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{60A45A9D-15E0-49A2-A60A-5737A2E38D9C}"
 	ProjectSection(SolutionItems) = preProject
-		.codex\config.toml = .codex\config.toml
-		.codex\hooks.json = .codex\hooks.json
-		.codex\rules\default.rules = .codex\rules\default.rules
 		.editorconfig = .editorconfig
-		.github\dependabot.yml = .github\dependabot.yml
-		.github\workflows\quality.yml = .github\workflows\quality.yml
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		AGENTS.md = AGENTS.md
 		CODEX.md = CODEX.md
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+		LICENSE = LICENSE
+		README.md = README.md
+		SECURITY.md = SECURITY.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Codex", "Codex", "{138132EE-655A-FFDD-EF0F-6A2B970C6CEA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".codex", ".codex", "{ABB227BF-C364-895A-3D44-F0347477D449}"
+	ProjectSection(SolutionItems) = preProject
+		.codex\config.toml = .codex\config.toml
+		.codex\hooks.json = .codex\hooks.json
+		.codex\LICENSE = .codex\LICENSE
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "rules", "rules", "{3E2D3E57-9E5F-28D4-74B7-86B4AA4A1985}"
+	ProjectSection(SolutionItems) = preProject
+		.codex\rules\default.rules = .codex\rules\default.rules
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{161A1BD6-2B0C-99BA-8EB4-09340F4722A2}"
+	ProjectSection(SolutionItems) = preProject
+		.github\dependabot.yml = .github\dependabot.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{200CDACB-7D33-F05E-EEA8-1DC27A8FD390}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\quality.yml = .github\workflows\quality.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{691EF3E2-E310-318C-E1A5-5BEDC438830E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{590AF940-86FC-3F78-0797-A24E5DBC8198}"
+	ProjectSection(SolutionItems) = preProject
 		docs\cancellation.md = docs\cancellation.md
 		docs\iso-27001-27701-alignment.md = docs\iso-27001-27701-alignment.md
 		docs\logging-event-ids.md = docs\logging-event-ids.md
 		docs\package-release.md = docs\package-release.md
 		docs\privacy-boundaries.md = docs\privacy-boundaries.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "standards", "standards", "{5D5B9AEF-CFFD-CC4C-255A-D9386490E905}"
+	ProjectSection(SolutionItems) = preProject
 		docs\standards\api-conventions.md = docs\standards\api-conventions.md
 		docs\standards\code-style.md = docs\standards\code-style.md
 		docs\standards\operational-readiness.md = docs\standards\operational-readiness.md
 		docs\standards\security-privacy.md = docs\standards\security-privacy.md
 		docs\standards\testing.md = docs\standards\testing.md
-		global.json = global.json
-		LICENSE = LICENSE
-		README.md = README.md
-		SECURITY.md = SECURITY.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{49A6BA64-4560-4C5E-12B4-A8B860A9BC18}"
+	ProjectSection(SolutionItems) = preProject
 		scripts\build.ps1 = scripts\build.ps1
 		scripts\set-consumer-package-hashes.ps1 = scripts\set-consumer-package-hashes.ps1
 		scripts\test.ps1 = scripts\test.ps1
 		scripts\verify-packages.ps1 = scripts\verify-packages.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".agents", ".agents", "{2DEC9027-A783-15F1-686F-F749A92A529E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "skills", "skills", "{C44CD4CB-976B-1105-3568-EBEC1C9C74A2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api-contract", "api-contract", "{87BD52A8-977D-BC69-9AE0-125BDBDF84D1}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\api-contract\SKILL.md = .agents\skills\api-contract\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{37267607-CC21-BCE2-2014-C13D483E9BA7}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\api-contract\agents\openai.yaml = .agents\skills\api-contract\agents\openai.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "database-change", "database-change", "{D20A9AEA-6E71-14FB-D7CB-B22D9A641851}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\database-change\SKILL.md = .agents\skills\database-change\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{C315FD4A-DEFE-5A46-9ED9-98DF71420F88}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\database-change\agents\openai.yaml = .agents\skills\database-change\agents\openai.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fix-issue", "fix-issue", "{667D330F-4C8D-EC7D-9B64-087461BDF4A2}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\fix-issue\SKILL.md = .agents\skills\fix-issue\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{0DCC2E51-D5BD-B18D-2071-E7EAA215462F}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\fix-issue\agents\openai.yaml = .agents\skills\fix-issue\agents\openai.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "package-release", "package-release", "{0F3E7E62-E5EE-F0AB-A273-EA960B573CF6}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\package-release\SKILL.md = .agents\skills\package-release\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{83D53422-74A8-22EA-B0A8-A8FFB8622F62}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\package-release\agents\openai.yaml = .agents\skills\package-release\agents\openai.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "review-change", "review-change", "{5BEA339B-43D3-31BE-76FE-ED09F8D69E36}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\review-change\SKILL.md = .agents\skills\review-change\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{F23381EB-5B60-6FD5-F367-6943F5065530}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\review-change\agents\openai.yaml = .agents\skills\review-change\agents\openai.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ub-mode", "ub-mode", "{F7FE9065-FCFB-1D36-302D-3C5588A106CE}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\ub-mode\SKILL.md = .agents\skills\ub-mode\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{F9A7B987-BCAD-169D-D7B2-95B8CE7A3B2B}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\ub-mode\agents\openai.yaml = .agents\skills\ub-mode\agents\openai.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "verify-change", "verify-change", "{33E5D553-7840-23BC-174C-60DC91C301F3}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\verify-change\SKILL.md = .agents\skills\verify-change\SKILL.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{0CE7294A-6895-2504-A20B-E36C66EEEFC3}"
+	ProjectSection(SolutionItems) = preProject
+		.agents\skills\verify-change\agents\openai.yaml = .agents\skills\verify-change\agents\openai.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "agents", "agents", "{6488DF9B-2F17-D45D-FF85-3A675CEBD248}"
+	ProjectSection(SolutionItems) = preProject
+		.codex\agents\code-reviewer.toml = .codex\agents\code-reviewer.toml
+		.codex\agents\security-auditor.toml = .codex\agents\security-auditor.toml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "hooks", "hooks", "{423DFA03-E5D5-3868-FC0F-C3890672F864}"
+	ProjectSection(SolutionItems) = preProject
+		.codex\hooks\validate_shell.py = .codex\hooks\validate_shell.py
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common.Test", "Common.Test", "{469D620C-B458-0DCD-00DD-6EA23129AD94}"
+	ProjectSection(SolutionItems) = preProject
+		Common.Test\README.md = Common.Test\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{EECF23BA-08DE-4D88-F910-BC37A00EB989}"
+	ProjectSection(SolutionItems) = preProject
+		Common\README.md = Common\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cqrs.Test", "Cqrs.Test", "{9943FC4D-35EA-B211-A1AD-1991A4069786}"
+	ProjectSection(SolutionItems) = preProject
+		Cqrs.Test\README.md = Cqrs.Test\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cqrs", "Cqrs", "{B8C878AF-0D63-114E-B8D0-8377113C8AD3}"
+	ProjectSection(SolutionItems) = preProject
+		Cqrs\README.md = Cqrs\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Localization.Test", "Localization.Test", "{C7358BE1-8DDA-27DF-2BB0-9429E75E7B3A}"
+	ProjectSection(SolutionItems) = preProject
+		Localization.Test\README.md = Localization.Test\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Localization", "Localization", "{7C0F4A33-1F6F-F58A-6341-C5BEBA031E7A}"
+	ProjectSection(SolutionItems) = preProject
+		Localization\README.md = Localization\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging.Test", "Messaging.Test", "{FB2E5A90-3014-A9BA-5C9D-08202486337F}"
+	ProjectSection(SolutionItems) = preProject
+		Messaging.Test\README.md = Messaging.Test\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging.Wolverine.RabbitMq.Test", "Messaging.Wolverine.RabbitMq.Test", "{7B82A750-ED35-4AC9-3347-6C0C102F0C79}"
+	ProjectSection(SolutionItems) = preProject
+		Messaging.Wolverine.RabbitMq.Test\README.md = Messaging.Wolverine.RabbitMq.Test\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging.Wolverine.RabbitMq", "Messaging.Wolverine.RabbitMq", "{1BA825D1-060E-480B-9EE9-576F2DDF1CF1}"
+	ProjectSection(SolutionItems) = preProject
+		Messaging.Wolverine.RabbitMq\README.md = Messaging.Wolverine.RabbitMq\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Messaging", "Messaging", "{CA31A8D3-0C4A-0822-4505-FB54953EDF93}"
+	ProjectSection(SolutionItems) = preProject
+		Messaging\README.md = Messaging\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence.Test", "Persistence.Test", "{A2B95689-910D-092C-008C-E566EC4F46EA}"
+	ProjectSection(SolutionItems) = preProject
+		Persistence.Test\README.md = Persistence.Test\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Persistence", "Persistence", "{8A12B391-65A6-F30E-6070-6EA38D48B743}"
+	ProjectSection(SolutionItems) = preProject
+		Persistence\README.md = Persistence\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Time.Test", "Time.Test", "{AB82AF07-3663-C84F-43E7-1FE9FB7D4222}"
+	ProjectSection(SolutionItems) = preProject
+		Time.Test\README.md = Time.Test\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Time", "Time", "{23734D37-EF9E-3995-CE34-0E18AD06E5BA}"
+	ProjectSection(SolutionItems) = preProject
+		Time\README.md = Time\README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging", "Messaging\Messaging.csproj", "{DCC79E61-EEDD-4D30-9B3D-00A4B072B666}"
@@ -266,5 +454,46 @@ Global
 		{C0412C27-5012-44AC-B7D5-C74A9BA33344} = {F2E35B3E-9711-EDEC-6202-DB40BDEED14A}
 		{DA6E93A7-87CD-4E2A-B2AC-F39E8D9CFDFC} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{14F500F0-F3A9-4621-9FE6-1F77782EB051} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{138132EE-655A-FFDD-EF0F-6A2B970C6CEA} = {60A45A9D-15E0-49A2-A60A-5737A2E38D9C}
+		{ABB227BF-C364-895A-3D44-F0347477D449} = {138132EE-655A-FFDD-EF0F-6A2B970C6CEA}
+		{3E2D3E57-9E5F-28D4-74B7-86B4AA4A1985} = {ABB227BF-C364-895A-3D44-F0347477D449}
+		{161A1BD6-2B0C-99BA-8EB4-09340F4722A2} = {60A45A9D-15E0-49A2-A60A-5737A2E38D9C}
+		{200CDACB-7D33-F05E-EEA8-1DC27A8FD390} = {161A1BD6-2B0C-99BA-8EB4-09340F4722A2}
+		{691EF3E2-E310-318C-E1A5-5BEDC438830E} = {60A45A9D-15E0-49A2-A60A-5737A2E38D9C}
+		{590AF940-86FC-3F78-0797-A24E5DBC8198} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{5D5B9AEF-CFFD-CC4C-255A-D9386490E905} = {590AF940-86FC-3F78-0797-A24E5DBC8198}
+		{49A6BA64-4560-4C5E-12B4-A8B860A9BC18} = {60A45A9D-15E0-49A2-A60A-5737A2E38D9C}
+		{2DEC9027-A783-15F1-686F-F749A92A529E} = {138132EE-655A-FFDD-EF0F-6A2B970C6CEA}
+		{C44CD4CB-976B-1105-3568-EBEC1C9C74A2} = {2DEC9027-A783-15F1-686F-F749A92A529E}
+		{87BD52A8-977D-BC69-9AE0-125BDBDF84D1} = {C44CD4CB-976B-1105-3568-EBEC1C9C74A2}
+		{37267607-CC21-BCE2-2014-C13D483E9BA7} = {87BD52A8-977D-BC69-9AE0-125BDBDF84D1}
+		{D20A9AEA-6E71-14FB-D7CB-B22D9A641851} = {C44CD4CB-976B-1105-3568-EBEC1C9C74A2}
+		{C315FD4A-DEFE-5A46-9ED9-98DF71420F88} = {D20A9AEA-6E71-14FB-D7CB-B22D9A641851}
+		{667D330F-4C8D-EC7D-9B64-087461BDF4A2} = {C44CD4CB-976B-1105-3568-EBEC1C9C74A2}
+		{0DCC2E51-D5BD-B18D-2071-E7EAA215462F} = {667D330F-4C8D-EC7D-9B64-087461BDF4A2}
+		{0F3E7E62-E5EE-F0AB-A273-EA960B573CF6} = {C44CD4CB-976B-1105-3568-EBEC1C9C74A2}
+		{83D53422-74A8-22EA-B0A8-A8FFB8622F62} = {0F3E7E62-E5EE-F0AB-A273-EA960B573CF6}
+		{5BEA339B-43D3-31BE-76FE-ED09F8D69E36} = {C44CD4CB-976B-1105-3568-EBEC1C9C74A2}
+		{F23381EB-5B60-6FD5-F367-6943F5065530} = {5BEA339B-43D3-31BE-76FE-ED09F8D69E36}
+		{F7FE9065-FCFB-1D36-302D-3C5588A106CE} = {C44CD4CB-976B-1105-3568-EBEC1C9C74A2}
+		{F9A7B987-BCAD-169D-D7B2-95B8CE7A3B2B} = {F7FE9065-FCFB-1D36-302D-3C5588A106CE}
+		{33E5D553-7840-23BC-174C-60DC91C301F3} = {C44CD4CB-976B-1105-3568-EBEC1C9C74A2}
+		{0CE7294A-6895-2504-A20B-E36C66EEEFC3} = {33E5D553-7840-23BC-174C-60DC91C301F3}
+		{6488DF9B-2F17-D45D-FF85-3A675CEBD248} = {ABB227BF-C364-895A-3D44-F0347477D449}
+		{423DFA03-E5D5-3868-FC0F-C3890672F864} = {ABB227BF-C364-895A-3D44-F0347477D449}
+		{469D620C-B458-0DCD-00DD-6EA23129AD94} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{EECF23BA-08DE-4D88-F910-BC37A00EB989} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{9943FC4D-35EA-B211-A1AD-1991A4069786} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{B8C878AF-0D63-114E-B8D0-8377113C8AD3} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{C7358BE1-8DDA-27DF-2BB0-9429E75E7B3A} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{7C0F4A33-1F6F-F58A-6341-C5BEBA031E7A} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{FB2E5A90-3014-A9BA-5C9D-08202486337F} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{7B82A750-ED35-4AC9-3347-6C0C102F0C79} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{1BA825D1-060E-480B-9EE9-576F2DDF1CF1} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{CA31A8D3-0C4A-0822-4505-FB54953EDF93} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{A2B95689-910D-092C-008C-E566EC4F46EA} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{8A12B391-65A6-F30E-6070-6EA38D48B743} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{AB82AF07-3663-C84F-43E7-1FE9FB7D4222} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
+		{23734D37-EF9E-3995-CE34-0E18AD06E5BA} = {691EF3E2-E310-318C-E1A5-5BEDC438830E}
 	EndGlobalSection
 EndGlobal

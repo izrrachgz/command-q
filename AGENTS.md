@@ -22,6 +22,7 @@ Push the current branch to the same branch on `origin` using a normal push. Set 
 
 - Framework: .NET 10 and .NET 11.
 - Solution file: `command-q.sln`.
+- Mirror physical directories within each `Solution Items` category when adding or moving files. Put project readmes under `Solution Items/Documentation/{Project}`, repository guides under `Solution Items/Documentation/docs`, and skill files under `Solution Items/Codex/.agents/skills/{skill}`. Keep source paths relative to the solution and ensure each folder has unique file names.
 - Restore with `dotnet restore .\command-q.sln`.
 - Build and pack with `.\scripts\build.ps1`; use `-Configuration Release` for release artifacts.
 - Test with `.\scripts\test.ps1`; target one project with `-Project` and one group with `-Filter`.
