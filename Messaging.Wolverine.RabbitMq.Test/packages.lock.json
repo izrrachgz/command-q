@@ -4,9 +4,9 @@
     "net10.0": {
       "coverlet.collector": {
         "type": "Direct",
-        "requested": "[10.1.0, )",
-        "resolved": "10.1.0",
-        "contentHash": "SlYCIHnBYxINSUpR75SiM5JEmnx11pqT+Ac/C/fUqTTA0dLPl9eYzmFXKKuxmQhL3ZdTQl4PBD3YdAxAauaKLQ=="
+        "requested": "[10.1.1, )",
+        "resolved": "10.1.1",
+        "contentHash": "iRWGpNzKG6/pA0VzAt+WDzFAPMHvs/E4ZxeSYiEaAa7MzFhAcWcIWd7RDNLhCBenpSNdJCwm42UcQP4nGUbwJQ=="
       },
       "Microsoft.Extensions.DependencyInjection": {
         "type": "Direct",
@@ -441,11 +441,11 @@
       },
       "WolverineFx.Newtonsoft": {
         "type": "Transitive",
-        "resolved": "6.64.0",
-        "contentHash": "p6Syrb0V8NZLlddTdYzvEpqJfNwMnKi8b3Z9LzQo4dSYkZx/I1uPs3LDr7uCT7ijbkLhAoJpjp2o/puSHOSKiA==",
+        "resolved": "6.65.1",
+        "contentHash": "L5n+IKhz+WgTS8hmeGTyyVjG1BQXSGhZwsipKXnuQ75nJj+1UXIVdswx0OWhLput0kLvTiO6cVwuzyKlNcgnUw==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
-          "WolverineFx": "6.64.0"
+          "WolverineFx": "6.65.1"
         }
       },
       "xunit.analyzers": {
@@ -522,9 +522,9 @@
       "CommandQ.Messaging.Wolverine.RabbitMQ": {
         "type": "Project",
         "dependencies": {
-          "CommandQ.Messaging": "[0.3.4, )",
-          "WolverineFx": "[6.64.0, )",
-          "WolverineFx.RabbitMQ": "[6.64.0, )"
+          "CommandQ.Messaging": "[0.4.1, )",
+          "WolverineFx": "[6.65.1, )",
+          "WolverineFx.RabbitMQ": "[6.65.1, )"
         }
       },
       "Microsoft.Extensions.Caching.Memory": {
@@ -610,9 +610,9 @@
       },
       "WolverineFx": {
         "type": "CentralTransitive",
-        "requested": "[6.64.0, )",
-        "resolved": "6.64.0",
-        "contentHash": "hoGE3ZTGontyepxYQ96OUklj81x3a5dg9k32rpgCa1yNHWdsfJCtr9Lx/wZidUv+lfzm+LSLoVHsXILYeq+e2A==",
+        "requested": "[6.65.1, )",
+        "resolved": "6.65.1",
+        "contentHash": "e1QGJy/kn+N5T5L40jJFWvj1pyHiXkVT5w2F4yLvnjiDrQmchO+Cyixgbjfvh08WfLm1iYyhjATos0Q024jKSQ==",
         "dependencies": {
           "Cronos": "0.11.0",
           "JasperFx": "2.102.0",
@@ -632,22 +632,22 @@
       },
       "WolverineFx.RabbitMQ": {
         "type": "CentralTransitive",
-        "requested": "[6.64.0, )",
-        "resolved": "6.64.0",
-        "contentHash": "WNTX/kMQRKUrpqCs9gkdTKlF2r0h5H3RGUg8FACAIMOvAyMDlAaJjTupXoYUx1oS+OffwVMjLyZwy6dWt0gEDA==",
+        "requested": "[6.65.1, )",
+        "resolved": "6.65.1",
+        "contentHash": "7uYb+I/LJADYyTji33hkh+dHmgcXIRxs9wgV8vFGVAodXfWo5WPbHuZvxysqmYsg4o7A+VdO8F534ZuP5BQXBg==",
         "dependencies": {
           "RabbitMQ.Client": "7.2.2",
-          "WolverineFx": "6.64.0",
-          "WolverineFx.Newtonsoft": "6.64.0"
+          "WolverineFx": "6.65.1",
+          "WolverineFx.Newtonsoft": "6.65.1"
         }
       }
     },
     "net11.0": {
       "coverlet.collector": {
         "type": "Direct",
-        "requested": "[10.1.0, )",
-        "resolved": "10.1.0",
-        "contentHash": "SlYCIHnBYxINSUpR75SiM5JEmnx11pqT+Ac/C/fUqTTA0dLPl9eYzmFXKKuxmQhL3ZdTQl4PBD3YdAxAauaKLQ=="
+        "requested": "[10.1.1, )",
+        "resolved": "10.1.1",
+        "contentHash": "iRWGpNzKG6/pA0VzAt+WDzFAPMHvs/E4ZxeSYiEaAa7MzFhAcWcIWd7RDNLhCBenpSNdJCwm42UcQP4nGUbwJQ=="
       },
       "Microsoft.Extensions.DependencyInjection": {
         "type": "Direct",
@@ -998,11 +998,11 @@
       },
       "WolverineFx.Newtonsoft": {
         "type": "Transitive",
-        "resolved": "6.64.0",
-        "contentHash": "p6Syrb0V8NZLlddTdYzvEpqJfNwMnKi8b3Z9LzQo4dSYkZx/I1uPs3LDr7uCT7ijbkLhAoJpjp2o/puSHOSKiA==",
+        "resolved": "6.65.1",
+        "contentHash": "L5n+IKhz+WgTS8hmeGTyyVjG1BQXSGhZwsipKXnuQ75nJj+1UXIVdswx0OWhLput0kLvTiO6cVwuzyKlNcgnUw==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
-          "WolverineFx": "6.64.0"
+          "WolverineFx": "6.65.1"
         }
       },
       "xunit.analyzers": {
@@ -1079,9 +1079,9 @@
       "CommandQ.Messaging.Wolverine.RabbitMQ": {
         "type": "Project",
         "dependencies": {
-          "CommandQ.Messaging": "[0.3.4, )",
-          "WolverineFx": "[6.64.0, )",
-          "WolverineFx.RabbitMQ": "[6.64.0, )"
+          "CommandQ.Messaging": "[0.4.1, )",
+          "WolverineFx": "[6.65.1, )",
+          "WolverineFx.RabbitMQ": "[6.65.1, )"
         }
       },
       "Microsoft.Extensions.Caching.Memory": {
@@ -1119,9 +1119,9 @@
       },
       "WolverineFx": {
         "type": "CentralTransitive",
-        "requested": "[6.64.0, )",
-        "resolved": "6.64.0",
-        "contentHash": "hoGE3ZTGontyepxYQ96OUklj81x3a5dg9k32rpgCa1yNHWdsfJCtr9Lx/wZidUv+lfzm+LSLoVHsXILYeq+e2A==",
+        "requested": "[6.65.1, )",
+        "resolved": "6.65.1",
+        "contentHash": "e1QGJy/kn+N5T5L40jJFWvj1pyHiXkVT5w2F4yLvnjiDrQmchO+Cyixgbjfvh08WfLm1iYyhjATos0Q024jKSQ==",
         "dependencies": {
           "Cronos": "0.11.0",
           "JasperFx": "2.102.0",
@@ -1139,13 +1139,13 @@
       },
       "WolverineFx.RabbitMQ": {
         "type": "CentralTransitive",
-        "requested": "[6.64.0, )",
-        "resolved": "6.64.0",
-        "contentHash": "WNTX/kMQRKUrpqCs9gkdTKlF2r0h5H3RGUg8FACAIMOvAyMDlAaJjTupXoYUx1oS+OffwVMjLyZwy6dWt0gEDA==",
+        "requested": "[6.65.1, )",
+        "resolved": "6.65.1",
+        "contentHash": "7uYb+I/LJADYyTji33hkh+dHmgcXIRxs9wgV8vFGVAodXfWo5WPbHuZvxysqmYsg4o7A+VdO8F534ZuP5BQXBg==",
         "dependencies": {
           "RabbitMQ.Client": "7.2.2",
-          "WolverineFx": "6.64.0",
-          "WolverineFx.Newtonsoft": "6.64.0"
+          "WolverineFx": "6.65.1",
+          "WolverineFx.Newtonsoft": "6.65.1"
         }
       }
     }
