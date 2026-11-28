@@ -141,7 +141,7 @@ namespace Common.Transfer.Http
         /// </summary>
         public async Task<T?> GetAndReadFromJson<T>(string baseUrl, string? method = null, Dictionary<string, object>? queryParams = null, CancellationToken cancellationToken = default)
         {
-            var response = await Get(baseUrl, method, queryParams, cancellationToken);
+            using var response = await Get(baseUrl, method, queryParams, cancellationToken);
 
             return await ReadFromJson<T>(response, cancellationToken);
         }
@@ -151,7 +151,7 @@ namespace Common.Transfer.Http
         /// </summary>
         public async Task<T?> GetAndReadFromJson<T>(string baseUrl, JsonTypeInfo<T> jsonTypeInfo, string? method = null, Dictionary<string, object>? queryParams = null, CancellationToken cancellationToken = default)
         {
-            var response = await Get(baseUrl, method, queryParams, cancellationToken);
+            using var response = await Get(baseUrl, method, queryParams, cancellationToken);
 
             return await ReadFromJson(response, jsonTypeInfo, cancellationToken);
         }
@@ -169,7 +169,7 @@ namespace Common.Transfer.Http
         /// </summary>
         public async Task<T?> PostAndReadFromJson<T>(string baseUrl, string? method = null, object? bodyParams = null, CancellationToken cancellationToken = default)
         {
-            var response = await Post(baseUrl, method, bodyParams, cancellationToken);
+            using var response = await Post(baseUrl, method, bodyParams, cancellationToken);
 
             return await ReadFromJson<T>(response, cancellationToken);
         }
@@ -179,7 +179,7 @@ namespace Common.Transfer.Http
         /// </summary>
         public async Task<T?> PostAndReadFromJson<T>(string baseUrl, JsonTypeInfo<T> jsonTypeInfo, string? method = null, object? bodyParams = null, CancellationToken cancellationToken = default)
         {
-            var response = await Post(baseUrl, method, bodyParams, cancellationToken);
+            using var response = await Post(baseUrl, method, bodyParams, cancellationToken);
 
             return await ReadFromJson(response, jsonTypeInfo, cancellationToken);
         }

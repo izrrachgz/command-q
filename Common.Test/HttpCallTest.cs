@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Common.Transfer.Http;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Common.Test.Transfer.Http;
 
@@ -35,6 +37,43 @@ public sealed class HttpCallTest
             TestContext.Current.CancellationToken);
 
         Assert.Equal(new Uri("https://example.test/api/status?page=2"), requestUri);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Json_Helpers_Should_Dispose_Response_Content(bool post, bool usesTypeInfo)
+    {
+        using var content = new TrackingContent("42");
+        using var client = new HttpClient(new StubHttpMessageHandler((_, _) =>
+            Task.FromResult(new HttpResponseMessage { Content = content })));
+        var call = new HttpCall(client);
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var metadata = (JsonTypeInfo<int>)JsonSerializerOptions.Web.GetTypeInfo(typeof(int));
+
+        int value = (post, usesTypeInfo) switch
+        {
+            (false, false) => await call.GetAndReadFromJson<int>("https://example.test/", cancellationToken: cancellationToken),
+            (false, true) => await call.GetAndReadFromJson("https://example.test/", metadata, cancellationToken: cancellationToken),
+            (true, false) => await call.PostAndReadFromJson<int>("https://example.test/", cancellationToken: cancellationToken),
+            (true, true) => await call.PostAndReadFromJson("https://example.test/", metadata, cancellationToken: cancellationToken)
+        };
+
+        Assert.Equal(42, value);
+        Assert.True(content.WasDisposed);
+    }
+
+    private sealed class TrackingContent(string content) : StringContent(content)
+    {
+        public bool WasDisposed { get; private set; }
+
+        protected override void Dispose(bool disposing)
+        {
+            WasDisposed = true;
+            base.Dispose(disposing);
+        }
     }
 
     private sealed class StubHttpMessageHandler(

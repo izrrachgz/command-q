@@ -32,7 +32,7 @@ Inject `ITaskRunner` to execute asynchronous operations with bounded concurrency
 
 ## Typed memory cache
 
-`ITypedCache<TEntry>` scopes cache keys by entry type. `TypedMemoryCache<TEntry>.Clear()` removes only keys tracked for that type. Applications can add expressive, domain-specific cache adapters over the generic contract without moving domain concepts into this package.
+`ITypedCache<TEntry>` scopes cache keys by entry type. `TypedMemoryCache<TEntry>.Clear()` removes live keys tracked by that cache instance. Eviction releases the tracked key, and an eviction notification for a replaced value leaves the replacement tracked. Applications can add expressive, domain-specific cache adapters over the generic contract without moving domain concepts into this package.
 
 ## HTTP helpers
 
