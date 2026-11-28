@@ -17,9 +17,17 @@ Run from a reviewed commit with the SDK selected by `global.json`:
 
 The build restores only versions recorded by committed lock files, treats NuGet
 advisories as errors, compiles deterministic assemblies, runs package validation,
-and produces one `.nupkg` plus one `.snupkg` per library. The verifier checks the
-package identity, meaningful description, README, repository URL/commit, expected
-assembly and portable PDB. It writes `SHA256SUMS` over all fourteen artifacts.
+and produces one `.nupkg` plus one `.snupkg` per library. The verifier checks
+package identity, repository URL, source commit, project README content, and the
+expected assemblies and portable PDBs. It writes `SHA256SUMS` over all fourteen
+artifacts.
+
+The build verifies a clean staging directory before copying the verified set to
+`..\command-q-build-output`. Earlier versions can coexist in that feed, and the
+default manifest describes the latest verified set. Use `-PackageDirectory` on
+the build script to collect a separate package set for CI reproduction or
+consumer compatibility checks. To verify existing artifacts, use the checkout
+from which they were built so provenance and READMEs can be compared.
 
 CI verifies packages without uploading or distributing them. Before an authorized
 distribution, record:
