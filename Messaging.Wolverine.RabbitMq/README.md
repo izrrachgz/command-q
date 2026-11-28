@@ -37,9 +37,9 @@ builder.Host.UseWolverine(options =>
 `AddQueueWorker` explicitly registers the concrete handler, message route and listener. The same queue cannot be registered twice in one host.
 Handlers implement `IMessageHandler<TMessage>` and remain independent from Wolverine types.
 
-Set `SingleActiveConsumer` for singleton workloads that must never run concurrently across host replicas. RabbitMQ keeps the other consumers
-registered as failover candidates and activates one when the current consumer disconnects. Keep handlers idempotent because broker delivery
-remains at least once.
+Set `SingleActiveConsumer = true` to keep one broker consumer active across replicas. RabbitMQ keeps the other consumers available for failover.
+The active worker uses `MaxDegreeOfParallelism` to control how many messages it handles at once. For workloads that process one message at a time,
+set `MaxDegreeOfParallelism = 1` along with `SingleActiveConsumer = true`. Keep handlers idempotent because broker delivery remains at least once.
 
 For a send-only host, register only the route:
 
