@@ -11,14 +11,7 @@ namespace Persistence.Repository.Compilers
     {
         public override string Parameter(SqlResult context, object parameter)
         {
-            object normalizedParameter = parameter switch
-            {
-                DateTime dateTime => SqliteUtcDateTimeTypeHandler.FormatUtc(dateTime),
-                DateTimeOffset dateTimeOffset => SqliteUtcDateTimeTypeHandler.FormatUtc(dateTimeOffset.UtcDateTime),
-                _ => parameter
-            };
-
-            return base.Parameter(context, normalizedParameter);
+            return base.Parameter(context, SqliteUtcDateTimeTypeHandler.NormalizeParameter(parameter));
         }
     }
 }

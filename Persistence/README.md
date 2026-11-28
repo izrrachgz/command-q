@@ -59,7 +59,9 @@ This is an infrastructure capability. Consuming applications own context keys, p
 
 ## UTC and provider behavior
 
-`DateTimeFilterExtensions` centralizes UTC range normalization and the SQLite persistence representation. SQLite type handlers preserve UTC `DateTime` and `Guid` behavior. Keep provider-specific SQL explicit where engines differ and keep shared observable behavior aligned.
+`DateTimeFilterExtensions` centralizes UTC range normalization and the SQLite persistence representation. SQLite type handlers preserve UTC `DateTime` and `Guid` behavior. The SQLite command runner formats typed `DateTime` and `DateTimeOffset` bulk values with the same six-digit UTC text as SqlKata. `DateTime` inputs must have UTC kind. `DateTimeOffset` inputs are converted to UTC. The caller retains ownership of any supplied transaction.
+
+The SQLite adapter can materialize legacy UTC text with zero to seven fractional digits. Text range predicates and indexes expect the canonical six-digit representation. If a consumer stored legacy values through the older runner, use a consumer-owned migration to read those values as UTC, rewrite them in canonical form with `UtcTime.FormatForPersistence`, and verify the affected range queries. Keep the migration limited to columns with a known UTC contract.
 
 ## Ownership rules
 

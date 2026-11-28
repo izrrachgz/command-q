@@ -1,11 +1,14 @@
-using Dapper;
 using Time;
+using Dapper;
 using System.Data;
+using System.Globalization;
 
 namespace Persistence.Repository.TypeHandlers
 {
     internal sealed class SqliteUtcDateTimeTypeHandler : SqlMapper.TypeHandler<DateTime>
     {
+        private const string LegacyUtcFormat = "yyyy-MM-dd HH:mm:ss.FFFFFFF'Z'";
+
         public static SqliteUtcDateTimeTypeHandler Instance { get; } = new();
 
         private SqliteUtcDateTimeTypeHandler()
@@ -35,6 +38,12 @@ namespace Persistence.Repository.TypeHandlers
                 }
                 catch (FormatException exception)
                 {
+                    if (DateTime.TryParseExact(text, LegacyUtcFormat, CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var legacyUtc))
+                    {
+                        return UtcTime.TruncateToPersistencePrecision(legacyUtc);
+                    }
+
                     throw new DataException("The database value is not a valid UTC timestamp.", exception);
                 }
             }
@@ -46,6 +55,16 @@ namespace Persistence.Repository.TypeHandlers
         {
             parameter.DbType = DbType.String;
             parameter.Value = FormatUtc(value);
+        }
+
+        internal static object NormalizeParameter(object value)
+        {
+            return value switch
+            {
+                DateTime dateTime => FormatUtc(dateTime),
+                DateTimeOffset dateTimeOffset => FormatUtc(dateTimeOffset.UtcDateTime),
+                _ => value
+            };
         }
 
         internal static string FormatUtc(DateTime value)

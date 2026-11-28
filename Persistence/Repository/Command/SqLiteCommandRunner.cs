@@ -9,6 +9,7 @@ using Common.Models.Response;
 using Persistence.Abstractions;
 using Microsoft.Extensions.Logging;
 using Persistence.Repository.Extensions;
+using Persistence.Repository.TypeHandlers;
 using Microsoft.Extensions.Configuration;
 
 namespace Persistence.Repository.Command
@@ -138,26 +139,10 @@ namespace Persistence.Repository.Command
 
             await using var connection = (SQLiteConnection)await GetConnection(cancellationToken);
 
-            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+            await using var transaction = (SQLiteTransaction)await connection.BeginTransactionAsync(cancellationToken);
             try
             {
-                await using var cmd = connection.CreateCommand();
-                cmd.Transaction = (SQLiteTransaction)transaction;
-
-                cmd.CommandText = $@"INSERT INTO {table} ({string.Join(@",", columns)}) VALUES (@{string.Join(@",@", columns)})";
-
-                foreach (var column in columns)
-                    cmd.Parameters.Add(new SQLiteParameter($@"@{column}"));
-
-                await cmd.PrepareAsync(cancellationToken);
-
-                foreach (var row in rows)
-                {
-                    foreach (var column in columns)
-                        cmd.Parameters[$@"@{column}"].Value = row[column] ?? DBNull.Value;
-
-                    await cmd.ExecuteNonQueryAsync(cancellationToken);
-                }
+                await InsertRows(connection, transaction, table, columns, rows, cancellationToken);
 
                 await transaction.CommitAsync(cancellationToken);
 
@@ -191,25 +176,13 @@ namespace Persistence.Repository.Command
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(transaction);
-            if (transaction is not SQLiteTransaction sqliteTransaction || sqliteTransaction.Connection is null)
+            if (transaction is not SQLiteTransaction sqliteTransaction || sqliteTransaction.Connection is not { } connection)
                 throw new ArgumentException("A live SQLite transaction is required.", nameof(transaction));
 
             Logger.SavingRecords(rows.Length);
             try
             {
-                await using var cmd = sqliteTransaction.Connection.CreateCommand();
-                cmd.Transaction = sqliteTransaction;
-                cmd.CommandText = $@"INSERT INTO {table} ({string.Join(@",", columns)}) VALUES (@{string.Join(@",@", columns)})";
-                foreach (string column in columns)
-                    cmd.Parameters.Add(new SQLiteParameter($@"@{column}"));
-                await cmd.PrepareAsync(cancellationToken);
-
-                foreach (Dictionary<string, object?> row in rows)
-                {
-                    foreach (string column in columns)
-                        cmd.Parameters[$@"@{column}"].Value = row[column] ?? DBNull.Value;
-                    await cmd.ExecuteNonQueryAsync(cancellationToken);
-                }
+                await InsertRows(connection, sqliteTransaction, table, columns, rows, cancellationToken);
 
                 return new(true, CommandConstants.CopyCompleted);
             }
@@ -222,6 +195,31 @@ namespace Persistence.Repository.Command
             {
                 Logger.CommandFailed(e);
                 return new(false, CommandConstants.ErrorDuringCopy);
+            }
+        }
+
+        private static async Task InsertRows(
+            SQLiteConnection connection,
+            SQLiteTransaction transaction,
+            string table,
+            string[] columns,
+            Dictionary<string, object?>[] rows,
+            CancellationToken cancellationToken)
+        {
+            await using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = $@"INSERT INTO {table} ({string.Join(@",", columns)}) VALUES (@{string.Join(@",@", columns)})";
+
+            foreach (string column in columns)
+                command.Parameters.Add(new SQLiteParameter($@"@{column}"));
+            await command.PrepareAsync(cancellationToken);
+
+            foreach (var row in rows)
+            {
+                foreach (string column in columns)
+                    command.Parameters[$@"@{column}"].Value = SqliteUtcDateTimeTypeHandler.NormalizeParameter(row[column] ?? DBNull.Value);
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
             }
         }
 
